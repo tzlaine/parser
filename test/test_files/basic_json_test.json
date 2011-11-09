@@ -1,0 +1,14 @@
+﻿[
+    123.45,
+    true,
+    false,
+    0xFF,
+    077,
+    "this is a unicode \u20AC string",
+    "Τη γλώσσα μου έδωσαν ελληνική",
+    12345,
+    [
+        92,
+        ["another string", "apple", "Sîne"]
+    ]
+]

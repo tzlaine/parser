@@ -1,4 +1,8 @@
-﻿#include "../yaml/parser/scalar_def.hpp"
+﻿/**
+ *   Copyright (C) 2010, 2011 Object Modeling Designs
+ */
+
+#include "../yaml/parser/scalar_def.hpp"
 #include <boost/detail/lightweight_test.hpp>
 
 namespace

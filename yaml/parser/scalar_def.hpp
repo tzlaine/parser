@@ -1,11 +1,13 @@
 /**
  *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (c) 2010 Joel de Guzman
  */
 
-#if !defined(OMD_COMMON_STRING_DEF)
-#define OMD_COMMON_STRING_DEF
+#if !defined(OMD_COMMON_SCALAR_DEF_HPP)
+#define OMD_COMMON_SCALAR_DEF_HPP
 
 #include "scalar.hpp"
+
 #include <boost/cstdint.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -99,12 +101,12 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar()
-      : scalar::base_type(value)
+    scalar<Iterator>::scalar(std::string const& source_file)
+      : scalar::base_type(value),
+        error_handler(error_handler_t(source_file))
     {
         qi::_val_type _val;
         qi::lit_type lit;
-        qi::lexeme_type lexeme;
         qi::char_type char_;
         qi::hex_type hex;
         qi::oct_type oct;
@@ -123,8 +125,8 @@ namespace omd { namespace parser
             ;
 
         integer_value =
-              lexeme[no_case["0x"] > hex]
-            | lexeme['0' >> oct]
+              no_case["0x"] > hex
+            | '0' >> oct
             | int_
             ;
 
@@ -148,6 +150,12 @@ namespace omd { namespace parser
             (bool_value)
             (null_value)
         );
+
+        qi::_1_type _1;
+        qi::_2_type _2;
+        qi::_3_type _3;
+        qi::_4_type _4;
+        qi::on_error<qi::fail>(value, error_handler(_1, _2, _3, _4));
     }
 }}
 
