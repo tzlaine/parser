@@ -101,9 +101,8 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar(std::string const& source_file)
-      : scalar::base_type(value),
-        error_handler(error_handler_t(source_file))
+    scalar<Iterator>::scalar()
+      : scalar::base_type(value)
     {
         qi::_val_type _val;
         qi::lit_type lit;
@@ -147,15 +146,8 @@ namespace omd { namespace parser
         BOOST_SPIRIT_DEBUG_NODES(
             (value)
             (integer_value)
-            (bool_value)
             (null_value)
         );
-
-        qi::_1_type _1;
-        qi::_2_type _2;
-        qi::_3_type _3;
-        qi::_4_type _4;
-        qi::on_error<qi::fail>(value, error_handler(_1, _2, _3, _4));
     }
 }}
 

@@ -9,6 +9,6 @@
     12345,
     [
         92,
-        ["another string", "apple", "Sîne"]
+        ["another string", apple, Sîne]
     ]
 ]

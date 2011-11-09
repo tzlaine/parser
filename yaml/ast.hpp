@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <ostream>
 #include <boost/spirit/include/support_extended_variant.hpp>
 
 namespace omd { namespace ast
@@ -25,6 +26,9 @@ namespace omd { namespace ast
     // nulls always compare
     inline bool operator==(null_t a, null_t b) { return true;  }
     inline bool operator!=(null_t a, null_t b) { return false; }
+
+    inline std::ostream& operator<<(std::ostream& out, null_t)
+    { out << "<null>"; return out; }
 
     struct                                      value_t;
     typedef std::map<value_t, value_t>          object_t;

@@ -22,33 +22,47 @@ namespace omd { namespace parser
 
         std::string source_file;
         error_handler(std::string const& source_file = "")
-          : source_file(source_file) {}
+          : source_file(source_file)
+        {
+        }
 
         void operator()(
             Iterator first, Iterator last,
             Iterator err_pos, boost::spirit::info const& what) const
         {
-            Iterator eol = err_pos;
             int line = boost::spirit::get_line(err_pos);
+            Iterator line_start = boost::spirit::get_line_start(first, err_pos);
 
             if (source_file != "")
-                std::cerr << source_file;
+                std::cerr << "In file " << source_file << ", ";
+            else
+                std::cerr << "In ";
 
             if (line != -1)
-                std::cerr << '(' << line << ')';
+                std::cerr << "line " << line << ':' << std::endl;
 
-            std::cerr << " : Error! Expecting "  << what;
+            std::cerr << "Error! Expecting "  << what;
 
-            std::cerr << " got:\"";
-            for (Iterator i = err_pos; i != last; ++i)
+            std::cerr << " here:" << std::endl;
+            int ci = 0;
+            int col;
+            for (Iterator i = ++line_start; i != last; ++i, ++ci)
             {
-                Iterator::value_type c = *i;
+                typename Iterator::value_type c = *i;
+                if (i == err_pos)
+                    col = ci;
                 if (c == '\r' || c == '\n')
                     break;
                 std::cerr << c;
             }
 
-            std::cerr << "\"" << std::endl;
+            std::cerr << std::endl;
+            for (int i = 0; i != col; ++i)
+            {
+                std::cerr << '_';
+            }
+
+            std::cerr << "^_" << std::endl;
         }
     };
 }}

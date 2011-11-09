@@ -36,16 +36,13 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct scalar : qi::grammar<Iterator, ast::value_t()>
     {
-        scalar(std::string const& source_file = "");
+        scalar();
 
         qi::rule<Iterator, ast::value_t()> value;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;
         qi::symbols<char, bool> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
-
-        typedef omd::parser::error_handler<Iterator> error_handler_t;
-        boost::phoenix::function<error_handler_t> const error_handler;
     };
 }}
 

@@ -28,7 +28,6 @@ namespace omd { namespace parser
     template <typename Iterator>
     flow<Iterator>::flow(std::string const& source_file)
       : flow::base_type(value),
-        scalar_value(source_file),
         error_handler(error_handler_t(source_file))
     {
         value =
@@ -39,7 +38,7 @@ namespace omd { namespace parser
 
         object =
               '{'
-           >  -(member_pair % ',')
+           >  -(member_pair >> *(',' > member_pair))
            >  '}'
            ;
 
@@ -51,7 +50,7 @@ namespace omd { namespace parser
 
         array =
               '['
-           >  -(value % ',')
+           >  -(value >> *(',' > value))
            >  ']'
            ;
 
