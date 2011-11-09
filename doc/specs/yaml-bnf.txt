@@ -1,0 +1,719 @@
+-- ** Spec productions
+--
+-- These are copied directly from the spec, with the sprinkling of
+-- additional token and decision point directives.
+
+-- 5.1 Character Set
+
+c_printable {- 1 -} = '\x9' / '\xA' / '\xD' / ('\x20', '\x7E')
+                    / '\x85' / ('\xA0', '\xD7FF') / ('\xE000', '\xFFFD')
+                    / ('\x10000', '\x10FFFF')
+
+nb_json {- 2 -} = '\x9' / ('\x20', '\x10FFFF')
+
+-- 5.2 Character Encodings
+
+c_byte_order_mark {- 3 -} = bom '\xFEFF'
+
+-- 5.3 Indicator Characters
+
+c_sequence_entry {- 4 -} = indicator '-'
+c_mapping_key {- 5 -} = indicator '?'
+c_mapping_value {- 6 -} = indicator ':'
+
+c_collect_entry {- 7 -} = indicator ','
+c_sequence_start {- 8 -} = indicator '['
+c_sequence_end {- 9 -} = indicator ']'
+c_mapping_start {- 10 -} = indicator '{'
+c_mapping_end {- 11 -} = indicator '}'
+
+c_comment {- 12 -} = indicator '#'
+
+c_anchor {- 13 -} = indicator '&'
+c_alias {- 14 -} = indicator '*'
+c_tag {- 15 -} = indicator '!'
+
+c_literal {- 16 -} = indicator '|'
+c_folded {- 17 -} = indicator '>'
+
+c_single_quote {- 18 -} = indicator '\''
+c_double_quote {- 19 -} = indicator '"'
+
+c_directive {- 20 -} = indicator '%'
+
+c_reserved {- 21 -} = indicator ( '@' / '`' )
+
+c_indicator {- 22 -} = c_sequence_entry / c_mapping_key / c_mapping_value / c_collect_entry
+                     / c_sequence_start / c_sequence_end / c_mapping_start / c_mapping_end
+                     / c_comment / c_anchor / c_alias / c_tag
+                     / c_literal / c_folded / c_single_quote / c_double_quote
+                     / c_directive / c_reserved
+
+c_flow_indicator {- 23 -} = c_collect_entry / c_sequence_start / c_sequence_end / c_mapping_start / c_mapping_end
+
+-- 5.4 Line Break Characters
+
+b_line_feed {- 24 -} = '\xA'
+b_carriage_return {- 25 -} = '\xD'
+
+b_char {- 26 -} = b_line_feed / b_carriage_return
+
+nb_char {- 27 -} = c_printable - b_char - c_byte_order_mark
+
+b_break {- 28 -} = ( b_carriage_return & b_line_feed
+                   / b_carriage_return
+                   / b_line_feed )
+                 & nextLine
+
+b_as_line_feed {- 29 -} = token LineFeed b_break
+
+b_non_content {- 30 -} = token Break b_break
+
+-- 5.5 White Space Characters
+
+s_space {- 31 -} = '\x20'
+s_tab {- 32 -} = '\x9'
+s_white {- 33 -} = s_space / s_tab
+
+ns_char {- 34 -} = nb_char - s_white
+
+-- 5.6 Miscellaneous Characters
+
+ns_dec_digit {- 35 -} = ('\x30', '\x39')
+
+ns_hex_digit {- 36 -} = ns_dec_digit
+                      / ('\x41', '\x46') / ('\x61', '\x66')
+
+ns_ascii_letter {- 37 -} = ('\x41', '\x5A') / ('\x61', '\x7A')
+
+ns_word_char {- 38 -} = ns_dec_digit / ns_ascii_letter / '-'
+
+ns_uri_char {- 39 -} = "escape"
+                     ^ ( '%' ! "escape" & ns_hex_digit & ns_hex_digit / ns_word_char / '#'
+                       / ';' / '/' / '?' / ':' / '@' / '&' / '=' / '+' / '$' / ','
+                       / '_' / '.' / '!' / '~' / '*' / '\'' / '(' / ')' / '[' / ']' )
+
+ns_tag_char {- 40 -} = ns_uri_char - c_tag - c_flow_indicator
+
+-- 5.7 Escaped Characters
+
+c_escape {- 41 -} = indicator '\\'
+
+ns_esc_null {- 42 -} = meta '0'
+ns_esc_bell {- 43 -} = meta 'a'
+ns_esc_backspace {- 44 -} = meta 'b'
+ns_esc_horizontal_tab {- 45 -} = meta ( 't' / '\x9' )
+ns_esc_line_feed {- 46 -} = meta 'n'
+ns_esc_vertical_tab {- 47 -} = meta 'v'
+ns_esc_form_feed {- 48 -} = meta 'f'
+ns_esc_carriage_return {- 49 -} = meta 'r'
+ns_esc_escape {- 50 -} = meta 'e'
+ns_esc_space {- 51 -} = meta '\x20'
+ns_esc_double_quote {- 52 -} = meta '"'
+ns_esc_slash {- 53 -} = meta '/'
+ns_esc_backslash {- 54 -} = meta '\\'
+ns_esc_next_line {- 55 -} = meta 'N'
+ns_esc_non_breaking_space {- 56 -} = meta '_'
+ns_esc_line_separator {- 57 -} = meta 'L'
+ns_esc_paragraph_separator {- 58 -} = meta 'P'
+ns_esc_8_bit {- 59 -} = indicator 'x' ! "escaped" & meta ( ns_hex_digit % 2 )
+ns_esc_16_bit {- 60 -} = indicator 'u' ! "escaped" & meta ( ns_hex_digit % 4 )
+ns_esc_32_bit {- 61 -} = indicator 'U' ! "escaped" & meta ( ns_hex_digit % 8 )
+
+c_ns_esc_char {- 62 -} = nest BeginEscape
+                       & c_escape ! "escape"
+                       & "escaped"
+                       ^ ( ns_esc_null / ns_esc_bell / ns_esc_backspace
+                         / ns_esc_horizontal_tab / ns_esc_line_feed
+                         / ns_esc_vertical_tab / ns_esc_form_feed
+                         / ns_esc_carriage_return / ns_esc_escape / ns_esc_space
+                         / ns_esc_double_quote / ns_esc_slash / ns_esc_backslash
+                         / ns_esc_next_line / ns_esc_non_breaking_space
+                         / ns_esc_line_separator / ns_esc_paragraph_separator
+                         / ns_esc_8_bit / ns_esc_16_bit / ns_esc_32_bit )
+                       & nest EndEscape
+
+-- 6.1 Indentation Spaces
+
+s_indent n {- 63 -} = token Indent ( s_space % n )
+
+s_indent_lt n {- 64 -} = token Indent ( s_space <% n )
+s_indent_le n {- 65 -} = token Indent ( s_space <% (n .+ 1) )
+
+-- 6.2 Separation Spaces
+
+s_separate_in_line {- 66 -} = token White ( s_white +) / sol
+
+-- 6.3 Line Prefixes
+
+s_line_prefix n c {- 67 -} = case c of
+                                  BlockOut -> s_block_line_prefix n
+                                  BlockIn -> s_block_line_prefix n
+                                  FlowOut -> s_flow_line_prefix n
+                                  FlowIn -> s_flow_line_prefix n
+
+s_block_line_prefix n {- 68 -} = s_indent n
+s_flow_line_prefix n {- 69 -} = s_indent n & ( s_separate_in_line ?)
+
+-- 6.4 Empty Lines
+
+l_empty n c {- 70 -} = ( s_line_prefix n c / s_indent_lt n )
+                     & b_as_line_feed
+
+-- 6.5 Line Folding
+
+b_l_trimmed n c {- 71 -} = b_non_content & ( l_empty n c +)
+
+b_as_space {- 72 -} = token LineFold b_break
+
+b_l_folded n c {- 73 -} = b_l_trimmed n c / b_as_space
+
+s_s_flow_folded n {- 74 -} = ( s_separate_in_line ?) & b_l_folded n FlowIn
+                           & s_line_prefix n FlowIn
+
+-- 6.6 Comments
+
+c_nb_comment_text {- 75 -} = nest BeginComment
+                           & c_comment & meta ( nb_char *)
+                           & nest EndComment
+
+s_b_comment {- 76 -} = ( s_separate_in_line & ( c_nb_comment_text ?) ?)
+                     & b_non_content
+
+l_comment {- 77 -} = s_separate_in_line & ( c_nb_comment_text ?) & b_non_content
+
+s_l_comments {- 78 -} = ( s_b_comment / sol )
+                      & ( l_comment *)
+
+-- 6.7 Separation Lines
+
+s_separate n c {- 79 -} = case c of
+                                    BlockOut -> s_separate_lines n
+                                    BlockIn -> s_separate_lines n
+                                    FlowOut -> s_separate_lines n
+                                    FlowIn -> s_separate_lines n
+                                    BlockKey -> s_separate_in_line
+                                    FlowKey -> s_separate_in_line
+s_separate_lines n {- 80 -} = s_l_comments & s_flow_line_prefix n
+                            / s_separate_in_line
+
+-- 6.8 Directives
+
+l_directive {- 81 -} = nest BeginDirective
+                     & c_directive ! "doc"
+                     & "directive"
+                     ^ ( ns_yaml_directive
+                       / ns_tag_directive
+                       / ns_reserved_directive )
+                     & nest EndDirective
+                     & s_l_comments
+
+ns_reserved_directive {- 82 -} = ns_directive_name
+                                & ( s_separate_in_line & ns_directive_parameter *)
+ns_directive_name {- 83 -} = meta ( ns_char +)
+ns_directive_parameter {- 84 -} = meta ( ns_char +)
+
+-- 6.8.1 Yaml Directives
+
+ns_yaml_directive {- 85 -} = meta [ 'Y', 'A', 'M', 'L' ] ! "directive"
+                           & s_separate_in_line & ns_yaml_version
+ns_yaml_version {- 86 -} = meta ( ( ns_dec_digit +) & '.' & ( ns_dec_digit +) )
+
+-- 6.8.2 Tag Directives
+
+ns_tag_directive {- 87 -} = meta [ 'T', 'A', 'G' ] ! "directive"
+                          & s_separate_in_line & c_tag_handle
+                          & s_separate_in_line & ns_tag_prefix
+
+-- 6.8.2.1 Tag Handles
+
+c_tag_handle {- 88 -} = c_named_tag_handle
+                      / c_secondary_tag_handle
+                      / c_primary_tag_handle
+
+c_primary_tag_handle {- 89 -} = nest BeginHandle
+                                & c_tag
+                                & nest EndHandle
+
+c_secondary_tag_handle {- 90 -} = nest BeginHandle
+                                & c_tag & c_tag
+                                & nest EndHandle
+
+c_named_tag_handle {- 91 -} = nest BeginHandle
+                                 & c_tag & meta ( ns_word_char +) & c_tag
+                                 & nest EndHandle
+
+-- 6.8.2.2 Tag Prefixes
+
+ns_tag_prefix {- 92 -} = nest BeginTag
+                       & ( c_ns_local_tag_prefix / ns_global_tag_prefix )
+                       & nest EndTag
+
+c_ns_local_tag_prefix {- 93 -} = c_tag & meta ( ns_uri_char *)
+
+ns_global_tag_prefix {- 94 -} = meta ( ns_tag_char & ( ns_uri_char *) )
+
+-- 6.9 Node Properties
+
+c_ns_properties n c {- 95 -} = nest BeginProperties
+                              & ( ( c_ns_tag_property
+                                  & ( s_separate n c & c_ns_anchor_property ?) )
+                                / ( c_ns_anchor_property
+                                  & ( s_separate n c & c_ns_tag_property ?) ) )
+                              & nest EndProperties
+
+-- 6.9.1 Node Tags
+
+c_ns_tag_property {- 96 -} = nest BeginTag
+                            & ( c_verbatim_tag
+                              / c_ns_shorthand_tag
+                              / c_non_specific_tag )
+                            & nest EndTag
+
+c_verbatim_tag {- 97 -} = c_tag & indicator '<' & meta ( ns_uri_char +) & indicator '>'
+
+c_ns_shorthand_tag {- 98 -} = c_tag_handle & meta ( ns_tag_char +)
+
+c_non_specific_tag {- 99 -} = c_tag
+
+-- 6.9.2 Node Anchors
+
+c_ns_anchor_property {- 100 -} = nest BeginAnchor
+                               & c_anchor & ns_anchor_name
+                               & nest EndAnchor
+
+ns_anchor_char {- 101 -} = ns_char - c_flow_indicator
+ns_anchor_name {- 102 -} = meta ( ns_anchor_char +)
+
+-- 7.1 Alias Nodes
+
+c_ns_alias_node {- 103 -} = nest BeginAlias
+                          & c_alias ! "node" & ns_anchor_name
+                          & nest EndAlias
+
+-- 7.2 Empty Nodes
+
+e_scalar {- 104 -} = nest BeginScalar & nest EndScalar
+
+e_node {- 105 -} = nest BeginNode & e_scalar & nest EndNode
+
+-- 7.3.1 Double Quoted Style
+
+nb_double_char {- 106 -} = "escape" ^ ( c_ns_esc_char / ( nb_json - c_escape - c_double_quote ) )
+ns_double_char {- 107 -} = nb_double_char - s_white
+
+c_double_quoted n c {- 108 -} = nest BeginScalar
+                              & c_double_quote ! "node" & text ( nb_double_text n c ) & c_double_quote
+                              & nest EndScalar
+nb_double_text n c {- 109 -} = case c of
+                                     FlowOut -> nb_double_multi_line n
+                                     FlowIn -> nb_double_multi_line n
+                                     BlockKey -> nb_double_one_line
+                                     FlowKey -> nb_double_one_line
+nb_double_one_line {- 110 -} = ( nb_double_char *)
+
+s_s_double_escaped n {- 111 -} = ( s_white *)
+                               & nest BeginEscape
+                               & c_escape ! "escape" & b_non_content
+                               & nest EndEscape
+                               & ( l_empty n FlowIn *)
+                               & s_line_prefix n FlowIn
+s_s_double_break n {- 112 -} = "escape" ^ ( s_s_double_escaped n / s_s_flow_folded n )
+
+nb_ns_double_in_line {- 113 -} = ( ( s_white *) & ns_double_char *)
+s_ns_double_next_line n {- 114 -} = s_s_double_break n
+                                  & ns_double_char & nb_ns_double_in_line
+nb_double_multi_line n {- 115 -} = nb_ns_double_in_line
+                                  & ( s_ns_double_next_line n *)
+                                  & ( s_white *)
+
+-- 7.3.2 Single Quoted Style
+
+c_quoted_quote {- 116 -} = nest BeginEscape
+                         & c_single_quote ! "escape" & meta '\''
+                         & nest EndEscape
+nb_single_char {- 117 -} = "escape" ^ ( c_quoted_quote / ( nb_json - c_single_quote ) )
+ns_single_char {- 118 -} = nb_single_char - s_white
+
+c_single_quoted n c {- 119 -}= nest BeginScalar
+                              & c_single_quote ! "node" & text ( nb_single_text n c ) & c_single_quote
+                              & nest EndScalar
+nb_single_text n c {- 120 -} = case c of
+                                    FlowOut -> nb_single_multi_line n
+                                    FlowIn -> nb_single_multi_line n
+                                    BlockKey -> nb_single_one_line
+                                    FlowKey -> nb_single_one_line
+nb_single_one_line {- 121 -} = ( nb_single_char *)
+
+nb_ns_single_in_line {- 122 -} = ( ( s_white *) & ns_single_char *)
+s_ns_single_next_line n {- 123 -} = s_s_flow_folded n
+                                  & ns_single_char & nb_ns_single_in_line
+nb_single_multi_line n {- 124 -} = nb_ns_single_in_line
+                                  & ( s_ns_single_next_line n *)
+                                  & ( s_white *)
+
+-- 7.3.3 Plain Style
+
+ns_plain_first c {- 125 -} = ns_char - c_indicator
+                            / ( ':' / '?' / '-' ) & ( ns_char >?)
+
+ns_plain_safe c {- 126 -} = case c of
+                                   FlowOut -> ns_plain_safe_out
+                                   FlowIn -> ns_plain_safe_in
+                                   BlockKey -> ns_plain_safe_out
+                                   FlowKey -> ns_plain_safe_in
+ns_plain_safe_out {- 127 -} = ns_char - c_mapping_value - c_comment
+ns_plain_safe_in {- 128 -} = ns_plain_safe_out - c_flow_indicator
+ns_plain_char c {- 129 -} = ns_plain_safe c
+                            / ( ns_char <?) & '#'
+                            / ':' & ( ns_char >?)
+
+ns_plain n c {- 130 -} = nest BeginScalar
+                                & text (case c of
+                                             FlowOut -> ns_plain_multi_line n c
+                                             FlowIn -> ns_plain_multi_line n c
+                                             BlockKey -> ns_plain_one_line c
+                                             FlowKey -> ns_plain_one_line c)
+                                & nest EndScalar
+nb_ns_plain_in_line c {- 131 -} = ( ( s_white *) & ns_plain_char c *)
+ns_plain_one_line c {- 132 -} = ns_plain_first c ! "node" & nb_ns_plain_in_line c
+
+s_ns_plain_next_line n c {- 133 -} = s_s_flow_folded n
+                                   & ns_plain_char c & nb_ns_plain_in_line c
+ns_plain_multi_line n c {- 134 -} = ns_plain_one_line c
+                                   & ( s_ns_plain_next_line n c *)
+
+-- 7.4 Flow Collection Styles
+
+in_flow c {- 135 -} = case c of
+                           FlowOut -> FlowIn
+                           FlowIn -> FlowIn
+                           BlockKey -> FlowKey
+                           FlowKey -> FlowKey
+
+-- 7.4.1 Flow Sequences
+
+c_flow_sequence n c {- 136 -} = nest BeginSequence
+                              & c_sequence_start ! "node" & ( s_separate n c ?)
+                              & ( ns_s_flow_seq_entries n (in_flow c) ?) & c_sequence_end
+                              & nest EndSequence
+
+ns_s_flow_seq_entries n c {- 137 -} = ns_flow_seq_entry n c & ( s_separate n c ?)
+                                    & ( c_collect_entry & ( s_separate n c ?)
+                                      & ( ns_s_flow_seq_entries n c ?) ?)
+
+ns_flow_seq_entry n c {- 138 -} = "pair" ^ ( ns_flow_pair n c / "node" ^ ns_flow_node n c )
+
+-- 7.4.2 Flow Mappings
+
+c_flow_mapping n c {- 139 -} = nest BeginMapping
+                                    & c_mapping_start ! "node" & ( s_separate n c ?)
+                                    & ( ns_s_flow_map_entries n (in_flow c) ?) & c_mapping_end
+                                    & nest EndMapping
+ns_s_flow_map_entries n c {- 140 -} = ns_flow_map_entry n c & ( s_separate n c ?)
+                                    & ( c_collect_entry & ( s_separate n c ?)
+                                      & ( ns_s_flow_map_entries n c ?) ?)
+
+ns_flow_map_entry n c {- 141 -} = nest BeginPair
+                                         & "key" ^ ( ( c_mapping_key ! "key" & s_separate n c
+                                                     & ns_flow_map_explicit_entry n c )
+                                                   / ns_flow_map_implicit_entry n c )
+                                         & nest EndPair
+ns_flow_map_explicit_entry n c {- 142 -} = ns_flow_map_implicit_entry n c
+                                         / ( e_node
+                                           & e_node )
+
+ns_flow_map_implicit_entry n c {- 143 -} = "pair"
+                                            ^ ( ns_flow_map_yaml_key_entry n c
+                                              / c_ns_flow_map_empty_key_entry n c
+                                              / c_ns_flow_map_json_key_entry n c )
+ns_flow_map_yaml_key_entry n c {- 144 -} = ( "node" ^ ns_flow_yaml_node n c ) ! "pair"
+                                            & ( ( ( s_separate n c ?)
+                                                & c_ns_flow_map_separate_value n c )
+                                              / e_node )
+c_ns_flow_map_empty_key_entry n c {- 145 -} = e_node
+                                            & c_ns_flow_map_separate_value n c
+
+c_ns_flow_map_separate_value n c {- 146 -} = c_mapping_value & ( ns_char >!) ! "pair"
+                                            & ( ( s_separate n c & ns_flow_node n c )
+                                              / e_node )
+
+c_ns_flow_map_json_key_entry n c {- 147 -} = ( "node" ^ c_flow_json_node n c ) ! "pair"
+                                           & ( ( ( s_separate n c ?)
+                                               & c_ns_flow_map_adjacent_value n c )
+                                             / e_node )
+c_ns_flow_map_adjacent_value n c {- 148 -} = c_mapping_value ! "pair"
+                                           & ( ( ( s_separate n c ?)
+                                               & ns_flow_node n c )
+                                               / e_node )
+
+ns_flow_pair n c {- 149 -} = nest BeginMapping
+                           & nest BeginPair
+                           & ( ( c_mapping_key ! "pair" & s_separate n c
+                               & ns_flow_map_explicit_entry n c )
+                             / ns_flow_pair_entry n c )
+                           & nest EndPair
+                           & nest EndMapping
+
+ns_flow_pair_entry n c {- 150 -} = ( ns_flow_pair_yaml_key_entry n c
+                                              / c_ns_flow_map_empty_key_entry n c
+                                              / c_ns_flow_pair_json_key_entry n c )
+ns_flow_pair_yaml_key_entry n c {- 151 -} = ns_s_implicit_yaml_key FlowKey
+                                            & c_ns_flow_map_separate_value n c
+c_ns_flow_pair_json_key_entry n c {- 152 -} = c_s_implicit_json_key FlowKey
+                                            & c_ns_flow_map_adjacent_value n c
+ns_s_implicit_yaml_key c {- 153 -} = ( "node" ^ ( ns_flow_yaml_node na c ) & ( s_separate_in_line ?) )
+                                            `limitedTo` 1024
+c_s_implicit_json_key c {- 154 -} = ( "node" ^ ( c_flow_json_node na c ) & ( s_separate_in_line ?) )
+                                            `limitedTo` 1024
+
+-- 7.5 Flow Nodes
+
+ns_flow_yaml_content n c {- 155 -} = ns_plain n c
+c_flow_json_content n c {- 156 -} = c_flow_sequence n c / c_flow_mapping n c
+                                   / c_single_quoted n c / c_double_quoted n c
+ns_flow_content n c {- 157 -} = ns_flow_yaml_content n c / c_flow_json_content n c
+
+ns_flow_yaml_node n c {- 158 -} = nest BeginNode
+                                & ( c_ns_alias_node
+                                  / ns_flow_yaml_content n c
+                                  / ( c_ns_properties n c
+                                    & ( ( s_separate n c & ns_flow_yaml_content n c )
+                                      / e_scalar ) ) )
+                                & nest EndNode
+c_flow_json_node n c {- 159 -} = nest BeginNode
+                                & ( c_ns_properties n c & s_separate n c ?)
+                                & c_flow_json_content n c
+                                & nest EndNode
+ns_flow_node n c {- 160 -} = nest BeginNode
+                                & ( c_ns_alias_node
+                                  / ns_flow_content n c
+                                  / ( c_ns_properties n c
+                                    & ( ( s_separate n c & ns_flow_content n c )
+                                      / e_scalar ) ) )
+                                & nest EndNode
+
+-- 8.1.1 Block Scalar Headers
+
+c_b_block_header n {- 161 -} = "header"
+                             ^ ( do m <- c_indentation_indicator n
+                                    t <- c_chomping_indicator
+                                    ( s_white / b_char ) ?! "header"
+                                    s_b_comment
+                                    result (m, t)
+                               / do t <- c_chomping_indicator
+                                    m <- c_indentation_indicator n
+                                    s_b_comment
+                                    result (m, t) )
+
+-- 8.1.1.1 Block Indentation Indicator
+
+c_indentation_indicator n {- 162 -} = indicator ( ns_dec_digit - '0' ) & asInteger
+                                    / detect_scalar_indentation n
+
+detect_scalar_indentation n = peek $ ( nb_char *)
+                                   & ( b_non_content & ( l_empty n BlockIn *) ?)
+                                   & count_spaces (-n)
+
+count_spaces n = (s_space & count_spaces (n .+ 1))
+                / result (max 1 n)
+
+-- 8.1.1.2 Chomping Indicator
+
+c_chomping_indicator {- 163 -} = indicator '-' & result Strip
+                               / indicator '+' & result Keep
+                               / result Clip
+
+end_block_scalar t = case t of
+                          Strip -> nest EndScalar
+                          Clip -> nest EndScalar
+                          Keep -> empty
+
+b_chomped_last t {- 164 -} = case t of
+                                  Strip -> nest EndScalar & b_non_content
+                                  Clip -> b_as_line_feed & nest EndScalar
+                                  Keep -> b_as_line_feed
+
+l_chomped_empty n t {- 165 -} = case t of
+                                     Strip -> l_strip_empty n
+                                     Clip -> l_strip_empty n
+                                     Keep -> l_keep_empty n
+l_strip_empty n {- 166 -} = ( s_indent_le n & b_non_content *)
+                              & ( l_trail_comments n ?)
+l_keep_empty n {- 167 -} = ( l_empty n BlockIn *)
+                              & nest EndScalar
+                              & ( l_trail_comments n ?)
+
+l_trail_comments n {- 168 -} = s_indent_lt n & c_nb_comment_text & b_non_content
+                             & ( l_comment *)
+
+-- 8.1.2 Literal Style
+
+c_l__literal n {- 169 -} = do nest BeginScalar
+                              indicator '|'
+                              (m, t) <- c_b_block_header n
+                              text ( l_literal_content (n .+ m) t )
+
+l_nb_literal_text n {- 170 -} = ( l_empty n BlockIn *)
+                                & s_indent n & ( nb_char +)
+b_nb_literal_next n {- 171 -} = b_as_line_feed
+                                & l_nb_literal_text n
+l_literal_content n t {- 172 -} = ( ( l_nb_literal_text n & ( b_nb_literal_next n *) & b_chomped_last t )
+                                  / end_block_scalar t )
+                                & l_chomped_empty n t
+
+-- 8.1.3 Folded Style
+
+c_l__folded n {- 173 -} = do nest BeginScalar
+                             indicator '>'
+                             (m, t) <- c_b_block_header n
+                             text ( l_folded_content (n .+ m) t )
+
+s_nb_folded_text n {- 174 -} = s_indent n & ns_char ! "fold" & ( nb_char *)
+l_nb_folded_lines n {- 175 -} = s_nb_folded_text n
+                              & ( b_l_folded n BlockIn & s_nb_folded_text n *)
+
+s_nb_spaced_text n {- 176 -} = s_indent n & s_white ! "fold" & ( nb_char *)
+b_l_spaced n {- 177 -} = b_as_line_feed
+                              & ( l_empty n BlockIn *)
+l_nb_spaced_lines n {- 178 -} = s_nb_spaced_text n
+                              & ( b_l_spaced n & s_nb_spaced_text n *)
+
+l_nb_same_lines n {- 179 -} = ( l_empty n BlockIn *)
+                            & "fold" ^ ( l_nb_folded_lines n / l_nb_spaced_lines n )
+
+l_nb_diff_lines n {- 180 -} = l_nb_same_lines n
+                            & ( b_as_line_feed & l_nb_same_lines n *)
+
+l_folded_content n t {- 181 -} = ( ( l_nb_diff_lines n & b_chomped_last t )
+                                 / end_block_scalar t )
+                               & l_chomped_empty n t
+
+-- 8.2.1 Block Sequences
+
+detect_collection_indentation n = peek $ ( l_comment* ) & count_spaces (-n)
+detect_inline_indentation = peek $ count_spaces 0
+
+l__block_sequence n {- 182 -} = do m <- detect_collection_indentation n
+                                     ( nest BeginSequence
+                                       & ( s_indent (n .+ m) & c_l_block_seq_entry (n .+ m) +)
+                                       & nest EndSequence )
+c_l_block_seq_entry n {- 183 -} = c_sequence_entry & ( ns_char >!) ! "node"
+                                & s_l__block_indented n BlockIn
+
+s_l__block_indented n c {- 184 -} = do m <- detect_inline_indentation
+                                       "node" ^ ( ( s_indent m
+                                                    & ( ns_l_in_line_sequence (n .+ 1 .+ m)
+                                                      / ns_l_in_line_mapping (n .+ 1 .+ m) ) )
+                                                  / s_l__block_node n c
+                                                  / ( e_node & ( s_l_comments ?) & unparsed (n .+ 1) ) ) `recovery` unparsed (n .+ 1)
+ns_l_in_line_sequence n {- 185 -} = nest BeginNode
+                                  & nest BeginSequence
+                                  & c_l_block_seq_entry n
+                                  & ( s_indent n & c_l_block_seq_entry n *)
+                                  & nest EndSequence
+                                  & nest EndNode
+
+-- 8.2.2 Block Mappings
+
+l__block_mapping n = {- 186 -} do m <- detect_collection_indentation n
+                                  ( nest BeginMapping
+                                    & ( s_indent (n .+ m) & ns_l_block_map_entry (n .+ m) +)
+                                    & nest EndMapping )
+
+ns_l_block_map_entry n {- 187 -} = nest BeginPair
+                                 & ( c_l_block_map_explicit_entry n
+                                   / ns_l_block_map_implicit_entry n )
+                                 & nest EndPair
+c_l_block_map_explicit_entry n {- 188 -} = c_l_block_map_explicit_key n
+                                         & ( l_block_map_explicit_value n
+                                         / e_node )
+c_l_block_map_explicit_key n {- 189 -} = c_mapping_key ! "node" & s_l__block_indented n BlockOut
+l_block_map_explicit_value n {- 190 -} = s_indent n & c_mapping_value & s_l__block_indented n BlockOut
+
+ns_l_block_map_implicit_entry n {- 191 -} = ( ns_s_block_map_implicit_key
+                                            / e_node )
+                                          & c_l_block_map_implicit_value n
+ns_s_block_map_implicit_key {- 192 -} = c_s_implicit_json_key BlockKey
+                                          / ns_s_implicit_yaml_key BlockKey
+
+c_l_block_map_implicit_value n {- 193 -} = c_mapping_value ! "node"
+                                          & ( ( s_l__block_node n BlockOut
+                                              / ( e_node & ( s_l_comments ?) & unparsed (n .+ 1) ) ) `recovery` unparsed (n .+ 1) )
+
+ns_l_in_line_mapping n {- 194 -} = nest BeginNode
+                                 & nest BeginMapping
+                                 & ns_l_block_map_entry n
+                                 & ( s_indent n & ns_l_block_map_entry n *)
+                                 & nest EndMapping
+                                 & nest EndNode
+
+-- 8.2.3 Block Nodes
+
+unparsed n = ( sol / unparsed_text & unparsed_break )
+           & ( nonEmpty ( unparsed_indent n & unparsed_text & unparsed_break ) *)
+unparsed_indent n = token Unparsed ( s_space % n )
+unparsed_text = token Unparsed ( upto ( eof / c_forbidden / b_break ) )
+unparsed_break = eof / peek c_forbidden / token Unparsed b_break / empty
+
+s_l__block_node n c {- 195 -} = s_l__block_in_block n c / s_l__flow_in_block n
+s_l__flow_in_block n {- 196 -} = s_separate (n .+ 1) FlowOut
+                               & ns_flow_node (n .+ 1) FlowOut & s_l_comments
+
+s_l__block_in_block n c {- 197 -} = nest BeginNode
+                                  & ( s_l__block_scalar n c / s_l__block_collection n c )
+                                  & nest EndNode
+s_l__block_scalar n c {- 198 -} = s_separate (n .+ 1) c
+                                  & ( c_ns_properties (n .+ 1) c & s_separate (n .+ 1) c ?)
+                                  & ( c_l__literal n / c_l__folded n )
+
+s_l__block_collection n c {- 199 -} = ( s_separate (n .+ 1) c & c_ns_properties (n .+ 1) c & ( s_l_comments >?) ?)
+                                    & s_l_comments
+                                    & ( l__block_sequence (seq_spaces n c)
+                                    / l__block_mapping n )
+seq_spaces n c {- 200 -} = case c of
+                                           BlockOut -> n .- 1
+                                           BlockIn -> n
+
+-- 9.1.1 Document Prefix
+
+l_document_prefix {- 201 -} = ( c_byte_order_mark ?) & ( l_comment *)
+
+-- 9.1.2 Document Markers
+
+c_directives_end {- 202 -} = token DirectivesEnd [ '-', '-', '-' ]
+c_document_end {- 203 -} = token DocumentEnd [ '.', '.', '.' ]
+l_document_suffix {- 204 -} = c_document_end & s_l_comments
+c_forbidden {- 205 -} = sol
+                            & ( c_directives_end / c_document_end )
+                            & ( b_char / s_white / eof )
+
+-- 9.1.3 Explicit Documents
+
+l_bare_document {- 206 -} = "node" ^ s_l__block_node (-1) BlockIn
+                            `forbidding` c_forbidden
+
+-- 9.1.4 Explicit Documents
+
+l_explicit_document {- 207 -} = c_directives_end ! "doc"
+                              & ( ( l_bare_document
+                                  / e_node & ( s_l_comments ?) & unparsed 0 ) `recovery` unparsed 0 )
+
+-- 9.1.5 Directives Documents
+
+l_directives_document {- 208 -} = ( l_directive +)
+                                & l_explicit_document
+
+-- 9.2 Streams:
+
+l_any_document {- 209 -} = nest BeginDocument
+                           & "doc" ^ ( l_directives_document
+                                     / l_explicit_document
+                                     / l_bare_document ) `recovery` unparsed 0
+                           & nest EndDocument
+
+l_yaml_stream {- 210 -} = ( nonEmpty l_document_prefix *)
+                        & ( eof / ( c_document_end & ( b_char / s_white / eof ) >?) / l_any_document )
+                        & ( nonEmpty ( "more" ^ ( ( l_document_suffix ! "more" +) & ( nonEmpty l_document_prefix *) & ( eof / l_any_document )
+                                                / ( nonEmpty l_document_prefix *) & "doc" ^ ( nest BeginDocument & l_explicit_document & nest EndDocument ) ) ) *)
+

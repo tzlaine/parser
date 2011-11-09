@@ -1,0 +1,47 @@
+"Name"     = JSON Grammar
+"Author"   = Arsène von Wyss
+"Version"  = 1.0
+"About"    = 'Grammar for JSON data, following http://www.json.org/'
+! and compliant with http://www.ietf.org/rfc/rfc4627
+
+"Start Symbol" = <Json>
+"Case Sensitive" = True
+"Character Mapping" = 'Unicode'
+
+! ------------------------------------------------- Sets
+
+{Unescaped} = {All Valid} - {&1 .. &19} - ["\]
+{Hex} = {Digit} + [ABCDEFabcdef]
+{Digit9} = {Digit} - [0]
+
+! ------------------------------------------------- Terminals
+
+Number = '-'?('0'|{Digit9}{Digit}*)('.'{Digit}+)?([Ee][+-]?{Digit}+)?
+String = '"'({Unescaped}|'\'(["\/bfnrt]|'u'{Hex}{Hex}{Hex}{Hex}))*'"'
+
+! ------------------------------------------------- Rules
+
+<Json> ::= <Object>
+         | <Array>
+
+<Object> ::= '{' '}'
+           | '{' <Members> '}'
+
+<Members> ::= <Pair>
+            | <Pair> ',' <Members>
+
+<Pair> ::= String ':' <Value>
+
+<Array> ::= '[' ']'
+          | '[' <Elements> ']'
+
+<Elements> ::= <Value>
+             | <Value> ',' <Elements>
+
+<Value> ::= String
+          | Number
+          | <Object>
+          | <Array>
+          | true
+          | false
+          | null
