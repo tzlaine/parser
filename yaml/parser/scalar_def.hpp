@@ -64,6 +64,7 @@ namespace omd { namespace parser
         qi::_val_type _val;
         qi::_r1_type _r1;
         qi::_1_type _1;
+        qi::lit_type lit;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
@@ -81,16 +82,19 @@ namespace omd { namespace parser
               )
             ;
 
-        char_lit =
-              '\''
-            > (char_esc(_val) | (~char_('\''))  [_val += _1])
-            > '\''
-            ;
-
-        quoted =
+        double_quoted =
               '"'
             > *(char_esc(_val) | (~char_('"'))  [_val += _1])
             > '"'
+            ;
+
+        single_quoted =
+              '\''
+            > *(
+                  lit("''")                     [_val += '\'']
+              |   (~char_('\''))                [_val += _1]
+              )
+            > '\''
             ;
 
         unquoted =
@@ -98,12 +102,16 @@ namespace omd { namespace parser
             >>  *(~char_(indicators))
             ;
 
-        start = quoted | unquoted;
+        start =
+              double_quoted
+            | single_quoted
+            | unquoted
+            ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (char_esc)
-            (char_lit)
-            (quoted)
+            (single_quoted)
+            (double_quoted)
             (unquoted)
             (start)
         );
@@ -125,11 +133,11 @@ namespace omd { namespace parser
         qi::real_parser<double, qi::strict_real_policies<double> > double_value;
 
         value =
-              string_value
-            | double_value
+              double_value
             | integer_value
             | no_case[bool_value]
             | no_case[null_value]
+            | string_value
             ;
 
         integer_value =

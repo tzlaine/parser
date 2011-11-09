@@ -4,8 +4,9 @@
     false,
     0xFF,
     077,
+    'this is a single quoted ''unicode'' string',
     "this is a unicode \u20AC string",
-    "Τη γλώσσα μου έδωσαν ελληνική",
+    "?? ???ssa µ?? ?d?sa? e???????",
     12345,
     [
         92,

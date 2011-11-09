@@ -43,7 +43,7 @@ namespace omd { namespace parser
             std::cerr << "Error! Expecting " << what << " here:" << std::endl;
 
             int ci = 0;
-            int col;
+            int col = 0;
             Iterator line_start = boost::spirit::get_line_start(first, err_pos);
 
             for (Iterator i = ++line_start; i != last; ++i, ++ci)

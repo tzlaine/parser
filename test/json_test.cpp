@@ -2,7 +2,7 @@
  *   Copyright (C) 2010, 2011 Object Modeling Designs
  */
 
-//~ #define BOOST_SPIRIT_DEBUG
+#define BOOST_SPIRIT_DEBUG
 
 #include "../yaml/parser/flow_def.hpp"
 #include "../yaml/parser/scalar_def.hpp"
