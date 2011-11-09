@@ -31,7 +31,6 @@ namespace omd { namespace parser
             Iterator err_pos, boost::spirit::info const& what) const
         {
             int line = boost::spirit::get_line(err_pos);
-            Iterator line_start = boost::spirit::get_line_start(first, err_pos);
 
             if (source_file != "")
                 std::cerr << "In file " << source_file << ", ";
@@ -41,11 +40,12 @@ namespace omd { namespace parser
             if (line != -1)
                 std::cerr << "line " << line << ':' << std::endl;
 
-            std::cerr << "Error! Expecting "  << what;
+            std::cerr << "Error! Expecting " << what << " here:" << std::endl;
 
-            std::cerr << " here:" << std::endl;
             int ci = 0;
             int col;
+            Iterator line_start = boost::spirit::get_line_start(first, err_pos);
+
             for (Iterator i = ++line_start; i != last; ++i, ++ci)
             {
                 typename Iterator::value_type c = *i;
@@ -58,9 +58,7 @@ namespace omd { namespace parser
 
             std::cerr << std::endl;
             for (int i = 0; i != col; ++i)
-            {
                 std::cerr << '_';
-            }
 
             std::cerr << "^_" << std::endl;
         }

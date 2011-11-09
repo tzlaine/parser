@@ -23,6 +23,12 @@ namespace omd { namespace parser
 
     typedef boost::uint32_t uchar; // a unicode code point
 
+    // The indicators
+    char const* indicators = "-?:,[]{}#&*!|>\\\"%@`";
+
+    // These are not allowed as first plain-style character
+    char const* unsafe_first = ",[]{}#&*!|>\\\"%@`";
+
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>
     {
@@ -30,6 +36,8 @@ namespace omd { namespace parser
 
         qi::rule<Iterator, void(std::string&)> char_esc;
         qi::rule<Iterator, std::string()> char_lit;
+        qi::rule<Iterator, std::string()> quoted;
+        qi::rule<Iterator, std::string()> unquoted;
         qi::rule<Iterator, std::string()> start;
     };
 

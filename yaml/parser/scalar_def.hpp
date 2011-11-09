@@ -73,29 +73,38 @@ namespace omd { namespace parser
         function<detail::push_utf8> push_utf8;
         function<detail::push_esc> push_esc;
 
-        char_esc
-            = '\\'
+        char_esc =
+            '\\'
             > (   ('u' > hex4)                  [push_utf8(_r1, _1)]
               |   ('U' > hex8)                  [push_utf8(_r1, _1)]
               |   char_("btnfr/\\\"'")          [push_esc(_r1, _1)]
               )
             ;
 
-        char_lit
-            = '\''
+        char_lit =
+              '\''
             > (char_esc(_val) | (~char_('\''))  [_val += _1])
             > '\''
             ;
 
-        start
-            = '"'
+        quoted =
+              '"'
             > *(char_esc(_val) | (~char_('"'))  [_val += _1])
             > '"'
             ;
 
+        unquoted =
+                ~char_(unsafe_first)
+            >>  *(~char_(indicators))
+            ;
+
+        start = quoted | unquoted;
+
         BOOST_SPIRIT_DEBUG_NODES(
             (char_esc)
             (char_lit)
+            (quoted)
+            (unquoted)
             (start)
         );
     }
