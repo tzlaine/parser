@@ -30,15 +30,15 @@ namespace omd { namespace parser
     };
 
     template <typename Iterator>
-    struct scalar : qi::grammar<Iterator, ast::value_t(), ascii::space_type>
+    struct scalar : qi::grammar<Iterator, ast::value_t()>
     {
         scalar();
 
-        qi::rule<Iterator, ast::value_t(), ascii::space_type> value;
+        qi::rule<Iterator, ast::value_t()> value;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;
-        qi::symbols<bool, std::string> bool_value;
-        qi::rule<Iterator, ast::null_t(), ascii::space_type > null_value;
+        qi::symbols<char, bool> bool_value;
+        qi::rule<Iterator, ast::null_t() > null_value;
     };
 }}
 

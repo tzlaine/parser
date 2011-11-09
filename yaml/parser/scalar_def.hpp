@@ -107,11 +107,12 @@ namespace omd { namespace parser
         qi::lexeme_type lexeme;
         qi::char_type char_;
         qi::hex_type hex;
-        qi::oct_type oct_;
+        qi::oct_type oct;
         qi::no_case_type no_case;
-        qi::lexeme_type lexeme;
+        qi::int_type int_;
+        qi::attr_type attr;
 
-        real_parser<double, strict_real_policies<double> > double_value;
+        qi::real_parser<double, qi::strict_real_policies<double> > double_value;
 
         value =
               string_value
@@ -138,7 +139,7 @@ namespace omd { namespace parser
 
         null_value =
               (lit("null") | '~')
-            >> qi::attr(ast::null_t())
+            >> attr(ast::null_t())
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
