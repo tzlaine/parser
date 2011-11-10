@@ -8,6 +8,7 @@
 #include "flow.hpp"
 
 #include <boost/fusion/adapted/std_pair.hpp>
+#include <boost/spirit/include/phoenix_stl.hpp>
 
 namespace omd { namespace parser
 {
@@ -24,19 +25,6 @@ namespace omd { namespace parser
             |   '#' >> *(char_ - eol) >> eol    // comments
             ;
     }
-
-    //~ namespace detail
-    //~ {
-        //~ struct push_back_value
-        //~ {
-            //~ typedef void result_type;
-
-            //~ void operator()(ast::array_t& arr, ast::value_t const& val) const
-            //~ {
-                //~ arr.push_back();
-            //~ }
-        //~ };
-    //~ }
 
     template <typename Iterator>
     flow<Iterator>::flow(std::string const& source_file)

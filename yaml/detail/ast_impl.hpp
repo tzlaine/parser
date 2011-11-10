@@ -110,6 +110,7 @@ namespace omd { namespace ast
         struct json_printer
         {
             typedef void result_type;
+            static int const spaces = 2;
 
             std::ostream& out;
             mutable int indent_spaces;
@@ -151,7 +152,7 @@ namespace omd { namespace ast
             {
                 indent();
                 out << '{';
-                indent_spaces += 2;
+                indent_spaces += spaces;
                 typedef std::pair<value_t, value_t> pair;
                 bool first = true;
 
@@ -167,11 +168,13 @@ namespace omd { namespace ast
                         out << ",\n";
                     }
                     boost::apply_visitor(*this, val.first.get());
-                    out << " : ";
+                    out << " :\n";
+                    indent_spaces += spaces;
                     boost::apply_visitor(*this, val.second.get());
+                    indent_spaces -= spaces;
                 }
 
-                indent_spaces -= 2;
+                indent_spaces -= spaces;
                 out << std::endl;
                 indent();
                 out << '}';
@@ -181,7 +184,7 @@ namespace omd { namespace ast
             {
                 indent();
                 out << '[';
-                indent_spaces += 2;
+                indent_spaces += spaces;
                 bool first = true;
 
                 BOOST_FOREACH(value_t const& val, arr)
@@ -198,7 +201,7 @@ namespace omd { namespace ast
                     boost::apply_visitor(*this, val.get());
                 }
 
-                indent_spaces -= 2;
+                indent_spaces -= spaces;
                 out << std::endl;
                 indent();
                 out << ']';
