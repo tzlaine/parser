@@ -2,12 +2,8 @@
     123.45,
     true,
     false,
-    0xFF,
-    077,
-    'this is a single quoted ''unicode'' string',
     "this is a unicode \u20AC string",
-    "?? ???ssa µ?? ?d?sa? e???????",
-    12345,
+    "Τη γλώσσα μου έδωσαν ελληνική",
     [
         92,
         ["another string", apple, Sîne]

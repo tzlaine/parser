@@ -25,12 +25,34 @@ namespace omd { namespace parser
             ;
     }
 
+    //~ namespace detail
+    //~ {
+        //~ struct push_back_value
+        //~ {
+            //~ typedef void result_type;
+
+            //~ void operator()(ast::array_t& arr, ast::value_t const& val) const
+            //~ {
+                //~ arr.push_back();
+            //~ }
+        //~ };
+    //~ }
+
     template <typename Iterator>
     flow<Iterator>::flow(std::string const& source_file)
-      : flow::base_type(value),
+      : flow::base_type(flow_value),
         error_handler(error_handler_t(source_file))
     {
-        value =
+        qi::_1_type _1;
+        qi::_2_type _2;
+        qi::_3_type _3;
+        qi::_4_type _4;
+        qi::_val_type _val;
+
+        namespace phx = boost::phoenix;
+        auto pb = phx::push_back(_val, _1);
+
+        flow_value =
              scalar_value
            | object
            | array
@@ -45,27 +67,23 @@ namespace omd { namespace parser
         member_pair =
               scalar_value
            >> ':'
-           >> value
+           >> flow_value
            ;
 
         array =
               '['
-           >  -(value >> *(',' > value))
+           >  -(flow_value[pb] >> *(',' > flow_value[pb]))
            >  ']'
            ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-            (value)
+            (flow_value)
             (object)
             (member_pair)
             (array)
         );
 
-        qi::_1_type _1;
-        qi::_2_type _2;
-        qi::_3_type _3;
-        qi::_4_type _4;
-        qi::on_error<qi::fail>(value, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(flow_value, error_handler(_1, _2, _3, _4));
     }
 }}
 

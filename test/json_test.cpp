@@ -89,8 +89,8 @@ int main(int argc, char **argv)
     value_t result;
     if (parse(in, result, filename))
     {
-        std::cout << "success: ";
-        //~ println(std::cout, result);
+        std::cout << "success: \n";
+        omd::ast::print_json(std::cout, result);
         std::cout << std::endl;
     }
     else

@@ -28,7 +28,7 @@ namespace omd { namespace parser
         typedef white_space<Iterator> white_space_t;
 
         qi::rule<Iterator, ast::value_t(), white_space_t> start;
-        qi::rule<Iterator, ast::value_t(), white_space_t> value;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_value;
         qi::rule<Iterator, ast::object_t(), white_space_t> object;
         qi::rule< Iterator, element_t(), white_space_t> member_pair;
         qi::rule<Iterator, ast::array_t(), white_space_t> array;
