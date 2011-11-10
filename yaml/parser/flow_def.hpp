@@ -51,6 +51,7 @@ namespace omd { namespace parser
 
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
+        auto ins = phx::insert(_val, _1);
 
         flow_value =
              scalar_value
@@ -60,7 +61,7 @@ namespace omd { namespace parser
 
         object =
               '{'
-           >  -(member_pair >> *(',' > member_pair))
+           >  -(member_pair[ins] >> *(',' > member_pair[ins]))
            >  '}'
            ;
 
