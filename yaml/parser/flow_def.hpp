@@ -28,7 +28,7 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     flow<Iterator>::flow(std::string const& source_file)
-      : flow::base_type(flow_value),
+      : flow::base_type(start),
         error_handler(error_handler_t(source_file))
     {
         qi::_1_type _1;
@@ -36,43 +36,49 @@ namespace omd { namespace parser
         qi::_3_type _3;
         qi::_4_type _4;
         qi::_val_type _val;
+        qi::lit_type lit;
 
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
 
+        start = &(lit('[') | '{') // has to start with an array or object
+            >> flow_value
+            ;
+
         flow_value =
-             scalar_value
-           | object
-           | array
-           ;
+                scalar_value
+            |   object
+            |   array
+            ;
 
         object =
-              '{'
-           >  -(member_pair[ins] >> *(',' > member_pair[ins]))
-           >  '}'
-           ;
+                '{'
+            >   -(member_pair[ins] >> *(',' > member_pair[ins]))
+            >   '}'
+            ;
 
         member_pair =
-              scalar_value
-           >> ':'
-           >> flow_value
-           ;
+                scalar_value
+            >>  ':'
+            >>  flow_value
+            ;
 
         array =
-              '['
-           >  -(flow_value[pb] >> *(',' > flow_value[pb]))
-           >  ']'
-           ;
+                '['
+            >   -(flow_value[pb] >> *(',' > flow_value[pb]))
+            >   ']'
+            ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (start)
             (flow_value)
             (object)
             (member_pair)
             (array)
         );
 
-        qi::on_error<qi::fail>(flow_value, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(start, error_handler(_1, _2, _3, _4));
     }
 }}
 
