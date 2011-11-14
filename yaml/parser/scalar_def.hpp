@@ -121,7 +121,6 @@ namespace omd { namespace parser
     scalar<Iterator>::scalar()
       : scalar::base_type(value)
     {
-        qi::_val_type _val;
         qi::lit_type lit;
         qi::char_type char_;
         qi::hex_type hex;
