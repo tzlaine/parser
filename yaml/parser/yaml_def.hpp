@@ -24,17 +24,73 @@ namespace omd { namespace parser
             }
         };
 
-        //~ struct parse_block
-        //~ {
-            //~ template <typename This>
-            //~ struct result { typedef void type; };
+        struct parse_block
+        {
+            template <typename, typename, typename, typename>
+            struct result { typedef void type; };
 
-            //~ template <typename This>
-            //~ void operator()(This* g) const
-            //~ {
+            template <typename YamlG, typename Attr, typename Ranges>
+            void operator()(YamlG* g, Attr& attr, Ranges const& rngs, bool& pass) const
+            {
+                ast::array_t* arr_p = boost::get<ast::array_t>(&attr);
 
-            //~ }
-        //~ };
+                // hack:
+                if (arr_p == 0)
+                {
+                    attr = ast::array_t();
+                    arr_p = boost::get<ast::array_t>(&attr);
+                }
+
+                using boost::spirit::qi::parse;
+                typedef typename Ranges::second_type::const_iterator iter_t;
+
+                {
+                    //~ ast::value_t value;
+                    //~ iter_t first = rngs.first.begin();
+                    //~ iter_t last = rngs.first.end();
+
+                    //~ bool is_array = phrase_parse(first, last, '-', g->ws, value);
+                    //~ if (boost::get<ast::null_t>(&attr))
+                    //~ {
+                        //~ attr = ast::array_t();
+                    //~ }
+
+                    //~ arr_p = boost::get<ast::array_t>(&attr);
+
+                    //~ if (!arr_p)
+                    //~ {
+                        //~ pass = false;
+                        //~ return;
+                    //~ }
+
+                    //~ if (phrase_parse(first, last, g->scalar, g->ws, value))
+                    //~ {
+                        //~ arr_p->push_back(value);
+                    //~ }
+                    //~ else
+                    //~ {
+                        //~ pass = false;
+                        //~ return;
+                    //~ }
+
+                    std::string utf8;
+                    detail::push_utf8 push_back;
+                    BOOST_FOREACH(uchar code_point, rngs.first)
+                    {
+                        push_back(utf8, code_point);
+                    }
+                    arr_p->push_back(utf8);
+                }
+
+                {
+                    ast::value_t value;
+                    iter_t first = rngs.second.begin();
+                    iter_t last = rngs.second.end();
+                    if (parse(first, last, *g, value))
+                        arr_p->push_back(value);
+                }
+            }
+        };
     }
 
     template <typename Iterator>
@@ -60,24 +116,36 @@ namespace omd { namespace parser
         qi::eol_type eol;
         qi::eoi_type eoi;
         qi::char_type char_;
+        qi::raw_type raw;
+        qi::omit_type omit;
+        qi::_pass_type _pass;
 
         qi::blank_type blank;
         phx::function<detail::count_chars> count_chars;
 
         auto append = _val += _1;
-        auto pb = phx::push_back(_val, _1);
+        //~ auto pb = phx::push_back(_val, _1);
+        phx::function<detail::parse_block> parse_block;
 
         start =
                 skip(space)[flow_value]
             |   blocks
             ;
 
-        blocks = +block[pb];
+        flow = skip(space)[flow_value];
+        scalar = skip(space)[flow_value.scalar_value];
 
-        block =
-                indent[_a = _1]                   // indent and save the number of indents
-            >>  first_line[append]                // get the rest of the first line
-            >>  *(blank_line | line(_a)[append])  // get the lines
+        //~ block_content =
+                //~ '-' >> scalar
+            //~ |   scalar >> ':'
+            //~ ;
+
+        blocks = +(block[parse_block(this, _val, _1, _pass)]);
+
+        block %=
+                omit[indent[_a = _1]]             // indent and save the number of indents
+            >>  raw[first_line]                   // get the rest of the first line
+            >>  raw[*(blank_line | line(_a))]     // get the lines
             >>  repeat(_a)[blank]                 // must end with exact indent as started
             ;
 
@@ -85,12 +153,12 @@ namespace omd { namespace parser
 
         line =                                    // a line is:
                 repeat(_r1 + 1, inf)[blank]       // at least current indent + 1 blanks
-            >>  (+(char_ - endl)[append])         // one or more non-endl characters
+            >>  (+(char_ - endl))                 // one or more non-endl characters
             >>  endl                              // terminated by endl
             ;
 
         first_line =                              // the first_line is:
-                (+(char_ - endl)[append])         // one or more non-endl characters
+                (+(char_ - endl))                 // one or more non-endl characters
             >>  endl                              // terminated by endl
             ;
 

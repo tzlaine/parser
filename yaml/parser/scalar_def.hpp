@@ -65,6 +65,7 @@ namespace omd { namespace parser
         qi::_r1_type _r1;
         qi::_1_type _1;
         qi::lit_type lit;
+        qi::raw_type raw;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
@@ -76,31 +77,36 @@ namespace omd { namespace parser
 
         char_esc =
             '\\'
-            > (   ('u' > hex4)                  [push_utf8(_r1, _1)]
-              |   ('U' > hex8)                  [push_utf8(_r1, _1)]
-              |   char_("btnfr/\\\"'")          [push_esc(_r1, _1)]
+            > (   ('u' > hex4)                    [push_utf8(_r1, _1)]
+              |   ('U' > hex8)                    [push_utf8(_r1, _1)]
+              |   char_("btnfr/\\\"'")            [push_esc(_r1, _1)]
               )
             ;
 
         double_quoted =
               '"'
-            > *(char_esc(_val) | (~char_('"'))  [_val += _1])
+            > *(char_esc(_val) | (~char_('"'))    [_val += _1])
             > '"'
             ;
 
         single_quoted =
               '\''
             > *(
-                  lit("''")                     [_val += '\'']
-              |   (~char_('\''))                [_val += _1]
+                  lit("''")                       [_val += '\'']
+              |   (~char_('\''))                  [_val += _1]
               )
             > '\''
             ;
 
+        auto space = char_(" \r\n\t");
+        auto safe_first = ~char_(unsafe_first);
+        auto safe_plain = ~char_(unsafe_plain);
+
         unquoted =
-                ~char_(unsafe_first)
-            >>  *(~char_(indicators))
-            ;
+            raw[
+                    safe_first
+                >>  *((+space >> safe_plain) | safe_plain)
+            ];
 
         start =
               double_quoted

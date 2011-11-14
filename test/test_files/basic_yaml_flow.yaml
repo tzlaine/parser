@@ -1,14 +1,6 @@
 ﻿
 # Now we have comments
 [
-    123.45,
-    true,
-    false,
-    "this is a unicode \u20AC string",
-    "Τη γλώσσα μου έδωσαν ελληνική",
-    [
-        92,
-        ["another string", apple, Sîne],    # We also have plain unquoted strings
-        'this is a ''unicode'' string'      # and we have single quoted strings
-    ]
+    apple ,
+    Sîne
 ]
