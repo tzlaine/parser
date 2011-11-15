@@ -88,7 +88,7 @@ namespace omd { namespace parser
 
         blocks %=
                 save_indent
-            >>  (block_main | restore_indent)
+            >>  (block_main | !restore_indent)
             >>  restore_indent
             ;
 
@@ -111,7 +111,7 @@ namespace omd { namespace parser
                 omit[*blank_line]                     //  Ignore blank lines
             >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
             >>  omit['-' >> blank]                    //  Get the sequence indicator '-'
-            >>  flow_value                            //  Get the value
+            >>  yaml_nested                           //  Get the entry
             ;
 
         auto block_map_indicator =                    //  Lookahead and see if we have a

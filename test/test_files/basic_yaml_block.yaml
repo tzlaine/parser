@@ -2,7 +2,7 @@
   - Boston Red Sox
   - Detroit Tigers
   - New York
-     Yankees
+   Yankees # this should be folded to "New York Yankees" !
 national:
   - New York Mets
   - Chicago Cubs
