@@ -165,6 +165,7 @@ namespace omd { namespace parser
             | no_case[bool_value]
             | no_case[null_value]
             | string_value
+            //~ | attr(ast::null_t())
             ;
 
         integer_value =

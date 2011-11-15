@@ -24,7 +24,7 @@ namespace omd { namespace parser
 
         white_space_t ws;
         qi::rule<Iterator, ast::value_t()> yaml_start;
-        qi::rule<Iterator, ast::value_t()> yaml_nested;
+        qi::rule<Iterator, ast::value_t()> flow_in_block;
         flow_t flow_g;
 
         qi::rule<Iterator, std::size_t()> indent;

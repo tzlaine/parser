@@ -28,10 +28,10 @@ namespace omd { namespace parser
     char const* indicators = "-?:,[]{}#&*!|>\\\"%@`";
 
     // These are not allowed as first plain-style character
-    char const* unsafe_first = ",[]{}#&*!|>\\\"%@`";
+    char const* unsafe_first = " \n\r\t,[]{}#&*!|>\\\"%@`";
 
     // These are not allowed as non-first plain-style character
-    char const* unsafe_plain = " \n\r\t-?:,[]{}#&*!|>\\\"%@`";
+    char const* unsafe_plain = " \n\r\t?:,[]{}#&*!|>\\\"%@`-";
 
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>

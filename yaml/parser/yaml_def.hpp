@@ -42,16 +42,18 @@ namespace omd { namespace parser
         qi::_4_type _4;
         qi::_r1_type _r1;
         qi::_a_type _a;
+        qi::char_type char_;
 
         qi::repeat_type repeat;
         qi::eol_type eol;
-        qi::char_type char_;
         qi::omit_type omit;
         qi::_pass_type _pass;
         qi::eps_type eps;
+        qi::attr_type attr;
 
         qi::blank_type blank;
-        auto blank_line = *blank >> eol;
+        auto comment = '#' >> *(char_ - eol) >> eol;    // comments
+        auto blank_eol = (*blank >> eol) | comment;     // empty until eol
 
         phx::function<detail::count_chars> count_chars;
 
@@ -59,14 +61,20 @@ namespace omd { namespace parser
         auto flow_value = skip(space)[flow_g.flow_value];
         auto flow_scalar = skip(space)[flow_g.scalar_value.scalar_value];
 
+        // no-skip version
+        auto flow_scalar_ns = flow_g.scalar_value.scalar_value.alias();
+
         yaml_start =
                 flow_compound
             |   blocks
             ;
 
-        yaml_nested =
-                blocks          //  Give blocks a higher precedence
-            |   flow_value
+        flow_in_block =
+                blocks                                //  Give blocks a higher precedence
+            |   flow_compound
+            |   flow_scalar_ns                        //  Don't allow scalars to skip spaces
+            |   (omit[blank_eol]                      //  If all else fails, then null_t
+                  >> attr(ast::null_t()))
             ;
 
         std::size_t& indent_var =
@@ -99,7 +107,7 @@ namespace omd { namespace parser
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
-            &(start_indent >> '-' >> blank)           //  sequence indicator. Save the indent
+            &(start_indent >> '-' >> (blank | eol))   //  sequence indicator. Save the indent
             ;                                         //  in local variable _a
 
         block_seq =
@@ -108,10 +116,10 @@ namespace omd { namespace parser
             ;                                         //  indent level
 
         block_seq_entry =
-                omit[*blank_line]                     //  Ignore blank lines
+                omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
-            >>  omit['-' >> blank]                    //  Get the sequence indicator '-'
-            >>  yaml_nested                           //  Get the entry
+            >>  omit['-' >> (blank | &eol)]           //  Get the sequence indicator '-'
+            >>  flow_in_block                         //  Get the entry
             ;
 
         auto block_map_indicator =                    //  Lookahead and see if we have a
@@ -127,16 +135,18 @@ namespace omd { namespace parser
             ;                                         //  indent level
 
         block_map_entry =
-                omit[*blank_line]                     //  Ignore blank lines
+                omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
             >>  flow_scalar                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
-            >>  omit[*blank_line]                     //  Ignore blank lines
-            >>  yaml_nested                           //  Get the value
+            >>  omit[*blank]                          //  Ignore blank spaces
+            //~ >>  omit[*blank_eol]                      //  Ignore blank lines
+            >>  flow_in_block                         //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (yaml_start)
+            (flow_in_block)
             (blocks)
             (block_seq)
             (block_seq_entry)
