@@ -63,9 +63,14 @@ namespace omd { namespace parser
             |   blocks
             ;
 
+        yaml_nested =
+                blocks          //  Give blocks a higher precedence
+            |   flow_value
+            ;
+
         blocks =
                 block_seq
-            //~ |   block_map
+            |   block_map
             ;
 
         indent = (*blank)[_val = count_chars(_1)];
@@ -84,6 +89,27 @@ namespace omd { namespace parser
             >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
             >>  omit['-' >> blank]                    //  Get the sequence indicator '-'
             >>  flow_value                            //  Get the value
+            ;
+
+        auto block_map_indicator =                    //  Lookahead and see if we have a
+            &(      indent[_a = _1]                   //  map indicator. Save the indent
+                >>  flow_scalar                       //  in local variable _a
+                >>  skip(space)[':']
+            )
+            ;
+
+        block_map =
+                omit[block_map_indicator]
+            >>  +block_map_entry(_a)                  //  Get the entries passing in the
+            ;                                         //  indent level
+
+        block_map_entry =
+                omit[*blank_line]                     //  Ignore blank lines
+            >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
+            >>  flow_scalar                           //  Get the key
+            >>  omit[skip(space)[':']]                //  Get the map indicator ':'
+            >>  omit[*blank_line]                     //  Ignore blank lines
+            >>  yaml_nested                           //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

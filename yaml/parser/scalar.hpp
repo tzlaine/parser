@@ -43,7 +43,7 @@ namespace omd { namespace parser
         qi::rule<Iterator, std::string()> double_quoted;
         qi::rule<Iterator, std::string()> single_quoted;
         qi::rule<Iterator, std::string()> unquoted;
-        qi::rule<Iterator, std::string()> start;
+        qi::rule<Iterator, std::string()> unicode_start;
     };
 
     template <typename Iterator>

@@ -58,7 +58,7 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     unicode_string<Iterator>::unicode_string()
-      : unicode_string::base_type(start)
+      : unicode_string::base_type(unicode_start)
     {
         qi::char_type char_;
         qi::_val_type _val;
@@ -108,7 +108,7 @@ namespace omd { namespace parser
                 >>  *((+space >> safe_plain) | safe_plain)
             ];
 
-        start =
+        unicode_start =
               double_quoted
             | single_quoted
             | unquoted
@@ -119,7 +119,7 @@ namespace omd { namespace parser
             (single_quoted)
             (double_quoted)
             (unquoted)
-            (start)
+            (unicode_start)
         );
     }
 
