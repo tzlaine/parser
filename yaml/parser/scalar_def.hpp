@@ -54,21 +54,41 @@ namespace omd { namespace parser
                 }
             }
         };
+
+        //~ struct fold_plain_string
+        //~ {
+            //~ template <typename String, typename Range>
+            //~ struct result { typedef void type; };
+
+            //~ template <typename String, typename Range>
+            //~ void operator()(String& utf8, Range const& rng) const
+            //~ {
+                //~ BOOST_FOREACH(typename Range::value_type c, rng)
+                //~ {
+                //~ }
+            //~ }
+        //~ };
     }
 
     template <typename Iterator>
     unicode_string<Iterator>::unicode_string()
-      : unicode_string::base_type(unicode_start)
+      : unicode_string::base_type(unicode_start),
+        indent(0)
     {
         qi::char_type char_;
         qi::_val_type _val;
         qi::_r1_type _r1;
         qi::_1_type _1;
+        qi::_2_type _2;
         qi::lit_type lit;
-        qi::raw_type raw;
+        qi::blank_type blank;
+        qi::eol_type eol;
+        qi::repeat_type repeat;
+        qi::inf_type inf;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
+        using boost::phoenix::ref;
 
         uint_parser<uchar, 16, 4, 4> hex4;
         uint_parser<uchar, 16, 8, 8> hex8;
@@ -98,15 +118,17 @@ namespace omd { namespace parser
             > '\''
             ;
 
-        auto space = char_(" \r\n\t");
+        auto space = blank | (eol >> repeat(ref(indent)+1, inf)[blank]);
         auto safe_first = ~char_(unsafe_first);
         auto safe_plain = ~char_(unsafe_plain);
 
         unquoted =
-            raw[
-                    safe_first
-                >>  *((+space >> safe_plain) | safe_plain)
-            ];
+                safe_first[_val = _1]
+            >>  *(
+                        (+space >> safe_plain)    [_val += ' ', _val += _2]
+                    |   safe_plain                [_val += _1]
+                )
+            ;
 
         unicode_start =
               double_quoted

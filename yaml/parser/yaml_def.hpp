@@ -48,6 +48,7 @@ namespace omd { namespace parser
         qi::char_type char_;
         qi::omit_type omit;
         qi::_pass_type _pass;
+        qi::eps_type eps;
 
         qi::blank_type blank;
         auto blank_line = *blank >> eol;
@@ -68,15 +69,37 @@ namespace omd { namespace parser
             |   flow_value
             ;
 
-        blocks =
+        std::size_t& indent_var =
+            flow_g.scalar_value.string_value.indent
+            ;
+
+        auto save_indent =
+            eps[_a = phx::ref(indent_var)]
+            ;
+
+        auto restore_indent =
+            eps[phx::ref(indent_var) = _a]
+            ;
+
+        auto block_main =
                 block_seq
             |   block_map
             ;
 
+        blocks %=
+                save_indent
+            >>  (block_main | restore_indent)
+            >>  restore_indent
+            ;
+
         indent = (*blank)[_val = count_chars(_1)];
 
+        auto start_indent =
+            indent[ _a = _1, phx::ref(indent_var) = _1 ]
+            ;
+
         auto block_seq_indicator =                    //  Lookahead and see if we have a
-            &(indent[_a = _1] >> '-' >> blank)        //  sequence indicator. Save the indent
+            &(start_indent >> '-' >> blank)           //  sequence indicator. Save the indent
             ;                                         //  in local variable _a
 
         block_seq =
@@ -92,9 +115,9 @@ namespace omd { namespace parser
             ;
 
         auto block_map_indicator =                    //  Lookahead and see if we have a
-            &(      indent[_a = _1]                   //  map indicator. Save the indent
-                >>  flow_scalar                       //  in local variable _a
-                >>  skip(space)[':']
+            &(  start_indent                          //  map indicator. Save the indent
+            >>  flow_scalar                           //  in local variable _a
+            >>  skip(space)[':']
             )
             ;
 

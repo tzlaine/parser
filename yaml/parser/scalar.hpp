@@ -36,6 +36,7 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>
     {
+        std::size_t indent;
         unicode_string();
 
         qi::rule<Iterator, void(std::string&)> char_esc;
