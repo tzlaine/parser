@@ -51,7 +51,7 @@ namespace omd { namespace parser
     {
         scalar();
 
-        qi::rule<Iterator, ast::value_t()> value;
+        qi::rule<Iterator, ast::value_t()> scalar_value;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;
         qi::symbols<char, bool> bool_value;

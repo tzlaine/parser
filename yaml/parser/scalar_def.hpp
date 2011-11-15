@@ -125,7 +125,7 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     scalar<Iterator>::scalar()
-      : scalar::base_type(value)
+      : scalar::base_type(scalar_value)
     {
         qi::lit_type lit;
         qi::char_type char_;
@@ -137,7 +137,7 @@ namespace omd { namespace parser
 
         qi::real_parser<double, qi::strict_real_policies<double> > double_value;
 
-        value =
+        scalar_value =
               double_value
             | integer_value
             | no_case[bool_value]
@@ -166,7 +166,7 @@ namespace omd { namespace parser
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-            (value)
+            (scalar_value)
             (integer_value)
             (null_value)
         );

@@ -28,7 +28,7 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     flow<Iterator>::flow(std::string const& source_file)
-      : flow::base_type(start),
+      : flow::base_type(flow_start),
         error_handler(error_handler_t(source_file))
     {
         qi::_1_type _1;
@@ -42,7 +42,7 @@ namespace omd { namespace parser
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
 
-        start = &(lit('[') | '{') // has to start with an array or object
+        flow_start = &(lit('[') | '{') // has to start with an array or object
             >> flow_value
             ;
 
@@ -71,14 +71,14 @@ namespace omd { namespace parser
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-            (start)
+            (flow_start)
             (flow_value)
             (object)
             (member_pair)
             (array)
         );
 
-        qi::on_error<qi::fail>(start, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));
     }
 }}
 
