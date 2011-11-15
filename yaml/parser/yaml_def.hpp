@@ -28,7 +28,9 @@ namespace omd { namespace parser
     template <typename Iterator>
     yaml<Iterator>::yaml(std::string const& source_file)
       : yaml::base_type(yaml_start),
-        error_handler(error_handler_t(source_file))
+        error_handler(error_handler_t(source_file)),
+        flow_g(current_indent),
+        current_indent(0)
     {
         namespace phx = boost::phoenix;
 
@@ -77,16 +79,16 @@ namespace omd { namespace parser
                   >> attr(ast::null_t()))
             ;
 
-        std::size_t& indent_var =
-            flow_g.scalar_value.string_value.indent
+        auto get_indent =
+            phx::ref(current_indent)
             ;
 
         auto save_indent =
-            eps[_a = phx::ref(indent_var)]
+            eps[_a = get_indent]
             ;
 
         auto restore_indent =
-            eps[phx::ref(indent_var) = _a]
+            eps[get_indent = _a]
             ;
 
         auto block_main =
@@ -95,15 +97,20 @@ namespace omd { namespace parser
             ;
 
         blocks %=
-                save_indent
+                omit[*blank_eol]                      //  Ignore blank lines $$$ BUG $$$ this prevents null elements
+            >>  save_indent
             >>  (block_main | !restore_indent)
             >>  restore_indent
             ;
 
-        indent = (*blank)[_val = count_chars(_1)];
+        auto skip_indent =
+            repeat(get_indent)[blank]
+            ;
+
+        indent = skip_indent >> (*blank)[_val = count_chars(_1)];
 
         auto start_indent =
-            indent[ _a = _1, phx::ref(indent_var) = _1 ]
+            indent[ get_indent = _1 ]
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
@@ -112,12 +119,12 @@ namespace omd { namespace parser
 
         block_seq =
                 omit[block_seq_indicator]
-            >>  +block_seq_entry(_a)                  //  Get the entries passing in the
+            >>  +block_seq_entry                      //  Get the entries passing in the
             ;                                         //  indent level
 
         block_seq_entry =
                 omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
+            >>  omit[skip_indent]                     //  Indent get_indent spaces
             >>  omit['-' >> (blank | &eol)]           //  Get the sequence indicator '-'
             >>  flow_in_block                         //  Get the entry
             ;
@@ -131,16 +138,15 @@ namespace omd { namespace parser
 
         block_map =
                 omit[block_map_indicator]
-            >>  +block_map_entry(_a)                  //  Get the entries passing in the
+            >>  +block_map_entry                      //  Get the entries passing in the
             ;                                         //  indent level
 
         block_map_entry =
                 omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[repeat(_r1)[blank]]              //  Indent _r1 spaces
+            >>  omit[skip_indent]                     //  Indent get_indent spaces
             >>  flow_scalar                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
             >>  omit[*blank]                          //  Ignore blank spaces
-            //~ >>  omit[*blank_eol]                      //  Ignore blank lines
             >>  flow_in_block                         //  Get the value
             ;
 

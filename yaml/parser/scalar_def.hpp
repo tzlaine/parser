@@ -54,26 +54,12 @@ namespace omd { namespace parser
                 }
             }
         };
-
-        //~ struct fold_plain_string
-        //~ {
-            //~ template <typename String, typename Range>
-            //~ struct result { typedef void type; };
-
-            //~ template <typename String, typename Range>
-            //~ void operator()(String& utf8, Range const& rng) const
-            //~ {
-                //~ BOOST_FOREACH(typename Range::value_type c, rng)
-                //~ {
-                //~ }
-            //~ }
-        //~ };
     }
 
     template <typename Iterator>
-    unicode_string<Iterator>::unicode_string()
+    unicode_string<Iterator>::unicode_string(std::size_t& indent)
       : unicode_string::base_type(unicode_start),
-        indent(0)
+        indent(indent)
     {
         qi::char_type char_;
         qi::_val_type _val;
@@ -146,8 +132,9 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar()
-      : scalar::base_type(scalar_value)
+    scalar<Iterator>::scalar(std::size_t& indent)
+      : scalar::base_type(scalar_value),
+        string_value(indent)
     {
         qi::lit_type lit;
         qi::char_type char_;
