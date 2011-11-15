@@ -84,7 +84,7 @@ namespace omd { namespace parser
             ;
 
         auto save_indent =
-            eps[_a = get_indent]
+            eps[_a = get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto restore_indent =
@@ -110,7 +110,7 @@ namespace omd { namespace parser
         indent = skip_indent >> (*blank)[_val = count_chars(_1)];
 
         auto start_indent =
-            indent[ get_indent = _1 ]
+            indent[ get_indent += _1 ]
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
