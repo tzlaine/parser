@@ -2,7 +2,7 @@
  *   Copyright (C) 2010, 2011 Object Modeling Designs
  */
 
-#define BOOST_SPIRIT_DEBUG
+//~ #define BOOST_SPIRIT_DEBUG
 
 #include "../yaml/parser/yaml_def.hpp"
 #include "../yaml/parser/flow_def.hpp"
@@ -51,6 +51,7 @@ namespace
             iterator_type;
         iterator_type first(sfirst, slast);
         iterator_type last;
+        first.set_tabchars(1);
 
         omd::parser::yaml<iterator_type> p(source_file);
 

@@ -99,15 +99,15 @@ namespace omd { namespace parser
             ;
 
         auto save_indent =
-            eps[_a = get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[_a = get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto increase_indent =
-            eps[++get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[++get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto decrease_indent =
-            eps[--get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[--get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto restore_indent =
@@ -145,7 +145,7 @@ namespace omd { namespace parser
             ;
 
         blocks %=
-                omit[*blank_eol]                      //  Ignore blank lines $$$ BUG $$$ this prevents null elements
+                omit[*blank_eol]
             >>  save_indent
             >>  (block_main | !restore_indent)
             >>  restore_indent
@@ -160,7 +160,7 @@ namespace omd { namespace parser
             ;
 
         auto start_indent =
-            indent[ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
+            omit[indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
