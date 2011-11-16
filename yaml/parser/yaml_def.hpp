@@ -71,15 +71,15 @@ namespace omd { namespace parser
             ;
 
         auto save_indent =
-            eps[_a = get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[_a = get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto increase_indent =
-            eps[++get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[++get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto decrease_indent =
-            eps[--get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[--get_indent][ std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
         auto restore_indent =
@@ -92,7 +92,8 @@ namespace omd { namespace parser
             ;
 
         flow_in_block =
-                indented_block                        //  Give inner blocks a higher precedence
+                compact_block
+            |   indented_block
             |   flow_compound
             |   flow_scalar_ns                        //  Don't allow scalars to skip spaces
             |   (omit[blank_eol]                      //  If all else fails, then null_t
@@ -103,6 +104,11 @@ namespace omd { namespace parser
                 increase_indent
             >>  (blocks | !decrease_indent)
             >>  decrease_indent
+            ;
+
+        compact_block =
+                !eol
+            >>  blocks
             ;
 
         auto block_main =
@@ -124,7 +130,7 @@ namespace omd { namespace parser
         indent = skip_indent >> (*blank)[_val = count_chars(_1)];
 
         auto start_indent =
-            indent[ get_indent += _1 ]
+            indent[ get_indent += _1][ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
@@ -161,7 +167,6 @@ namespace omd { namespace parser
             >>  flow_scalar                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
             >>  omit[*blank]                          //  Ignore blank spaces
-            //~ >>  omit[*blank_eol]                      //  Ignore blank lines
             >>  flow_in_block                         //  Get the value
             ;
 
@@ -169,6 +174,7 @@ namespace omd { namespace parser
             (yaml_start)
             (flow_in_block)
             (indented_block)
+            (compact_block)
             (blocks)
             (block_seq)
             (block_seq_entry)
