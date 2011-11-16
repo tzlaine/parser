@@ -135,7 +135,7 @@ namespace omd { namespace parser
             ;
 
         compact_block =
-                !eol
+                !blank_eol
             >>  blocks
             ;
 
