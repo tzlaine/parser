@@ -38,7 +38,6 @@ namespace omd { namespace parser
         qi::rule<Iterator, map_element_t()> block_map_entry;
 
         std::size_t current_indent; // our current indent level (spaces)
-        Iterator current_line;      // current start of line
 
         typedef omd::parser::error_handler<Iterator> error_handler_t;
         boost::phoenix::function<error_handler_t> const error_handler;

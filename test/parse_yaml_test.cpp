@@ -12,7 +12,7 @@
 #include <fstream>
 
 #include <boost/spirit/include/support_istream_iterator.hpp>
-#include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
 
 namespace
 {
@@ -47,10 +47,10 @@ namespace
         base_iterator_type sfirst(&file[0]);
         base_iterator_type slast(sfirst + file.size());
 
-        typedef boost::spirit::line_pos_iterator<base_iterator_type>
+        typedef boost::spirit::classic::position_iterator<base_iterator_type>
             iterator_type;
-        iterator_type first(sfirst);
-        iterator_type last(slast);
+        iterator_type first(sfirst, slast);
+        iterator_type last;
 
         omd::parser::yaml<iterator_type> p(source_file);
 
