@@ -22,16 +22,32 @@ namespace
         omd::ast::value_t& result,
         std::string const& source_file = "")
     {
-        // no white space skipping in the stream!
-        is.unsetf(std::ios::skipws);
+        //~ // no white space skipping in the stream!
+        //~ is.unsetf(std::ios::skipws);
 
-        typedef
-            boost::spirit::basic_istream_iterator<Char>
-        stream_iterator_type;
-        stream_iterator_type sfirst(is);
-        stream_iterator_type slast;
+        //~ typedef
+            //~ boost::spirit::basic_istream_iterator<Char>
+        //~ stream_iterator_type;
+        //~ stream_iterator_type sfirst(is);
+        //~ stream_iterator_type slast;
 
-        typedef boost::spirit::line_pos_iterator<stream_iterator_type>
+        //~ typedef boost::spirit::line_pos_iterator<stream_iterator_type>
+            //~ iterator_type;
+        //~ iterator_type first(sfirst);
+        //~ iterator_type last(slast);
+
+        std::string file; // We will read the contents here.
+        is.unsetf(std::ios::skipws); // No white space skipping!
+        std::copy(
+            std::istream_iterator<char>(is),
+            std::istream_iterator<char>(),
+            std::back_inserter(file));
+
+        typedef char const* base_iterator_type;
+        base_iterator_type sfirst(&file[0]);
+        base_iterator_type slast(sfirst + file.size());
+
+        typedef boost::spirit::line_pos_iterator<base_iterator_type>
             iterator_type;
         iterator_type first(sfirst);
         iterator_type last(slast);

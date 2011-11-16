@@ -12,15 +12,55 @@ namespace omd { namespace parser
 {
     namespace detail
     {
-        struct count_chars
+        struct update_indent
+        {
+            template <typename Iterator, typename Range, typename Size, typename Fail>
+            struct result { typedef void type; };
+
+            template <typename Iterator, typename Range>
+            void operator()(
+                Iterator const& current_line,       //  start of current line
+                Range const& rng,                   //  where we are now
+                std::size_t& current_indent,        //  the current indent position
+                bool& pass                          //  set to false to fail parsing
+            ) const
+            {
+                std::size_t pos = std::size_t(std::distance(current_line, rng.begin()));
+                if (pos >= current_indent)
+                    current_indent = pos;
+                else
+                    pass = false;
+            }
+        };
+
+        struct check_indent
+        {
+            template <typename Iterator, typename Range, typename Size, typename Fail>
+            struct result { typedef void type; };
+
+            template <typename Iterator, typename Range>
+            void operator()(
+                Iterator const& current_line,       //  start of current line
+                Range const& rng,                   //  where we are now
+                std::size_t const& current_indent,  //  the current indent position
+                bool& pass                          //  set to false to fail parsing
+            ) const
+            {
+                std::size_t pos = std::size_t(std::distance(current_line, rng.begin()));
+                if (pos < current_indent)
+                    pass = false;
+            }
+        };
+
+        struct current_pos
         {
             template <typename Range>
-            struct result { typedef std::size_t type; };
+            struct result { typedef typename Range::const_iterator type; };
 
             template <typename Range>
-            std::size_t operator()(Range const& rng) const
+            typename Range::const_iterator operator()(Range const& rng) const
             {
-                return std::distance(rng.begin(), rng.end());
+                return rng.begin();
             }
         };
     }
@@ -33,6 +73,9 @@ namespace omd { namespace parser
         error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
+        phx::function<detail::current_pos> current_pos;
+        phx::function<detail::update_indent> update_indent;
+        phx::function<detail::check_indent> check_indent;
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -47,17 +90,26 @@ namespace omd { namespace parser
         qi::char_type char_;
 
         qi::repeat_type repeat;
-        qi::eol_type eol;
         qi::omit_type omit;
         qi::_pass_type _pass;
         qi::eps_type eps;
         qi::attr_type attr;
+        qi::raw_type raw;
 
+        qi::eol_type eol_;
         qi::blank_type blank;
+
+        auto get_current_line =
+            phx::ref(current_line)
+            ;
+
+        auto set_current_line =
+            omit[raw[eps][get_current_line = current_pos(_1)]]
+            ;
+
+        auto eol = eol_ >> set_current_line;
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
         auto blank_eol = (*blank >> eol) | comment;     // empty until eol
-
-        phx::function<detail::count_chars> count_chars;
 
         auto flow_compound = skip(space)[flow_g.flow_start];
         auto flow_value = skip(space)[flow_g.flow_value];
@@ -87,8 +139,10 @@ namespace omd { namespace parser
             ;
 
         yaml_start =
-                flow_compound
-            |   blocks
+                set_current_line
+            >>  (   flow_compound
+                |   blocks
+                )
             ;
 
         flow_in_block =
@@ -123,14 +177,16 @@ namespace omd { namespace parser
             >>  restore_indent
             ;
 
-        auto skip_indent =
-            repeat(get_indent)[blank]
+        indent =
+            *blank >> raw[eps] [update_indent(get_current_line, _1, get_indent, _pass)]
             ;
 
-        indent = skip_indent >> (*blank)[_val = count_chars(_1)];
+        skip_indent =
+            *blank >> raw[eps] [check_indent(get_current_line, _1, get_indent, _pass)]
+            ;
 
         auto start_indent =
-            indent[ get_indent += _1][ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
+            indent[ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
