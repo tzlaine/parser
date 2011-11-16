@@ -8,6 +8,13 @@
 #include "yaml.hpp"
 #include <algorithm>
 
+// For debugging:
+#if defined(BOOST_SPIRIT_DEBUG)
+#define PRINT_INDENT \
+[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+/***/
+#endif
+
 namespace omd { namespace parser
 {
     namespace detail
@@ -19,9 +26,9 @@ namespace omd { namespace parser
 
             template <typename Range>
             void operator()(
-                Range const& rng,                   //  where we are now
-                std::size_t& current_indent,        //  the current indent position
-                bool& pass                          //  set to false to fail parsing
+                Range const& rng,                   //  <-- where we are now
+                std::size_t& current_indent,        //  <-- the current indent position
+                bool& pass                          //  <-- set to false to fail parsing
             ) const
             {
                 std::size_t pos = rng.begin().get_position().column;
@@ -39,9 +46,9 @@ namespace omd { namespace parser
 
             template <typename Range>
             void operator()(
-                Range const& rng,                   //  where we are now
-                std::size_t const& current_indent,  //  the current indent position
-                bool& pass                          //  set to false to fail parsing
+                Range const& rng,                   //  <-- where we are now
+                std::size_t const& current_indent,  //  <-- the current indent position
+                bool& pass                          //  <-- set to false to fail parsing
             ) const
             {
                 std::size_t pos = rng.begin().get_position().column;
@@ -99,15 +106,15 @@ namespace omd { namespace parser
             ;
 
         auto save_indent =
-            eps[_a = get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[_a = get_indent] PRINT_INDENT
             ;
 
         auto increase_indent =
-            eps[++get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[++get_indent] PRINT_INDENT
             ;
 
         auto decrease_indent =
-            eps[--get_indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            eps[--get_indent] PRINT_INDENT
             ;
 
         auto restore_indent =
@@ -160,7 +167,7 @@ namespace omd { namespace parser
             ;
 
         auto start_indent =
-            omit[indent]//[ std::cout << phx::val("\n============================") << get_indent << std::endl  ]
+            omit[indent] PRINT_INDENT
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
