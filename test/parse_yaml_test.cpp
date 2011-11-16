@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     char c = in.peek();
     if (c == '\xef')
     {
-        char s[3];
+        char s[4];
         in >> s[0] >> s[1] >> s[2];
         s[3] = '\0';
         if (s != std::string("\xef\xbb\xbf"))

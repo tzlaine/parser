@@ -105,14 +105,18 @@ namespace omd { namespace parser
             ;
 
         auto space = blank | (eol >> repeat(ref(indent)+1, inf)[blank]);
-        auto safe_first = ~char_(unsafe_first);
-        auto safe_plain = ~char_(unsafe_plain);
+
+        // These are not allowed as first plain-style character
+        auto unsafe_first = char_(" \n\r\t,[]{}#&*!|>\\\"%@`");
+
+        // These are not allowed as non-first plain-style character
+        auto unsafe_plain = char_(" \n\r\t?:,[]{}#&*!|>\\\"%@`-");
 
         unquoted =
-                safe_first[_val = _1]
+                (~unsafe_first)                   [_val = _1]
             >>  *(
-                        (+space >> safe_plain)    [_val += ' ', _val += _2]
-                    |   safe_plain                [_val += _1]
+                        (+space >> ~unsafe_plain) [_val += ' ', _val += _2]
+                    |   (~unsafe_plain)           [_val += _1]
                 )
             ;
 
@@ -156,8 +160,8 @@ namespace omd { namespace parser
             ;
 
         integer_value =
-              no_case["0x"] > hex
-            | '0' >> oct
+              (no_case["0x"] > hex)
+            | ('0' >> oct)
             | int_
             ;
 

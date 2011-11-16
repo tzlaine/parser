@@ -28,9 +28,9 @@ namespace omd { namespace parser
     template <typename Iterator>
     yaml<Iterator>::yaml(std::string const& source_file)
       : yaml::base_type(yaml_start),
-        error_handler(error_handler_t(source_file)),
         flow_g(current_indent),
-        current_indent(0)
+        current_indent(0),
+        error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
 
@@ -66,19 +66,6 @@ namespace omd { namespace parser
         // no-skip version
         auto flow_scalar_ns = flow_g.scalar_value.scalar_value.alias();
 
-        yaml_start =
-                flow_compound
-            |   blocks
-            ;
-
-        flow_in_block =
-                blocks                                //  Give blocks a higher precedence
-            |   flow_compound
-            |   flow_scalar_ns                        //  Don't allow scalars to skip spaces
-            |   (omit[blank_eol]                      //  If all else fails, then null_t
-                  >> attr(ast::null_t()))
-            ;
-
         auto get_indent =
             phx::ref(current_indent)
             ;
@@ -87,8 +74,35 @@ namespace omd { namespace parser
             eps[_a = get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
             ;
 
+        auto increase_indent =
+            eps[++get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            ;
+
+        auto decrease_indent =
+            eps[--get_indent, std::cout << phx::val("\n============================") << get_indent << std::endl ]
+            ;
+
         auto restore_indent =
             eps[get_indent = _a]
+            ;
+
+        yaml_start =
+                flow_compound
+            |   blocks
+            ;
+
+        flow_in_block =
+                indented_block                        //  Give inner blocks a higher precedence
+            |   flow_compound
+            |   flow_scalar_ns                        //  Don't allow scalars to skip spaces
+            |   (omit[blank_eol]                      //  If all else fails, then null_t
+                  >> attr(ast::null_t()))
+            ;
+
+        indented_block %=
+                increase_indent
+            >>  (blocks | !decrease_indent)
+            >>  decrease_indent
             ;
 
         auto block_main =
@@ -147,12 +161,14 @@ namespace omd { namespace parser
             >>  flow_scalar                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
             >>  omit[*blank]                          //  Ignore blank spaces
+            //~ >>  omit[*blank_eol]                      //  Ignore blank lines
             >>  flow_in_block                         //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (yaml_start)
             (flow_in_block)
+            (indented_block)
             (blocks)
             (block_seq)
             (block_seq_entry)
