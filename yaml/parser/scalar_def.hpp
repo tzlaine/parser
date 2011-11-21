@@ -104,7 +104,7 @@ namespace omd { namespace parser
             > '\''
             ;
 
-        auto space = blank | (eol >> repeat(ref(indent)+1, inf)[blank]);
+        auto space = blank | (eol >> repeat(ref(indent), inf)[blank]);
 
         // These are not allowed as first plain-style character
         auto unsafe_first = char_(" \n\r\t,[]{}#&*!|>\\\"%@`");

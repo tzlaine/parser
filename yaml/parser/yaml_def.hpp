@@ -96,7 +96,6 @@ namespace omd { namespace parser
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
         auto blank_eol = (*blank >> eol) | comment;     // empty until eol
 
-        auto flow_compound = skip(space)[flow_g.flow_start];
         auto flow_value = skip(space)[flow_g.flow_value];
         auto flow_scalar = skip(space)[flow_g.scalar_value.scalar_value];
 
@@ -109,6 +108,10 @@ namespace omd { namespace parser
 
         auto save_indent =
             eps[_a = get_indent] PRINT_INDENT
+            ;
+
+        auto zero_indent =
+            eps[_a = get_indent, get_indent = 0] PRINT_INDENT
             ;
 
         auto increase_indent =
@@ -144,6 +147,14 @@ namespace omd { namespace parser
         auto scalar_in_block =
                 omit[-(+blank_eol >> skip_indent_child)]
             >>  flow_scalar_ns
+            ;
+
+        // flow compound (arrays and maps) need no indentations. Set indent to
+        // zero while parsing.
+        flow_compound %=
+                zero_indent
+            >>  (skip(space)[flow_g.flow_start] | !restore_indent)
+            >>  restore_indent
             ;
 
         block_node =

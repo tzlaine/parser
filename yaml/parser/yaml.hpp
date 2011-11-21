@@ -33,6 +33,7 @@ namespace omd { namespace parser
         qi::rule<Iterator> skip_indent;
         qi::rule<Iterator> skip_indent_child;
         qi::rule<Iterator, ast::value_t(), qi::locals<std::size_t> > blocks;
+        qi::rule<Iterator, ast::value_t(), qi::locals<std::size_t> > flow_compound;
         qi::rule<Iterator, ast::array_t()> block_seq;
         qi::rule<Iterator, ast::value_t()> block_seq_entry;
         qi::rule<Iterator, ast::object_t()> implicit_block_map;
