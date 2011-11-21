@@ -11,8 +11,9 @@
 // For debugging:
 #if defined(BOOST_SPIRIT_DEBUG)
 #define PRINT_INDENT \
-[ std::cout << phx::val("\n============================") << get_indent << std::endl ]
-/***/
+[ std::cerr << phx::val("\n============================") << get_indent << std::endl ]
+#else
+#define PRINT_INDENT
 #endif
 
 namespace omd { namespace parser
@@ -89,6 +90,7 @@ namespace omd { namespace parser
         qi::raw_type raw;
 
         qi::eol_type eol;
+        qi::eoi_type eoi;
         qi::blank_type blank;
 
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
@@ -118,7 +120,19 @@ namespace omd { namespace parser
             ;
 
         auto restore_indent =
-            eps[get_indent = _a]
+            eps[get_indent = _a] PRINT_INDENT
+            ;
+
+        indent =
+            *blank >> raw[eps] [update_indent(_1, get_indent, _pass)]
+            ;
+
+        skip_indent =
+            *blank >> raw[eps] [check_indent(_1, get_indent, _pass)]
+            ;
+
+        skip_indent_child =
+            *blank >> raw[eps] [check_indent(_1, get_indent + 1, _pass)]
             ;
 
         yaml_start =
@@ -126,12 +140,18 @@ namespace omd { namespace parser
             |   blocks
             ;
 
-        flow_in_block =
+        //  Allow newlines before scalars as long as they are properly indented
+        auto scalar_in_block =
+                omit[-(+blank_eol >> skip_indent_child)]
+            >>  flow_scalar_ns
+            ;
+
+        block_node =
                 compact_block
             |   indented_block
             |   flow_compound
-            |   flow_scalar_ns                        //  Don't allow scalars to skip spaces
-            |   (omit[blank_eol]                      //  If all else fails, then null_t
+            |   scalar_in_block
+            |   (omit[blank_eol | eoi]                //  If all else fails, then null_t
                   >> attr(ast::null_t()))
             ;
 
@@ -148,7 +168,8 @@ namespace omd { namespace parser
 
         auto block_main =
                 block_seq
-            |   block_map
+            |   explicit_block_map
+            |   implicit_block_map
             ;
 
         blocks %=
@@ -158,65 +179,86 @@ namespace omd { namespace parser
             >>  restore_indent
             ;
 
-        indent =
-            *blank >> raw[eps] [update_indent(_1, get_indent, _pass)]
-            ;
-
-        skip_indent =
-            *blank >> raw[eps] [check_indent(_1, get_indent, _pass)]
-            ;
-
         auto start_indent =
             omit[indent] PRINT_INDENT
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
-            &(start_indent >> '-' >> (blank | eol))   //  sequence indicator. Save the indent
-            ;                                         //  in local variable _a
+            &(start_indent >> '-' >> (blank | eol))   //  sequence indicator.
+            ;
 
         block_seq =
                 omit[block_seq_indicator]
-            >>  +block_seq_entry                      //  Get the entries passing in the
-            ;                                         //  indent level
+            >>  +block_seq_entry                      //  Get the entries
+            ;
 
         block_seq_entry =
                 omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[skip_indent]                     //  Indent get_indent spaces
             >>  omit['-' >> (blank | &eol)]           //  Get the sequence indicator '-'
-            >>  flow_in_block                         //  Get the entry
+            >>  block_node                            //  Get the entry
             ;
 
-        auto block_map_indicator =                    //  Lookahead and see if we have a
-            &(  start_indent                          //  map indicator. Save the indent
-            >>  flow_scalar                           //  in local variable _a
+        auto implicit_block_map_indicator =           //  Lookahead and see if we have an
+            &(  start_indent                          //  implicit map indicator.
+            >>  flow_scalar
             >>  skip(space)[':']
             )
             ;
 
-        block_map =
-                omit[block_map_indicator]
-            >>  +block_map_entry                      //  Get the entries passing in the
-            ;                                         //  indent level
+        implicit_block_map =
+                omit[implicit_block_map_indicator]
+            >>  +block_map_entry                      //  Get the entries
+            ;
+
+        auto explicit_block_map_indicator =           //  Lookahead and see if we have an
+            &(start_indent >> '?' >> (blank | eol))   //  explicit map indicator.
+            ;
+
+        explicit_block_map =
+                omit[explicit_block_map_indicator]
+            >>  +block_map_entry                      //  Get the entries
+            ;
 
         block_map_entry =
+                explicit_block_map_entry
+            |   implicit_block_map_entry
+            ;
+
+        implicit_block_map_entry =
                 omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[skip_indent]                     //  Indent get_indent spaces
             >>  flow_scalar                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
             >>  omit[*blank]                          //  Ignore blank spaces
-            >>  flow_in_block                         //  Get the value
+            >>  block_node                            //  Get the value
+            ;
+
+        explicit_block_map_entry =
+                omit[*blank_eol]                      //  Ignore blank lines
+            >>  omit[skip_indent]                     //  Indent get_indent spaces
+            >>  omit['?' >> (blank | &eol)]           //  Get the map-key indicator '?'
+            >>  flow_scalar                           //  Get the key
+
+            >>  omit[*blank_eol]                      //  Ignore blank lines
+            >>  omit[skip_indent]                     //  Indent get_indent spaces
+            >>  omit[':' >> (blank | &eol)]           //  Get the map-value indicator ':'
+            >>  block_node                            //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (yaml_start)
-            (flow_in_block)
+            (block_node)
             (indented_block)
             (compact_block)
             (blocks)
             (block_seq)
             (block_seq_entry)
-            (block_map)
+            (implicit_block_map)
+            (implicit_block_map_entry)
             (block_map_entry)
+            (explicit_block_map)
+            (explicit_block_map_entry)
             (indent)
         );
 

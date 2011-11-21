@@ -24,18 +24,22 @@ namespace omd { namespace parser
 
         white_space_t ws;
         qi::rule<Iterator, ast::value_t()> yaml_start;
-        qi::rule<Iterator, ast::value_t()> flow_in_block;
+        qi::rule<Iterator, ast::value_t()> block_node;
         qi::rule<Iterator, ast::value_t()> indented_block;
         qi::rule<Iterator, ast::value_t()> compact_block;
         flow_t flow_g;
 
         qi::rule<Iterator> indent;
         qi::rule<Iterator> skip_indent;
+        qi::rule<Iterator> skip_indent_child;
         qi::rule<Iterator, ast::value_t(), qi::locals<std::size_t> > blocks;
         qi::rule<Iterator, ast::array_t()> block_seq;
         qi::rule<Iterator, ast::value_t()> block_seq_entry;
-        qi::rule<Iterator, ast::object_t()> block_map;
+        qi::rule<Iterator, ast::object_t()> implicit_block_map;
+        qi::rule<Iterator, ast::object_t()> explicit_block_map;
         qi::rule<Iterator, map_element_t()> block_map_entry;
+        qi::rule<Iterator, map_element_t()> explicit_block_map_entry;
+        qi::rule<Iterator, map_element_t()> implicit_block_map_entry;
 
         std::size_t current_indent; // our current indent level (spaces)
 
