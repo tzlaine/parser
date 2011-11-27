@@ -120,7 +120,6 @@ namespace omd { namespace parser
         qi::repeat_type repeat;
         qi::inf_type inf;
         qi::hex_type hex;
-        qi::oct_type oct;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
@@ -134,7 +133,6 @@ namespace omd { namespace parser
         char_esc =
             '\\'
             > (   ('x' > hex)                     [push_utf8(_r1, _1)]
-              |   ("0o" > oct)                    [push_utf8(_r1, _1)]
               |   ('u' > hex4)                    [push_utf8(_r1, _1)]
               |   ('U' > hex8)                    [push_utf8(_r1, _1)]
               |   char_("btnfr/\\\"'")            [push_esc(_r1, _1)]

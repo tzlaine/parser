@@ -44,7 +44,18 @@ namespace omd { namespace ast
                 out << '"';
                 BOOST_FOREACH(char c, utf)
                 {
-                    out << c;
+                    // $$$ JDG $$$ Fixme: this is a hack.
+                    switch (c)
+                    {
+                        case '\t':
+                            out << "\\t";
+                            break;
+                        case '\n':
+                            out << "\\n";
+                            break;
+                        default:
+                            out << c;
+                    }
                 }
                 out << "\"";
             }
