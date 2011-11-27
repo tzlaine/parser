@@ -54,6 +54,54 @@ namespace omd { namespace parser
                 }
             }
         };
+
+        template <typename T>
+        struct yaml_real_policies : qi::real_policies<T>
+        {
+            static bool const expect_dot = true;
+
+            template <typename Iterator, typename Attribute>
+            static bool
+            parse_nan(Iterator& first, Iterator const& last, Attribute& attr)
+            {
+                using boost::spirit::unused;
+
+                if (first == last)
+                    return false;   // end of input reached
+
+                // .nan ?
+                if (qi::detail::string_parse(".nan", ".NAN", first, last, unused))
+                {
+                    attr = std::numeric_limits<T>::quiet_NaN();
+                    return true;
+                }
+                return false;
+            }
+
+            template <typename Iterator, typename Attribute>
+            static bool
+            parse_inf(Iterator& first, Iterator const& last, Attribute& attr)
+            {
+                using boost::spirit::unused;
+
+                if (first == last)
+                    return false;   // end of input reached
+
+                // -.inf
+                if (qi::detail::string_parse("-.inf", "-.INF", first, last, unused))
+                {
+                    attr = -std::numeric_limits<T>::infinity();
+                    return true;
+                }
+                // .inf
+                if (qi::detail::string_parse(".inf", ".INF", first, last, unused))
+                {
+                    attr = std::numeric_limits<T>::infinity();
+                    return true;
+                }
+                return false;
+            }
+        };
     }
 
     template <typename Iterator>
@@ -154,7 +202,7 @@ namespace omd { namespace parser
         qi::int_type int_;
         qi::attr_type attr;
 
-        qi::real_parser<double, qi::strict_real_policies<double> > double_value;
+        qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
 
         scalar_value =
               double_value
@@ -162,7 +210,6 @@ namespace omd { namespace parser
             | no_case[bool_value]
             | no_case[null_value]
             | string_value
-            //~ | attr(ast::null_t())
             ;
 
         integer_value =
