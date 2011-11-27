@@ -65,7 +65,9 @@ success:
   "hexadecimal" :
     12,
   "negative infinity" :
-    "-.inf",
+    -.inf,
+  "not a number" :
+    .NaN,
   "null" :
     null,
   "octal" :

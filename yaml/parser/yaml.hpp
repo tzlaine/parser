@@ -20,7 +20,7 @@ namespace omd { namespace parser
 
         typedef white_space<Iterator> white_space_t;
         typedef flow<Iterator> flow_t;
-        typedef std::pair<ast::value_t, ast::value_t> map_element_t;
+        typedef std::pair<ast::string_t, ast::value_t> map_element_t;
 
         white_space_t ws;
         qi::rule<Iterator, ast::value_t()> yaml_start;

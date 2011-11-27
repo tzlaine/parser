@@ -31,7 +31,7 @@ namespace omd { namespace ast
     { out << "<null>"; return out; }
 
     struct                                      value_t;
-    typedef std::map<value_t, value_t>          object_t;
+    typedef std::map<string_t, value_t>         object_t;
     typedef std::vector<value_t>                array_t;
 
     struct value_t

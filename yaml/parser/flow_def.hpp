@@ -60,7 +60,7 @@ namespace omd { namespace parser
             ;
 
         member_pair =
-                scalar_value
+                scalar_value.string_value
             >>  ':'
             >>  flow_value
             ;
