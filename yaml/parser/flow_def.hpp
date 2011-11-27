@@ -27,7 +27,7 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    flow<Iterator>::flow(std::size_t& indent, std::string const& source_file)
+    flow<Iterator>::flow(int& indent, std::string const& source_file)
       : flow::base_type(flow_start),
         scalar_value(indent),
         error_handler(error_handler_t(source_file))

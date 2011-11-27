@@ -28,11 +28,11 @@ namespace omd { namespace parser
             template <typename Range>
             void operator()(
                 Range const& rng,                   //  <-- where we are now
-                std::size_t& current_indent,        //  <-- the current indent position
+                int& current_indent,                //  <-- the current indent position
                 bool& pass                          //  <-- set to false to fail parsing
             ) const
             {
-                std::size_t pos = rng.begin().get_position().column;
+                int pos = rng.begin().get_position().column;
                 if (pos >= current_indent)
                     current_indent = pos;
                 else
@@ -48,11 +48,11 @@ namespace omd { namespace parser
             template <typename Range>
             void operator()(
                 Range const& rng,                   //  <-- where we are now
-                std::size_t const& current_indent,  //  <-- the current indent position
+                int const& current_indent,          //  <-- the current indent position
                 bool& pass                          //  <-- set to false to fail parsing
             ) const
             {
-                std::size_t pos = rng.begin().get_position().column;
+                int pos = rng.begin().get_position().column;
                 if (pos < current_indent)
                     pass = false;
             }
@@ -61,9 +61,9 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     yaml<Iterator>::yaml(std::string const& source_file)
-      : yaml::base_type(yaml_start),
+      : yaml::base_type(stream),
         flow_g(current_indent),
-        current_indent(0),
+        current_indent(-1),
         error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
@@ -90,7 +90,7 @@ namespace omd { namespace parser
         qi::raw_type raw;
 
         qi::eol_type eol;
-        qi::eoi_type eoi;
+        qi::eoi_type eoi_;
         qi::blank_type blank;
 
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
@@ -139,7 +139,29 @@ namespace omd { namespace parser
             *blank >> raw[eps] [check_indent(_1, get_indent + 1, _pass)]
             ;
 
-        yaml_start =
+        auto eoi =
+            omit[
+                -('#' >> *(char_ - eoi_))   //  allow comments at the very end
+            >>  eoi_
+            ];
+
+        stream =
+            skip(space)[document > eoi]
+            ;
+
+        document =
+                explicit_document
+            |   implicit_document
+            ;
+
+        explicit_document =
+            +(  (skip(space)["---"] >> blank_eol)
+            >>  implicit_document
+            >>  (skip(space)["..."] >> blank_eol)
+            )
+            ;
+
+        implicit_document =
                 flow_compound
             |   blocks
             ;
@@ -259,7 +281,10 @@ namespace omd { namespace parser
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-            (yaml_start)
+            (stream)
+            (document)
+            (explicit_document)
+            (implicit_document)
             (block_node)
             (indented_block)
             (compact_block)
@@ -274,7 +299,7 @@ namespace omd { namespace parser
             (indent)
         );
 
-        qi::on_error<qi::fail>(yaml_start, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(stream, error_handler(_1, _2, _3, _4));
     }
 }}
 

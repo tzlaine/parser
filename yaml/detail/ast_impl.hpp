@@ -53,6 +53,9 @@ namespace omd { namespace ast
                         case '\n':
                             out << "\\n";
                             break;
+                        case '\r':
+                            out << "\\r";
+                            break;
                         default:
                             out << c;
                     }

@@ -50,8 +50,7 @@ success:
   "canonical-i" :
     12345,
   "control" :
-    "1998	1999	2000
-",
+    "1998\t1999\t2000\n",
   "decimal" :
     12345,
   "exponential" :
@@ -59,9 +58,7 @@ success:
   "fixed" :
     1230.15,
   "hex esc" :
-    "
- is 
-",
+    "\r\n is \r\n",
   "hexadecimal" :
     12,
   "negative infinity" :
@@ -75,9 +72,7 @@ success:
   "plain" :
     "This unquoted scalar spans many lines.",
   "quoted" :
-    "So does this
-  quoted scalar.
-",
+    "So does this\n  quoted scalar.\n",
   "quoted1" :
     " # Not a 'comment'.",
   "single" :

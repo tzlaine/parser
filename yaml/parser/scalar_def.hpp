@@ -105,7 +105,7 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    unicode_string<Iterator>::unicode_string(std::size_t& indent)
+    unicode_string<Iterator>::unicode_string(int& indent)
       : unicode_string::base_type(unicode_start),
         indent(indent)
     {
@@ -188,7 +188,7 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar(std::size_t& indent)
+    scalar<Iterator>::scalar(int& indent)
       : scalar::base_type(scalar_value),
         string_value(indent)
     {

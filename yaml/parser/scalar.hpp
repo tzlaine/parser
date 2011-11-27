@@ -30,8 +30,8 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>
     {
-        std::size_t& indent;
-        unicode_string(std::size_t& indent);
+        int& indent;
+        unicode_string(int& indent);
 
         qi::rule<Iterator, void(std::string&)> char_esc;
         qi::rule<Iterator, std::string()> char_lit;
@@ -44,7 +44,7 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct scalar : qi::grammar<Iterator, ast::value_t()>
     {
-        scalar(std::size_t& indent);
+        scalar(int& indent);
 
         qi::rule<Iterator, ast::value_t()> scalar_value;
         unicode_string<Iterator> string_value;
