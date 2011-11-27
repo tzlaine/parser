@@ -39,9 +39,54 @@ success:
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\scalar.yaml 
 success: 
-[
-  "Apple cider"
-]
+{
+  "booleans" :
+    [
+      true,
+      false
+    ],
+  "canonical-f" :
+    1230.15,
+  "canonical-i" :
+    12345,
+  "control" :
+    "1998	1999	2000
+",
+  "decimal" :
+    12345,
+  "exponential" :
+    1230.15,
+  "fixed" :
+    1230.15,
+  "hex esc" :
+    "
+ is 
+",
+  "hexadecimal" :
+    12,
+  "negative infinity" :
+    "-.inf",
+  "null" :
+    null,
+  "octal" :
+    12,
+  "plain" :
+    "This unquoted scalar spans many lines.",
+  "quoted" :
+    "So does this
+  quoted scalar.
+",
+  "quoted1" :
+    " # Not a 'comment'.",
+  "single" :
+    ""Howdy!" he cried.",
+  "string" :
+    "012345",
+  "tie-fighter" :
+    "|\-*-/|",
+  "unicode" :
+    "Sosa did fine.☺"
+}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block.yaml 
 success: 
@@ -248,4 +293,15 @@ success:
     3,
   "z" :
     4
+}
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map11.yaml 
+success: 
+{
+  "null" :
+    null,
+  "x" :
+    "xx",
+  "z" :
+    "zz"
 }

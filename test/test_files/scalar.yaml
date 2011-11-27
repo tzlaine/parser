@@ -1,4 +1,35 @@
-[
-  Apple
-cider
-]
+unicode: "Sosa did fine.\u263A"
+control: "\b1998\t1999\t2000\n"
+hex esc: "\x0d\x0a is \r\n"
+
+single: '"Howdy!" he cried.'
+quoted1: ' # Not a ''comment''.'
+tie-fighter: '|\-*-/|'
+
+plain:
+  This unquoted scalar
+  spans many lines.
+
+quoted: "So does this
+  quoted scalar.\n"
+
+canonical-i: 12345
+decimal: +12345
+octal: 0o14
+hexadecimal: 0xC
+
+canonical-f: 1.23015e+3
+exponential: 12.3015e+02
+fixed: 1230.15
+negative infinity: -.inf ## $$$ JDG FIXME BUG $$$ ##
+#not a number: .NaN ## $$$ JDG FIXME BUG $$$ ##
+
+null:
+booleans: [ true, false ]
+string: '012345'
+
+## $$$ JDG FIXME UNIMPLEMENTED $$$ ##
+#canonical-t: 2001-12-15T02:59:43.1Z
+#iso8601: 2001-12-14t21:59:43.10-05:00
+#spaced: 2001-12-14 21:59:43.10 -5
+#date: 2002-12-14

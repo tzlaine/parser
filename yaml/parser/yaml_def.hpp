@@ -98,6 +98,7 @@ namespace omd { namespace parser
 
         auto flow_value = skip(space)[flow_g.flow_value];
         auto flow_scalar = skip(space)[flow_g.scalar_value.scalar_value];
+        auto flow_string = skip(space)[flow_g.scalar_value.string_value.unicode_start];
 
         // no-skip version
         auto flow_scalar_ns = flow_g.scalar_value.scalar_value.alias();
@@ -212,7 +213,7 @@ namespace omd { namespace parser
 
         auto implicit_block_map_indicator =           //  Lookahead and see if we have an
             &(  start_indent                          //  implicit map indicator.
-            >>  flow_scalar
+            >>  flow_string
             >>  skip(space)[':']
             )
             ;
@@ -239,7 +240,7 @@ namespace omd { namespace parser
         implicit_block_map_entry =
                 omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[skip_indent]                     //  Indent get_indent spaces
-            >>  flow_scalar                           //  Get the key
+            >>  flow_string                           //  Get the key
             >>  omit[skip(space)[':']]                //  Get the map indicator ':'
             >>  omit[*blank]                          //  Ignore blank spaces
             >>  block_node                            //  Get the value
@@ -249,7 +250,7 @@ namespace omd { namespace parser
                 omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[skip_indent]                     //  Indent get_indent spaces
             >>  omit['?' >> (blank | &eol)]           //  Get the map-key indicator '?'
-            >>  flow_scalar                           //  Get the key
+            >>  flow_string                           //  Get the key
 
             >>  omit[*blank_eol]                      //  Ignore blank lines
             >>  omit[skip_indent]                     //  Indent get_indent spaces

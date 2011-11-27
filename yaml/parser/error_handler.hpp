@@ -30,7 +30,8 @@ namespace omd { namespace parser
             Iterator first, Iterator last,
             Iterator err_pos, boost::spirit::info const& what) const
         {
-            int line = boost::spirit::get_line(err_pos);
+            Iterator::position_t pos = err_pos.get_position();
+            int line = pos.line;
 
             if (source_file != "")
                 std::cerr << "In file " << source_file << ", ";

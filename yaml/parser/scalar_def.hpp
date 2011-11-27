@@ -71,6 +71,8 @@ namespace omd { namespace parser
         qi::eol_type eol;
         qi::repeat_type repeat;
         qi::inf_type inf;
+        qi::hex_type hex;
+        qi::oct_type oct;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
@@ -83,7 +85,9 @@ namespace omd { namespace parser
 
         char_esc =
             '\\'
-            > (   ('u' > hex4)                    [push_utf8(_r1, _1)]
+            > (   ('x' > hex)                     [push_utf8(_r1, _1)]
+              |   ("0o" > oct)                    [push_utf8(_r1, _1)]
+              |   ('u' > hex4)                    [push_utf8(_r1, _1)]
               |   ('U' > hex8)                    [push_utf8(_r1, _1)]
               |   char_("btnfr/\\\"'")            [push_esc(_r1, _1)]
               )
@@ -107,10 +111,12 @@ namespace omd { namespace parser
         auto space = blank | (eol >> repeat(ref(indent), inf)[blank]);
 
         // These are not allowed as first plain-style character
+        //~ auto unsafe_first = char_(" \r\n\t,[]{}#&*!|>'\\\"%@`$?:-");
         auto unsafe_first = char_(" \n\r\t,[]{}#&*!|>\\\"%@`");
 
         // These are not allowed as non-first plain-style character
-        auto unsafe_plain = char_(" \n\r\t?:,[]{}#&*!|>\\\"%@`-");
+        //~ auto unsafe_plain = char_(" \n\r\t?:,[]{}#&*!|>\\\"%@`-");
+        auto unsafe_plain = char_(" \n\r\t,[]{}:#");
 
         unquoted =
                 (~unsafe_first)                   [_val = _1]
@@ -161,6 +167,7 @@ namespace omd { namespace parser
 
         integer_value =
               (no_case["0x"] > hex)
+            | (no_case["0o"] > oct)
             | ('0' >> oct)
             | int_
             ;
