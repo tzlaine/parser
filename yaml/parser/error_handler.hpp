@@ -30,7 +30,7 @@ namespace omd { namespace parser
             Iterator first, Iterator last,
             Iterator err_pos, boost::spirit::info const& what) const
         {
-            Iterator::position_t pos = err_pos.get_position();
+            typename Iterator::position_t pos = err_pos.get_position();
             int line = pos.line;
 
             if (source_file != "")

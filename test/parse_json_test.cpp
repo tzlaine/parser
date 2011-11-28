@@ -11,7 +11,7 @@
 #include <fstream>
 
 #include <boost/spirit/include/support_istream_iterator.hpp>
-#include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
 
 namespace
 {
@@ -21,21 +21,25 @@ namespace
         omd::ast::value_t& result,
         std::string const& source_file = "")
     {
-        // no white space skipping in the stream!
-        is.unsetf(std::ios::skipws);
+        std::string file; // We will read the contents here.
+        is.unsetf(std::ios::skipws); // No white space skipping!
+        std::copy(
+            std::istream_iterator<char>(is),
+            std::istream_iterator<char>(),
+            std::back_inserter(file));
 
-        typedef
-            boost::spirit::basic_istream_iterator<Char>
-        stream_iterator_type;
-        stream_iterator_type sfirst(is);
-        stream_iterator_type slast;
+        typedef std::string::const_iterator base_iterator_type;
+        base_iterator_type sfirst(file.begin());
+        base_iterator_type slast(file.end());
 
-        typedef boost::spirit::line_pos_iterator<stream_iterator_type>
+        typedef boost::spirit::classic::position_iterator<base_iterator_type>
             iterator_type;
-        iterator_type first(sfirst);
-        iterator_type last(slast);
+        iterator_type first(sfirst, slast);
+        iterator_type last;
+        first.set_tabchars(1);
 
-        omd::parser::flow<iterator_type> p(source_file);
+        int indent = 0;
+        omd::parser::flow<iterator_type> p(indent, source_file);
         omd::parser::white_space<iterator_type> ws;
 
         using boost::spirit::qi::phrase_parse;
@@ -72,7 +76,7 @@ int main(int argc, char **argv)
     char c = in.peek();
     if (c == '\xef')
     {
-        char s[3];
+        char s[4];
         in >> s[0] >> s[1] >> s[2];
         s[3] = '\0';
         if (s != std::string("\xef\xbb\xbf"))

@@ -8,6 +8,10 @@
 #include "flow.hpp"
 
 #include <boost/fusion/adapted/std_pair.hpp>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_container.hpp>
+#include <boost/spirit/include/phoenix_statement.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 
 namespace omd { namespace parser

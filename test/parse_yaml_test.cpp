@@ -2,7 +2,7 @@
  *   Copyright (C) 2010, 2011 Object Modeling Designs
  */
 
-#define BOOST_SPIRIT_DEBUG
+//~ #define BOOST_SPIRIT_DEBUG
 
 #include "../yaml/parser/yaml_def.hpp"
 #include "../yaml/parser/flow_def.hpp"
@@ -43,9 +43,9 @@ namespace
             std::istream_iterator<char>(),
             std::back_inserter(file));
 
-        typedef char const* base_iterator_type;
-        base_iterator_type sfirst(&file[0]);
-        base_iterator_type slast(sfirst + file.size());
+        typedef std::string::const_iterator base_iterator_type;
+        base_iterator_type sfirst(file.begin());
+        base_iterator_type slast(file.end());
 
         typedef boost::spirit::classic::position_iterator<base_iterator_type>
             iterator_type;

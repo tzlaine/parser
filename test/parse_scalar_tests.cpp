@@ -32,7 +32,8 @@ int main()
     using omd::ast::value_t;
     using omd::ast::null_t;
 
-    scalar<char const*> g;
+    int indent = 0;
+    scalar<char const*> g(indent);
     value_t attr;
 
     SCALAR_TEST("12345", int, 12345);

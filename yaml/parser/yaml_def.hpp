@@ -7,6 +7,10 @@
 
 #include "yaml.hpp"
 #include <algorithm>
+#include <boost/spirit/include/phoenix_core.hpp>
+#include <boost/spirit/include/phoenix_container.hpp>
+#include <boost/spirit/include/phoenix_statement.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
 
 // For debugging:
 #if defined(BOOST_SPIRIT_DEBUG)
@@ -116,11 +120,11 @@ namespace omd { namespace parser
             ;
 
         auto increase_indent =
-            eps[++get_indent] PRINT_INDENT
+            eps[get_indent += 1] PRINT_INDENT
             ;
 
         auto decrease_indent =
-            eps[--get_indent] PRINT_INDENT
+            eps[get_indent -= 1] PRINT_INDENT
             ;
 
         auto restore_indent =
@@ -156,8 +160,8 @@ namespace omd { namespace parser
 
         explicit_document =
             +(  (skip(space)["---"] >> blank_eol)
-            >>  implicit_document
-            >>  (skip(space)["..."] >> blank_eol)
+            >   implicit_document
+            >   (skip(space)["..."] >> blank_eol)
             )
             ;
 

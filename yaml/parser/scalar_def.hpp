@@ -157,11 +157,9 @@ namespace omd { namespace parser
         auto space = blank | (eol >> repeat(ref(indent), inf)[blank]);
 
         // These are not allowed as first plain-style character
-        //~ auto unsafe_first = char_(" \r\n\t,[]{}#&*!|>'\\\"%@`$?:-");
         auto unsafe_first = char_(" \n\r\t,[]{}#&*!|>\\\"%@`");
 
         // These are not allowed as non-first plain-style character
-        //~ auto unsafe_plain = char_(" \n\r\t?:,[]{}#&*!|>\\\"%@`-");
         auto unsafe_plain = char_(" \n\r\t,[]{}:#");
 
         unquoted =
