@@ -100,8 +100,6 @@ namespace omd { namespace parser
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
         auto blank_eol = (*blank >> eol) | comment;     // empty until eol
 
-        auto flow_value = skip(space)[flow_g.flow_value];
-        auto flow_scalar = skip(space)[flow_g.scalar_value.scalar_value];
         auto flow_string = skip(space)[flow_g.scalar_value.string_value.unicode_start];
 
         // no-skip version

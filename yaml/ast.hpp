@@ -61,7 +61,7 @@ namespace omd { namespace ast
     bool operator!=(value_t const& a, value_t const& b);
     bool operator<(value_t const& a, value_t const& b);
 
-    std::ostream& print_json(std::ostream& out, value_t const& val);
+    std::ostream& print_yaml(std::ostream& out, value_t const& val);
 
     // ---------------------------------------------------
 }}

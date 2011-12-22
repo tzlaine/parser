@@ -15,33 +15,89 @@ namespace omd { namespace ast
 {
     namespace detail
     {
+        struct depth_f
+        {
+            typedef int result_type;
+
+            template <typename T>
+            int operator()(T const& val) const
+            {
+                return 0;
+            }
+
+            int operator()(object_t const& obj) const
+            {
+                typedef std::pair<value_t, value_t> pair;
+                int max_depth = 0;
+                BOOST_FOREACH(pair const& val, obj)
+                {
+                    int element_depth = boost::apply_visitor(*this, val.second.get());
+                    max_depth = (std::max)(max_depth, element_depth);
+                }
+                return max_depth + 1;
+            }
+
+            int operator()(array_t const& arr) const
+            {
+                int max_depth = 0;
+                BOOST_FOREACH(value_t const& val, arr)
+                {
+                    int element_depth = boost::apply_visitor(*this, val.get());
+                    max_depth = (std::max)(max_depth, element_depth);
+                }
+                return max_depth + 1;
+            }
+        };
+
+        inline int depth(value_t const& val)
+        {
+            depth_f f;
+            return boost::apply_visitor(f, val.get());
+        }
+
+        inline int depth(array_t const& arr)
+        {
+            depth_f f;
+            return f(arr);
+        }
+
+        inline int depth(object_t const& obj)
+        {
+            depth_f f;
+            return f(obj);
+        }
+
         struct json_printer
         {
             typedef void result_type;
             static int const spaces = 2;
+            static int const primary_level = 0;
 
             std::ostream& out;
-            mutable int indent_spaces;
+            mutable int current_indent;
+            mutable bool is_key;
+            mutable int level;
 
             json_printer(std::ostream& out)
-                : out(out), indent_spaces(0) {}
+                : out(out), current_indent(-spaces), is_key(false), level(-1)
+            {
+                BOOST_ASSERT(spaces >= 2);
+            }
 
             void operator()(null_t) const
             {
-                indent();
                 out << "null";
             }
 
             void operator()(bool b) const
             {
-                indent();
                 out << (b ? "true" : "false");
             }
 
             void operator()(std::string const& utf) const
             {
-                indent();
-                out << '"';
+                if (!is_key)
+                    out << '"';
                 BOOST_FOREACH(char c, utf)
                 {
                     // $$$ JDG $$$ Fixme: this is a hack.
@@ -60,12 +116,13 @@ namespace omd { namespace ast
                             out << c;
                     }
                 }
-                out << "\"";
+
+                if (!is_key)
+                    out << "\"";
             }
 
             void operator()(double d) const
             {
-                indent();
                 if (boost::math::isnan(d))
                 {
                     out << ".NaN";
@@ -84,15 +141,12 @@ namespace omd { namespace ast
             template <typename T>
             void operator()(T const& val) const
             {
-                indent();
                 out << val;
             }
 
-            void operator()(object_t const& obj) const
+            void print_json_object(object_t const& obj) const
             {
-                indent();
                 out << '{';
-                indent_spaces += spaces;
                 typedef std::pair<value_t, value_t> pair;
                 bool first = true;
 
@@ -101,30 +155,93 @@ namespace omd { namespace ast
                     if (first)
                     {
                         first = false;
-                        out << std::endl;
                     }
                     else
                     {
-                        out << ",\n";
+                        out << ", ";
                     }
+                    is_key = true;
                     boost::apply_visitor(*this, val.first.get());
-                    out << " :\n";
-                    indent_spaces += spaces;
+                    is_key = false;
+                    out << " : ";
                     boost::apply_visitor(*this, val.second.get());
-                    indent_spaces -= spaces;
                 }
 
-                indent_spaces -= spaces;
-                out << std::endl;
-                indent();
                 out << '}';
             }
 
-            void operator()(array_t const& arr) const
+            template <typename T>
+            bool dont_print_inline(T const& val) const
             {
-                indent();
+                return (level <= primary_level) || (depth(val) > 1);
+            }
+
+            void print_yaml_object(object_t const& obj) const
+            {
+                typedef std::pair<value_t, value_t> pair;
+                current_indent += spaces;
+                bool first = true;
+
+                BOOST_FOREACH(pair const& val, obj)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        out << std::endl;
+                        indent(current_indent);
+                    }
+
+                    is_key = true;
+                    boost::apply_visitor(*this, val.first.get());
+                    is_key = false;
+
+                    if (depth(val.second) > 1)
+                    {
+                        out << " :\n";
+                        indent(current_indent + spaces);
+                        boost::apply_visitor(*this, val.second.get());
+                    }
+                    else
+                    {
+                        out << " : ";
+                        boost::apply_visitor(*this, val.second.get());
+                    }
+                }
+                current_indent -= spaces;
+            }
+
+            void operator()(object_t const& obj) const
+            {
+                ++level;
+                if (dont_print_inline(obj))
+                    print_yaml_object(obj);
+                else
+                    print_json_object(obj);
+                --level;
+            }
+
+            void print_json_array(array_t const& arr) const
+            {
                 out << '[';
-                indent_spaces += spaces;
+                bool first = true;
+
+                BOOST_FOREACH(value_t const& val, arr)
+                {
+                    if (first)
+                        first = false;
+                    else
+                        out << ", ";
+                    boost::apply_visitor(*this, val.get());
+                }
+
+                out << ']';
+            }
+
+            void print_yaml_array(array_t const& arr) const
+            {
                 bool first = true;
 
                 BOOST_FOREACH(value_t const& val, arr)
@@ -132,30 +249,42 @@ namespace omd { namespace ast
                     if (first)
                     {
                         first = false;
-                        out << std::endl;
+                        indent(spaces - 2);
+                        out << "- "; // print the indicator
+                        current_indent += spaces;
                     }
                     else
                     {
-                        out << ",\n";
+                        out << std::endl;
+                        indent(current_indent + spaces - 2);
+                        out << "- "; // print the indicator
                     }
+
                     boost::apply_visitor(*this, val.get());
                 }
 
-                indent_spaces -= spaces;
-                out << std::endl;
-                indent();
-                out << ']';
+                current_indent -= spaces;
             }
 
-            void indent() const
+            void operator()(array_t const& arr) const
             {
-                for (int i = 0; i != indent_spaces; ++i)
+                ++level;
+                if (dont_print_inline(arr))
+                    print_yaml_array(arr);
+                else
+                    print_json_array(arr);
+                --level;
+            }
+
+            void indent(int indent_spaces) const
+            {
+                for (int i = 0; i < indent_spaces; ++i)
                     out << ' ';
             }
         };
     }
 
-    inline std::ostream& print_json(std::ostream& out, value_t const& val)
+    inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
     {
         detail::json_printer f(out);
         boost::apply_visitor(f, val.get());
