@@ -1,6 +1,12 @@
 # ASCII Art
-- |
+- |           # Literal Style
   \//||\/||
   // ||  ||__
       ---> properly indented
-- Another string
+- >
+  folded
+  text
+
+  next
+  line
+- Last

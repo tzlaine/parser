@@ -61,6 +61,29 @@ namespace omd { namespace parser
                     pass = false;
             }
         };
+
+        struct fold_line
+        {
+            template <typename String, typename Range, typename Char>
+            struct result { typedef void type; };
+
+            template <typename String, typename Range>
+            void operator()(
+                String& result,
+                Range const& rng,
+                char indicator
+            ) const
+            {
+                if (rng.empty())
+                    return;
+
+                std::size_t n = std::distance(rng.begin(), rng.end());
+                if ((indicator == '>') && (n == 1))
+                    result += ' ';
+                else
+                    result += '\n';
+            }
+        };
     }
 
     template <typename Iterator>
@@ -73,6 +96,7 @@ namespace omd { namespace parser
         namespace phx = boost::phoenix;
         phx::function<detail::update_indent> update_indent;
         phx::function<detail::check_indent> check_indent;
+        phx::function<detail::fold_line> fold_line;
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -225,19 +249,21 @@ namespace omd { namespace parser
             ;
 
         auto block_literal_first_line =
-                *eol                [ _val += '\n' ]  //  blank lines (normalized)
+                raw[*eol]           [ fold_line(_val, _1, _a) ]
             >>  start_indent                          //  Get first line indent
             >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
             ;
 
         auto block_literal_line =
-                *eol                [ _val += '\n' ]  //  blank lines (normalized)
+                raw[*eol]           [ fold_line(_val, _1, _a) ]
             >>  skip_exact_indent                     //  Indent get_indent spaces
             >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
             ;
 
         block_literal =
-                start_indent >> '|' >> (blank | eol)  //  literal-style indicator.
+                start_indent
+            >>  char_("|>")         [ _a = _1 ]       //  indicator
+            >>  *blank >> blank_eol
             >>  block_literal_first_line
             >>  *block_literal_line
             ;
