@@ -100,7 +100,7 @@ namespace omd { namespace ast
                     out << '"';
                 BOOST_FOREACH(char c, utf)
                 {
-                    // $$$ JDG $$$ Fixme: this is a hack.
+                    // $$$ JDG $$$ Fixme: Add more escapes (e.g. unicode, unprintables, etc)
                     switch (c)
                     {
                         case '\t':
@@ -111,6 +111,9 @@ namespace omd { namespace ast
                             break;
                         case '\r':
                             out << "\\r";
+                            break;
+                        case '\\':
+                            out << "\\\\";
                             break;
                         default:
                             out << c;

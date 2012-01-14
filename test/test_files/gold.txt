@@ -39,13 +39,27 @@ quoted : "So does this\n  quoted scalar.\n"
 quoted1 : " # Not a 'comment'."
 single : ""Howdy!" he cried."
 string : "012345"
-tie-fighter : "|\-*-/|"
+tie-fighter : "|\\-*-/|"
 unicode : "Sosa did fine.☺"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block.yaml 
 success: 
 american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
 national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block2.yaml 
+success: 
+x : ["a", "b", "c"]
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block3.yaml 
+success: 
+x : ["a", "b", "c"]
+y : ["a", "b", "c"]
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals.yaml 
+success: 
+- "\\//||\\/||\n// ||  ||__\n    ---> properly indented\n"
+- "Another string"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 

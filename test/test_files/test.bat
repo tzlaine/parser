@@ -3,6 +3,9 @@ C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_json
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_flow.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\scalar.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block2.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block3.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals.yaml
 
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array2.yaml

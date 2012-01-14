@@ -137,6 +137,10 @@ namespace omd { namespace parser
             *blank >> raw[eps] [check_indent(_1, get_indent, _pass)]
             ;
 
+        auto skip_exact_indent =
+            repeat(get_indent-1)[blank]     // note: indent is one based!
+            ;
+
         skip_indent_child =
             *blank >> raw[eps] [check_indent(_1, get_indent + 1, _pass)]
             ;
@@ -203,7 +207,8 @@ namespace omd { namespace parser
             ;
 
         auto block_main =
-                block_seq
+                block_literal
+            |   block_seq
             |   explicit_block_map
             |   implicit_block_map
             ;
@@ -217,6 +222,24 @@ namespace omd { namespace parser
 
         auto start_indent =
             omit[indent] PRINT_INDENT
+            ;
+
+        auto block_literal_first_line =
+                *eol                [ _val += '\n' ]  //  blank lines (normalized)
+            >>  start_indent                          //  Get first line indent
+            >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
+            ;
+
+        auto block_literal_line =
+                *eol                [ _val += '\n' ]  //  blank lines (normalized)
+            >>  skip_exact_indent                     //  Indent get_indent spaces
+            >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
+            ;
+
+        block_literal =
+                start_indent >> '|' >> (blank | eol)  //  literal-style indicator.
+            >>  block_literal_first_line
+            >>  *block_literal_line
             ;
 
         auto block_seq_indicator =                    //  Lookahead and see if we have a
@@ -291,6 +314,7 @@ namespace omd { namespace parser
             (indented_block)
             (compact_block)
             (blocks)
+            (block_literal)
             (block_seq)
             (block_seq_entry)
             (implicit_block_map)
