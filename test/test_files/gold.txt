@@ -1,304 +1,139 @@
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_json_objects.json 
 success: 
-{
-  "Apple" :
-    6,
-  "Orange" :
-    [
-      1,
-      2,
-      3
-    ]
-}
+Apple : 6
+Orange : [1, 2, 3]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_json.json 
 success: 
-[
-  123.45,
-  true,
-  false,
-  "this is a unicode € string",
-  "Τη γλώσσα μου έδωσαν ελληνική",
-  [
-    92,
-    [
-      "another string",
-      "apple",
-      "Sîne"
-    ]
-  ]
-]
+- 123.45
+- true
+- false
+- "this is a unicode € string"
+- "Τη γλώσσα μου έδωσαν ελληνική"
+- - 92
+  - ["another string", "apple", "Sîne"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_flow.yaml 
 success: 
-[
-  "apple",
-  "Sîne"
-]
+- "apple"
+- "Sîne"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\scalar.yaml 
 success: 
-{
-  "booleans" :
-    [
-      true,
-      false
-    ],
-  "canonical-f" :
-    1230.15,
-  "canonical-i" :
-    12345,
-  "control" :
-    "1998\t1999\t2000\n",
-  "decimal" :
-    12345,
-  "exponential" :
-    1230.15,
-  "fixed" :
-    1230.15,
-  "hex esc" :
-    "\r\n is \r\n",
-  "hexadecimal" :
-    12,
-  "negative infinity" :
-    -.inf,
-  "not a number" :
-    .NaN,
-  "null" :
-    null,
-  "octal" :
-    12,
-  "plain" :
-    "This unquoted scalar spans many lines.",
-  "quoted" :
-    "So does this\n  quoted scalar.\n",
-  "quoted1" :
-    " # Not a 'comment'.",
-  "single" :
-    ""Howdy!" he cried.",
-  "string" :
-    "012345",
-  "tie-fighter" :
-    "|\-*-/|",
-  "unicode" :
-    "Sosa did fine.☺"
-}
+booleans : [true, false]
+canonical-f : 1230.15
+canonical-i : 12345
+control : "1998\t1999\t2000\n"
+decimal : 12345
+exponential : 1230.15
+fixed : 1230.15
+hex esc : "\r\n is \r\n"
+hexadecimal : 12
+negative infinity : -.inf
+not a number : .NaN
+null : null
+octal : 12
+plain : "This unquoted scalar spans many lines."
+quoted : "So does this\n  quoted scalar.\n"
+quoted1 : " # Not a 'comment'."
+single : ""Howdy!" he cried."
+string : "012345"
+tie-fighter : "|\-*-/|"
+unicode : "Sosa did fine.☺"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block.yaml 
 success: 
-{
-  "american" :
-    [
-      "Boston Red Sox",
-      "Detroit Tigers",
-      "New York Yankees"
-    ],
-  "national" :
-    [
-      "New York Mets",
-      "Chicago Cubs",
-      "Atlanta Braves"
-    ]
-}
+american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
+national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 
-[
-  "A",
-  "B",
-  "C",
-  [
-    "x",
-    "y",
-    "z"
-  ],
-  "D",
-  "E"
-]
+- "A"
+- "B"
+- "C"
+- ["x", "y", "z"]
+- "D"
+- "E"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array2.yaml 
 success: 
-[
-  "A",
-  "B",
-  "C",
-  [
-    "x",
-    "y",
-    "z"
-  ],
-  "D",
-  {
-    "E" :
-      "yabba dabba"
-  }
-]
+- "A"
+- "B"
+- "C"
+- ["x", "y", "z"]
+- "D"
+- {E : "yabba dabba"}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array3.yaml 
 success: 
-[
-  null,
-  "B"
-]
+- null
+- "B"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array4.yaml 
 success: 
-[
-  "A",
-  [
-    "a",
-    "b",
-    "c"
-  ],
-  "B"
-]
+- "A"
+- ["a", "b", "c"]
+- "B"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array5.yaml 
 success: 
-[
-  [
-    "x",
-    "y"
-  ]
-]
+- ["x", "y"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array6.yaml 
 success: 
-[
-  [
-    "x",
-    "y"
-  ],
-  {
-    "a" :
-      1,
-    "b" :
-      2
-  }
-]
+- ["x", "y"]
+- {a : 1, b : 2}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map1.yaml 
 success: 
-{
-  "Apple" :
-    6,
-  "Orange" :
-    [
-      1,
-      2,
-      3
-    ]
-}
+Apple : 6
+Orange : [1, 2, 3]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map2.yaml 
 success: 
-{
-  "Apple" :
-    {
-      "x" :
-        2,
-      "y" :
-        3
-    }
-}
+Apple : {x : 2, y : 3}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map3.yaml 
 success: 
-{
-  "key0" :
-    {
-      "key1" :
-        1,
-      "key2" :
-        null,
-      "key3" :
-        3
-    }
-}
+key0 : {key1 : 1, key2 : null, key3 : 3}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map4.yaml 
 success: 
-{
-  "key1" :
-    1,
-  "key2" :
-    null,
-  "key3" :
-    2
-}
+key1 : 1
+key2 : null
+key3 : 2
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map5.yaml 
 success: 
-{
-  "z" :
-    {
-      "x" :
-        2,
-      "y" :
-        3
-    }
-}
+z : {x : 2, y : 3}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map6.yaml 
 success: 
-{
-  "the key value" :
-    {
-      "key1" :
-        "value",
-      "key2" :
-        "more value"
-    }
-}
+the key value : {key1 : "value", key2 : "more value"}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map7.yaml 
 success: 
-{
-  "Apple" :
-    6,
-  "Orange" :
-    null
-}
+Apple : 6
+Orange : null
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map8.yaml 
 success: 
-{
-  "z" :
-    4
-}
+z : 4
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map9.yaml 
 success: 
-[
-  {
-    "a" :
-      1,
-    "b" :
-      2
-  }
-]
+- {a : 1, b : 2}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map10.yaml 
 success: 
-{
-  "w" :
-    9,
-  "x" :
-    2,
-  "y" :
-    3,
-  "z" :
-    4
-}
+w : 9
+x : 2
+y : 3
+z : 4
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map11.yaml 
 success: 
-{
-  "null" :
-    null,
-  "x" :
-    "xx",
-  "z" :
-    "zz"
-}
+null : null
+x : "xx"
+z : "zz"
