@@ -32,4 +32,19 @@
     * lines
   last
   line
+- >
+  default
+  chomping
+
+
+- >-
+  strip
+  chomping
+
+
+- >+
+  keep
+  chomping
+
+
 - Last

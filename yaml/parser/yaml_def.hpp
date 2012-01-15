@@ -26,7 +26,7 @@ namespace omd { namespace parser
     {
         struct update_indent
         {
-            template <typename Range, typename Size, typename Fail>
+            template <typename, typename, typename>
             struct result { typedef void type; };
 
             template <typename Range>
@@ -46,7 +46,7 @@ namespace omd { namespace parser
 
         struct check_indent
         {
-            template <typename Range, typename Size, typename Fail>
+            template <typename, typename, typename>
             struct result { typedef void type; };
 
             template <typename Range>
@@ -72,7 +72,7 @@ namespace omd { namespace parser
                 String& result,
                 Range const& rng,
                 char indicator,
-                bool indented_next_line
+                bool different_indentation
             ) const
             {
                 if (rng.empty())
@@ -80,8 +80,8 @@ namespace omd { namespace parser
 
                 std::size_t n = std::distance(rng.begin(), rng.end());
 
-                // Don't fold the previous lines if the next line is more indented
-                if ((indicator == '>') && indented_next_line)
+                // Don't fold the previous lines if the next line has a different indentation
+                if ((indicator == '>') && different_indentation)
                 {
                     for (std::size_t i = 0; i != n; ++i)
                         result += '\n';
@@ -92,6 +92,33 @@ namespace omd { namespace parser
                     result += ' ';
                 else
                     result += '\n';
+            }
+        };
+
+        struct chomp_string
+        {
+            template <typename, typename>
+            struct result { typedef void type; };
+
+            template <typename String>
+            void operator()(String& result, char indicator) const
+            {
+                if (indicator == '-' || indicator == 0)
+                {
+                    std::size_t pos = result.size();
+                    for (; pos != 0; --pos)
+                    {
+                        if (result[pos-1] != '\n')
+                            break;
+                    }
+                    if (pos < result.size())
+                    {
+                        if (indicator == '-')
+                            result.erase(pos);
+                        else
+                            result.erase(pos+1);
+                    }
+                }
             }
         };
     }
@@ -107,6 +134,7 @@ namespace omd { namespace parser
         phx::function<detail::update_indent> update_indent;
         phx::function<detail::check_indent> check_indent;
         phx::function<detail::fold_line> fold_line;
+        phx::function<detail::chomp_string> chomp_string;
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -119,6 +147,7 @@ namespace omd { namespace parser
         qi::_r1_type _r1;
         qi::_a_type _a;
         qi::_b_type _b;
+        qi::_c_type _c;
         qi::char_type char_;
 
         qi::repeat_type repeat;
@@ -226,7 +255,7 @@ namespace omd { namespace parser
             |   indented_block
             |   flow_compound
             |   scalar_in_block
-            |   (omit[blank_eol | eoi]                //  If all else fails, then null_t
+            |   (omit[blank_eol | eoi]                      //  If all else fails, then null_t
                   >> attr(ast::null_t()))
             ;
 
@@ -261,56 +290,59 @@ namespace omd { namespace parser
 
         auto block_literal_first_line =
                 raw[*eol]           [ fold_line(_val, _1, _a, false) ]
-            >>  start_indent                          //  Get first line indent
-            >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
+            >>  start_indent                                //  Get first line indent
+            >>  +(char_ - eol)      [ _val += _1 ]          //  Get the line
             ;
 
-        // This rule checks for blank lines and sets (local) _b to true or false
-        // depending on whether the succeeding line is more indented or not
+        // This rule checks for blank lines and sets local _c to true or false
+        // depending on whether the succeeding line has a different indentation or not
         auto block_literal_blank_lines =
             raw[(*eol)
-                >> &-(skip_exact_indent >> blank)     [ _b = true ]
-            ][ fold_line(_val, _1, _a, _b) ];
+                >> &-(skip_exact_indent >> blank)     [ _c = true ]
+                >> -(!skip_exact_indent)              [ _c = true ]
+            ][ fold_line(_val, _1, _a, _c) ];
 
         // This rule checks if the current line is indented or not and
-        // sets (local) _b accordingly
+        // sets local _c accordingly
         auto block_literal_indented_line =
-            &(blank[ _b = true ] | eps[ _b = false ])
+            &(blank[ _c = true ] | eps[ _c = false ])
             ;
 
         auto block_literal_line =
                 block_literal_blank_lines
-            >>  skip_exact_indent                     //  Indent get_indent spaces
+            >>  skip_exact_indent                           //  Indent get_indent spaces
             >>  block_literal_indented_line
-            >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
+            >>  +(char_ - eol)      [ _val += _1 ]          //  Get the line
             ;
 
         block_literal =
-                start_indent
-            >>  char_("|>")         [ _a = _1 ]       //  indicator
+                start_indent        [ _c = false, _b = 0 ]  //  initialize locals
+            >>  char_("|>")         [ _a = _1 ]             //  get indicator in local _a
+            >>  -char_("+-")        [ _b = _1 ]             //  get the (optional) chomping indicator
             >>  *blank >> blank_eol
             >>  block_literal_first_line
             >>  *block_literal_line
+            >>  eps                 [ chomp_string(_val, _b) ]
             ;
 
-        auto block_seq_indicator =                    //  Lookahead and see if we have a
-            &(start_indent >> '-' >> (blank | eol))   //  sequence indicator.
+        auto block_seq_indicator =                          //  Lookahead and see if we have a
+            &(start_indent >> '-' >> (blank | eol))         //  sequence indicator.
             ;
 
         block_seq =
                 omit[block_seq_indicator]
-            >>  +block_seq_entry                      //  Get the entries
+            >>  +block_seq_entry                            //  Get the entries
             ;
 
         block_seq_entry =
-                omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[skip_indent]                     //  Indent get_indent spaces
-            >>  omit['-' >> (blank | &eol)]           //  Get the sequence indicator '-'
-            >>  block_node                            //  Get the entry
+                omit[*blank_eol]                            //  Ignore blank lines
+            >>  omit[skip_indent]                           //  Indent get_indent spaces
+            >>  omit['-' >> (blank | &eol)]                 //  Get the sequence indicator '-'
+            >>  block_node                                  //  Get the entry
             ;
 
-        auto implicit_block_map_indicator =           //  Lookahead and see if we have an
-            &(  start_indent                          //  implicit map indicator.
+        auto implicit_block_map_indicator =                 //  Lookahead and see if we have an
+            &(  start_indent                                //  implicit map indicator.
             >>  flow_string
             >>  skip(space)[':']
             )
@@ -318,16 +350,16 @@ namespace omd { namespace parser
 
         implicit_block_map =
                 omit[implicit_block_map_indicator]
-            >>  +block_map_entry                      //  Get the entries
+            >>  +block_map_entry                            //  Get the entries
             ;
 
-        auto explicit_block_map_indicator =           //  Lookahead and see if we have an
-            &(start_indent >> '?' >> (blank | eol))   //  explicit map indicator.
+        auto explicit_block_map_indicator =                 //  Lookahead and see if we have an
+            &(start_indent >> '?' >> (blank | eol))         //  explicit map indicator.
             ;
 
         explicit_block_map =
                 omit[explicit_block_map_indicator]
-            >>  +block_map_entry                      //  Get the entries
+            >>  +block_map_entry                            //  Get the entries
             ;
 
         block_map_entry =
@@ -336,24 +368,24 @@ namespace omd { namespace parser
             ;
 
         implicit_block_map_entry =
-                omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[skip_indent]                     //  Indent get_indent spaces
-            >>  flow_string                           //  Get the key
-            >>  omit[skip(space)[':']]                //  Get the map indicator ':'
-            >>  omit[*blank]                          //  Ignore blank spaces
-            >>  block_node                            //  Get the value
+                omit[*blank_eol]                            //  Ignore blank lines
+            >>  omit[skip_indent]                           //  Indent get_indent spaces
+            >>  flow_string                                 //  Get the key
+            >>  omit[skip(space)[':']]                      //  Get the map indicator ':'
+            >>  omit[*blank]                                //  Ignore blank spaces
+            >>  block_node                                  //  Get the value
             ;
 
         explicit_block_map_entry =
-                omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[skip_indent]                     //  Indent get_indent spaces
-            >>  omit['?' >> (blank | &eol)]           //  Get the map-key indicator '?'
-            >>  flow_string                           //  Get the key
+                omit[*blank_eol]                            //  Ignore blank lines
+            >>  omit[skip_indent]                           //  Indent get_indent spaces
+            >>  omit['?' >> (blank | &eol)]                 //  Get the map-key indicator '?'
+            >>  flow_string                                 //  Get the key
 
-            >>  omit[*blank_eol]                      //  Ignore blank lines
-            >>  omit[skip_indent]                     //  Indent get_indent spaces
-            >>  omit[':' >> (blank | &eol)]           //  Get the map-value indicator ':'
-            >>  block_node                            //  Get the value
+            >>  omit[*blank_eol]                            //  Ignore blank lines
+            >>  omit[skip_indent]                           //  Indent get_indent spaces
+            >>  omit[':' >> (blank | &eol)]                 //  Get the map-value indicator ':'
+            >>  block_node                                  //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

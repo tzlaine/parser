@@ -59,9 +59,12 @@ y : ["a", "b", "c"]
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals.yaml 
 success: 
 - "\\//||\\/||\n// ||  ||__\n    ---> properly indented\n"
-- "folded text\nnext line "
-- "folded text\nnext line\n  * bullet\n  * list\n  * lines\nlast line "
-- "folded text\nnext line\n  * bullet\n\n  * list\n  * lines\nlast line "
+- "folded text\nnext line\n"
+- "folded text\nnext line\n  * bullet\n  * list\n  * lines\nlast line\n"
+- "folded text\nnext line\n  * bullet\n\n  * list\n  * lines\nlast line\n"
+- "default chomping\n"
+- "strip chomping"
+- "keep chomping\n\n\n"
 - "Last"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
