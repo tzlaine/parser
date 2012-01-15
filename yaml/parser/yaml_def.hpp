@@ -64,20 +64,30 @@ namespace omd { namespace parser
 
         struct fold_line
         {
-            template <typename String, typename Range, typename Char>
+            template <typename, typename, typename, typename>
             struct result { typedef void type; };
 
             template <typename String, typename Range>
             void operator()(
                 String& result,
                 Range const& rng,
-                char indicator
+                char indicator,
+                bool indented_next_line
             ) const
             {
                 if (rng.empty())
                     return;
 
                 std::size_t n = std::distance(rng.begin(), rng.end());
+
+                // Don't fold the previous lines if the next line is more indented
+                if ((indicator == '>') && indented_next_line)
+                {
+                    for (std::size_t i = 0; i != n; ++i)
+                        result += '\n';
+                    return;
+                }
+
                 if ((indicator == '>') && (n == 1))
                     result += ' ';
                 else
@@ -108,6 +118,7 @@ namespace omd { namespace parser
         qi::_4_type _4;
         qi::_r1_type _r1;
         qi::_a_type _a;
+        qi::_b_type _b;
         qi::char_type char_;
 
         qi::repeat_type repeat;
@@ -249,14 +260,28 @@ namespace omd { namespace parser
             ;
 
         auto block_literal_first_line =
-                raw[*eol]           [ fold_line(_val, _1, _a) ]
+                raw[*eol]           [ fold_line(_val, _1, _a, false) ]
             >>  start_indent                          //  Get first line indent
             >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
             ;
 
+        // This rule checks for blank lines and sets (local) _b to true or false
+        // depending on whether the succeeding line is more indented or not
+        auto block_literal_blank_lines =
+            raw[(*eol)
+                >> &-(skip_exact_indent >> blank)     [ _b = true ]
+            ][ fold_line(_val, _1, _a, _b) ];
+
+        // This rule checks if the current line is indented or not and
+        // sets (local) _b accordingly
+        auto block_literal_indented_line =
+            &(blank[ _b = true ] | eps[ _b = false ])
+            ;
+
         auto block_literal_line =
-                raw[*eol]           [ fold_line(_val, _1, _a) ]
+                block_literal_blank_lines
             >>  skip_exact_indent                     //  Indent get_indent spaces
+            >>  block_literal_indented_line
             >>  +(char_ - eol)      [ _val += _1 ]    //  Get the line
             ;
 

@@ -60,6 +60,8 @@ C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yam
 success: 
 - "\\//||\\/||\n// ||  ||__\n    ---> properly indented\n"
 - "folded text\nnext line "
+- "folded text\nnext line\n  * bullet\n  * list\n  * lines\nlast line "
+- "folded text\nnext line\n  * bullet\n\n  * list\n  * lines\nlast line "
 - "Last"
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 

@@ -9,4 +9,27 @@
 
   next
   line
+- >
+  folded
+  text
+
+  next
+  line
+    * bullet
+    * list
+    * lines
+  last
+  line
+- >
+  folded
+  text
+
+  next
+  line
+    * bullet
+
+    * list
+    * lines
+  last
+  line
 - Last
