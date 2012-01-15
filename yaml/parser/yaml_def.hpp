@@ -162,7 +162,7 @@ namespace omd { namespace parser
         qi::blank_type blank;
 
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
-        auto blank_eol = (*blank >> eol) | comment;     // empty until eol
+        auto blank_eol = *blank >> (comment | eol);     // empty until eol
 
         auto flow_string = skip(space)[flow_g.scalar_value.string_value.unicode_start];
 
@@ -209,14 +209,14 @@ namespace omd { namespace parser
             *blank >> raw[eps] [check_indent(_1, get_indent + 1, _pass)]
             ;
 
-        auto eoi =
+        end_of_input =
             omit[
                 -('#' >> *(char_ - eoi_))   //  allow comments at the very end
             >>  eoi_
             ];
 
         stream =
-            skip(space)[document > eoi]
+            skip(space)[document > end_of_input]
             ;
 
         document =
@@ -224,10 +224,14 @@ namespace omd { namespace parser
             |   implicit_document
             ;
 
+        document_end =
+            skip(space)["..."] >> blank_eol
+            ;
+
         explicit_document =
             +(  (skip(space)["---"] >> blank_eol)
             >   implicit_document
-            >   (skip(space)["..."] >> blank_eol)
+            >   document_end
             )
             ;
 
@@ -255,7 +259,7 @@ namespace omd { namespace parser
             |   indented_block
             |   flow_compound
             |   scalar_in_block
-            |   (omit[blank_eol | eoi]                      //  If all else fails, then null_t
+            |   (omit[blank_eol | end_of_input]  //  If all else fails, then null_t
                   >> attr(ast::null_t()))
             ;
 
@@ -316,7 +320,7 @@ namespace omd { namespace parser
             ;
 
         block_literal =
-                start_indent        [ _c = false, _b = 0 ]  //  initialize locals
+                (*blank)            [ _c = false, _b = 0 ]  //  initialize locals
             >>  char_("|>")         [ _a = _1 ]             //  get indicator in local _a
             >>  -char_("+-")        [ _b = _1 ]             //  get the (optional) chomping indicator
             >>  *blank >> blank_eol
@@ -393,6 +397,8 @@ namespace omd { namespace parser
             (document)
             (explicit_document)
             (implicit_document)
+            (document_end)
+            (end_of_input)
             (block_node)
             (indented_block)
             (compact_block)

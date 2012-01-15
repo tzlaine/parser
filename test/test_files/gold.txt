@@ -67,6 +67,11 @@ success:
 - "keep chomping\n\n\n"
 - "Last"
 
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals2.yaml 
+success: 
+accomplishment : "Mark set a major league home run record in 1998.\n"
+stats : "65 Home Runs\n0.278 Batting Average\n"
+
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 
 - "A"
@@ -104,6 +109,11 @@ C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yam
 success: 
 - ["x", "y"]
 - {a : 1, b : 2}
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array7.yaml 
+success: 
+- {avg : 0.278, hr : 65, name : "Mark McG"}
+- {avg : 0.288, hr : 63, name : "Sammy So"}
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map1.yaml 
 success: 
@@ -157,3 +167,8 @@ success:
 null : null
 x : "xx"
 z : "zz"
+
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map12.yaml 
+success: 
+american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
+national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]

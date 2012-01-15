@@ -6,6 +6,8 @@ C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block2.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml_block3.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals2.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\test.yaml
 
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array2.yaml
@@ -13,6 +15,7 @@ C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array4.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array5.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array6.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array7.yaml
 
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map1.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map2.yaml
@@ -25,4 +28,5 @@ C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map9.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map10.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map11.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_map12.yaml
 

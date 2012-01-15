@@ -27,6 +27,8 @@ namespace omd { namespace parser
         qi::rule<Iterator, ast::value_t()> document;
         qi::rule<Iterator, ast::value_t()> implicit_document;
         qi::rule<Iterator, ast::array_t()> explicit_document;
+        qi::rule<Iterator> document_end;
+        qi::rule<Iterator> end_of_input;
 
         qi::rule<Iterator, ast::value_t()> block_node;
         qi::rule<Iterator, ast::value_t()> indented_block;

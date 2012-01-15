@@ -3,10 +3,12 @@
 - Mark McGwire
 - Sammy Sosa
 - Ken Griffey
+...
 ---
-hr : 65    # Home runs
-av,g: 0.278 # Batting average
-r, bi: 147   # Runs Batted In
+hr:  65    # Home runs
+avg: 0.278 # Batting average
+rbi: 147   # Runs Batted In
+...
 ---
 american:
   - Boston Red Sox
@@ -16,11 +18,13 @@ national:
   - New York Mets
   - Chicago Cubs
   - Atlanta Braves
+...
 ---
 inventory:
  - a Holy Book of Prayers (Words of Wisdom)
  - an Azure Potion of Cure Light Wounds
  - a Silver Wand of Wonder
+...
 ---
 -
   name: Mark McG
@@ -30,25 +34,30 @@ inventory:
   name: Sammy So
   hr:   63
   avg:  0.288
+...
 ---
 - [name        , hr, avg  ]
 - [Mark McGwire, 65, 0.278]
 - [Sammy Sosa  , 63, 0.288]
+...
 ---
 Mark McGwire: {hr: 65, avg: 0.278}
 Sammy Sosa: {
     hr: 63,
     avg: 0.288
   }
+...
 ---
 # Ranking of 1998 home runs
 - Mark McGwire
 - Sammy Sosa
 - Ken Griffey
 # Team ranking
+...
 ---
 - Chicago Cubs
 - St Louis Cardinals
+...
 ---
 time: 20:03:20
 player: Sammy Sosa
@@ -67,23 +76,7 @@ rbi:
   # 1998 rbi ranking
   - Sammy Sosa
   - Ken Griffey
----
-hr:
-  - Mark McGwire
-  # Following node labeled SS
-  - &SS Sammy Sosa
-rbi:
-  - *SS # Subsequent occurrence
-  - Ken Griffey
----
-? - Detroit Tigers
-  - Chicago cubs
-:
-  - 2001-07-23
-? [ New York Yankees,
-    Atlanta Braves ]
-: [ 2001-07-02, 2001-08-12,
-    2001-08-14 ]
+...
 ---
 # products purchased
 - item    : Super Hoop
@@ -93,14 +86,13 @@ rbi:
 - item    : Big Shoes
   quantity: 1
 # ASCII Art
---- |
+...
+---
+|
   \//||\/||
   // ||  ||__
         # ASCII Art
----
-  Mark McGwire's
-  year was crippled
-  by a knee injury.
+...
 ---
 >
  Sammy Sosa completed another
@@ -108,6 +100,7 @@ rbi:
   63 Home Runs
  0.288 Batting Average
  What a year!
+...
 ---
 name: Mark McGwire
 accomplishment: >
@@ -116,14 +109,11 @@ accomplishment: >
 stats: |
  65 Home Runs
  0.278 Batting Average
+...
 ---
 unicode: "Sosa did fine."
 single: '"Howdy!" he cried.'
 quoted: ' # not a ''comment''.'
 tie-fighter: '|\-*-/|'
----
-"Fun with \\\" \a \b \e \f \
-\n \r \t \v \0 \
-\  \_ \N \L \P \
-\x41 \u0041"
+...
 
