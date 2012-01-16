@@ -43,14 +43,25 @@ namespace omd { namespace parser
             {
                 switch (c)
                 {
-                    case 'b': utf8 += '\b';     break;
-                    case 't': utf8 += '\t';     break;
-                    case 'n': utf8 += '\n';     break;
-                    case 'f': utf8 += '\f';     break;
-                    case 'r': utf8 += '\r';     break;
-                    case '"': utf8 += '"';      break;
-                    case '/': utf8 += '/';      break;
-                    case '\\': utf8 += '\\';    break;
+                    case ' ': utf8 += ' ';          break;
+                    case '\t': utf8 += '\t';        break;
+                    case '0': utf8 += char(0);      break;
+                    case 'a': utf8 += 0x7;          break;
+                    case 'b': utf8 += 0x8;          break;
+                    case 't': utf8 += 0x9;          break;
+                    case 'n': utf8 += 0xA;          break;
+                    case 'v': utf8 += 0xB;          break;
+                    case 'f': utf8 += 0xC;          break;
+                    case 'r': utf8 += 0xD;          break;
+                    case 'e': utf8 += 0x1B;         break;
+                    case '"': utf8 += '"';          break;
+                    case '/': utf8 += '/';          break;
+                    case '\\': utf8 += '\\';        break;
+
+                    case '_': push_utf8()(utf8, 0xA0);  break;
+                    case 'N': push_utf8()(utf8, 0x85);  break;
+                    case 'L': push_utf8()(utf8, 0x2028);  break;
+                    case 'P': push_utf8()(utf8, 0x2029);  break;
                 }
             }
         };
@@ -135,7 +146,8 @@ namespace omd { namespace parser
             > (   ('x' > hex)                     [push_utf8(_r1, _1)]
               |   ('u' > hex4)                    [push_utf8(_r1, _1)]
               |   ('U' > hex8)                    [push_utf8(_r1, _1)]
-              |   char_("btnfr/\\\"'")            [push_esc(_r1, _1)]
+              |   char_("0abtnvfre\"/\\N_LP \t")  [push_esc(_r1, _1)]
+              |   eol                             // continue to next line
               )
             ;
 

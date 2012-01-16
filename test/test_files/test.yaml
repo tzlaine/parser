@@ -106,6 +106,15 @@ single: '"Howdy!" he cried.'
 quoted: ' # not a ''comment''.'
 tie-fighter: '|\-*-/|'
 
+---
+- "Fun with \\\" \a \b \e \f \
+  \n \r \t \v \0 \
+  \  \_ \N \L \P \
+  \x41 \u0041"
+
+---
+- Mark McGwire's
+  year was crippled
+  by a knee injury.
+
 ...
-
-

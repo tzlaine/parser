@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/regex/pending/unicode_iterator.hpp>
 
 namespace omd { namespace ast
 {
@@ -98,28 +99,33 @@ namespace omd { namespace ast
             {
                 if (!is_key)
                     out << '"';
-                BOOST_FOREACH(char c, utf)
+
+                typedef ::boost::uint32_t ucs4_char;
+                typedef boost::u8_to_u32_iterator<std::string::const_iterator> iter_t;
+                iter_t f = utf.begin();
+                iter_t l = utf.end();
+
+                for (iter_t i = f; i != l; ++i)
                 {
-                    // $$$ JDG $$$ Fixme: Add more escapes (e.g. unicode, unprintables, etc)
+                    ucs4_char c = *i;
                     switch (c)
                     {
-                        case '\t':
-                            out << "\\t";
-                            break;
-                        case '\n':
-                            out << "\\n";
-                            break;
-                        case '\r':
-                            out << "\\r";
-                            break;
-                        case '\\':
-                            out << "\\\\";
-                            break;
-                        case '"':
-                            out << "\\\"";
-                            break;
-                        default:
-                            out << c;
+                        case 0:       out << "\\0"; break;
+                        case 0x7:     out << "\\a"; break;
+                        case 0x8:     out << "\\b"; break;
+                        case 0x9:     out << "\\t"; break;
+                        case 0xA:     out << "\\n"; break;
+                        case 0xB:     out << "\\v"; break;
+                        case 0xC:     out << "\\f"; break;
+                        case 0xD:     out << "\\r"; break;
+                        case 0x1B:    out << "\\e"; break;
+                        case '"':     out << "\\\""; break;
+                        case '\\':    out << "\\\\"; break;
+                        case 0xA0:    out << "\\_"; break;
+                        case 0x85:    out << "\\N"; break;
+                        case 0x2028:  out << "\\L"; break;
+                        case 0x2029:  out << "\\P"; break;
+                        default:      out << boost::spirit::to_utf8(c);
                     }
                 }
 

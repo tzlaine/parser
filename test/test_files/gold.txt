@@ -24,7 +24,7 @@ success:
 booleans : [true, false]
 canonical-f : 1230.15
 canonical-i : 12345
-control : "1998\t1999\t2000\n"
+control : "\b1998\t1999\t2000\n"
 decimal : 12345
 exponential : 1230.15
 fixed : 1230.15
@@ -97,6 +97,8 @@ success:
 - "Sammy Sosa completed another fine season with great stats.\n 63 Home Runs\n0.288 Batting Average What a year!\n"
 - {accomplishment : "Mark set a major league home run record in 1998.\n", name : "Mark McGwire", stats : "65 Home Runs\n0.278 Batting Average\n"}
 - {quoted : " # not a 'comment'.", single : "\"Howdy!\" he cried.", tie-fighter : "|\\-*-/|", unicode : "Sosa did fine."}
+- ["Fun with \\\" \a \b \e \f   \n \r \t \v \0     \_ \N \L \P   A A"]
+- ["Mark McGwire's year was crippled by a knee injury."]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 
