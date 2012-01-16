@@ -67,7 +67,7 @@ namespace omd { namespace ast
             return f(obj);
         }
 
-        struct json_printer
+        struct yaml_printer
         {
             typedef void result_type;
             static int const spaces = 2;
@@ -78,7 +78,7 @@ namespace omd { namespace ast
             mutable bool is_key;
             mutable int level;
 
-            json_printer(std::ostream& out)
+            yaml_printer(std::ostream& out)
                 : out(out), current_indent(-spaces), is_key(false), level(-1)
             {
                 BOOST_ASSERT(spaces >= 2);
@@ -289,7 +289,7 @@ namespace omd { namespace ast
 
     inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
     {
-        detail::json_printer f(out);
+        detail::yaml_printer f(out);
         boost::apply_visitor(f, val.get());
         return out;
     }
