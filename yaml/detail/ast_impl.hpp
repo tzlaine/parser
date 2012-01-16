@@ -115,6 +115,9 @@ namespace omd { namespace ast
                         case '\\':
                             out << "\\\\";
                             break;
+                        case '"':
+                            out << "\\\"";
+                            break;
                         default:
                             out << c;
                     }

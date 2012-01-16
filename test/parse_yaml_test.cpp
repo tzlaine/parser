@@ -5,6 +5,7 @@
 //~ #define BOOST_SPIRIT_DEBUG
 
 #include "../yaml/parser/yaml_def.hpp"
+#include "../yaml/parser/block_def.hpp"
 #include "../yaml/parser/flow_def.hpp"
 #include "../yaml/parser/scalar_def.hpp"
 
