@@ -229,10 +229,8 @@ namespace omd { namespace parser
             ;
 
         explicit_document =
-            +(  (skip(space)["---"] >> blank_eol)
-            >   implicit_document
-            >   document_end
-            )
+            +((skip(space)["---"] >> blank_eol) > implicit_document)
+            > document_end
             ;
 
         implicit_document =
