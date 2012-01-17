@@ -44,15 +44,18 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct scalar : qi::grammar<Iterator, ast::value_t()>
     {
-        scalar(int& indent);
+        scalar(int& indent, qi::symbols<char>& symbol_table);
 
         qi::rule<Iterator, ast::value_t()> scalar_value;
+        qi::rule<Iterator, ast::value_t()> map_key;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;
         qi::symbols<char, bool> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
         qi::rule<Iterator, ast::alias_t() > alias;
+        qi::rule<Iterator, std::string() > alias_name;
         qi::rule<Iterator, ast::anchored_object_t() > anchored_value;
+        qi::rule<Iterator, ast::anchored_object_t() > anchored_string;
     };
 }}
 

@@ -22,7 +22,10 @@ namespace omd { namespace parser
     template <typename Iterator>
     struct flow : qi::grammar<Iterator, ast::value_t(), white_space<Iterator> >
     {
-        flow(int& indent, std::string const& source_file = "");
+        flow(
+            int& indent,
+            qi::symbols<char>& anchors,
+            std::string const& source_file = "");
 
         typedef std::pair<ast::string_t, ast::value_t> map_element_t;
         typedef white_space<Iterator> white_space_t;

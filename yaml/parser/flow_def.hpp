@@ -31,9 +31,12 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    flow<Iterator>::flow(int& indent, std::string const& source_file)
+    flow<Iterator>::flow(
+        int& indent,
+        qi::symbols<char>& anchors,
+        std::string const& source_file)
       : flow::base_type(flow_start),
-        scalar_value(indent),
+        scalar_value(indent, anchors),
         error_handler(error_handler_t(source_file))
     {
         qi::_1_type _1;
@@ -47,6 +50,7 @@ namespace omd { namespace parser
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
+        phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
 
         flow_start =
                 top_anchored_value
@@ -54,8 +58,10 @@ namespace omd { namespace parser
             |   array
             ;
 
-        top_anchored_value =
-            '&' >> +~char_(" \n\r\t,{}[]") >> flow_start
+        top_anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  flow_start
             ;
 
         flow_value =

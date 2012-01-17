@@ -126,7 +126,7 @@ namespace omd { namespace parser
     template <typename Iterator>
     block<Iterator>::block(std::string const& source_file)
       : block::base_type(start),
-        flow_g(current_indent),
+        flow_g(current_indent, anchors),
         current_indent(-1),
         error_handler(error_handler_t(source_file))
     {

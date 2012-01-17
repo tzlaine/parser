@@ -71,7 +71,7 @@ namespace omd { namespace ast
     void link_yaml(value_t& val);
 
     // Print a YAML value
-    template <int Spaces = 2, bool ExpandAliases = false>
+    template <int Spaces, bool ExpandAliases>
     std::ostream& print_yaml(std::ostream& out, value_t const& val);
 
     // ---------------------------------------------------

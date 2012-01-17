@@ -22,6 +22,7 @@ namespace omd { namespace parser
         typedef flow<Iterator> flow_t;
         typedef std::pair<ast::string_t, ast::value_t> map_element_t;
 
+        qi::symbols<char> anchors;
         white_space_t ws;
         qi::rule<Iterator> end_of_input;
 

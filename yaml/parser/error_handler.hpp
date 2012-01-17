@@ -41,7 +41,10 @@ namespace omd { namespace parser
             if (line != -1)
                 std::cerr << "line " << line << ':' << std::endl;
 
-            std::cerr << "Error! Expecting " << what << " here:" << std::endl;
+            if (what.tag == "alias_name")
+                std::cerr << "Error! The anchor referenced by this alias is undefined:" << std::endl;
+            else
+                std::cerr << "Error! Expecting " << what << " here:" << std::endl;
 
             int ci = 0;
             int col = 0;

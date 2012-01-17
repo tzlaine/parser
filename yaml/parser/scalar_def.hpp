@@ -201,7 +201,7 @@ namespace omd { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar(int& indent)
+    scalar<Iterator>::scalar(int& indent, qi::symbols<char>& anchors)
       : scalar::base_type(scalar_value),
         string_value(indent)
     {
@@ -214,8 +214,13 @@ namespace omd { namespace parser
         qi::attr_type attr;
         qi::blank_type blank;
         qi::omit_type omit;
+        qi::_1_type _1;
+        qi::raw_type raw;
 
         qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
+
+        namespace phx = boost::phoenix;
+        phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
 
         scalar_value =
                 alias
@@ -224,6 +229,13 @@ namespace omd { namespace parser
             |   integer_value
             |   no_case[bool_value]
             |   no_case[null_value]
+            |   string_value
+            ;
+
+        // this is a special form of scalar for use as map keys
+        map_key =
+                alias
+            |   anchored_string
             |   string_value
             ;
 
@@ -248,12 +260,29 @@ namespace omd { namespace parser
             >> attr(ast::null_t())
             ;
 
-        alias =
-            '*' >> +~char_(" \n\r\t,{}[]") >> attr((ast::value_t*)0)
+        alias_name =
+                raw[anchors]
+            >>  &char_(" \n\r\t,{}[]#")   //  alias name must be followed by one of these
             ;
 
-        anchored_value =
-            '&' >> +~char_(" \n\r\t,{}[]") >> omit[+blank] >> scalar_value
+        alias =
+                '*'
+            >   alias_name
+            >   attr((ast::value_t*)0)
+            ;
+
+        anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  omit[+blank]
+            >>  scalar_value
+            ;
+
+        anchored_string %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  omit[+blank]
+            >>  string_value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
@@ -261,6 +290,7 @@ namespace omd { namespace parser
             (integer_value)
             (null_value)
             (alias)
+            (alias_name)
             (anchored_value)
         );
     }
