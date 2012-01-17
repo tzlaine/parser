@@ -48,8 +48,14 @@ namespace omd { namespace parser
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
 
-        flow_start = &char_("[{&")  // has to start with an array or object or anchor
-            >> flow_value
+        flow_start =
+                top_anchored_value
+            |   object
+            |   array
+            ;
+
+        top_anchored_value =
+            '&' >> +~char_(" \n\r\t,{}[]") >> flow_start
             ;
 
         flow_value =
@@ -88,6 +94,7 @@ namespace omd { namespace parser
             (member_pair)
             (array)
             (anchored_value)
+            (top_anchored_value)
         );
 
         qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));

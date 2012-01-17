@@ -33,6 +33,7 @@ namespace omd { namespace parser
         qi::rule<Iterator, map_element_t(), white_space_t> member_pair;
         qi::rule<Iterator, ast::array_t(), white_space_t> array;
         qi::rule<Iterator, ast::anchored_object_t(), white_space_t> anchored_value;
+        qi::rule<Iterator, ast::anchored_object_t(), white_space_t> top_anchored_value;
         scalar<Iterator> scalar_value;
 
         typedef omd::parser::error_handler<Iterator> error_handler_t;
