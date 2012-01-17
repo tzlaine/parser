@@ -141,14 +141,16 @@ namespace omd { namespace parser
         function<detail::push_utf8> push_utf8;
         function<detail::push_esc> push_esc;
 
-        char_esc =
-            '\\'
-            > (   ('x' > hex)                     [push_utf8(_r1, _1)]
+        escape =
+                  ('x' > hex)                     [push_utf8(_r1, _1)]
               |   ('u' > hex4)                    [push_utf8(_r1, _1)]
               |   ('U' > hex8)                    [push_utf8(_r1, _1)]
               |   char_("0abtnvfre\"/\\N_LP \t")  [push_esc(_r1, _1)]
               |   eol                             // continue to next line
-              )
+            ;
+
+        char_esc =
+            '\\' > escape(_r1)
             ;
 
         double_quoted =
@@ -189,6 +191,7 @@ namespace omd { namespace parser
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (escape)
             (char_esc)
             (single_quoted)
             (double_quoted)

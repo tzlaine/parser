@@ -14,7 +14,7 @@
 namespace omd { namespace parser
 {
     template <typename Iterator>
-    struct block : qi::grammar<Iterator, ast::value_t(), qi::locals<int> >
+    struct block : qi::grammar<Iterator, ast::value_t()>
     {
         block(std::string const& source_file = "");
 
@@ -23,11 +23,6 @@ namespace omd { namespace parser
         typedef std::pair<ast::string_t, ast::value_t> map_element_t;
 
         white_space_t ws;
-        //~ qi::rule<Iterator, ast::value_t()> stream;
-        //~ qi::rule<Iterator, ast::value_t()> document;
-        //~ qi::rule<Iterator, ast::value_t()> implicit_document;
-        //~ qi::rule<Iterator, ast::array_t()> explicit_document;
-        //~ qi::rule<Iterator> document_end;
         qi::rule<Iterator> end_of_input;
 
         qi::rule<Iterator, ast::value_t()> block_node;
@@ -38,6 +33,7 @@ namespace omd { namespace parser
         qi::rule<Iterator> indent;
         qi::rule<Iterator> skip_indent;
         qi::rule<Iterator> skip_indent_child;
+        qi::rule<Iterator, ast::value_t()> start;
         qi::rule<Iterator, ast::value_t(), qi::locals<int> > blocks;
         qi::rule<Iterator, ast::value_t(), qi::locals<int> > flow_compound;
 

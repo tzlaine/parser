@@ -32,6 +32,7 @@ namespace omd { namespace parser
         int& indent;
         unicode_string(int& indent);
 
+        qi::rule<Iterator, void(std::string&)> escape;
         qi::rule<Iterator, void(std::string&)> char_esc;
         qi::rule<Iterator, std::string()> char_lit;
         qi::rule<Iterator, std::string()> double_quoted;

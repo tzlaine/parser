@@ -125,7 +125,7 @@ namespace omd { namespace parser
 
     template <typename Iterator>
     block<Iterator>::block(std::string const& source_file)
-      : block::base_type(blocks),
+      : block::base_type(start),
         flow_g(current_indent),
         current_indent(-1),
         error_handler(error_handler_t(source_file))
@@ -163,10 +163,14 @@ namespace omd { namespace parser
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
         auto blank_eol = *blank >> (comment | eol);     // empty until eol
 
-        auto flow_string = skip(space)[flow_g.scalar_value.string_value.unicode_start];
+        auto flow_string =
+            skip(space)[flow_g.scalar_value.string_value.unicode_start]
+            ;
 
         // no-skip version
-        auto flow_scalar_ns = flow_g.scalar_value.scalar_value.alias();
+        auto flow_scalar_ns =
+            flow_g.scalar_value.scalar_value.alias()
+            ;
 
         auto get_indent =
             phx::ref(current_indent)
@@ -260,6 +264,16 @@ namespace omd { namespace parser
             >>  save_indent
             >>  (block_main | !restore_indent)
             >>  restore_indent
+            ;
+
+        start %=
+                blocks
+
+                // YAML allows bare top-level scalars. Allow this, but set
+                // the indent to 1 to force unquoted strings to be indented,
+                // otherwise, unquoted strings will gobble up too much in
+                // its path.
+            |   eps[get_indent = 1] >> skip(space)[flow_g.scalar_value]
             ;
 
         auto start_indent =
