@@ -42,19 +42,25 @@ namespace omd { namespace parser
         qi::_4_type _4;
         qi::_val_type _val;
         qi::lit_type lit;
+        qi::char_type char_;
 
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
 
-        flow_start = &(lit('[') | '{') // has to start with an array or object
+        flow_start = &char_("[{&")  // has to start with an array or object or anchor
             >> flow_value
             ;
 
         flow_value =
-                scalar_value
+                anchored_value
+            |   scalar_value
             |   object
             |   array
+            ;
+
+        anchored_value =
+            '&' >> +~char_(" \n\r\t,{}[]") >> flow_value
             ;
 
         object =
@@ -81,6 +87,7 @@ namespace omd { namespace parser
             (object)
             (member_pair)
             (array)
+            (anchored_value)
         );
 
         qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));

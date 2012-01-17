@@ -109,7 +109,12 @@ int main(int argc, char **argv)
     if (parse(in, result, filename))
     {
         std::cout << "success: \n";
-        omd::ast::print_yaml(std::cout, result);
+
+        // link the aliases
+        omd::ast::link_yaml(result);
+
+        // print the result (2-spaces indent with all aliases expanded)
+        omd::ast::print_yaml<2, true>(std::cout, result);
         std::cout << std::endl;
     }
     else

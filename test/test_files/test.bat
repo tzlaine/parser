@@ -8,6 +8,7 @@ C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\basic_yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\block_literals2.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\test.yaml
+C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\anchors.yaml
 
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml
 C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array2.yaml

@@ -100,6 +100,15 @@ success:
 - "Fun with \\\" \a \b \e \f \n \r \t \v \0   \_ \N \L \P A A"
 - "Mark McGwire's year was crippled by a knee injury."
 
+C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\anchors.yaml 
+success: 
+a : "Hello, World"
+b : "Hello, World"
+c : [1, 2, 3, 4]
+d : 3
+e : [9, 9, 4, 6]
+f : [9, 9, 4, 6]
+
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 
 - "A"
@@ -132,6 +141,7 @@ success:
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array5.yaml 
 success: 
 - ["x", "y"]
+- ["a", "b"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array6.yaml 
 success: 

@@ -185,9 +185,9 @@ namespace omd { namespace parser
             ;
 
         unicode_start =
-              double_quoted
-            | single_quoted
-            | unquoted
+                double_quoted
+            |   single_quoted
+            |   unquoted
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
@@ -212,22 +212,26 @@ namespace omd { namespace parser
         qi::no_case_type no_case;
         qi::int_type int_;
         qi::attr_type attr;
+        qi::blank_type blank;
+        qi::omit_type omit;
 
         qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
 
         scalar_value =
-              double_value
-            | integer_value
-            | no_case[bool_value]
-            | no_case[null_value]
-            | string_value
+                alias
+            |   anchored_value
+            |   double_value
+            |   integer_value
+            |   no_case[bool_value]
+            |   no_case[null_value]
+            |   string_value
             ;
 
         integer_value =
-              (no_case["0x"] > hex)
-            | (no_case["0o"] > oct)
-            | ('0' >> oct)
-            | int_
+                (no_case["0x"] > hex)
+            |   (no_case["0o"] > oct)
+            |   ('0' >> oct)
+            |   int_
             ;
 
         bool_value.add
@@ -244,10 +248,20 @@ namespace omd { namespace parser
             >> attr(ast::null_t())
             ;
 
+        alias =
+            '*' >> +~char_(" \n\r\t,{}[]") >> attr((ast::value_t*)0)
+            ;
+
+        anchored_value =
+            '&' >> +~char_(" \n\r\t,{}[]") >> omit[+blank] >> scalar_value
+            ;
+
         BOOST_SPIRIT_DEBUG_NODES(
             (scalar_value)
             (integer_value)
             (null_value)
+            (alias)
+            (anchored_value)
         );
     }
 }}

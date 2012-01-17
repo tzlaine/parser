@@ -270,7 +270,7 @@ namespace omd { namespace parser
                 blocks
 
                 // YAML allows bare top-level scalars. Allow this, but set
-                // the indent to 1 to force unquoted strings to be indented,
+                // the indent to 1 to require unquoted strings to be indented,
                 // otherwise, unquoted strings will gobble up too much in
                 // its path.
             |   eps[get_indent = 1] >> skip(space)[flow_g.scalar_value]

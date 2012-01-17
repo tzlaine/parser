@@ -51,6 +51,8 @@ namespace omd { namespace parser
         qi::rule<Iterator, int()> integer_value;
         qi::symbols<char, bool> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
+        qi::rule<Iterator, ast::alias_t() > alias;
+        qi::rule<Iterator, ast::anchored_object_t() > anchored_value;
     };
 }}
 

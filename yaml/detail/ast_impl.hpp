@@ -26,9 +26,22 @@ namespace omd { namespace ast
                 return 0;
             }
 
+            int operator()(anchored_object_t const& anchored) const
+            {
+                return boost::apply_visitor(*this, anchored.second.get());
+            }
+
+            int operator()(alias_t const& alias) const
+            {
+                BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
+                                            // fired, then you are trying to traverse an
+                                            // unlinked yaml object.
+                return boost::apply_visitor(*this, alias.second->get());
+            }
+
             int operator()(object_t const& obj) const
             {
-                typedef std::pair<value_t, value_t> pair;
+                typedef std::pair<std::string, value_t> pair;
                 int max_depth = 0;
                 BOOST_FOREACH(pair const& val, obj)
                 {
@@ -68,11 +81,13 @@ namespace omd { namespace ast
             return f(obj);
         }
 
+        template <int Spaces, bool ExpandAliases>
         struct yaml_printer
         {
             typedef void result_type;
-            static int const spaces = 2;
+            static int const spaces = Spaces;
             static int const primary_level = 0;
+            static bool const expand_aliases = ExpandAliases;
 
             std::ostream& out;
             mutable int current_indent;
@@ -150,6 +165,28 @@ namespace omd { namespace ast
                 out << d;
             }
 
+            void operator()(anchored_object_t const& anchored) const
+            {
+                if (!expand_aliases)
+                    out << '&' << anchored.first << ' ';
+                boost::apply_visitor(*this, anchored.second.get());
+            }
+
+            void operator()(alias_t const& alias) const
+            {
+                if (!expand_aliases)
+                {
+                    out << '*' << alias.first << ' ';
+                }
+                else
+                {
+                    BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
+                                                // fired, then you are trying to traverse an
+                                                // unlinked yaml object.
+                    boost::apply_visitor(*this, alias.second->get());
+                }
+            }
+
             template <typename T>
             void operator()(T const& val) const
             {
@@ -159,7 +196,7 @@ namespace omd { namespace ast
             void print_json_object(object_t const& obj) const
             {
                 out << '{';
-                typedef std::pair<value_t, value_t> pair;
+                typedef std::pair<std::string, value_t> pair;
                 bool first = true;
 
                 BOOST_FOREACH(pair const& val, obj)
@@ -173,7 +210,7 @@ namespace omd { namespace ast
                         out << ", ";
                     }
                     is_key = true;
-                    boost::apply_visitor(*this, val.first.get());
+                    (*this)(val.first);
                     is_key = false;
                     out << " : ";
                     boost::apply_visitor(*this, val.second.get());
@@ -190,7 +227,7 @@ namespace omd { namespace ast
 
             void print_yaml_object(object_t const& obj) const
             {
-                typedef std::pair<value_t, value_t> pair;
+                typedef std::pair<std::string, value_t> pair;
                 current_indent += spaces;
                 bool first = true;
 
@@ -207,7 +244,7 @@ namespace omd { namespace ast
                     }
 
                     is_key = true;
-                    boost::apply_visitor(*this, val.first.get());
+                    (*this)(val.first);
                     is_key = false;
 
                     if (depth(val.second) > 1)
@@ -294,11 +331,64 @@ namespace omd { namespace ast
                     out << ' ';
             }
         };
+
+        struct yaml_linker
+        {
+            typedef void result_type;
+            std::map<std::string, value_t*> symbol_table;
+
+            template <typename T>
+            void operator()(T& val)
+            {
+            }
+
+            void operator()(anchored_object_t& anchored)
+            {
+                // Note: it is possuble to re-define an alias as per yaml specs.
+                symbol_table[anchored.first] = &anchored.second;
+            }
+
+            void operator()(alias_t& alias)
+            {
+                std::map<std::string, value_t*>::iterator
+                    iter = symbol_table.find(alias.first);
+
+                // This cannot happen. The parser makes sure that there is an anchor
+                // for each alias in the yaml document.
+                BOOST_ASSERT(iter != symbol_table.end());
+
+                alias.second = iter->second;
+            }
+
+            void operator()(object_t& obj)
+            {
+                typedef std::pair<std::string const, value_t> pair;
+                BOOST_FOREACH(pair& val, obj)
+                {
+                    boost::apply_visitor(*this, val.second.get());
+                }
+            }
+
+            void operator()(array_t& arr)
+            {
+                BOOST_FOREACH(value_t& val, arr)
+                {
+                    boost::apply_visitor(*this, val.get());
+                }
+            }
+        };
     }
 
+    inline void link_yaml(value_t& val)
+    {
+        detail::yaml_linker f;
+        boost::apply_visitor(f, val.get());
+    }
+
+    template <int Spaces, bool ExpandAliases>
     inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
     {
-        detail::yaml_printer f(out);
+        detail::yaml_printer<Spaces, ExpandAliases> f(out);
         boost::apply_visitor(f, val.get());
         return out;
     }
