@@ -1,0 +1,2 @@
+path-constant BOOST_ROOT : ../../boost ;
+

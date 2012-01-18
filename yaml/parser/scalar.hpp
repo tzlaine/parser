@@ -23,9 +23,6 @@ namespace omd { namespace parser
 
     typedef boost::uint32_t uchar; // a unicode code point
 
-    // The indicators
-    char const* indicators = "-?:,[]{}#&*!|>\\\"%@`";
-
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>
     {
