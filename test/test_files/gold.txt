@@ -115,7 +115,9 @@ f : [9, 9, 4, 6]
 g : "h"
 m : "bbking"
 n : ["a", "bbking", "c"]
+p : "You're Holding It Wrong: Here's How to Hold Your Touch Screen Gadgets Correctly\n"
 q : "i"
+r : "You're Holding It Wrong: Here's How to Hold Your Touch Screen Gadgets Correctly\n"
 x : ["a", "bbking", "c"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
