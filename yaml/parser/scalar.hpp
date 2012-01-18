@@ -1,6 +1,9 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
+ *
+ *   Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #if !defined(OMD_PARSER_SCALAR_HPP)
@@ -23,15 +26,13 @@ namespace omd { namespace yaml { namespace parser
 
     typedef boost::uint32_t uchar; // a unicode code point
 
-    // The indicators
-    char const* indicators = "-?:,[]{}#&*!|>\\\"%@`";
-
     template <typename Iterator>
     struct unicode_string : qi::grammar<Iterator, std::string()>
     {
         int& indent;
         unicode_string(int& indent);
 
+        qi::rule<Iterator, void(std::string&)> escape;
         qi::rule<Iterator, void(std::string&)> char_esc;
         qi::rule<Iterator, std::string()> char_lit;
         qi::rule<Iterator, std::string()> double_quoted;
@@ -43,13 +44,18 @@ namespace omd { namespace yaml { namespace parser
     template <typename Iterator>
     struct scalar : qi::grammar<Iterator, ast::value_t()>
     {
-        scalar(int& indent);
+        scalar(int& indent, qi::symbols<char>& symbol_table);
 
         qi::rule<Iterator, ast::value_t()> scalar_value;
+        qi::rule<Iterator, ast::value_t()> map_key;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;
         qi::symbols<char, bool> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
+        qi::rule<Iterator, ast::alias_t() > alias;
+        qi::rule<Iterator, std::string() > alias_name;
+        qi::rule<Iterator, ast::anchored_object_t() > anchored_value;
+        qi::rule<Iterator, ast::anchored_object_t() > anchored_string;
     };
 }}}
 

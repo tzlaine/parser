@@ -1,6 +1,9 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
  *   consultomd.com
+ *
+ *   Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #if !defined(OMD_PARSER_FLOW_DEF_HPP)
@@ -32,9 +35,12 @@ namespace omd { namespace yaml { namespace parser
     }
 
     template <typename Iterator>
-    flow<Iterator>::flow(int& indent, std::string const& source_file)
+    flow<Iterator>::flow(
+        int& indent,
+        qi::symbols<char>& anchors,
+        std::string const& source_file)
       : flow::base_type(flow_start),
-        scalar_value(indent),
+        scalar_value(indent, anchors),
         error_handler(error_handler_t(source_file))
     {
         qi::_1_type _1;
@@ -43,19 +49,36 @@ namespace omd { namespace yaml { namespace parser
         qi::_4_type _4;
         qi::_val_type _val;
         qi::lit_type lit;
+        qi::char_type char_;
 
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
         auto ins = phx::insert(_val, _1);
+        phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
 
-        flow_start = &(lit('[') | '{') // has to start with an array or object
-            >> flow_value
+        flow_start =
+                top_anchored_value
+            |   object
+            |   array
+            ;
+
+        top_anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  flow_start
             ;
 
         flow_value =
-                scalar_value
+                anchored_value
+            |   scalar_value
             |   object
             |   array
+            ;
+
+        anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  flow_value
             ;
 
         object =
@@ -82,6 +105,8 @@ namespace omd { namespace yaml { namespace parser
             (object)
             (member_pair)
             (array)
+            (anchored_value)
+            (top_anchored_value)
         );
 
         qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));

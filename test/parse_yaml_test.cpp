@@ -1,20 +1,18 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
  *   consultomd.com
+ *
+ *   Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
 //~ #define BOOST_SPIRIT_DEBUG
 
-//#define USE_MULTIPASS
-
-#include "../yaml/parser/yaml_def.hpp"
-#include "../yaml/parser/flow_def.hpp"
-#include "../yaml/parser/scalar_def.hpp"
+#include "../yaml/parser/yaml.hpp"
 
 #include <iostream>
 #include <fstream>
 
-#include <boost/spirit/include/support_istream_iterator.hpp>
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
 namespace
@@ -25,21 +23,6 @@ namespace
         omd::yaml::ast::value_t& result,
         std::string const& source_file = "")
     {
-#ifdef USE_MULTIPASS
-        // no white space skipping in the stream!
-        is.unsetf(std::ios::skipws);
-
-        typedef
-            boost::spirit::basic_istream_iterator<Char>
-        stream_iterator_type;
-        stream_iterator_type sfirst(is);
-        stream_iterator_type slast;
-
-        typedef boost::spirit::line_pos_iterator<stream_iterator_type>
-            iterator_type;
-        iterator_type first(sfirst);
-        iterator_type last(slast);
-#else
         std::string file; // We will read the contents here.
         is.unsetf(std::ios::skipws); // No white space skipping!
         std::copy(
@@ -50,7 +33,7 @@ namespace
         typedef std::string::const_iterator base_iterator_type;
         base_iterator_type sfirst(file.begin());
         base_iterator_type slast(file.end());
-#endif
+
         typedef boost::spirit::classic::position_iterator<base_iterator_type>
             iterator_type;
         iterator_type first(sfirst, slast);
@@ -111,7 +94,12 @@ int main(int argc, char **argv)
     if (parse(in, result, filename))
     {
         std::cout << "success: \n";
-        omd::yaml::ast::print_yaml(std::cout, result);
+
+        // link the aliases
+        omd::yaml::ast::link_yaml(result);
+
+        // print the result (2-spaces indent with all aliases expanded)
+        omd::yaml::ast::print_yaml<2, true>(std::cout, result);
         std::cout << std::endl;
     }
     else

@@ -1,0 +1,50 @@
+# ASCII Art
+- |           # Literal Style
+  \//||\/||
+  // ||  ||__
+      ---> properly indented
+- >
+  folded
+  text
+
+  next
+  line
+- >
+  folded
+  text
+
+  next
+  line
+    * bullet
+    * list
+    * lines
+  last
+  line
+- >
+  folded
+  text
+
+  next
+  line
+    * bullet
+
+    * list
+    * lines
+  last
+  line
+- >
+  default
+  chomping
+
+
+- >-
+  strip
+  chomping
+
+
+- >+
+  keep
+  chomping
+
+
+- Last

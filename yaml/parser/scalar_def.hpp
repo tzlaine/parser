@@ -1,6 +1,9 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
+ *
+ *   Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #if !defined(OMD_COMMON_SCALAR_DEF_HPP)
@@ -14,6 +17,7 @@
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_statement.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
 
 namespace omd { namespace yaml { namespace parser
@@ -43,14 +47,25 @@ namespace omd { namespace yaml { namespace parser
             {
                 switch (c)
                 {
-                    case 'b': utf8 += '\b';     break;
-                    case 't': utf8 += '\t';     break;
-                    case 'n': utf8 += '\n';     break;
-                    case 'f': utf8 += '\f';     break;
-                    case 'r': utf8 += '\r';     break;
-                    case '"': utf8 += '"';      break;
-                    case '/': utf8 += '/';      break;
-                    case '\\': utf8 += '\\';    break;
+                    case ' ': utf8 += ' ';          break;
+                    case '\t': utf8 += '\t';        break;
+                    case '0': utf8 += char(0);      break;
+                    case 'a': utf8 += 0x7;          break;
+                    case 'b': utf8 += 0x8;          break;
+                    case 't': utf8 += 0x9;          break;
+                    case 'n': utf8 += 0xA;          break;
+                    case 'v': utf8 += 0xB;          break;
+                    case 'f': utf8 += 0xC;          break;
+                    case 'r': utf8 += 0xD;          break;
+                    case 'e': utf8 += 0x1B;         break;
+                    case '"': utf8 += '"';          break;
+                    case '/': utf8 += '/';          break;
+                    case '\\': utf8 += '\\';        break;
+
+                    case '_': push_utf8()(utf8, 0xA0);  break;
+                    case 'N': push_utf8()(utf8, 0x85);  break;
+                    case 'L': push_utf8()(utf8, 0x2028);  break;
+                    case 'P': push_utf8()(utf8, 0x2029);  break;
                 }
             }
         };
@@ -130,13 +145,16 @@ namespace omd { namespace yaml { namespace parser
         function<detail::push_utf8> push_utf8;
         function<detail::push_esc> push_esc;
 
-        char_esc =
-            '\\'
-            > (   ('x' > hex)                     [push_utf8(_r1, _1)]
+        escape =
+                  ('x' > hex)                     [push_utf8(_r1, _1)]
               |   ('u' > hex4)                    [push_utf8(_r1, _1)]
               |   ('U' > hex8)                    [push_utf8(_r1, _1)]
-              |   char_("btnfr/\\\"'")            [push_esc(_r1, _1)]
-              )
+              |   char_("0abtnvfre\"/\\N_LP \t")  [push_esc(_r1, _1)]
+              |   eol                             // continue to next line
+            ;
+
+        char_esc =
+            '\\' > escape(_r1)
             ;
 
         double_quoted =
@@ -171,12 +189,13 @@ namespace omd { namespace yaml { namespace parser
             ;
 
         unicode_start =
-              double_quoted
-            | single_quoted
-            | unquoted
+                double_quoted
+            |   single_quoted
+            |   unquoted
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (escape)
             (char_esc)
             (single_quoted)
             (double_quoted)
@@ -186,7 +205,7 @@ namespace omd { namespace yaml { namespace parser
     }
 
     template <typename Iterator>
-    scalar<Iterator>::scalar(int& indent)
+    scalar<Iterator>::scalar(int& indent, qi::symbols<char>& anchors)
       : scalar::base_type(scalar_value),
         string_value(indent)
     {
@@ -197,22 +216,38 @@ namespace omd { namespace yaml { namespace parser
         qi::no_case_type no_case;
         qi::int_type int_;
         qi::attr_type attr;
+        qi::blank_type blank;
+        qi::omit_type omit;
+        qi::_1_type _1;
+        qi::raw_type raw;
 
         qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
 
+        namespace phx = boost::phoenix;
+        phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
+
         scalar_value =
-              double_value
-            | integer_value
-            | no_case[bool_value]
-            | no_case[null_value]
-            | string_value
+                alias
+            |   anchored_value
+            |   double_value
+            |   integer_value
+            |   no_case[bool_value]
+            |   no_case[null_value]
+            |   string_value
+            ;
+
+        // this is a special form of scalar for use as map keys
+        map_key =
+                alias
+            |   anchored_string
+            |   string_value
             ;
 
         integer_value =
-              (no_case["0x"] > hex)
-            | (no_case["0o"] > oct)
-            | ('0' >> oct)
-            | int_
+                (no_case["0x"] > hex)
+            |   (no_case["0o"] > oct)
+            |   ('0' >> oct)
+            |   int_
             ;
 
         bool_value.add
@@ -229,10 +264,38 @@ namespace omd { namespace yaml { namespace parser
             >> attr(ast::null_t())
             ;
 
+        alias_name =
+                raw[anchors]
+            >>  &char_(" \n\r\t,[]{}:#")  //  alias name must be followed by one of these
+            ;
+
+        alias =
+                '*'
+            >   alias_name
+            >   attr((ast::value_t*)0)
+            ;
+
+        anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  omit[+blank]
+            >>  scalar_value
+            ;
+
+        anchored_string %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  omit[+blank]
+            >>  string_value
+            ;
+
         BOOST_SPIRIT_DEBUG_NODES(
             (scalar_value)
             (integer_value)
             (null_value)
+            (alias)
+            (alias_name)
+            (anchored_value)
         );
     }
 }}}

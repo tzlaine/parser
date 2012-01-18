@@ -1,6 +1,9 @@
 /**
  *   Copyright (C) 2010, 2011 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
+ *
+ *   Distributed under the Boost Software License, Version 1.0. (See accompanying
+ *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #if !defined(OMD_COMMON_ERROR_HANDLER_HPP)
@@ -41,7 +44,10 @@ namespace omd { namespace yaml { namespace parser
             if (line != -1)
                 std::cerr << "line " << line << ':' << std::endl;
 
-            std::cerr << "Error! Expecting " << what << " here:" << std::endl;
+            if (what.tag == "alias_name")
+                std::cerr << "Error! The anchor referenced by this alias is undefined:" << std::endl;
+            else
+                std::cerr << "Error! Expecting " << what << " here:" << std::endl;
 
             int ci = 0;
             int col = 0;
