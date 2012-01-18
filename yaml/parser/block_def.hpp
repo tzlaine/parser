@@ -135,6 +135,7 @@ namespace omd { namespace parser
         phx::function<detail::check_indent> check_indent;
         phx::function<detail::fold_line> fold_line;
         phx::function<detail::chomp_string> chomp_string;
+        phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -241,6 +242,18 @@ namespace omd { namespace parser
                   >> attr(ast::null_t()))
             ;
 
+        anchored_block_node %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  omit[blank | &eol]
+            >>  block_node
+            ;
+
+        auto block_node_main =
+                anchored_block_node
+            |   block_node
+            ;
+
         indented_block %=
                 increase_indent
             >>  (blocks | !decrease_indent)
@@ -330,7 +343,7 @@ namespace omd { namespace parser
                 omit[*blank_eol]                            //  Ignore blank lines
             >>  omit[skip_indent]                           //  Indent get_indent spaces
             >>  omit['-' >> (blank | &eol)]                 //  Get the sequence indicator '-'
-            >>  block_node                                  //  Get the entry
+            >>  block_node_main                             //  Get the entry
             ;
 
         auto implicit_block_map_indicator =                 //  Lookahead and see if we have an
@@ -365,7 +378,7 @@ namespace omd { namespace parser
             >>  map_key                                     //  Get the key
             >>  omit[skip(space)[':']]                      //  Get the map indicator ':'
             >>  omit[*blank]                                //  Ignore blank spaces
-            >>  block_node                                  //  Get the value
+            >>  block_node_main                             //  Get the value
             ;
 
         explicit_block_map_entry =
@@ -377,12 +390,13 @@ namespace omd { namespace parser
             >>  omit[*blank_eol]                            //  Ignore blank lines
             >>  omit[skip_indent]                           //  Indent get_indent spaces
             >>  omit[':' >> (blank | &eol)]                 //  Get the map-value indicator ':'
-            >>  block_node                                  //  Get the value
+            >>  block_node_main                             //  Get the value
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (end_of_input)
             (block_node)
+            (anchored_block_node)
             (indented_block)
             (compact_block)
             (blocks)

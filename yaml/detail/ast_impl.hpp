@@ -349,6 +349,16 @@ namespace omd { namespace ast
 
                 // Note: it is possuble to re-define an alias as per yaml specs.
                 symbol_table[anchored.first] = &anchored.second;
+
+                // Now link the anchored object
+                boost::apply_visitor(*this, anchored.second.get());
+            }
+
+            void operator()(anchored_object_t const& anchored)
+            {
+                // Don't worry, this (const_cast) is safe. We are just going to link
+                // the key. The key itself will remain stable for the map's purpose.
+                (*this)(const_cast<anchored_object_t&>(anchored));
             }
 
             void operator()(alias_t& alias)

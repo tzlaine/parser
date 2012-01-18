@@ -104,12 +104,19 @@ success:
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\anchors.yaml 
 success: 
+h : "aaa"
+i : "iii"
 a : "Hello, World"
 b : "Hello, World"
 c : [1, 2, 3, 4]
 d : 3
 e : [9, 9, 4, 6]
 f : [9, 9, 4, 6]
+g : "h"
+m : "bbking"
+n : ["a", "bbking", "c"]
+q : "i"
+x : ["a", "bbking", "c"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\yaml_block_array1.yaml 
 success: 

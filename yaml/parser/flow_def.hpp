@@ -71,8 +71,10 @@ namespace omd { namespace parser
             |   array
             ;
 
-        anchored_value =
-            '&' >> +~char_(" \n\r\t,{}[]") >> flow_value
+        anchored_value %=
+                '&'
+            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
+            >>  flow_value
             ;
 
         object =

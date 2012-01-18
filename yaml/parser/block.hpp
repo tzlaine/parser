@@ -26,6 +26,7 @@ namespace omd { namespace parser
         qi::rule<Iterator> end_of_input;
 
         qi::rule<Iterator, ast::value_t()> block_node;
+        qi::rule<Iterator, ast::anchored_object_t()> anchored_block_node;
         qi::rule<Iterator, ast::value_t()> indented_block;
         qi::rule<Iterator, ast::value_t()> compact_block;
         flow_t flow_g;
