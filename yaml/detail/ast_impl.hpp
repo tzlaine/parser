@@ -208,7 +208,7 @@ namespace omd { namespace ast
                         out << ", ";
                     }
                     is_key = true;
-                    (*this)(val.first);
+                    boost::apply_visitor(*this, val.first.get());
                     is_key = false;
                     out << " : ";
                     boost::apply_visitor(*this, val.second.get());
@@ -241,7 +241,7 @@ namespace omd { namespace ast
                     }
 
                     is_key = true;
-                    (*this)(val.first);
+                    boost::apply_visitor(*this, val.first.get());
                     is_key = false;
 
                     if (depth(val.second) > 1)
@@ -359,7 +359,7 @@ namespace omd { namespace ast
 
             void operator()(object_t& obj)
             {
-                typedef std::pair<std::string const, value_t> pair;
+                typedef std::pair<value_t const, value_t> pair;
                 BOOST_FOREACH(pair& val, obj)
                 {
                     boost::apply_visitor(*this, val.second.get());

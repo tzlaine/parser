@@ -31,7 +31,7 @@ namespace omd { namespace ast
     { out << "<null>"; return out; }
 
     struct                                      value_t;
-    typedef std::map<string_t, value_t>         object_t;
+    typedef std::map<value_t, value_t>          object_t;
     typedef std::vector<value_t>                array_t;
     typedef std::pair<string_t, value_t>        anchored_object_t;
     typedef std::pair<string_t, value_t*>       alias_t;
@@ -63,7 +63,7 @@ namespace omd { namespace ast
             : base_type(rhs.get()) {}
     };
 
-    typedef std::pair<ast::string_t, ast::value_t> object_element_t;
+    typedef std::pair<ast::value_t, ast::value_t> object_element_t;
 
     bool operator==(value_t const& a, value_t const& b);
     bool operator!=(value_t const& a, value_t const& b);

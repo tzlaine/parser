@@ -164,7 +164,7 @@ namespace omd { namespace parser
         auto blank_eol = *blank >> (comment | eol);     // empty until eol
 
         auto flow_string =
-            skip(space)[flow_g.scalar_value.string_value.unicode_start]
+            skip(space)[flow_g.scalar_value.map_key]
             ;
 
         // no-skip version
