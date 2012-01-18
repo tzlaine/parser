@@ -262,7 +262,7 @@ namespace omd { namespace parser
 
         alias_name =
                 raw[anchors]
-            >>  &char_(" \n\r\t,{}[]#")   //  alias name must be followed by one of these
+            >>  &char_(" \n\r\t,[]{}:#")  //  alias name must be followed by one of these
             ;
 
         alias =

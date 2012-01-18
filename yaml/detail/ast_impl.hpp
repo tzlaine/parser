@@ -333,6 +333,9 @@ namespace omd { namespace ast
         {
             typedef void result_type;
             std::map<std::string, value_t*> symbol_table;
+            int phase;
+
+            yaml_linker() : phase(1) {}
 
             template <typename T>
             void operator()(T& val)
@@ -341,20 +344,32 @@ namespace omd { namespace ast
 
             void operator()(anchored_object_t& anchored)
             {
+                if (phase == 2)
+                    return;
+
                 // Note: it is possuble to re-define an alias as per yaml specs.
                 symbol_table[anchored.first] = &anchored.second;
             }
 
             void operator()(alias_t& alias)
             {
+                if (phase == 1)
+                    return;
+
                 std::map<std::string, value_t*>::iterator
                     iter = symbol_table.find(alias.first);
 
                 // This cannot happen. The parser makes sure that there is an anchor
                 // for each alias in the yaml document.
                 BOOST_ASSERT(iter != symbol_table.end());
-
                 alias.second = iter->second;
+            }
+
+            void operator()(alias_t const& alias)
+            {
+                // Don't worry, this (const_cast) is safe. We are just going to link
+                // the key. The key itself will remain stable for the map's purpose.
+                (*this)(const_cast<alias_t&>(alias));
             }
 
             void operator()(object_t& obj)
@@ -362,6 +377,7 @@ namespace omd { namespace ast
                 typedef std::pair<value_t const, value_t> pair;
                 BOOST_FOREACH(pair& val, obj)
                 {
+                    boost::apply_visitor(*this, val.first.get());
                     boost::apply_visitor(*this, val.second.get());
                 }
             }
@@ -398,9 +414,45 @@ namespace omd { namespace ast
                 return a.first < b.first;
             }
 
+            bool operator()(anchored_object_t const& a, string_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a.first < b;
+            }
+
+            bool operator()(string_t const& a, anchored_object_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a < b.first;
+            }
+
             bool operator()(alias_t const& a, alias_t const& b) const
             {
                 // aliases are compared using their names (IDs)
+                return a.first < b.first;
+            }
+
+            bool operator()(alias_t const& a, string_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a.first < b;
+            }
+
+            bool operator()(string_t const& a, alias_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a < b.first;
+            }
+
+            bool operator()(anchored_object_t const& a, alias_t const& b) const
+            {
+                // anchors and aliases are compared using their names (IDs)
+                return a.first < b.first;
+            }
+
+            bool operator()(alias_t const& a, anchored_object_t const& b) const
+            {
+                // anchors and aliases are compared using their names (IDs)
                 return a.first < b.first;
             }
 
@@ -438,9 +490,45 @@ namespace omd { namespace ast
                 return a.first == b.first;
             }
 
+            bool operator()(anchored_object_t const& a, string_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a.first == b;
+            }
+
+            bool operator()(string_t const& a, anchored_object_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a == b.first;
+            }
+
             bool operator()(alias_t const& a, alias_t const& b) const
             {
                 // aliases are compared using their names (IDs)
+                return a.first == b.first;
+            }
+
+            bool operator()(alias_t const& a, string_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a.first == b;
+            }
+
+            bool operator()(string_t const& a, alias_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a == b.first;
+            }
+
+            bool operator()(anchored_object_t const& a, alias_t const& b) const
+            {
+                // anchors and aliases are compared using their names (IDs)
+                return a.first == b.first;
+            }
+
+            bool operator()(alias_t const& a, anchored_object_t const& b) const
+            {
+                // anchors and aliases are compared using their names (IDs)
                 return a.first == b.first;
             }
 
@@ -490,6 +578,12 @@ namespace omd { namespace ast
     inline void link_yaml(value_t& val)
     {
         detail::yaml_linker f;
+
+        // phase 1: collect all anchors
+        boost::apply_visitor(f, val.get());
+
+        // phase 2: link all aliases
+        f.phase = 2;
         boost::apply_visitor(f, val.get());
     }
 

@@ -163,7 +163,7 @@ namespace omd { namespace parser
         auto comment = '#' >> *(char_ - eol) >> eol;    // comments
         auto blank_eol = *blank >> (comment | eol);     // empty until eol
 
-        auto flow_string =
+        auto map_key =
             skip(space)[flow_g.scalar_value.map_key]
             ;
 
@@ -335,7 +335,7 @@ namespace omd { namespace parser
 
         auto implicit_block_map_indicator =                 //  Lookahead and see if we have an
             &(  start_indent                                //  implicit map indicator.
-            >>  flow_string
+            >>  map_key
             >>  skip(space)[':']
             )
             ;
@@ -362,7 +362,7 @@ namespace omd { namespace parser
         implicit_block_map_entry =
                 omit[*blank_eol]                            //  Ignore blank lines
             >>  omit[skip_indent]                           //  Indent get_indent spaces
-            >>  flow_string                                 //  Get the key
+            >>  map_key                                     //  Get the key
             >>  omit[skip(space)[':']]                      //  Get the map indicator ':'
             >>  omit[*blank]                                //  Ignore blank spaces
             >>  block_node                                  //  Get the value
@@ -372,7 +372,7 @@ namespace omd { namespace parser
                 omit[*blank_eol]                            //  Ignore blank lines
             >>  omit[skip_indent]                           //  Indent get_indent spaces
             >>  omit['?' >> (blank | &eol)]                 //  Get the map-key indicator '?'
-            >>  flow_string                                 //  Get the key
+            >>  map_key                                     //  Get the key
 
             >>  omit[*blank_eol]                            //  Ignore blank lines
             >>  omit[skip_indent]                           //  Indent get_indent spaces

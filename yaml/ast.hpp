@@ -49,6 +49,7 @@ namespace omd { namespace ast
           boost::recursive_wrapper<anchored_object_t>
         >
     {
+        value_t(char const* val) : base_type(string_t(val)) {}
         value_t(string_t const& val) : base_type(val) {}
         value_t(double_t val) : base_type(val) {}
         value_t(int_t val) : base_type(val) {}
@@ -63,7 +64,7 @@ namespace omd { namespace ast
             : base_type(rhs.get()) {}
     };
 
-    typedef std::pair<ast::value_t, ast::value_t> object_element_t;
+    typedef std::pair<value_t, value_t> object_element_t;
 
     bool operator==(value_t const& a, value_t const& b);
     bool operator!=(value_t const& a, value_t const& b);
