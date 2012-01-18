@@ -1,5 +1,6 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 #if !defined(OMD_PARSER_FLOW_DEF_HPP)
@@ -14,7 +15,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     template <typename Iterator>
     white_space<Iterator>::white_space()
@@ -85,6 +86,6 @@ namespace omd { namespace parser
 
         qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));
     }
-}}
+}}}
 
 #endif

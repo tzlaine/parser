@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010, 2011 Michael Caisse, Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Michael Caisse, Object Modeling Designs
  *   consultomd.com
  *
  */
@@ -11,7 +11,7 @@
 #include <boost/foreach.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
-namespace omd { namespace ast
+namespace omd { namespace yaml { namespace ast
 {
     namespace detail
     {
@@ -290,6 +290,6 @@ namespace omd { namespace ast
         boost::apply_visitor(f, val.get());
         return out;
     }
-}}
+}}}
 
 #endif

@@ -1,5 +1,6 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 #if !defined(OMD_PARSER_YAML_HPP)
@@ -11,7 +12,7 @@
 #include <string>
 #include <boost/fusion/adapted/std_pair.hpp>
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     template <typename Iterator>
     struct yaml : qi::grammar<Iterator, ast::value_t()>
@@ -48,9 +49,9 @@ namespace omd { namespace parser
 
         int current_indent; // our current indent level (spaces)
 
-        typedef omd::parser::error_handler<Iterator> error_handler_t;
+        typedef omd::yaml::parser::error_handler<Iterator> error_handler_t;
         boost::phoenix::function<error_handler_t> const error_handler;
     };
-}}
+}}}
 
 #endif

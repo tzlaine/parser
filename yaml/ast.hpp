@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010, 2011 Michael Caisse, Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Michael Caisse, Object Modeling Designs
  *   consultomd.com
  *
  */
@@ -12,7 +12,7 @@
 #include <ostream>
 #include <boost/spirit/include/support_extended_variant.hpp>
 
-namespace omd { namespace ast
+namespace omd { namespace yaml { namespace ast
 {
     // ------------------- AST types --------------------
     //
@@ -64,7 +64,7 @@ namespace omd { namespace ast
     std::ostream& print_yaml(std::ostream& out, value_t const& val);
 
     // ---------------------------------------------------
-}}
+}}}
 
 #include "detail/ast_impl.hpp"
 #endif

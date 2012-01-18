@@ -1,5 +1,6 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 #if !defined(OMD_GENERATOR_SCALAR_HPP)
@@ -13,7 +14,7 @@
 
 #include "../ast.hpp"         // our AST
 
-namespace omd { namespace generator
+namespace omd { namespace yaml { namespace generator
 {
     namespace karma = boost::spirit::karma;
     namespace ascii = boost::spirit::ascii;
@@ -29,6 +30,6 @@ namespace omd { namespace generator
         karma::rule<OutputIterator, ast::null_t()> null_value;
         karma::rule<OutputIterator, ast::string_t()> string_value;
     };
-}}
+}}}
 
 #endif

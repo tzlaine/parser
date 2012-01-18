@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
  */
 
@@ -12,7 +12,7 @@
 #include <string>
 #include <iostream>
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     template <typename Iterator>
     struct error_handler
@@ -64,6 +64,6 @@ namespace omd { namespace parser
             std::cerr << "^_" << std::endl;
         }
     };
-}}
+}}}
 
 #endif

@@ -1,5 +1,6 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 #if !defined(OMD_PARSER_YAML_DEF_HPP)
@@ -20,7 +21,7 @@
 #define PRINT_INDENT
 #endif
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     namespace detail
     {
@@ -303,6 +304,6 @@ namespace omd { namespace parser
 
         qi::on_error<qi::fail>(stream, error_handler(_1, _2, _3, _4));
     }
-}}
+}}}
 
 #endif

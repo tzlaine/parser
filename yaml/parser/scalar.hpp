@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
  */
 
@@ -16,7 +16,7 @@
 #include "../ast.hpp"         // our AST
 #include "error_handler.hpp"  // Our Error Handler
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
@@ -51,6 +51,6 @@ namespace omd { namespace parser
         qi::symbols<char, bool> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
     };
-}}
+}}}
 
 #endif

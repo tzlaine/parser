@@ -1,5 +1,6 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 #if !defined(OMD_GENERATOR_SCALAR_DEF_HPP)
@@ -31,7 +32,7 @@ namespace boost { namespace spirit { namespace traits
     };
 }}}
 
-namespace omd { namespace generator
+namespace omd { namespace yaml { namespace generator
 {
     ///////////////////////////////////////////////////////////////////////////
     template <typename T>
@@ -71,6 +72,6 @@ namespace omd { namespace generator
 
         string_value = '"' << *(&char_('"') << "\\\"" | char_) << '"';
     }
-}}
+}}}
 
 #endif

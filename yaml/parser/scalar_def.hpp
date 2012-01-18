@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
  */
 
@@ -16,7 +16,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
 
-namespace omd { namespace parser
+namespace omd { namespace yaml { namespace parser
 {
     namespace detail
     {
@@ -235,6 +235,6 @@ namespace omd { namespace parser
             (null_value)
         );
     }
-}}
+}}}
 
 #endif

@@ -1,8 +1,11 @@
 /**
- *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
+ *   consultomd.com
  */
 
 //~ #define BOOST_SPIRIT_DEBUG
+
+//#define USE_MULTIPASS
 
 #include "../yaml/parser/yaml_def.hpp"
 #include "../yaml/parser/flow_def.hpp"
@@ -19,7 +22,7 @@ namespace
     template <typename Char>
     bool parse(
         std::basic_istream<Char>& is,
-        omd::ast::value_t& result,
+        omd::yaml::ast::value_t& result,
         std::string const& source_file = "")
     {
 #ifdef USE_MULTIPASS
@@ -54,7 +57,7 @@ namespace
         iterator_type last;
         first.set_tabchars(1);
 
-        omd::parser::yaml<iterator_type> p(source_file);
+        omd::yaml::parser::yaml<iterator_type> p(source_file);
 
         using boost::spirit::qi::parse;
         return parse(first, last, p, result);
@@ -101,14 +104,14 @@ int main(int argc, char **argv)
         }
     }
 
-    using omd::ast::value_t;
+    using omd::yaml::ast::value_t;
     namespace qi = boost::spirit::qi;
 
     value_t result;
     if (parse(in, result, filename))
     {
         std::cout << "success: \n";
-        omd::ast::print_yaml(std::cout, result);
+        omd::yaml::ast::print_yaml(std::cout, result);
         std::cout << std::endl;
     }
     else
@@ -116,6 +119,5 @@ int main(int argc, char **argv)
         std::cout << "parse error" << std::endl;
     }
 
-    return 0;
-
+    return 1;
 }
