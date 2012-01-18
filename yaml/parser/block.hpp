@@ -20,7 +20,6 @@ namespace omd { namespace parser
 
         typedef white_space<Iterator> white_space_t;
         typedef flow<Iterator> flow_t;
-        typedef std::pair<ast::string_t, ast::value_t> map_element_t;
 
         qi::symbols<char> anchors;
         white_space_t ws;
@@ -43,9 +42,9 @@ namespace omd { namespace parser
         qi::rule<Iterator, ast::value_t()> block_seq_entry;
         qi::rule<Iterator, ast::object_t()> implicit_block_map;
         qi::rule<Iterator, ast::object_t()> explicit_block_map;
-        qi::rule<Iterator, map_element_t()> block_map_entry;
-        qi::rule<Iterator, map_element_t()> explicit_block_map_entry;
-        qi::rule<Iterator, map_element_t()> implicit_block_map_entry;
+        qi::rule<Iterator, ast::object_element_t()> block_map_entry;
+        qi::rule<Iterator, ast::object_element_t()> explicit_block_map_entry;
+        qi::rule<Iterator, ast::object_element_t()> implicit_block_map_entry;
 
         int current_indent; // our current indent level (spaces)
 

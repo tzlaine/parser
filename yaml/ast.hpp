@@ -63,6 +63,8 @@ namespace omd { namespace ast
             : base_type(rhs.get()) {}
     };
 
+    typedef std::pair<ast::string_t, ast::value_t> object_element_t;
+
     bool operator==(value_t const& a, value_t const& b);
     bool operator!=(value_t const& a, value_t const& b);
     bool operator<(value_t const& a, value_t const& b);

@@ -41,9 +41,8 @@ namespace omd { namespace ast
 
             int operator()(object_t const& obj) const
             {
-                typedef std::pair<std::string, value_t> pair;
                 int max_depth = 0;
-                BOOST_FOREACH(pair const& val, obj)
+                BOOST_FOREACH(object_element_t const& val, obj)
                 {
                     int element_depth = boost::apply_visitor(*this, val.second.get());
                     max_depth = (std::max)(max_depth, element_depth);
@@ -196,10 +195,9 @@ namespace omd { namespace ast
             void print_json_object(object_t const& obj) const
             {
                 out << '{';
-                typedef std::pair<std::string, value_t> pair;
                 bool first = true;
 
-                BOOST_FOREACH(pair const& val, obj)
+                BOOST_FOREACH(object_element_t const& val, obj)
                 {
                     if (first)
                     {
@@ -227,11 +225,10 @@ namespace omd { namespace ast
 
             void print_yaml_object(object_t const& obj) const
             {
-                typedef std::pair<std::string, value_t> pair;
                 current_indent += spaces;
                 bool first = true;
 
-                BOOST_FOREACH(pair const& val, obj)
+                BOOST_FOREACH(object_element_t const& val, obj)
                 {
                     if (first)
                     {
@@ -377,6 +374,117 @@ namespace omd { namespace ast
                 }
             }
         };
+
+        struct value_compare
+        {
+            typedef bool result_type;
+
+            template <typename A, typename B>
+            bool operator()(A const& a, B const& b) const
+            {
+                BOOST_ASSERT(false); // this should not happen. We cannot compare different types
+                return false;
+            }
+
+            template <typename T>
+            bool operator()(T const& a, T const& b) const
+            {
+                return a < b;
+            }
+
+            bool operator()(anchored_object_t const& a, anchored_object_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a.first < b.first;
+            }
+
+            bool operator()(alias_t const& a, alias_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a.first < b.first;
+            }
+
+            bool operator()(object_t const& a, object_t const& b)
+            {
+                return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+            }
+
+            bool operator()(array_t const& a, array_t const& b)
+            {
+                return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+            }
+        };
+
+        struct value_equal
+        {
+            typedef bool result_type;
+
+            template <typename A, typename B>
+            bool operator()(A const& a, B const& b) const
+            {
+                BOOST_ASSERT(false); // this should not happen. We cannot compare different types
+                return false;
+            }
+
+            template <typename T>
+            bool operator()(T const& a, T const& b) const
+            {
+                return a == b;
+            }
+
+            bool operator()(anchored_object_t const& a, anchored_object_t const& b) const
+            {
+                // anchors are compared using their names (IDs)
+                return a.first == b.first;
+            }
+
+            bool operator()(alias_t const& a, alias_t const& b) const
+            {
+                // aliases are compared using their names (IDs)
+                return a.first == b.first;
+            }
+
+            bool operator()(object_t const& a, object_t const& b)
+            {
+                if (a.size() != b.size())
+                    return false;
+                object_t::const_iterator ii = b.begin();
+                for (object_t::const_iterator i = a.begin(); i != a.end(); ++i)
+                {
+                    if (*i != *ii++)
+                        return false;
+                }
+                return true;
+            }
+
+            bool operator()(array_t const& a, array_t const& b)
+            {
+                if (a.size() != b.size())
+                    return false;
+                array_t::const_iterator ii = b.begin();
+                for (array_t::const_iterator i = a.begin(); i != a.end(); ++i)
+                {
+                    if (*i != *ii++)
+                        return false;
+                }
+                return true;
+            }
+        };
+    }
+
+    inline bool operator==(value_t const& a, value_t const& b)
+    {
+        return boost::apply_visitor(detail::value_equal(), a.get(), b.get());
+    }
+
+    inline bool operator!=(value_t const& a, value_t const& b)
+    {
+        return !(a == b);
+    }
+
+    inline bool operator<(value_t const& a, value_t const& b)
+    {
+        return boost::apply_visitor(detail::value_compare(), a.get(), b.get());
     }
 
     inline void link_yaml(value_t& val)

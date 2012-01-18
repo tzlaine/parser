@@ -99,6 +99,8 @@ success:
 - {quoted : " # not a 'comment'.", single : "\"Howdy!\" he cried.", tie-fighter : "|\\-*-/|", unicode : "Sosa did fine."}
 - "Fun with \\\" \a \b \e \f \n \r \t \v \0   \_ \N \L \P A A"
 - "Mark McGwire's year was crippled by a knee injury."
+- hr : ["Mark McGwire", "Sammy Sosa"]
+  rbi : ["Sammy Sosa", "Ken Griffey"]
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\anchors.yaml 
 success: 
