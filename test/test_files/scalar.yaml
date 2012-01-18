@@ -24,8 +24,13 @@ fixed: 1230.15
 negative infinity: -.inf
 not a number: .NaN
 
-null:
-booleans: [ true, false ]
+null1:
+null2: ~
+booleans1: [ true, false ]
+booleans2: [ True, False ]
+booleans3: [ On, Off ]
+hex: 0x4D2
+oct: 02333
 string: '012345'
 
 ## $$$ JDG FIXME UNIMPLEMENTED $$$ ##

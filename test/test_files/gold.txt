@@ -21,18 +21,23 @@ success:
 
 C:\dev\yaml_spirit\test\test_files>C:\dev\compile\parse_yaml_test.exe C:\dev\yaml_spirit\test\test_files\scalar.yaml 
 success: 
-booleans : [true, false]
+booleans1 : [true, false]
+booleans2 : [true, false]
+booleans3 : [true, false]
 canonical-f : 1230.15
 canonical-i : 12345
 control : "\b1998\t1999\t2000\n"
 decimal : 12345
 exponential : 1230.15
 fixed : 1230.15
+hex : 1234
 hex esc : "\r\n is \r\n"
 hexadecimal : 12
 negative infinity : -.inf
 not a number : .NaN
-null : null
+null1 : null
+null2 : null
+oct : 1243
 octal : 12
 plain : "This unquoted scalar spans many lines."
 quoted : "So does this\n  quoted scalar.\n"
