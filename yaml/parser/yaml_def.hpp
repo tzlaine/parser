@@ -26,6 +26,7 @@ namespace omd { namespace yaml { namespace parser
         error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
+        using boost::spirit::qi::copy;
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -39,8 +40,8 @@ namespace omd { namespace yaml { namespace parser
         qi::eol_type eol;
         qi::blank_type blank;
 
-        auto comment = '#' >> *(char_ - eol) >> eol;    // comments
-        auto blank_eol = *blank >> (comment | eol);     // empty until eol
+        auto comment = copy('#' >> *(char_ - eol) >> eol);  // comments
+        auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
 
         stream =
             skip(space)[document > block_g.end_of_input]
