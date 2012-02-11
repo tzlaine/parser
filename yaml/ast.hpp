@@ -10,8 +10,8 @@
 
 #include <string>
 #include <map>
-#include <vector>
 #include <ostream>
+#include <boost/container/stable_vector.hpp>
 #include <boost/spirit/include/support_extended_variant.hpp>
 
 namespace omd { namespace yaml { namespace ast
@@ -32,11 +32,11 @@ namespace omd { namespace yaml { namespace ast
     inline std::ostream& operator<<(std::ostream& out, null_t)
     { out << "<null>"; return out; }
 
-    struct                                      value_t;
-    typedef std::map<value_t, value_t>          object_t;
-    typedef std::vector<value_t>                array_t;
-    typedef std::pair<string_t, value_t>        anchored_object_t;
-    typedef std::pair<string_t, value_t*>       alias_t;
+    struct                                               value_t;
+    typedef std::map<value_t, value_t>                   object_t;
+    typedef boost::container::stable_vector<value_t>     array_t;
+    typedef std::pair<string_t, value_t>                 anchored_object_t;
+    typedef std::pair<string_t, value_t*>                alias_t;
 
     struct value_t
         : boost::spirit::extended_variant<
