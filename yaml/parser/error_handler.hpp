@@ -24,8 +24,8 @@ namespace omd { namespace yaml { namespace parser
         struct result { typedef void type; };
 
         std::string source_file;
-        error_handler(std::string const& source_file = "")
-          : source_file(source_file)
+        error_handler(std::string const& source_file_ = "")
+          : source_file(source_file_)
         {
         }
 

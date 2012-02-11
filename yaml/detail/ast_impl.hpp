@@ -95,8 +95,8 @@ namespace omd { namespace yaml { namespace ast
             mutable bool is_key;
             mutable int level;
 
-            yaml_printer(std::ostream& out)
-                : out(out), current_indent(-spaces), is_key(false), level(-1)
+            yaml_printer(std::ostream& out_)
+                : out(out_), current_indent(-spaces), is_key(false), level(-1)
             {
                 BOOST_ASSERT(spaces >= 2);
             }

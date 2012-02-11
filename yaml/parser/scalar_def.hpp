@@ -120,9 +120,9 @@ namespace omd { namespace yaml { namespace parser
     }
 
     template <typename Iterator>
-    unicode_string<Iterator>::unicode_string(int& indent)
+    unicode_string<Iterator>::unicode_string(int& indent_)
       : unicode_string::base_type(unicode_start),
-        indent(indent)
+        indent(indent_)
     {
         qi::char_type char_;
         qi::_val_type _val;

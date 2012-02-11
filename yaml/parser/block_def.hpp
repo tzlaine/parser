@@ -72,7 +72,7 @@ namespace omd { namespace yaml { namespace parser
 
             template <typename String, typename Range>
             void operator()(
-                String& result,
+                String& result_,
                 Range const& rng,
                 char indicator,
                 bool different_indentation
@@ -87,14 +87,14 @@ namespace omd { namespace yaml { namespace parser
                 if ((indicator == '>') && different_indentation)
                 {
                     for (std::size_t i = 0; i != n; ++i)
-                        result += '\n';
+                        result_ += '\n';
                     return;
                 }
 
                 if ((indicator == '>') && (n == 1))
-                    result += ' ';
+                    result_ += ' ';
                 else
-                    result += '\n';
+                    result_ += '\n';
             }
         };
 
@@ -104,22 +104,22 @@ namespace omd { namespace yaml { namespace parser
             struct result { typedef void type; };
 
             template <typename String>
-            void operator()(String& result, char indicator) const
+            void operator()(String& result_, char indicator) const
             {
                 if (indicator == '-' || indicator == 0)
                 {
-                    std::size_t pos = result.size();
+                    std::size_t pos = result_.size();
                     for (; pos != 0; --pos)
                     {
-                        if (result[pos-1] != '\n')
+                        if (result_[pos-1] != '\n')
                             break;
                     }
-                    if (pos < result.size())
+                    if (pos < result_.size())
                     {
                         if (indicator == '-')
-                            result.erase(pos);
+                            result_.erase(pos);
                         else
-                            result.erase(pos+1);
+                            result_.erase(pos+1);
                     }
                 }
             }
