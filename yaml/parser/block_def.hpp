@@ -81,12 +81,14 @@ namespace omd { namespace yaml { namespace parser
                 if (rng.empty())
                     return;
 
-                std::size_t n = std::distance(rng.begin(), rng.end());
+                typedef typename std::iterator_traits<typename Range::iterator>::difference_type distance_t;
+
+                distance_t n = std::distance(rng.begin(), rng.end());
 
                 // Don't fold the previous lines if the next line has a different indentation
                 if ((indicator == '>') && different_indentation)
                 {
-                    for (std::size_t i = 0; i != n; ++i)
+                    for (distance_t i = 0; i != n; ++i)
                         result_ += '\n';
                     return;
                 }
