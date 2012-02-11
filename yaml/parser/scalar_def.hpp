@@ -139,6 +139,7 @@ namespace omd { namespace yaml { namespace parser
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
         using boost::phoenix::ref;
+        using boost::spirit::qi::copy;
 
         uint_parser<uchar, 16, 4, 4> hex4;
         uint_parser<uchar, 16, 8, 8> hex8;
@@ -172,7 +173,9 @@ namespace omd { namespace yaml { namespace parser
             > '\''
             ;
 
-        auto space = blank | (eol >> repeat(ref(indent), inf)[blank]);
+        auto space = copy(
+                blank | (eol >> repeat(ref(indent), inf)[blank])
+            );
 
         // These are not allowed as first plain-style character
         auto unsafe_first = char_(" \n\r\t,[]{}#&*!|>\\\"%@`");

@@ -134,6 +134,7 @@ namespace omd { namespace yaml { namespace parser
         error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
+        using boost::spirit::qi::copy;
         phx::function<detail::update_indent> update_indent;
         phx::function<detail::check_indent> check_indent;
         phx::function<detail::fold_line> fold_line;
@@ -164,12 +165,12 @@ namespace omd { namespace yaml { namespace parser
         qi::eoi_type eoi_;
         qi::blank_type blank;
 
-        auto comment = '#' >> *(char_ - eol) >> eol;    // comments
-        auto blank_eol = *blank >> (comment | eol);     // empty until eol
+        auto comment = copy('#' >> *(char_ - eol) >> eol);  // comments
+        auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
 
-        auto map_key =
+        auto map_key = copy(
             skip(space)[flow_g.scalar_value.map_key]
-            ;
+            );
 
         // no-skip version
         auto flow_scalar_ns =
@@ -180,25 +181,25 @@ namespace omd { namespace yaml { namespace parser
             phx::ref(current_indent)
             ;
 
-        auto save_indent =
+        auto save_indent = copy(
             eps[_a = get_indent] PRINT_INDENT
-            ;
+            );
 
-        auto zero_indent =
+        auto zero_indent = copy(
             eps[_a = get_indent, get_indent = 0] PRINT_INDENT
-            ;
+            );
 
-        auto increase_indent =
+        auto increase_indent = copy(
             eps[get_indent += 1] PRINT_INDENT
-            ;
+            );
 
-        auto decrease_indent =
+        auto decrease_indent = copy(
             eps[get_indent -= 1] PRINT_INDENT
-            ;
+            );
 
-        auto restore_indent =
+        auto restore_indent = copy(
             eps[get_indent = _a] PRINT_INDENT
-            ;
+            );
 
         indent =
             *blank >> raw[eps] [update_indent(_1, get_indent, _pass)]
@@ -208,9 +209,9 @@ namespace omd { namespace yaml { namespace parser
             *blank >> raw[eps] [check_indent(_1, get_indent, _pass)]
             ;
 
-        auto skip_exact_indent =
+        auto skip_exact_indent = copy(
             repeat(get_indent-1)[blank]     // note: indent is one based!
-            ;
+            );
 
         skip_indent_child =
             *blank >> raw[eps] [check_indent(_1, get_indent + 1, _pass)]
@@ -223,10 +224,10 @@ namespace omd { namespace yaml { namespace parser
             ];
 
         //  Allow newlines before scalars as long as they are properly indented
-        auto scalar_in_block =
+        auto scalar_in_block = copy(
                 omit[-(+blank_eol >> skip_indent_child)]
             >>  flow_scalar_ns
-            ;
+            );
 
         // flow compound (arrays and maps) need no indentations. Set indent to
         // zero while parsing.
@@ -252,10 +253,10 @@ namespace omd { namespace yaml { namespace parser
             >>  block_node
             ;
 
-        auto block_node_main =
+        auto block_node_main = copy(
                 anchored_block_node
             |   block_node
-            ;
+            );
 
         indented_block %=
                 increase_indent
@@ -268,12 +269,12 @@ namespace omd { namespace yaml { namespace parser
             >>  blocks
             ;
 
-        auto block_main =
+        auto block_main = copy(
                 block_literal
             |   block_seq
             |   explicit_block_map
             |   implicit_block_map
-            ;
+            );
 
         blocks %=
                 omit[*blank_eol]
@@ -292,36 +293,37 @@ namespace omd { namespace yaml { namespace parser
             |   eps[get_indent = 1] >> skip(space)[flow_g.scalar_value]
             ;
 
-        auto start_indent =
+        auto start_indent = copy(
             omit[indent] PRINT_INDENT
-            ;
+            );
 
-        auto block_literal_first_line =
+        auto block_literal_first_line = copy(
                 raw[*eol]           [ fold_line(_val, _1, _a, false) ]
             >>  start_indent                                //  Get first line indent
             >>  +(char_ - eol)      [ _val += _1 ]          //  Get the line
-            ;
+            );
 
         // This rule checks for blank lines and sets local _c to true or false
         // depending on whether the succeeding line has a different indentation or not
-        auto block_literal_blank_lines =
+        auto block_literal_blank_lines = copy(
             raw[(*eol)
                 >> &-(skip_exact_indent >> blank)     [ _c = true ]
                 >> -(!skip_exact_indent)              [ _c = true ]
-            ][ fold_line(_val, _1, _a, _c) ];
+            ][ fold_line(_val, _1, _a, _c) ]
+            );
 
         // This rule checks if the current line is indented or not and
         // sets local _c accordingly
-        auto block_literal_indented_line =
+        auto block_literal_indented_line = copy(
             &(blank[ _c = true ] | eps[ _c = false ])
-            ;
+            );
 
-        auto block_literal_line =
+        auto block_literal_line = copy(
                 block_literal_blank_lines
             >>  skip_exact_indent                           //  Indent get_indent spaces
             >>  block_literal_indented_line
             >>  +(char_ - eol)      [ _val += _1 ]          //  Get the line
-            ;
+            );
 
         block_literal =
                 (*blank)            [ _c = false, _b = 0 ]  //  initialize locals
@@ -333,9 +335,9 @@ namespace omd { namespace yaml { namespace parser
             >>  eps                 [ chomp_string(_val, _b) ]
             ;
 
-        auto block_seq_indicator =                          //  Lookahead and see if we have a
+        auto block_seq_indicator = copy(                    //  Lookahead and see if we have a
             &(start_indent >> '-' >> (blank | eol))         //  sequence indicator.
-            ;
+            );
 
         block_seq =
                 omit[block_seq_indicator]
@@ -349,21 +351,20 @@ namespace omd { namespace yaml { namespace parser
             >>  block_node_main                             //  Get the entry
             ;
 
-        auto implicit_block_map_indicator =                 //  Lookahead and see if we have an
+        auto implicit_block_map_indicator = copy(           //  Lookahead and see if we have an
             &(  start_indent                                //  implicit map indicator.
             >>  map_key
             >>  skip(space)[':']
-            )
-            ;
+            ));
 
         implicit_block_map =
                 omit[implicit_block_map_indicator]
             >>  +block_map_entry                            //  Get the entries
             ;
 
-        auto explicit_block_map_indicator =                 //  Lookahead and see if we have an
+        auto explicit_block_map_indicator = copy(           //  Lookahead and see if we have an
             &(start_indent >> '?' >> (blank | eol))         //  explicit map indicator.
-            ;
+            );
 
         explicit_block_map =
                 omit[explicit_block_map_indicator]

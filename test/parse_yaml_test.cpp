@@ -107,5 +107,5 @@ int main(int argc, char **argv)
         std::cout << "parse error" << std::endl;
     }
 
-    return 1;
+    return 0;
 }
