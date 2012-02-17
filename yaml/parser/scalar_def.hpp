@@ -234,8 +234,8 @@ namespace omd { namespace yaml { namespace parser
             |   anchored_value
             |   double_value
             |   integer_value
-            |   no_case[bool_value]
-            |   no_case[null_value]
+            |   (no_case[bool_value] >> &char_(" \n\r\t,[]{}:#"))
+            |   (no_case[null_value] >> &char_(" \n\r\t,[]{}:#"))
             |   string_value
             ;
 
