@@ -256,10 +256,10 @@ namespace omd { namespace yaml { namespace parser
         bool_value.add
             ("true", true)
             ("false", false)
-            ("on", true)
-            ("off", false)
-            ("yes", true)
-            ("no", false)
+            // ("on", true)
+            // ("off", false)
+            // ("yes", true)
+            // ("no", false)
             ;
 
         null_value =
