@@ -71,7 +71,7 @@ namespace omd { namespace yaml { namespace parser
         };
 
         template <typename T>
-        struct yaml_real_policies : qi::real_policies<T>
+        struct yaml_strict_real_policies : qi::real_policies<T>
         {
             static bool const expect_dot = true;
 
@@ -117,6 +117,12 @@ namespace omd { namespace yaml { namespace parser
                 return false;
             }
         };
+
+        template <typename T>
+        struct yaml_real_policies : yaml_strict_real_policies<T>
+        {
+            static bool const expect_dot = false;
+        };
     }
 
     template <typename Iterator>
@@ -135,6 +141,7 @@ namespace omd { namespace yaml { namespace parser
         qi::repeat_type repeat;
         qi::inf_type inf;
         qi::hex_type hex;
+        qi::omit_type omit;
 
         using boost::spirit::qi::uint_parser;
         using boost::phoenix::function;
@@ -191,8 +198,18 @@ namespace omd { namespace yaml { namespace parser
                 )
             ;
 
+        explicit_ =
+                "!!str"
+            >   omit[+blank]
+            >   (   double_quoted
+                |   single_quoted
+                |   unquoted
+                )
+            ;
+
         unicode_start =
-                double_quoted
+                explicit_
+            |   double_quoted
             |   single_quoted
             |   unquoted
             ;
@@ -204,6 +221,7 @@ namespace omd { namespace yaml { namespace parser
             (double_quoted)
             (unquoted)
             (unicode_start)
+            (explicit_)
         );
     }
 
@@ -229,7 +247,12 @@ namespace omd { namespace yaml { namespace parser
         using boost::spirit::qi::copy;
 
         phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
-        qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
+        qi::real_parser<
+            double, detail::yaml_strict_real_policies<double> >
+        strict_double_value;
+        qi::real_parser<
+            double, detail::yaml_real_policies<double> >
+        double_value;
 
         scalar_value =
                 scalar_value_no_strings
@@ -241,10 +264,14 @@ namespace omd { namespace yaml { namespace parser
         scalar_value_no_strings =
                 alias
             |   anchored_value
-            |   (double_value >> &delimeter)
-            |   (integer_value >> &delimeter)
-            |   (no_case[bool_value] >> &delimeter)
-            |   (no_case[null_value] >> &delimeter)
+            |   ("!!float" > omit[+blank] > float_value)
+            |   ("!!bool" > omit[+blank] > bool_value)
+            |   ("!!int" > omit[+blank] > int_value)
+            |   ("!!null" > omit[+blank] > null_value)
+            |   strict_float_value
+            |   int_value
+            |   bool_value
+            |   null_value
             ;
 
         // this is a special form of scalar for use as map keys
@@ -252,28 +279,50 @@ namespace omd { namespace yaml { namespace parser
                 alias
             |   anchored_string
             |   string_value
+            |   ("!!float" > omit[+blank] > float_value)
+            |   ("!!bool" > omit[+blank] > bool_value)
+            |   ("!!int" > omit[+blank] > int_value)
+            |   ("!!null" > omit[+blank] > null_value)
             ;
 
-        integer_value =
-                (no_case["0x"] > hex)
-            |   (no_case["0o"] > oct)
-            |   ('0' >> oct)
-            |   int_
+        int_value =
+            (       (no_case["0x"] > hex)
+                |   (no_case["0o"] > oct)
+                |   ('0' >> oct)
+                |   int_
+            )
+            >>  &delimeter
             ;
 
-        bool_value.add
+        float_value =
+                double_value
+            >>  &delimeter
+            ;
+
+        strict_float_value =
+                strict_double_value
+            >>  &delimeter
+            ;
+
+        bool_value_.add
             ("true", true)
             ("false", false)
             ;
 
+        bool_value =
+                bool_value_
+            >>  &delimeter
+            ;
+
         null_value =
-              (lit("null") | '~')
-            >> attr(ast::null_t())
+                (lit("null") | '~')
+            >>  &delimeter
+            >>  attr(ast::null_t())
             ;
 
         alias_name =
                 raw[anchors]
-            >>  &delimeter  //  alias name must be followed by a delimeter
+            >>  &delimeter
             ;
 
         alias =
@@ -298,7 +347,9 @@ namespace omd { namespace yaml { namespace parser
 
         BOOST_SPIRIT_DEBUG_NODES(
             (scalar_value)
-            (integer_value)
+            (int_value)
+            (float_value)
+            (strict_float_value)
             (null_value)
             (alias)
             (alias_name)

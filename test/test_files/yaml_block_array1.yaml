@@ -2,5 +2,6 @@
 - B
 - C
 - [x, y, z]
+- !!seq [a, b, c]
 - D
 - E

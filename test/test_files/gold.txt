@@ -21,9 +21,9 @@ success:
 
 C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe scalar.yaml 
 success: 
+A numeric string : "12345"
+A string : "A string"
 booleans1 : [true, false]
-booleans2 : [true, false]
-booleans3 : ["On", "Off"]
 canonical-f : 1230.15
 canonical-i : 12345
 control : "\b1998\t1999\t2000\n"
@@ -33,6 +33,9 @@ fixed : 1230.15
 hex : 1234
 hex esc : "\r\n is \r\n"
 hexadecimal : 12
+infinity : .inf
+key with null value : null
+negative : -12
 negative infinity : -.inf
 not a number : .NaN
 null1 : null
@@ -40,12 +43,14 @@ null2 : null
 oct : 1243
 octal : 12
 plain : "This unquoted scalar spans many lines."
+positive : 34
 quoted : "So does this\n  quoted scalar.\n"
 quoted1 : " # Not a 'comment'."
 single : "\"Howdy!\" he cried."
 string : "012345"
 tie-fighter : "|\\-*-/|"
 unicode : "Sosa did fine.☺"
+zero : 0
 
 C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_yaml_block.yaml 
 success: 
@@ -131,6 +136,7 @@ success:
 - "B"
 - "C"
 - ["x", "y", "z"]
+- ["a", "b", "c"]
 - "D"
 - "E"
 
@@ -172,6 +178,7 @@ success:
 C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map1.yaml 
 success: 
 Apple : 6
+Lemmon : {a : 1, b : 2, c : 3}
 Orange : [1, 2, 3]
 
 C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map2.yaml 
@@ -226,3 +233,10 @@ C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map12.yaml
 success: 
 american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
 national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]
+
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map13.yaml 
+success: 
+Burp : "3DEVENT"
+Foo : "on the right"
+Gorp : "true is not relative"
+Prog : false

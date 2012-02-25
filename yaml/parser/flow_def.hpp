@@ -58,6 +58,8 @@ namespace omd { namespace yaml { namespace parser
 
         flow_start =
                 top_anchored_value
+            |   ("!!map" > object)
+            |   ("!!seq" > array)
             |   object
             |   array
             ;

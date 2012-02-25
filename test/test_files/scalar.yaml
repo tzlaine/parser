@@ -27,14 +27,32 @@ not a number: .NaN
 null1:
 null2: ~
 booleans1: [ true, false ]
-booleans2: [ True, False ]
-booleans3: [ On, Off ]
 hex: 0x4D2
 oct: 02333
 string: '012345'
+
 
 ## $$$ JDG FIXME UNIMPLEMENTED $$$ ##
 #canonical-t: 2001-12-15T02:59:43.1Z
 #iso8601: 2001-12-14t21:59:43.10-05:00
 #spaced: 2001-12-14 21:59:43.10 -5
 #date: 2002-12-14
+
+!!null null: value for null key
+key with null value: !!null null
+
+negative: !!int -12
+zero: !!int 0
+positive: !!int 34
+
+negative: !!float -1
+zero: !!float 0
+positive: !!float 2.3e4
+infinity: !!float .inf
+not a number: !!float .nan
+
+A string: !!str "A string"
+A numeric string: !!str 12345 # should be parsed as string
+
+
+
