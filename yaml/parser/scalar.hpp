@@ -48,6 +48,7 @@ namespace omd { namespace yaml { namespace parser
         scalar(int& indent, qi::symbols<char>& symbol_table);
 
         qi::rule<Iterator, ast::value_t()> scalar_value;
+        qi::rule<Iterator, ast::value_t()> scalar_value_no_strings;
         qi::rule<Iterator, ast::value_t()> map_key;
         unicode_string<Iterator> string_value;
         qi::rule<Iterator, int()> integer_value;

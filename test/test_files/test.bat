@@ -31,4 +31,4 @@
 ..\bin\release\test.exe yaml_block_map10.yaml
 ..\bin\release\test.exe yaml_block_map11.yaml
 ..\bin\release\test.exe yaml_block_map12.yaml
-
+..\bin\release\test.exe yaml_block_map13.yaml

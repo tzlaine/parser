@@ -10,6 +10,7 @@ project yaml_parser_test
         <toolset>gcc:<cxxflags>-ftemplate-depth-300
         <variant>release:<location>"bin/release"
         <variant>debug:<location>"bin/debug"
+        <variant>debug:<define>BOOST_SPIRIT_DEBUG
         <include>$(BOOST_ROOT)
     :
     ;

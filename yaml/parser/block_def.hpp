@@ -174,9 +174,14 @@ namespace omd { namespace yaml { namespace parser
             skip(space)[flow_g.scalar_value.map_key]
             );
 
-        // no-skip version
+        // no-skip version without strings
         auto flow_scalar_ns =
-            flow_g.scalar_value.scalar_value.alias()
+            flow_g.scalar_value.scalar_value_no_strings.alias()
+            ;
+
+        // Only for strings
+        auto& flow_string_ns =
+            flow_g.scalar_value.string_value
             ;
 
         auto get_indent =
@@ -225,10 +230,21 @@ namespace omd { namespace yaml { namespace parser
             >>  eoi_
             ];
 
-        //  Allow newlines before scalars as long as they are properly indented
+        //  Allow newlines before scalars as long as they are properly indented.
+        //  Make sure that the scalar doesn't span multiple lines by requiring
+        //  the next line to be a higher level node (with lower indentation).
+        //  We'll deal with strings and potentially multi-line strings separately.
+
         auto scalar_in_block = copy(
                 omit[-(+blank_eol >> skip_indent_child)]
             >>  flow_scalar_ns
+            >>  !(+blank_eol >> skip_indent_child)
+            );
+
+        //  Allow newlines before strings as long as they are properly indented
+        auto string_in_block = copy(
+                omit[-(+blank_eol >> skip_indent_child)]
+            >>  flow_string_ns
             );
 
         // flow compound (arrays and maps) need no indentations. Set indent to
@@ -244,6 +260,7 @@ namespace omd { namespace yaml { namespace parser
             |   indented_block
             |   flow_compound
             |   scalar_in_block
+            |   string_in_block
             |   (omit[blank_eol | end_of_input]  //  If all else fails, then null_t
                   >> attr(ast::null_t()))
             ;

@@ -223,20 +223,28 @@ namespace omd { namespace yaml { namespace parser
         qi::omit_type omit;
         qi::_1_type _1;
         qi::raw_type raw;
-
-        qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
+        qi::eoi_type eoi;
 
         namespace phx = boost::phoenix;
+        using boost::spirit::qi::copy;
+
         phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
+        qi::real_parser<double, detail::yaml_real_policies<double> > double_value;
 
         scalar_value =
+                scalar_value_no_strings
+            |   string_value
+            ;
+
+        auto delimeter = copy(char_(" \n\r\t,[]{}:#") | eoi);
+
+        scalar_value_no_strings =
                 alias
             |   anchored_value
-            |   double_value
-            |   integer_value
-            |   (no_case[bool_value] >> &char_(" \n\r\t,[]{}:#"))
-            |   (no_case[null_value] >> &char_(" \n\r\t,[]{}:#"))
-            |   string_value
+            |   (double_value >> &delimeter)
+            |   (integer_value >> &delimeter)
+            |   (no_case[bool_value] >> &delimeter)
+            |   (no_case[null_value] >> &delimeter)
             ;
 
         // this is a special form of scalar for use as map keys
@@ -256,10 +264,6 @@ namespace omd { namespace yaml { namespace parser
         bool_value.add
             ("true", true)
             ("false", false)
-            // ("on", true)
-            // ("off", false)
-            // ("yes", true)
-            // ("no", false)
             ;
 
         null_value =
@@ -269,7 +273,7 @@ namespace omd { namespace yaml { namespace parser
 
         alias_name =
                 raw[anchors]
-            >>  &char_(" \n\r\t,[]{}:#")  //  alias name must be followed by one of these
+            >>  &delimeter  //  alias name must be followed by a delimeter
             ;
 
         alias =

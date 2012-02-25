@@ -1,10 +1,10 @@
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_json_objects.json 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_json_objects.json 
 success: 
 Apple : 6
 Orange : [1, 2, 3]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_json.json 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_json.json 
 success: 
 - 123.45
 - true
@@ -14,16 +14,16 @@ success:
 - - 92
   - ["another string", "apple", "Sîne"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_yaml_flow.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_yaml_flow.yaml 
 success: 
 - "apple"
 - "Sîne"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe scalar.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe scalar.yaml 
 success: 
 booleans1 : [true, false]
 booleans2 : [true, false]
-booleans3 : [true, false]
+booleans3 : ["On", "Off"]
 canonical-f : 1230.15
 canonical-i : 12345
 control : "\b1998\t1999\t2000\n"
@@ -47,21 +47,21 @@ string : "012345"
 tie-fighter : "|\\-*-/|"
 unicode : "Sosa did fine.☺"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_yaml_block.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_yaml_block.yaml 
 success: 
 american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
 national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_yaml_block2.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_yaml_block2.yaml 
 success: 
 x : ["a", "b", "c"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe basic_yaml_block3.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe basic_yaml_block3.yaml 
 success: 
 x : ["a", "b", "c"]
 y : ["a", "b", "c"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe block_literals.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe block_literals.yaml 
 success: 
 - "\\//||\\/||\n// ||  ||__\n    ---> properly indented\n"
 - "folded text\nnext line\n"
@@ -72,12 +72,12 @@ success:
 - "keep chomping\n\n\n"
 - "Last"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe block_literals2.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe block_literals2.yaml 
 success: 
 accomplishment : "Mark set a major league home run record in 1998.\n"
 stats : "65 Home Runs\n0.278 Batting Average\n"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe test.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe test.yaml 
 success: 
 - ["Mark McGwire", "Sammy Sosa", "Ken Griffey"]
 - {avg : 0.278, hr : 65, rbi : 147}
@@ -107,7 +107,7 @@ success:
 - hr : ["Mark McGwire", "Sammy Sosa"]
   rbi : ["Sammy Sosa", "Ken Griffey"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe anchors.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe anchors.yaml 
 success: 
 h : "aaa"
 i : "iii"
@@ -125,7 +125,7 @@ q : "i"
 r : "You're Holding It Wrong: Here's How to Hold Your Touch Screen Gadgets Correctly\n"
 x : ["a", "bbking", "c"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array1.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array1.yaml 
 success: 
 - "A"
 - "B"
@@ -134,7 +134,7 @@ success:
 - "D"
 - "E"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array2.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array2.yaml 
 success: 
 - "A"
 - "B"
@@ -143,86 +143,86 @@ success:
 - "D"
 - {E : "yabba dabba"}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array3.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array3.yaml 
 success: 
 - null
 - "B"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array4.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array4.yaml 
 success: 
 - "A"
 - ["a", "b", "c"]
 - "B"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array5.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array5.yaml 
 success: 
 - ["x", "y"]
 - ["a", "b"]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array6.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array6.yaml 
 success: 
 - ["x", "y"]
 - {a : 1, b : 2}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_array7.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_array7.yaml 
 success: 
 - {avg : 0.278, hr : 65, name : "Mark McG"}
 - {avg : 0.288, hr : 63, name : "Sammy So"}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map1.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map1.yaml 
 success: 
 Apple : 6
 Orange : [1, 2, 3]
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map2.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map2.yaml 
 success: 
 Apple : {x : 2, y : 3}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map3.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map3.yaml 
 success: 
 key0 : {key1 : 1, key2 : null, key3 : 3}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map4.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map4.yaml 
 success: 
 key1 : 1
 key2 : null
 key3 : 2
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map5.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map5.yaml 
 success: 
 z : {x : 2, y : 3}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map6.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map6.yaml 
 success: 
 the key value : {key1 : "value", key2 : "more value"}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map7.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map7.yaml 
 success: 
 Apple : 6
 Orange : null
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map8.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map8.yaml 
 success: 
 z : 4
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map9.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map9.yaml 
 success: 
 - {a : 1, b : 2}
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map10.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map10.yaml 
 success: 
 w : 9
 x : 2
 y : 3
 z : 4
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map11.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map11.yaml 
 success: 
 null : null
 x : "xx"
 z : "zz"
 
-C:\dev\yaml_spirit\test\test_files>..\bin\debug\test.exe yaml_block_map12.yaml 
+C:\dev\yaml_spirit\test\test_files>..\bin\release\test.exe yaml_block_map12.yaml 
 success: 
 american : ["Boston Red Sox", "Detroit Tigers", "New York Yankees"]
 national : ["New York Mets", "Chicago Cubs", "Atlanta Braves"]
