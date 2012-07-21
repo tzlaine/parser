@@ -7,10 +7,22 @@
 project yaml_parser_test
     : requirements
         <toolset>gcc:<cxxflags>-std=c++0x
+        <toolset>gcc:<cxxflags>-Wall
+#        <toolset>gcc:<cxxflags>-Wconversion
+#        <toolset>gcc:<cxxflags>-Wshadow
+        <toolset>gcc:<cxxflags>-Wvla
+        <toolset>gcc:<cxxflags>-Wno-overloaded-virtual
+        <toolset>clang:<cxxflags>-std=c++0x
+        <toolset>clang:<cxxflags>-stdlib=libc++
+        <toolset>clang:<cxxflags>-Wall
+        <toolset>clang:<cxxflags>-Wconversion
+#        <toolset>clang:<cxxflags>-Wshadow
+        <toolset>clang:<cxxflags>-Wvla
+        <toolset>clang:<cxxflags>-Wno-overloaded-virtual
         <toolset>gcc:<cxxflags>-ftemplate-depth-300
         <variant>release:<location>"bin/release"
         <variant>debug:<location>"bin/debug"
-        <variant>debug:<define>BOOST_SPIRIT_DEBUG
+#        <variant>debug:<define>BOOST_SPIRIT_DEBUG
         <include>$(BOOST_ROOT)
     :
     ;
@@ -18,12 +30,47 @@ project yaml_parser_test
 import modules ;
 
 exe test :
-    scalar.cpp
-    flow.cpp
-    block.cpp
-    yaml.cpp
-    parse_yaml_test.cpp
-;
+	scalar.cpp
+	flow.cpp
+	block.cpp
+	yaml.cpp
+	parse_yaml_test.cpp
+        /vendor/boost//headers
+	:
+	<include>..
+	;
+
+
+exe test1 :
+	scalar1.cpp
+	flow1.cpp
+	block1.cpp
+	yaml1.cpp
+	test1.cpp
+        /vendor/boost//headers
+	:
+	<include>..
+	;
+
+
+exe test2 :
+	scalar1.cpp
+	flow1.cpp
+	block1.cpp
+	yaml1.cpp
+	test2.cpp
+	value.cpp
+	util.cpp
+        /vendor/boost//headers
+	:
+	<include>..
+	;
+
+
+exe include_test :
+	include_test.cpp
+        /vendor/boost//headers
+	;
 
 
 

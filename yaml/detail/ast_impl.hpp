@@ -10,6 +10,7 @@
 
 #include "../ast.hpp"
 #include <algorithm>
+#include <boost/spirit/include/qi.hpp>  // boost::spirit::to_utf8
 #include <boost/foreach.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
