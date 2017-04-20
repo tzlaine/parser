@@ -12,8 +12,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/spirit/include/classic_position_iterator.hpp>
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Main program
@@ -56,20 +54,40 @@ int main(int argc, char **argv)
     }
 
     using omd::yaml::ast::value_t;
-    namespace qi = boost::spirit::qi;
+    using omd::yaml::parser::parse_yaml;
+    using omd::yaml::ast::print_yaml;
 
     value_t result;
-    if (omd::yaml::parser::parse_yaml(in, result, filename))
+    if (parse_yaml(in, result, filename))
     {
-        std::cout << "success: \n";
-
-        // print the result (2-spaces indent with all aliases expanded)
-        omd::yaml::ast::print_yaml<2, true>(std::cout, result);
+        print_yaml(std::cout, result);
         std::cout << std::endl;
+
+        {
+            std::stringstream expanded;
+            omd::yaml::ast::print_yaml<3, true>(expanded, result);
+            value_t reparsed_result;
+            if (!parse_yaml(expanded, reparsed_result, filename + std::string("_expanded_string"))) {
+                std::cout << "error: reparse of expanded string failed!" << std::endl;
+            } else if (reparsed_result != result) {
+                std::cout << "error: result of parse -> print and expand -> parse differs from initial parse!" << std::endl;
+            }
+        }
+
+        {
+            std::stringstream unexpanded;
+            omd::yaml::ast::print_yaml(unexpanded, result);
+            value_t reparsed_result;
+            if (!parse_yaml(unexpanded, reparsed_result, filename + std::string("_unexpanded_string"))) {
+                std::cout << "error: reparse of unexpanded string failed!" << std::endl;
+            } else if (reparsed_result != result) {
+                std::cout << "error: result of parse -> print and don't expand -> parse differs from initial parse!" << std::endl;
+            }
+        }
     }
     else
     {
-        std::cout << "parse error" << std::endl;
+        std::cout << "error: parse of original file failed!" << std::endl;
     }
 
     return 0;
