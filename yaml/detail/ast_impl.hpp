@@ -11,7 +11,6 @@
 #include "../ast.hpp"
 #include <algorithm>
 #include <boost/spirit/include/qi.hpp>  // boost::spirit::to_utf8
-#include <boost/foreach.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
 
@@ -45,7 +44,7 @@ namespace omd { namespace yaml { namespace ast
             int operator()(object_t const& obj) const
             {
                 int max_depth = 0;
-                BOOST_FOREACH(object_element_t const& val, obj)
+                for (object_element_t const& val : obj)
                 {
                     int element_depth = boost::apply_visitor(*this, val.second.get());
                     max_depth = (std::max)(max_depth, element_depth);
@@ -56,7 +55,7 @@ namespace omd { namespace yaml { namespace ast
             int operator()(array_t const& arr) const
             {
                 int max_depth = 0;
-                BOOST_FOREACH(value_t const& val, arr)
+                for (value_t const& val : arr)
                 {
                     int element_depth = boost::apply_visitor(*this, val.get());
                     max_depth = (std::max)(max_depth, element_depth);
@@ -200,7 +199,7 @@ namespace omd { namespace yaml { namespace ast
                 out << '{';
                 bool first = true;
 
-                BOOST_FOREACH(object_element_t const& val, obj)
+                for (object_element_t const& val : obj)
                 {
                     if (first)
                     {
@@ -231,7 +230,7 @@ namespace omd { namespace yaml { namespace ast
                 current_indent += spaces;
                 bool first = true;
 
-                BOOST_FOREACH(object_element_t const& val, obj)
+                for (object_element_t const& val : obj)
                 {
                     if (first)
                     {
@@ -277,7 +276,7 @@ namespace omd { namespace yaml { namespace ast
                 out << '[';
                 bool first = true;
 
-                BOOST_FOREACH(value_t const& val, arr)
+                for (value_t const& val : arr)
                 {
                     if (first)
                         first = false;
@@ -293,7 +292,7 @@ namespace omd { namespace yaml { namespace ast
             {
                 bool first = true;
 
-                BOOST_FOREACH(value_t const& val, arr)
+                for (value_t const& val : arr)
                 {
                     if (first)
                     {
@@ -388,7 +387,7 @@ namespace omd { namespace yaml { namespace ast
             void operator()(object_t& obj)
             {
                 typedef std::pair<value_t const, value_t> pair;
-                BOOST_FOREACH(pair& val, obj)
+                for (pair& val : obj)
                 {
                     boost::apply_visitor(*this, val.first.get());
                     boost::apply_visitor(*this, val.second.get());
@@ -397,7 +396,7 @@ namespace omd { namespace yaml { namespace ast
 
             void operator()(array_t& arr)
             {
-                BOOST_FOREACH(value_t& val, arr)
+                for (value_t& val : arr)
                 {
                     boost::apply_visitor(*this, val.get());
                 }
