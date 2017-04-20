@@ -1,5 +1,6 @@
 /**
  *   Copyright (C) 2010, 2011 Object Modeling Designs
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -32,11 +33,11 @@ namespace omd { namespace yaml { namespace parser
             template <typename, typename, typename>
             struct result { typedef void type; };
 
-            template <typename Range>
+            template <typename Range, typename Pass>
             void operator()(
                 Range const& rng,                   //  <-- where we are now
                 int& current_indent,                //  <-- the current indent position
-                bool& pass                          //  <-- set to false to fail parsing
+                Pass& pass                          //  <-- set to false to fail parsing
             ) const
             {
                 int pos = rng.begin().get_position().column;
@@ -52,11 +53,11 @@ namespace omd { namespace yaml { namespace parser
             template <typename, typename, typename>
             struct result { typedef void type; };
 
-            template <typename Range>
+            template <typename Range, typename Pass>
             void operator()(
                 Range const& rng,                   //  <-- where we are now
                 int const& current_indent,          //  <-- the current indent position
-                bool& pass                          //  <-- set to false to fail parsing
+                Pass& pass                          //  <-- set to false to fail parsing
             ) const
             {
                 int pos = rng.begin().get_position().column;

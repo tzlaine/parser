@@ -1,18 +1,19 @@
 #==============================================================================
 #   Copyright (c) 2001-2011 Joel de Guzman
+#   Copyright (c) 2017 Zach Laine
 #
 #   Distributed under the Boost Software License, Version 1.0. (See accompanying
 #   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #==============================================================================
 project yaml_parser_test
     : requirements
-        <toolset>gcc:<cxxflags>-std=c++0x
+        <toolset>gcc:<cxxflags>-std=c++11
         <toolset>gcc:<cxxflags>-Wall
 #        <toolset>gcc:<cxxflags>-Wconversion
 #        <toolset>gcc:<cxxflags>-Wshadow
         <toolset>gcc:<cxxflags>-Wvla
         <toolset>gcc:<cxxflags>-Wno-overloaded-virtual
-        <toolset>clang:<cxxflags>-std=c++0x
+        <toolset>clang:<cxxflags>-std=c++11
         <toolset>clang:<cxxflags>-stdlib=libc++
         <toolset>clang:<cxxflags>-Wall
         <toolset>clang:<cxxflags>-Wconversion
@@ -22,7 +23,7 @@ project yaml_parser_test
         <toolset>gcc:<cxxflags>-ftemplate-depth-300
         <variant>release:<location>"bin/release"
         <variant>debug:<location>"bin/debug"
-#        <variant>debug:<define>BOOST_SPIRIT_DEBUG
+#        <variant>debug:<define>BOOST_SPIRIT_DEBUG # Uncomment to see a verbose trace of the Spirit parse.
         <include>$(BOOST_ROOT)
     :
     ;
@@ -35,42 +36,6 @@ exe test :
 	block.cpp
 	yaml.cpp
 	parse_yaml_test.cpp
-        /vendor/boost//headers
 	:
 	<include>..
 	;
-
-
-exe test1 :
-	scalar1.cpp
-	flow1.cpp
-	block1.cpp
-	yaml1.cpp
-	test1.cpp
-        /vendor/boost//headers
-	:
-	<include>..
-	;
-
-
-exe test2 :
-	scalar1.cpp
-	flow1.cpp
-	block1.cpp
-	yaml1.cpp
-	test2.cpp
-	value.cpp
-	util.cpp
-        /vendor/boost//headers
-	:
-	<include>..
-	;
-
-
-exe include_test :
-	include_test.cpp
-        /vendor/boost//headers
-	;
-
-
-
