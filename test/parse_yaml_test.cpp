@@ -15,18 +15,13 @@
 
 namespace
 {
-    template <typename Char>
     bool parse(
-        std::basic_istream<Char>& is,
+        std::istream& is,
         omd::yaml::ast::value_t& result,
         std::string const& source_file = "")
     {
-        std::string file; // We will read the contents here.
-        is.unsetf(std::ios::skipws); // No white space skipping!
-        std::copy(
-            std::istream_iterator<char>(is),
-            std::istream_iterator<char>(),
-            std::back_inserter(file));
+        std::string file;
+        std::getline(is, file, '\0');
 
         typedef std::string::const_iterator base_iterator_type;
         base_iterator_type sfirst(file.begin());
@@ -40,8 +35,7 @@ namespace
 
         omd::yaml::parser::yaml<iterator_type> p(source_file);
 
-        using boost::spirit::qi::parse;
-        return parse(first, last, p, result);
+        return boost::spirit::qi::parse(first, last, p, result);
     }
 }
 
