@@ -1,6 +1,7 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
  *   consultomd.com
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,8 +17,14 @@
 #include <string>
 #include <boost/fusion/adapted/std_pair.hpp>
 
-namespace omd { namespace yaml { namespace parser
-{
+
+#ifndef YAML_HEADER_ONLY
+#define YAML_HEADER_ONLY 1
+#endif
+
+
+namespace omd { namespace yaml { namespace parser {
+
     template <typename Iterator>
     struct yaml : qi::grammar<Iterator, ast::value_t()>
     {
@@ -37,6 +44,14 @@ namespace omd { namespace yaml { namespace parser
         typedef omd::yaml::parser::error_handler<Iterator> error_handler_t;
         boost::phoenix::function<error_handler_t> const error_handler;
     };
-}}}
+
+#if YAML_HEADER_ONLY
+    inline
+#endif
+    bool parse_yaml(std::istream& is, ast::value_t& result, std::string const& source_file = "");
+
+} } }
+
+#include "../detail/parse_impl.hpp"
 
 #endif

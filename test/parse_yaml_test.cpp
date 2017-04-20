@@ -1,6 +1,7 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Object Modeling Designs
  *   consultomd.com
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,31 +14,6 @@
 
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
-namespace
-{
-    bool parse(
-        std::istream& is,
-        omd::yaml::ast::value_t& result,
-        std::string const& source_file = "")
-    {
-        std::string file;
-        std::getline(is, file, '\0');
-
-        typedef std::string::const_iterator base_iterator_type;
-        base_iterator_type sfirst(file.begin());
-        base_iterator_type slast(file.end());
-
-        typedef boost::spirit::classic::position_iterator<base_iterator_type>
-            iterator_type;
-        iterator_type first(sfirst, slast);
-        iterator_type last;
-        first.set_tabchars(1);
-
-        omd::yaml::parser::yaml<iterator_type> p(source_file);
-
-        return boost::spirit::qi::parse(first, last, p, result);
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 //  Main program
@@ -83,12 +59,9 @@ int main(int argc, char **argv)
     namespace qi = boost::spirit::qi;
 
     value_t result;
-    if (parse(in, result, filename))
+    if (omd::yaml::parser::parse_yaml(in, result, filename))
     {
         std::cout << "success: \n";
-
-        // link the aliases
-        omd::yaml::ast::link_yaml(result);
 
         // print the result (2-spaces indent with all aliases expanded)
         omd::yaml::ast::print_yaml<2, true>(std::cout, result);

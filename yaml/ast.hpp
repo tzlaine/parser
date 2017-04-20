@@ -1,6 +1,7 @@
 /**
  *   Copyright (C) 2010, 2011, 2012 Michael Caisse, Object Modeling Designs
  *   consultomd.com
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -79,8 +80,12 @@ namespace omd { namespace yaml { namespace ast
     template <int Spaces, bool ExpandAliases>
     std::ostream& print_yaml(std::ostream& out, value_t const& val);
 
+    inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
+    { return print_yaml<2, false>(out, val); }
+
     // ---------------------------------------------------
 }}}
 
 #include "detail/ast_impl.hpp"
+
 #endif
