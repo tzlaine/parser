@@ -25,7 +25,6 @@ set(test_files
     invoice.yaml
     relational.yaml
     scalar.yaml
-    test.yaml
     yaml_block_array1.yaml
     yaml_block_array2.yaml
     yaml_block_array3.yaml
