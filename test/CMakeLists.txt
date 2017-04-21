@@ -6,8 +6,9 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
 
-add_executable(parse_test scalar.cpp flow.cpp block.cpp yaml.cpp parse_yaml_test.cpp)
+add_executable(parse_test parser.cpp scalar.cpp flow.cpp block.cpp yaml.cpp parse_yaml_test.cpp)
 target_link_libraries(parse_test yaml)# gtest gtest_main)
+target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
