@@ -17,8 +17,8 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_copy.hpp>
 
-#include "../ast.hpp"         // our AST
-#include "error_handler.hpp"  // Our Error Handler
+#include <yaml/ast.hpp>                   // our AST
+#include <yaml/parser/error_handler.hpp>  // Our Error Handler
 
 namespace omd { namespace yaml { namespace parser
 {

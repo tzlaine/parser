@@ -9,7 +9,7 @@
 #if !defined(OMD_PARSER_BLOCK_DEF_HPP)
 #define OMD_PARSER_BLOCK_DEF_HPP
 
-#include "block.hpp"
+#include <yaml/parser/block.hpp>
 #include <algorithm>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>

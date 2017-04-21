@@ -140,6 +140,6 @@ namespace omd { namespace yaml { namespace ast
     // ---------------------------------------------------
 }}}
 
-#include "detail/ast_impl.hpp"
+#include <yaml/detail/ast_impl.hpp>
 
 #endif

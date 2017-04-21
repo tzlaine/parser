@@ -12,7 +12,7 @@
 #define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
 
 #include <string>
-#include "scalar.hpp"
+#include <yaml/parser/scalar.hpp>
 
 namespace omd { namespace yaml { namespace parser
 {

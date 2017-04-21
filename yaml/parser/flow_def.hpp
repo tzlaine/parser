@@ -9,7 +9,7 @@
 #if !defined(OMD_PARSER_FLOW_DEF_HPP)
 #define OMD_PARSER_FLOW_DEF_HPP
 
-#include "flow.hpp"
+#include <yaml/parser/flow.hpp>
 
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>

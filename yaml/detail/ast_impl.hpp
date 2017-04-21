@@ -9,7 +9,7 @@
 #ifndef OMD_AST_VALUE_IMPL_HPP
 #define OMD_AST_VALUE_IMPL_HPP
 
-#include "../ast.hpp"
+#include <yaml/ast.hpp>
 
 #include <boost/spirit/include/qi.hpp>  // boost::spirit::to_utf8
 #include <boost/functional/hash.hpp>

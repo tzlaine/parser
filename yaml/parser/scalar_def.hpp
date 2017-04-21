@@ -9,7 +9,7 @@
 #if !defined(OMD_COMMON_SCALAR_DEF_HPP)
 #define OMD_COMMON_SCALAR_DEF_HPP
 
-#include "scalar.hpp"
+#include <yaml/parser/scalar.hpp>
 
 #include <boost/cstdint.hpp>
 #include <boost/spirit/include/qi.hpp>

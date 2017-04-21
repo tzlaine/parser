@@ -12,8 +12,8 @@
 
 #define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
 
-#include "flow.hpp"
-#include "block.hpp"
+#include <yaml/parser/flow.hpp>
+#include <yaml/parser/block.hpp>
 #include <string>
 #include <boost/fusion/adapted/std_pair.hpp>
 
@@ -52,6 +52,6 @@ namespace omd { namespace yaml { namespace parser {
 
 } } }
 
-#include "../detail/parse_impl.hpp"
+#include <yaml/detail/parse_impl.hpp>
 
 #endif

@@ -9,7 +9,7 @@
 #if !defined(OMD_PARSER_YAML_DEF_HPP)
 #define OMD_PARSER_YAML_DEF_HPP
 
-#include "yaml.hpp"
+#include <yaml/parser/yaml.hpp>
 
 #include <algorithm>
 #include <boost/spirit/include/phoenix_core.hpp>
