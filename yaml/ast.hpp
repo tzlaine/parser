@@ -116,6 +116,10 @@ namespace omd { namespace yaml { namespace ast
         { return a.elements_ != b.elements_; }
         friend bool operator< (object_t const & a, object_t const & b)
         { return a.elements_ < b.elements_; }
+#ifdef BOOST_SPIRIT_DEBUG
+        friend std::ostream & operator<< (std::ostream & os, object_t const & o)
+        { return os << "{ " << o.elements_.size() << " elements }"; }
+#endif
 
     private:
         using element_iterator_t =

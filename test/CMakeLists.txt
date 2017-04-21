@@ -9,6 +9,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR
 add_executable(parse_test parser.cpp scalar.cpp flow.cpp block.cpp yaml.cpp parse_yaml_test.cpp)
 target_link_libraries(parse_test yaml)# gtest gtest_main)
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
+#target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -47,7 +48,6 @@ set(test_files
     yaml_block_map9.yaml
 )
 foreach (test_file ${test_files})
-    message(${test_file})
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
