@@ -1,6 +1,7 @@
 /**
  *   Copyright (C) 2011, 2012 Michael Caisse, Object Modeling Designs
  *   consultomd.com
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -9,10 +10,15 @@
 #define OMD_AST_VALUE_IMPL_HPP
 
 #include "../ast.hpp"
-#include <algorithm>
+
 #include <boost/spirit/include/qi.hpp>  // boost::spirit::to_utf8
+#include <boost/functional/hash.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
+
+#include <algorithm>
+#include <map>
+
 
 namespace omd { namespace yaml { namespace ast
 {
@@ -386,8 +392,8 @@ namespace omd { namespace yaml { namespace ast
 
             void operator()(object_t& obj)
             {
-                typedef std::pair<value_t const, value_t> pair;
-                for (pair& val : obj)
+                typedef std::pair<value_t, value_t> pair;
+                for (pair & val : obj)
                 {
                     boost::apply_visitor(*this, val.first.get());
                     boost::apply_visitor(*this, val.second.get());
@@ -396,7 +402,7 @@ namespace omd { namespace yaml { namespace ast
 
             void operator()(array_t& arr)
             {
-                for (value_t& val : arr)
+                for (value_t & val : arr)
                 {
                     boost::apply_visitor(*this, val.get());
                 }
@@ -570,6 +576,23 @@ namespace omd { namespace yaml { namespace ast
                 return true;
             }
         };
+
+        struct spirit_variant_hasher
+            : boost::static_visitor<std::size_t>
+        {
+            template <typename T>
+            std::size_t operator() (T const & val) const {
+                boost::hash<T> hasher;
+                return hasher(val);
+            }
+        };
+    }
+
+    inline std::size_t hash_value (value_t const & val)
+    {
+        std::size_t seed = boost::apply_visitor(detail::spirit_variant_hasher(), val);
+        boost::hash_combine(seed, val.get().which());
+        return seed;
     }
 
     inline bool operator==(value_t const& a, value_t const& b)
@@ -585,6 +608,47 @@ namespace omd { namespace yaml { namespace ast
     inline bool operator<(value_t const& a, value_t const& b)
     {
         return boost::apply_visitor(detail::value_compare(), a.get(), b.get());
+    }
+
+    struct object_t::index_t
+    {
+        std::unordered_map<value_t, element_iterator_t, boost::hash<value_t>> map_;
+    };
+
+    inline object_t::object_t ()
+        : index_ (new index_t)
+    {}
+
+    inline object_t::object_t (object_t const & o)
+        : elements_ (o.elements_)
+        , index_ (o.index_ ? new index_t(*o.index_.get()) : nullptr)
+    {}
+
+    inline object_t & object_t::operator= (object_t const & rhs)
+    {
+        object_t tmp(rhs);
+        *this = std::move(tmp);
+        return *this;
+    }
+
+    inline std::pair<object_t::iterator, bool> object_t::insert (object_element_t const & e)
+    {
+        auto const index_it = index_->map_.find(e.first);
+        if (index_it == index_->map_.end()) {
+            iterator const it = elements_.insert(elements_.end(), e);
+            index_->map_[e.first] = it;
+            return std::pair<object_t::iterator, bool>{it, true};
+        } else {
+            return std::pair<object_t::iterator, bool>{index_it->second, false};
+        }
+    }
+
+    inline object_t::iterator object_t::insert (const_iterator at, object_element_t const & e)
+    {
+        BOOST_ASSERT(index_->map_.find(e.first) == index_->map_.end());
+        iterator const it = elements_.insert(at, e);
+        index_->map_[e.first] = it;
+        return it;
     }
 
     inline void link_yaml(value_t& val)

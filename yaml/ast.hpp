@@ -9,11 +9,13 @@
 #ifndef OMD_YAML_AST_VALUE_HPP
 #define OMD_YAML_AST_VALUE_HPP
 
-#include <string>
-#include <map>
-#include <ostream>
 #include <boost/container/stable_vector.hpp>
 #include <boost/spirit/include/support_extended_variant.hpp>
+
+#include <ostream>
+#include <string>
+#include <unordered_map>
+
 
 namespace omd { namespace yaml { namespace ast
 {
@@ -29,15 +31,18 @@ namespace omd { namespace yaml { namespace ast
     // nulls always compare
     inline bool operator==(null_t a, null_t b) { return true;  }
     inline bool operator!=(null_t a, null_t b) { return false; }
+    inline bool operator<(null_t a, null_t b) { return false; }
 
     inline std::ostream& operator<<(std::ostream& out, null_t)
     { out << "<null>"; return out; }
 
     struct                                               value_t;
-    typedef std::map<value_t, value_t>                   object_t;
+    typedef std::pair<value_t, value_t>                  object_element_t;
     typedef boost::container::stable_vector<value_t>     array_t;
     typedef std::pair<string_t, value_t>                 anchored_object_t;
     typedef std::pair<string_t, value_t*>                alias_t;
+
+    struct object_t;
 
     struct value_t
         : boost::spirit::extended_variant<
@@ -46,7 +51,7 @@ namespace omd { namespace yaml { namespace ast
           string_t,
           double_t,
           int_t,
-          object_t,
+          boost::recursive_wrapper<object_t>,
           array_t,
           alias_t,
           boost::recursive_wrapper<anchored_object_t>
@@ -67,11 +72,60 @@ namespace omd { namespace yaml { namespace ast
             : base_type(rhs.get()) {}
     };
 
-    typedef std::pair<value_t, value_t> object_element_t;
-
     bool operator==(value_t const& a, value_t const& b);
     bool operator!=(value_t const& a, value_t const& b);
     bool operator<(value_t const& a, value_t const& b);
+
+    struct object_t
+    {
+        using vector_t = boost::container::stable_vector<object_element_t>;
+        using value_type = vector_t::value_type;
+        using size_type = vector_t::size_type;
+        using iterator = vector_t::iterator;
+        using const_iterator = vector_t::const_iterator;
+
+        inline object_t ();
+        inline object_t (object_t const & o);
+        inline object_t & operator= (object_t const & rhs);
+        object_t (object_t && o) = default;
+        object_t & operator= (object_t && rhs) = default;
+
+        const_iterator begin () const
+        { return elements_.begin(); }
+        const_iterator end () const
+        { return elements_.end(); }
+        const_iterator cbegin () const
+        { return elements_.begin(); }
+        const_iterator cend () const
+        { return elements_.end(); }
+
+        size_type size () const
+        { return elements_.size(); }
+
+        iterator begin ()
+        { return elements_.begin(); }
+        iterator end ()
+        { return elements_.end(); }
+
+        inline std::pair<iterator, bool> insert (object_element_t const & e);
+        inline iterator insert (const_iterator at, object_element_t const & e);
+
+        friend bool operator== (object_t const & a, object_t const & b)
+        { return a.elements_ == b.elements_; }
+        friend bool operator!= (object_t const & a, object_t const & b)
+        { return a.elements_ != b.elements_; }
+        friend bool operator< (object_t const & a, object_t const & b)
+        { return a.elements_ < b.elements_; }
+
+    private:
+        using element_iterator_t =
+            boost::container::stable_vector<object_element_t>::iterator;
+
+        boost::container::stable_vector<object_element_t> elements_;
+
+        struct index_t;
+        std::unique_ptr<index_t> index_;
+    };
 
     // Link all aliases in a YAML value
     void link_yaml(value_t& val);

@@ -64,13 +64,20 @@ int main(int argc, char **argv)
         std::cout << std::endl;
 
         {
-            std::stringstream expanded;
-            omd::yaml::ast::print_yaml<3, true>(expanded, result);
-            value_t reparsed_result;
-            if (!parse_yaml(expanded, reparsed_result, filename + std::string("_expanded_string"))) {
-                std::cout << "error: reparse of expanded string failed!" << std::endl;
-            } else if (reparsed_result != result) {
-                std::cout << "error: result of parse -> print and expand -> parse differs from initial parse!" << std::endl;
+            std::stringstream expanded_once;
+            omd::yaml::ast::print_yaml<3, true>(expanded_once, result);
+            value_t reparsed_once_result;
+            if (!parse_yaml(expanded_once, reparsed_once_result, filename + std::string("_expanded_once_string"))) {
+                std::cout << "error: reparse of expanded_once string failed!" << std::endl;
+            } else {
+                std::stringstream expanded_twice;
+                omd::yaml::ast::print_yaml<3, true>(expanded_twice, result);
+                value_t reparsed_twice_result;
+                if (!parse_yaml(expanded_twice, reparsed_twice_result, filename + std::string("_expanded_twice_string"))) {
+                    std::cout << "error: reparse of expanded_twice string failed!" << std::endl;
+                } else if (reparsed_twice_result != reparsed_once_result) {
+                    std::cout << "error: in parse -> print and expand -> parse -> print and expand -> parse, the final parse differs from middle parse!" << std::endl;
+                }
             }
         }
 
