@@ -50,6 +50,7 @@ namespace omd { namespace yaml { namespace parser
         qi::_val_type _val;
         qi::lit_type lit;
         qi::char_type char_;
+        qi::omit_type omit;
 
         namespace phx = boost::phoenix;
         auto pb = phx::push_back(_val, _1);
@@ -85,7 +86,7 @@ namespace omd { namespace yaml { namespace parser
 
         object =
                 '{'
-            >   -(member_pair[ins] >> *(',' > member_pair[ins]))
+            >>  -(member_pair[ins] >> *(',' >> member_pair[ins]) >> -omit[char_(",")])
             >   '}'
             ;
 
@@ -97,7 +98,7 @@ namespace omd { namespace yaml { namespace parser
 
         array =
                 '['
-            >   -(flow_value[pb] >> *(',' > flow_value[pb]))
+            >   -(flow_value[pb] >> *(',' >> flow_value[pb]) >> -omit[char_(",")])
             >   ']'
             ;
 
