@@ -38,6 +38,7 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, std::string()> char_lit;
         qi::rule<Iterator, std::string()> double_quoted;
         qi::rule<Iterator, std::string()> single_quoted;
+        qi::rule<Iterator, std::string()> unquoted_char;
         qi::rule<Iterator, std::string()> unquoted;
         qi::rule<Iterator, std::string()> explicit_;
         qi::rule<Iterator, std::string()> unicode_start;
