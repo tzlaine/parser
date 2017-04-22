@@ -33,8 +33,10 @@ namespace omd { namespace yaml { namespace ast
     inline bool operator!=(null_t a, null_t b) { return false; }
     inline bool operator<(null_t a, null_t b) { return false; }
 
+#ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream& operator<<(std::ostream& out, null_t)
-    { out << "<null>"; return out; }
+    { return out << "<null>"; }
+#endif
 
     struct                                               value_t;
     typedef std::pair<value_t, value_t>                  object_element_t;
@@ -71,6 +73,10 @@ namespace omd { namespace yaml { namespace ast
         value_t(value_t const& rhs)
             : base_type(rhs.get()) {}
     };
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream & operator<< (std::ostream & os, value_t const & v)
+    { return os << "<value>"; }
+#endif
 
     bool operator==(value_t const& a, value_t const& b);
     bool operator!=(value_t const& a, value_t const& b);
