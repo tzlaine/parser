@@ -14,6 +14,36 @@ if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
 
+find_package(PythonInterp)
+if (PYTHONINTERP_FOUND)
+    message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
+    message("-- Running make_test_suite_yaml.py -y ${CMAKE_HOME_DIRECTORY}/yaml-test-suite -o ${CMAKE_CURRENT_SOURCE_DIR}/test_files ...")
+    execute_process(
+        COMMAND
+            ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/make_test_suite_yaml.py
+            -y ${CMAKE_HOME_DIRECTORY}/yaml-test-suite
+            -o ${CMAKE_CURRENT_SOURCE_DIR}/test_files
+        RESULT_VARIABLE
+            result
+    )
+    if (result STREQUAL "" OR result EQUAL 0)
+         message("     ... Success!")
+    else ()
+         message("     *** Failed with result=\"${result}\" ***!")
+    endif()
+else ()
+    message("-- Python not found.  Yaml test inputs will not be rebuilt.")
+endif()
+
+include(test_files/index.cmake)
+foreach (yml_file_root ${yml_file_index})
+    add_test(
+        parse_test_${yml_file_root}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml --gtest_catch_exceptions=1
+    )
+endforeach()
+
 set(test_files
     anchors.yaml
     basic_yaml_block.yaml
@@ -22,10 +52,10 @@ set(test_files
     basic_yaml_flow.yaml
     block_literals.yaml
     block_literals2.yaml
-#TODO    data-types.yaml
-#TODO    invoice.yaml
+    data-types.yaml
+    invoice.yaml
     relational.yaml
-#TODO    scalar.yaml
+#TODO    scalar.yaml # Appears to infinitely loop or recurse, depending on compiler.
     yaml_block_array1.yaml
     yaml_block_array2.yaml
     yaml_block_array3.yaml

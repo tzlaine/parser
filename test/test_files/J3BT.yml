@@ -1,0 +1,7 @@
+\# Tabs and spaces
+quoted: "Quoted <TAB>"
+block:<TAB>|
+  void main() {
+  <TAB>printf("Hello, world!\n");
+  }
+

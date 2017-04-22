@@ -1,0 +1,9 @@
+Folding:
+  "Empty line
+   <TAB>
+  as a line feed"
+Chomping: |
+  Clipped empty lines
+<SPC>
+\
+
