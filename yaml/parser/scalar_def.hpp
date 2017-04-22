@@ -180,27 +180,26 @@ namespace omd { namespace yaml { namespace parser
             > '\''
             ;
 
-        auto space = copy(
+        separate = copy(
                 blank | (eol >> repeat(ref(indent), inf)[blank])
             );
+
+        plain_safe = ~char_(" \n\r\t,[]{}#");
 
         // These are not allowed as first plain-style character
         auto unsafe_first = char_(" \n\r\t?:-,[]{}#&*!|>\\\"%@`");
 
-        // These are not allowed as non-first plain-style character
-        auto unsafe_plain = char_(" \n\r\t,[]{}#");
-
         unquoted_char =
-                ~unsafe_plain - char_(":#")
+                plain_safe - char_(":#")
             |   ~char_(" \n\r\t") >> &char_("#")
-            |   ':' >> ~unsafe_plain
+            |   ':' >> plain_safe
             ;
 
         unquoted =
-                (~unsafe_first | char_("?:-") >> &~unsafe_plain) [_val = _1]
+                (~unsafe_first | char_("?:-") >> &plain_safe) [_val = _1]
             >>  *(
-                        (+space >> unquoted_char)                [_val += ' ', _val += _2]
-                    |   unquoted_char                            [_val += _1]
+                        (+separate >> unquoted_char)          [_val += ' ', _val += _2]
+                    |   unquoted_char                         [_val += _1]
                 )
             ;
 

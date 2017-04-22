@@ -31,13 +31,40 @@ namespace omd { namespace yaml { namespace parser
             qi::symbols<char>& anchors,
             std::string const& source_file = "");
 
-        typedef white_space<Iterator> white_space_t;
+        using white_space_t = white_space<Iterator>;
+
+        using object_element_rule_locals_t = qi::rule<
+            Iterator,
+            ast::object_element_t(),
+            qi::locals<ast::value_t, ast::value_t>,
+            white_space_t
+        >;
+
+        qi::rule<Iterator, ast::array_t(), white_space_t> flow_sequence;
+        qi::rule<Iterator, ast::array_t(), white_space_t> flow_seq_entries;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_seq_entry;
+        qi::rule<Iterator, ast::object_t(), white_space_t> flow_mapping;
+        qi::rule<Iterator, ast::object_t(), white_space_t> flow_map_entries;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_map_entry;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_map_explicit_entry;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_map_implicit_entry;
+        object_element_rule_locals_t flow_map_yaml_key_entry;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_map_empty_key_entry;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_map_separate_value;
+        object_element_rule_locals_t flow_map_json_key_entry;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_map_adjacent_value;
+        qi::rule<Iterator, ast::object_t(), white_space_t> flow_pair;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_pair_entry;
+        object_element_rule_locals_t flow_pair_yaml_key_entry;
+        qi::rule<Iterator, ast::object_element_t(), white_space_t> flow_pair_json_key_entry;
+        qi::rule<Iterator, ast::value_t(), white_space_t> implicit_yaml_key;
+        qi::rule<Iterator, ast::value_t(), white_space_t> implicit_json_key;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_yaml_content;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_json_content;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_content;
 
         qi::rule<Iterator, ast::value_t(), white_space_t> flow_start;
         qi::rule<Iterator, ast::value_t(), white_space_t> flow_value;
-        qi::rule<Iterator, ast::object_t(), white_space_t> object; // 7.4.1 Flow Mappings
-        qi::rule<Iterator, ast::object_element_t(), white_space_t> member_pair; // flow map entry
-        qi::rule<Iterator, ast::array_t(), white_space_t> array; // 7.4.1 Flow Sequences
         qi::rule<Iterator, ast::anchored_object_t(), white_space_t> anchored_value;
         qi::rule<Iterator, ast::anchored_object_t(), white_space_t> top_anchored_value;
         scalar<Iterator> scalar_value;

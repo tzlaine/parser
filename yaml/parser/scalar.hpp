@@ -42,6 +42,8 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, std::string()> unquoted;
         qi::rule<Iterator, std::string()> explicit_;
         qi::rule<Iterator, std::string()> unicode_start;
+        qi::rule<Iterator, std::string()> separate;
+        qi::rule<Iterator, std::string()> plain_safe;
     };
 
     template <typename Iterator>
