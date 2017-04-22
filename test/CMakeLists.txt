@@ -6,7 +6,7 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
 
-add_executable(parse_test parser.cpp scalar.cpp flow.cpp block.cpp yaml.cpp parse_yaml_test.cpp)
+add_executable(parse_test block.cpp flow.cpp parser.cpp scalar.cpp yaml.cpp parse_yaml_test.cpp)
 target_link_libraries(parse_test yaml)# gtest gtest_main)
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
 #target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
@@ -22,10 +22,10 @@ set(test_files
     basic_yaml_flow.yaml
     block_literals.yaml
     block_literals2.yaml
-    data-types.yaml
-    invoice.yaml
+#TODO    data-types.yaml
+#TODO    invoice.yaml
     relational.yaml
-    scalar.yaml
+#TODO    scalar.yaml
     yaml_block_array1.yaml
     yaml_block_array2.yaml
     yaml_block_array3.yaml
