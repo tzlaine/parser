@@ -44,6 +44,9 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, std::string()> unicode_start;
         qi::rule<Iterator, std::string()> separate;
         qi::rule<Iterator, std::string()> plain_safe;
+        qi::rule<Iterator, std::string()> uri_char;
+        qi::rule<Iterator, std::string()> tag_char;
+        qi::rule<Iterator, std::string()> anchor_char;
     };
 
     template <typename Iterator>
@@ -65,6 +68,16 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, std::string() > alias_name;
         qi::rule<Iterator, ast::anchored_object_t() > anchored_value;
         qi::rule<Iterator, ast::anchored_object_t() > anchored_string;
+        qi::rule<Iterator, std::string()> tag_handle;
+
+        qi::rule<
+            Iterator,
+            ast::properties_t(),
+            qi::locals<ast::string_t, ast::string_t>
+        > properties;
+
+        qi::rule<Iterator, std::string()> tag_property;
+        qi::rule<Iterator, std::string()> anchor_property;
     };
 }}}
 

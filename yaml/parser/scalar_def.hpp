@@ -19,6 +19,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
+#include <boost/phoenix/object/construct.hpp>
 
 namespace omd { namespace yaml { namespace parser
 {
@@ -137,9 +138,11 @@ namespace omd { namespace yaml { namespace parser
         qi::_2_type _2;
         qi::lit_type lit;
         qi::blank_type blank;
+        qi::print_type print;
         qi::eol_type eol;
         qi::repeat_type repeat;
         qi::inf_type inf;
+        qi::alnum_type alnum;
         qi::hex_type hex;
         qi::omit_type omit;
 
@@ -219,6 +222,23 @@ namespace omd { namespace yaml { namespace parser
             |   unquoted
             ;
 
+        // [39]
+        uri_char =
+                char_("%") > hex > hex
+            |   alnum | char_("-")               // word_char [38]
+            |   char_("#;/?:@&=+$,_.!~*'()[]")
+            ;
+
+        // [40]
+        tag_char =
+            uri_char - char_("!,[]{}") // '!' | flow_indicator [23]
+            ;
+
+        // [102]
+        anchor_char =
+            print - eol /* - bom */ - blank - char_(",[]{}")
+            ;
+
         BOOST_SPIRIT_DEBUG_NODES(
             (escape)
             (char_esc)
@@ -237,6 +257,7 @@ namespace omd { namespace yaml { namespace parser
     {
         qi::lit_type lit;
         qi::char_type char_;
+        qi::alnum_type alnum;
         qi::hex_type hex;
         qi::oct_type oct;
         qi::no_case_type no_case;
@@ -244,12 +265,16 @@ namespace omd { namespace yaml { namespace parser
         qi::attr_type attr;
         qi::blank_type blank;
         qi::omit_type omit;
+        qi::_a_type _a;
+        qi::_b_type _b;
         qi::_1_type _1;
+        qi::_val_type _val;
         qi::raw_type raw;
         qi::eoi_type eoi;
 
         namespace phx = boost::phoenix;
         using boost::spirit::qi::copy;
+        using phx::construct;
 
         phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
         qi::real_parser<
@@ -258,6 +283,11 @@ namespace omd { namespace yaml { namespace parser
         qi::real_parser<
             double, detail::yaml_real_policies<double> >
         double_value;
+
+        auto & uri_char = string_value.uri_char;
+        auto & tag_char = string_value.tag_char;
+        auto & anchor_char = string_value.anchor_char;
+        auto & separate = string_value.separate;
 
         scalar_value =
                 scalar_value_no_strings
@@ -348,6 +378,34 @@ namespace omd { namespace yaml { namespace parser
             >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
             >>  omit[+blank]
             >>  string_value
+            ;
+
+        // [89]
+        tag_handle %=
+                // "alnum..." below is  word_char [38]
+                '!' >> +(alnum | char_("-")) >> '!' // named_tag_handle [92] (must match existing TAG-defined prefix)
+            |   "!!"                                // secondary_tag_handle [91]
+            |   '!'                                 // primary_tag_handle [90]
+            ; // TODO: Check that nonempty handle matches existing TAG prefix
+
+        // [96]
+        properties = (
+                tag_property[_a = _1] >> -(separate >> anchor_property[_b = _1])
+            |   anchor_property[_b = _1] >> -(separate >> tag_property[_a = _1])
+            )
+            [_val = construct<ast::properties_t>(_a, _b)]
+            ;
+
+        // [97]
+        tag_property %=
+                lit('!') >> "<" > +uri_char > ">"   // verbatim_tag [98]
+            |   tag_handle >> +tag_char             // shorthand_tag [99]
+            |   '!'                                 // non_specific_tag [100]
+            ;
+
+        // [101]
+        anchor_property %=
+            '&' >> +anchor_char
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

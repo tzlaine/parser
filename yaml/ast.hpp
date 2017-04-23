@@ -44,6 +44,17 @@ namespace omd { namespace yaml { namespace ast
     typedef std::pair<string_t, value_t>                 anchored_object_t;
     typedef std::pair<string_t, value_t*>                alias_t;
 
+    struct properties_t
+    {
+        properties_t () {}
+        properties_t (string_t tag, string_t anchor)
+            : tag_ (std::move(tag)), anchor_ (std::move(anchor))
+        {}
+
+        string_t tag_;
+        string_t anchor_;
+    };
+
     struct object_t;
 
     struct value_t
