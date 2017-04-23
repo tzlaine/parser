@@ -62,11 +62,10 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, ast::value_t(), white_space_t> flow_yaml_content;
         qi::rule<Iterator, ast::value_t(), white_space_t> flow_json_content;
         qi::rule<Iterator, ast::value_t(), white_space_t> flow_content;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_yaml_node;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_json_node;
+        qi::rule<Iterator, ast::value_t(), white_space_t> flow_node;
 
-        qi::rule<Iterator, ast::value_t(), white_space_t> flow_start;
-        qi::rule<Iterator, ast::value_t(), white_space_t> flow_value;
-        qi::rule<Iterator, ast::anchored_object_t(), white_space_t> anchored_value;
-        qi::rule<Iterator, ast::anchored_object_t(), white_space_t> top_anchored_value;
         scalar<Iterator> scalar_value;
 
         typedef omd::yaml::parser::error_handler<Iterator> error_handler_t;

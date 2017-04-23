@@ -297,7 +297,7 @@ namespace omd { namespace yaml { namespace parser
         auto delimeter = copy(char_(" \n\r\t,[]{}:#") | eoi);
 
         scalar_value_no_strings =
-                alias
+                alias_node
             |   anchored_value
             |   ("!!float" > omit[+blank] > float_value)
             |   ("!!bool" > omit[+blank] > bool_value)
@@ -311,7 +311,7 @@ namespace omd { namespace yaml { namespace parser
 
         // this is a special form of scalar for use as map keys
         map_key =
-                alias
+                alias_node
             |   anchored_string
             |   string_value
             |   ("!!float" > omit[+blank] > float_value)
@@ -355,14 +355,10 @@ namespace omd { namespace yaml { namespace parser
             >>  attr(ast::null_t())
             ;
 
-        alias_name =
-                raw[anchors]
-            >>  &delimeter
-            ;
-
-        alias =
+        // [104]
+        alias_node =
                 '*'
-            >   alias_name
+            >   anchor_name
             >   attr((ast::value_t*)0)
             ;
 
@@ -386,7 +382,7 @@ namespace omd { namespace yaml { namespace parser
                 '!' >> +(alnum | char_("-")) >> '!' // named_tag_handle [92] (must match existing TAG-defined prefix)
             |   "!!"                                // secondary_tag_handle [91]
             |   '!'                                 // primary_tag_handle [90]
-            ; // TODO: Check that nonempty handle matches existing TAG prefix
+            ; // TODO: Check that nonempty handle matches existing TAG prefix (or better yet, use a symbol table)
 
         // [96]
         properties = (
@@ -408,14 +404,19 @@ namespace omd { namespace yaml { namespace parser
             '&' >> +anchor_char
             ;
 
+        // [103]
+        anchor_name %=
+            +anchor_char
+            ;
+
         BOOST_SPIRIT_DEBUG_NODES(
             (scalar_value)
             (int_value)
             (float_value)
             (strict_float_value)
             (null_value)
-            (alias)
-            (alias_name)
+            (alias_node)
+            (anchor_name)
             (anchored_value)
         );
     }

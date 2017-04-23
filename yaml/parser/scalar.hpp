@@ -64,8 +64,8 @@ namespace omd { namespace yaml { namespace parser
         qi::symbols<char, bool> bool_value_;
         qi::rule<Iterator, bool()> bool_value;
         qi::rule<Iterator, ast::null_t() > null_value;
-        qi::rule<Iterator, ast::alias_t() > alias;
-        qi::rule<Iterator, std::string() > alias_name;
+        qi::rule<Iterator, ast::alias_t() > alias_node;
+        qi::rule<Iterator, std::string() > anchor_name;
         qi::rule<Iterator, ast::anchored_object_t() > anchored_value;
         qi::rule<Iterator, ast::anchored_object_t() > anchored_string;
         qi::rule<Iterator, std::string()> tag_handle;

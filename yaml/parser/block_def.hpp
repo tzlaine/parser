@@ -252,7 +252,7 @@ namespace omd { namespace yaml { namespace parser
         // zero while parsing.
         flow_compound %=
                 zero_indent
-            >>  (skip(space)[flow_g.flow_start] | !restore_indent)
+            >>  (skip(space)[flow_g.flow_node] | !restore_indent)
             >>  restore_indent
             ;
 

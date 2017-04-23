@@ -19,8 +19,8 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/spirit/include/phoenix_stl.hpp>
 
-namespace omd { namespace yaml { namespace parser
-{
+namespace omd { namespace yaml { namespace parser {
+
     template <typename Iterator>
     white_space<Iterator>::white_space()
       : white_space::base_type(start)
@@ -40,7 +40,7 @@ namespace omd { namespace yaml { namespace parser
         int& indent,
         qi::symbols<char>& anchors,
         std::string const& source_file)
-      : flow::base_type(flow_start),
+      : flow::base_type(flow_node),
         scalar_value(indent, anchors),
         error_handler(error_handler_t(source_file))
     {
@@ -69,32 +69,8 @@ namespace omd { namespace yaml { namespace parser
         auto & single_quoted = scalar_value.string_value.single_quoted;
         auto & double_quoted = scalar_value.string_value.double_quoted;
 
-        flow_start =
-                top_anchored_value
-            |   ("!!map" > flow_mapping)
-            |   ("!!seq" > flow_sequence)
-            |   flow_mapping
-            |   flow_sequence
-            ;
-
-        top_anchored_value %=
-                '&'
-            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
-            >>  flow_start
-            ;
-
-        flow_value =
-                anchored_value
-            |   scalar_value
-            |   flow_mapping
-            |   flow_sequence
-            ;
-
-        anchored_value %=
-                '&'
-            >>  (+~char_(" \n\r\t,{}[]")) [ add_anchor(_1) ]
-            >>  flow_value
-            ;
+        auto & alias_node = scalar_value.alias_node;
+        auto & properties = scalar_value.properties;
 
         // 7.4.1 Flow Sequences
 
@@ -111,7 +87,7 @@ namespace omd { namespace yaml { namespace parser
         // [139]
         flow_seq_entry =
                 as<ast::value_t>()[flow_pair]
-            |   flow_value//TODO flow_node
+            |   flow_node
             ;
 
         // 7.4.2 Flow Mappings
@@ -147,7 +123,7 @@ namespace omd { namespace yaml { namespace parser
 
         // [145]
         flow_map_yaml_key_entry = (
-                flow_value/*TODO flow_yaml_node*/[_a = _1]
+                flow_yaml_node[_a = _1]
             >>  -flow_map_separate_value[_b = _1]
             )
             [_val = construct<ast::object_element_t>(_a, _b)]
@@ -162,12 +138,12 @@ namespace omd { namespace yaml { namespace parser
         // [147]
         flow_map_separate_value =
                 ':' >> !no_skip[plain_safe]
-            >>  -flow_value/*TODO flow_node*/[_val = _1]
+            >>  -flow_node[_val = _1]
             ;
 
         // [148]
         flow_map_json_key_entry = (
-                flow_value/*TODO flow_json_node*/[_a = _1]
+                flow_json_node[_a = _1]
             >>  -flow_map_adjacent_value[_b = _1]
             )
             [_val = construct<ast::object_element_t>(_a, _b)]
@@ -175,7 +151,7 @@ namespace omd { namespace yaml { namespace parser
 
         // [149]
         flow_map_adjacent_value =
-            ':' >> -flow_value/*TODO flow_node*/[_val = _1]
+            ':' >> -flow_node[_val = _1]
             ;
 
         // [150]
@@ -204,12 +180,12 @@ namespace omd { namespace yaml { namespace parser
 
         // [154]
         implicit_yaml_key =
-            flow_value//TODO flow_yaml_node
+            flow_yaml_node.alias()
             ;
 
         // [155]
         implicit_json_key =
-            flow_value//TODO flow_json_node
+            flow_json_node.alias()
             ;
 
         // 7.5 Flow Nodes
@@ -233,26 +209,26 @@ namespace omd { namespace yaml { namespace parser
             |   flow_json_content
             ;
 
-#if 0 // TODO
+        // TODO: Use Niabelek trick to handle parse after properties.
+
         // [159]
         flow_yaml_node =
-                alias_node
-            |   flow_yaml_content
-            |   omit[properties] >> (omit[separate] >> flow_yaml_content | eps)
+                alias_node[_val = _1]
+            |   flow_yaml_content[_val = _1]
+            |   properties >> (no_skip[separate] >> flow_yaml_content[_val = _1] | eps)
             ;
 
         // [160]
         flow_json_node =
-            -properties >> flow_json_content
+            -(properties > no_skip[separate]) >> flow_json_content[_val = _1]
             ;
 
         // [161]
         flow_node =
-                alias_node
-            |   flow_content
-            |   omit[properties] >> (omit[separate] >> flow_content | eps)
+                alias_node[_val = _1]
+            |   flow_content[_val = _1]
+            |   properties >> (no_skip[separate] >> flow_content[_val = _1] | eps)
             ;            
-#endif
 
         BOOST_SPIRIT_DEBUG_NODES(
             (flow_sequence)
@@ -277,17 +253,14 @@ namespace omd { namespace yaml { namespace parser
             (flow_yaml_content)
             (flow_json_content)
             (flow_content)
+            (flow_yaml_node)
+            (flow_json_node)
+            (flow_node)
         );
 
-        BOOST_SPIRIT_DEBUG_NODES(
-            (flow_start)
-            (flow_value)
-            (anchored_value)
-            (top_anchored_value)
-        );
-
-        qi::on_error<qi::fail>(flow_start, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(flow_node, error_handler(_1, _2, _3, _4));
     }
-}}}
+
+} } }
 
 #endif
