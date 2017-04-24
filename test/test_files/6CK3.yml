@@ -1,4 +1,4 @@
-\%TAG !e! tag:example.com,2000:app/
+%TAG !e! tag:example.com,2000:app/
 ---
 - !local foo
 - !!str bar

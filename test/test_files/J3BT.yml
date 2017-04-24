@@ -1,4 +1,4 @@
-\# Tabs and spaces
+# Tabs and spaces
 quoted: "Quoted <TAB>"
 block:<TAB>|
   void main() {

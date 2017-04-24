@@ -1,11 +1,11 @@
 Bare
 document
 ...
-\# No document
+# No document
 # XXX libyaml wants a --- here
 ...
 # XXX libyaml wants a --- here
 |
 # XXX literal needs indentation? libyaml sees a directive.
-\%!PS-Adobe-2.0 # Not the first line
+%!PS-Adobe-2.0 # Not the first line
 

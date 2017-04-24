@@ -77,6 +77,7 @@ set(test_files
     yaml_block_map7.yaml
     yaml_block_map8.yaml
     yaml_block_map9.yaml
+    escaped_percent_27NA.yml
 )
 foreach (test_file ${test_files})
     add_test(
