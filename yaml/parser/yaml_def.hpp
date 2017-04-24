@@ -17,8 +17,8 @@
 #include <boost/spirit/include/phoenix_statement.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 
-namespace omd { namespace yaml { namespace parser
-{
+namespace omd { namespace yaml { namespace parser {
+
     template <typename Iterator>
     yaml<Iterator>::yaml(std::string const& source_file)
       : yaml::base_type(stream),
@@ -166,6 +166,7 @@ namespace omd { namespace yaml { namespace parser
 
         qi::on_error<qi::fail>(stream, error_handler(_1, _2, _3, _4));
     }
-}}}
+
+} } }
 
 #endif

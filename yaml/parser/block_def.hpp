@@ -24,10 +24,10 @@
 #define PRINT_INDENT
 #endif
 
-namespace omd { namespace yaml { namespace parser
-{
-    namespace detail
-    {
+namespace omd { namespace yaml { namespace parser {
+
+    namespace detail {
+
         struct update_indent
         {
             template <typename, typename, typename>
@@ -437,6 +437,7 @@ namespace omd { namespace yaml { namespace parser
 
         qi::on_error<qi::fail>(blocks, error_handler(_1, _2, _3, _4));
     }
-}}}
+
+} } }
 
 #endif

@@ -21,10 +21,10 @@
 #include <boost/regex/pending/unicode_iterator.hpp>
 #include <boost/phoenix/object/construct.hpp>
 
-namespace omd { namespace yaml { namespace parser
-{
-    namespace detail
-    {
+namespace omd { namespace yaml { namespace parser {
+
+    namespace detail {
+
         struct push_utf8
         {
             template <typename S, typename C>
@@ -425,6 +425,7 @@ namespace omd { namespace yaml { namespace parser
             (anchored_value)
         );
     }
-}}}
+
+} } }
 
 #endif
