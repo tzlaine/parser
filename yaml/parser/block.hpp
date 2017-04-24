@@ -22,9 +22,25 @@ namespace omd { namespace yaml { namespace parser {
         strip, clip, keep
     };
 
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream & operator<< (std::ostream & os, chomping_t c)
+    {
+        return os << (
+            c == chomping_t::strip ?
+            "strip" :
+            (c == chomping_t::clip ? "clip" : "keep")
+        );
+    }
+#endif
+
     enum class context_t {
         block, flow
     };
+
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream & operator<< (std::ostream & os, context_t c)
+    { return os << (c == context_t::block ? "block" : "flow"); }
+#endif
 
     struct block_header_t
     {
@@ -37,6 +53,11 @@ namespace omd { namespace yaml { namespace parser {
 
         int indentation_;
         chomping_t chomping_;
+
+#ifdef BOOST_SPIRIT_DEBUG
+        inline friend std::ostream & operator<< (std::ostream & os, block_header_t b)
+        { return os << b.indentation_ << ',' << b.chomping_; }
+#endif
     };
 
     template <typename Iterator>

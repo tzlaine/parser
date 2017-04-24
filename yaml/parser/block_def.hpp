@@ -615,6 +615,35 @@ namespace omd { namespace yaml { namespace parser {
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (indent)
+            (indent_lt)
+            (indent_le)
+            (line_prefix)
+            (l_empty)
+            (b_l_folded)
+            (block_header)
+            (indentation_indicator)
+            (chomping_indicator)
+            (chomped_empty)
+            (strip_empty)
+            (keep_empty)
+            (trail_comments)
+            (literal)
+            (l_nb_literal_text)
+            (b_nb_literal_text)
+            (literal_content)
+            (folded)
+            (folded_text)
+            (folded_lines)
+            (spaced_text)
+            (spaced)
+            (spaced_lines)
+            (same_lines)
+            (diff_lines)
+            (folded_content)
+        );
+
+        BOOST_SPIRIT_DEBUG_NODES(
             (end_of_input)
             (block_node)
             (anchored_block_node)
