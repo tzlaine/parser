@@ -186,6 +186,7 @@ namespace omd { namespace yaml { namespace parser {
         qi::_b_type _b;
         qi::_c_type _c;
         qi::_r1_type _r1;
+        qi::_r2_type _r2;
         qi::char_type char_;
         qi::lit_type lit;
 
@@ -205,6 +206,7 @@ namespace omd { namespace yaml { namespace parser {
         auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
 
         auto & nb_char = flow_g.scalar_value.string_value.nb_char;
+        auto & separate = flow_g.scalar_value.string_value.separate;
 
         auto map_key = copy(
             skip(space)[flow_g.scalar_value.map_key]
@@ -244,7 +246,7 @@ namespace omd { namespace yaml { namespace parser {
             eps[get_indent = _a] PRINT_INDENT
             );
 
-        indent =
+        indent_ =
             *blank >> raw[eps] [update_indent(_1, get_indent, _pass)]
             ;
 
@@ -349,7 +351,7 @@ namespace omd { namespace yaml { namespace parser {
             ;
 
         auto start_indent = copy(
-            omit[indent] PRINT_INDENT
+            omit[indent_] PRINT_INDENT
             );
 
         auto block_literal_first_line = copy(
@@ -452,14 +454,29 @@ namespace omd { namespace yaml { namespace parser {
             >>  block_node_main                             //  Get the value
             ;
 
+        // [63]
+        indent =
+            repeat(_r1)[lit(' ')]
+            ;
+
+        // [64]
+        indent_lt =
+            repeat(0, _r1 - 1)[lit(' ')]
+            ;
+
+        // [65]
+        indent_le =
+            repeat(0, _r1)[lit(' ')]
+            ;
+
+        // [67]
+        line_prefix =
+            indent(_r1) >> eps(_r2 == context_t::flow) >> -separate
+            ;
+
         // [70]
         l_empty =
-                // First part of the alternative is line_prefix [67], which
-                // may be wrong for the flow case.
-                (
-                    repeat(0, ref(n_))[lit(' ')]
-                |   repeat(0, ref(n_) - 1)[lit(' ')]
-                )
+                (line_prefix(_r1, _r2) | indent_lt(_r1))
             >>  eol
             ;
 
@@ -467,8 +484,8 @@ namespace omd { namespace yaml { namespace parser {
 
         // [162]
         block_header = (
-                indentation_indicator[_b = _1] >> +blank >> chomping_indicator[_a = _1]
-            |   chomping_indicator[_a = _1] >> +blank >> indentation_indicator[_b = _1]
+                indentation_indicator[_a = _1] >> +blank >> chomping_indicator[_b = _1]
+            |   chomping_indicator[_b = _1] >> +blank >> indentation_indicator[_a = _1]
             )
             >>  blank_eol
             [_val = construct<block_header_t>(_a, _b)]
@@ -491,55 +508,53 @@ namespace omd { namespace yaml { namespace parser {
 
         // [166]
         chomped_empty =
-                eps(_r1 == chomping_t::keep) >> keep_empty
-            |   strip_empty
+                eps(_r2 == chomping_t::keep) >> keep_empty(_r1)
+            |   strip_empty(_r1)
             ;
 
         // [167]
         strip_empty =
-                *(repeat(0, ref(n_))[lit(' ')] >> eol)
-            >>  -trail_comments
+                *(indent_le(_r1) >> eol)
+            >>  -trail_comments(_r1)
             ;
 
         // [168]
         keep_empty =
-                *l_empty
-            >>  -trail_comments
+                *l_empty(_r1, context_t::block)
+            >>  -trail_comments(_r1)
             ;
 
         // [169]
         trail_comments =
-                repeat(0, ref(n_) - 1)[lit(' ')]
+                indent_lt(_r1)
             >>  '#' >> *nb_char >> eol
             >>  *blank_eol
             ;
 
         // 8.1.2. Literal Style
 
-        // [170]
+        // [170] TODO: Get rid of these Phoenix functions -- just use
+        // block_header _1 and _2!
         literal =
                 '|'
-            >>  block_header[_a = chomping(_1), _b = indentation(_1), ref(n_) += _b]
-            >>  (
-                    literal_content(_a)[_val = _1] >> eps[ref(n_) -= _b]
-                |   eps(ref(n_) -= _b < -1) // "< -1" will always evaluate to false
-                )
+            >>  block_header[_a = _r1 + indentation(_1), _b = chomping(_1)]
+            >>  literal_content(_a, _b)[_val = _1]
             ;
 
         // [171]
         l_nb_literal_text =
-            *l_empty >> repeat(ref(n_))[lit(' ')] >> +nb_char
+            *l_empty(_r1, context_t::block) >> indent(_r1) >> +nb_char
             ;
 
         // [172]
         b_nb_literal_text =
-            eol >> l_nb_literal_text
+            eol >> l_nb_literal_text(_r1)
             ;
 
         // [173]
         literal_content =
-                -(l_nb_literal_text >> *b_nb_literal_text >> eol)
-            >>  chomped_empty(_r1)
+                -(l_nb_literal_text(_r1) >> *b_nb_literal_text(_r1) >> eol)
+            >>  chomped_empty(_r1, _r2)
             ;
 
 #if 0
@@ -547,12 +562,33 @@ namespace omd { namespace yaml { namespace parser {
 
         // [174]
         folded =
-            '>' >> block_header[_a = _1] >> folded_content(_a)[_val = _1]
+                '>'
+            >>  block_header[_a = chomping(_1), _b = indentation(_1), ref(n_) += _b]
+            >>  (
+                    folded_content(_a)[_val = _1] >> eps[ref(n_) -= _b]
+                |   eps(ref(n_) -= _b < -1) // "< -1" will always evaluate to false
+                )
             ;
 
-        // [173]
+        // [179]
+        spaced_lines =
+            ;
+
+        // [180]
+        same_lines =
+                *l_empty
+            >>  (folded_lines | spaced_lines)
+            ;
+
+        // [181]
+        diff_lines =
+            same_lines >> *(eol >> same_lines)
+            ;
+
+        // [182]
         folded_content =
-            TODO
+                -(diff_lines >> chomped_last)
+            >>  chomped_empty
             ;
 #endif
 

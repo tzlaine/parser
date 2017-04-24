@@ -18,22 +18,25 @@
 
 namespace omd { namespace yaml { namespace parser {
 
-    enum class chomping_t
-    {
+    enum class chomping_t {
         strip, clip, keep
+    };
+
+    enum class context_t {
+        block, flow
     };
 
     struct block_header_t
     {
         block_header_t ()
-            : chomping_ (chomping_t::clip), indentation_ (0)
+            : indentation_ (0), chomping_ (chomping_t::clip)
         {}
-        block_header_t (chomping_t chomping, int indentation)
-            : chomping_ (chomping), indentation_ (indentation)
+        block_header_t (int indentation, chomping_t chomping)
+            : indentation_ (indentation), chomping_ (chomping)
         {}
 
-        chomping_t chomping_;
         int indentation_;
+        chomping_t chomping_;
     };
 
     template <typename Iterator>
@@ -54,7 +57,7 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t()> compact_block;
         flow_t flow_g;
 
-        qi::rule<Iterator> indent;
+        qi::rule<Iterator> indent_;
         qi::rule<Iterator> skip_indent;
         qi::rule<Iterator> skip_indent_child;
         qi::rule<Iterator, ast::value_t()> start;
@@ -72,30 +75,35 @@ namespace omd { namespace yaml { namespace parser {
 
         int current_indent; // our current indent level (spaces)
 
-        qi::rule<Iterator, std::string()> l_empty;
+        qi::rule<Iterator, std::string(int)> indent;    // indent exactly n spaces
+        qi::rule<Iterator, std::string(int)> indent_lt; // indent <= n spaces
+        qi::rule<Iterator, std::string(int)> indent_le; // indent < n spaces
+
+        qi::rule<Iterator, std::string(int, context_t)> line_prefix;
+        qi::rule<Iterator, std::string(int, context_t)> l_empty;
 
         qi::rule<
             Iterator,
             block_header_t(),
-            qi::locals<chomping_t, int>
+            qi::locals<int, chomping_t>
         > block_header;
 
         qi::rule<Iterator, int()> indentation_indicator;
         qi::rule<Iterator, chomping_t()> chomping_indicator;
-        qi::rule<Iterator, std::string(chomping_t)> chomped_empty;
-        qi::rule<Iterator, std::string()> strip_empty;
-        qi::rule<Iterator, std::string()> keep_empty;
-        qi::rule<Iterator, std::string()> trail_comments;
+        qi::rule<Iterator, std::string(int, chomping_t)> chomped_empty;
+        qi::rule<Iterator, std::string(int)> strip_empty;
+        qi::rule<Iterator, std::string(int)> keep_empty;
+        qi::rule<Iterator, std::string(int)> trail_comments;
 
         qi::rule<
             Iterator,
-            std::string(),
-            qi::locals<chomping_t, int>
+            std::string(int),
+            qi::locals<int, chomping_t>
         > literal;
 
-        qi::rule<Iterator, std::string()> l_nb_literal_text;
-        qi::rule<Iterator, std::string()> b_nb_literal_text;
-        qi::rule<Iterator, std::string(chomping_t)> literal_content;
+        qi::rule<Iterator, std::string(int)> l_nb_literal_text;
+        qi::rule<Iterator, std::string(int)> b_nb_literal_text;
+        qi::rule<Iterator, std::string(int, chomping_t)> literal_content;
 
         int n_; // our current indent level (spaces)
 
