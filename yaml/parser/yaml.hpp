@@ -39,7 +39,21 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t()> stream;
         qi::rule<Iterator, ast::value_t()> document;
         qi::rule<Iterator, ast::value_t()> implicit_document;
-        qi::rule<Iterator, ast::array_t()> explicit_document;
+        qi::rule<Iterator, ast::array_t()> explicit_document_;
+
+        qi::rule<Iterator> directive;
+        qi::rule<Iterator> reserved_directive;
+        qi::rule<Iterator> yaml_directive;
+        qi::rule<Iterator> tag_directive;
+        qi::rule<Iterator> tag_prefix;
+        qi::rule<Iterator> document_prefix;
+        qi::rule<Iterator> document_suffix;
+        qi::rule<Iterator> forbidden;
+        qi::rule<Iterator, ast::value_t()> bare_document;
+        qi::rule<Iterator, ast::value_t()> explicit_document;
+        qi::rule<Iterator, ast::value_t()> directive_document;
+        qi::rule<Iterator, ast::value_t()> any_document;
+        qi::rule<Iterator, std::vector<ast::value_t>()> yaml_stream;
 
         typedef omd::yaml::parser::error_handler<Iterator> error_handler_t;
         boost::phoenix::function<error_handler_t> const error_handler;

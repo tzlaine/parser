@@ -222,6 +222,11 @@ namespace omd { namespace yaml { namespace parser
             |   unquoted
             ;
 
+        // [34]
+        ns_char =
+            print - eol /* - bom */ - blank
+            ;
+
         // [39]
         uri_char =
                 char_("%") > hex > hex
@@ -236,7 +241,7 @@ namespace omd { namespace yaml { namespace parser
 
         // [102]
         anchor_char =
-            print - eol /* - bom */ - blank - char_(",[]{}")
+            ns_char - char_(",[]{}")
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

@@ -44,6 +44,7 @@ namespace omd { namespace yaml { namespace parser
         qi::rule<Iterator, std::string()> unicode_start;
         qi::rule<Iterator, std::string()> separate;
         qi::rule<Iterator, std::string()> plain_safe;
+        qi::rule<Iterator, std::string()> ns_char;
         qi::rule<Iterator, std::string()> uri_char;
         qi::rule<Iterator, std::string()> tag_char;
         qi::rule<Iterator, std::string()> anchor_char;
