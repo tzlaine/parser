@@ -10,11 +10,15 @@
 #define OMD_PARSER_BLOCK_DEF_HPP
 
 #include <yaml/parser/block.hpp>
-#include <algorithm>
+
+#include <boost/phoenix/object/construct.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_statement.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+
+#include <algorithm>
+
 
 // For debugging:
 #if defined(BOOST_SPIRIT_DEBUG)
@@ -127,6 +131,25 @@ namespace omd { namespace yaml { namespace parser {
                 }
             }
         };
+
+        struct chomping
+        {
+            template <typename>
+            struct result { typedef chomping_t type; };
+
+            chomping_t operator() (block_header_t block_header) const
+            { return block_header.chomping_; }
+        };
+
+        struct indentation
+        {
+            template <typename>
+            struct result { typedef int type; };
+
+            int operator() (block_header_t block_header) const
+            { return block_header.indentation_; }
+        };
+
     }
 
     template <typename Iterator>
@@ -134,6 +157,7 @@ namespace omd { namespace yaml { namespace parser {
       : block::base_type(start),
         flow_g(current_indent, anchors),
         current_indent(-1),
+        n_(-1),
         error_handler(error_handler_t(source_file))
     {
         namespace phx = boost::phoenix;
@@ -143,6 +167,12 @@ namespace omd { namespace yaml { namespace parser {
         phx::function<detail::fold_line> fold_line;
         phx::function<detail::chomp_string> chomp_string;
         phx::function<qi::symbols<char>::adder> add_anchor(anchors.add);
+
+        phx::function<detail::chomping> chomping;
+        phx::function<detail::indentation> indentation;
+        using phx::ref;
+
+        using phx::construct;
 
         qi::skip_type skip;
         auto space = ws.start.alias();
@@ -155,7 +185,9 @@ namespace omd { namespace yaml { namespace parser {
         qi::_a_type _a;
         qi::_b_type _b;
         qi::_c_type _c;
+        qi::_r1_type _r1;
         qi::char_type char_;
+        qi::lit_type lit;
 
         qi::repeat_type repeat;
         qi::omit_type omit;
@@ -167,9 +199,12 @@ namespace omd { namespace yaml { namespace parser {
         qi::eol_type eol;
         qi::eoi_type eoi_;
         qi::blank_type blank;
+        qi::digit_type digit;
 
         auto comment = copy('#' >> *(char_ - eol) >> eol);  // comments
         auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
+
+        auto & nb_char = flow_g.scalar_value.string_value.nb_char;
 
         auto map_key = copy(
             skip(space)[flow_g.scalar_value.map_key]
@@ -186,7 +221,7 @@ namespace omd { namespace yaml { namespace parser {
             ;
 
         auto get_indent =
-            phx::ref(current_indent)
+            ref(current_indent)
             ;
 
         auto save_indent = copy(
@@ -416,6 +451,110 @@ namespace omd { namespace yaml { namespace parser {
             >>  omit[':' >> (blank | &eol)]                 //  Get the map-value indicator ':'
             >>  block_node_main                             //  Get the value
             ;
+
+        // [70]
+        l_empty =
+                // First part of the alternative is line_prefix [67], which
+                // may be wrong for the flow case.
+                (
+                    repeat(0, ref(n_))[lit(' ')]
+                |   repeat(0, ref(n_) - 1)[lit(' ')]
+                )
+            >>  eol
+            ;
+
+        // 8.1 Block Scalar Styles
+
+        // [162]
+        block_header = (
+                indentation_indicator[_b = _1] >> +blank >> chomping_indicator[_a = _1]
+            |   chomping_indicator[_a = _1] >> +blank >> indentation_indicator[_b = _1]
+            )
+            >>  blank_eol
+            [_val = construct<block_header_t>(_a, _b)]
+            ;
+
+        // [163]
+        // TODO: For round-tripping, a number like this must sometimes be
+        // placed in the output (as in, when a scalar has leading spaces)
+        indentation_indicator =
+                digit[_val = _1 - 0x30]
+            |   eps[_val = 0]
+            ;
+
+        // [164]
+        chomping_indicator =
+                lit('-')[_val = chomping_t::strip]
+            |   lit('+')[_val = chomping_t::keep]
+            |   eps[_val = chomping_t::clip]
+            ;
+
+        // [166]
+        chomped_empty =
+                eps(_r1 == chomping_t::keep) >> keep_empty
+            |   strip_empty
+            ;
+
+        // [167]
+        strip_empty =
+                *(repeat(0, ref(n_))[lit(' ')] >> eol)
+            >>  -trail_comments
+            ;
+
+        // [168]
+        keep_empty =
+                *l_empty
+            >>  -trail_comments
+            ;
+
+        // [169]
+        trail_comments =
+                repeat(0, ref(n_) - 1)[lit(' ')]
+            >>  '#' >> *nb_char >> eol
+            >>  *blank_eol
+            ;
+
+        // 8.1.2. Literal Style
+
+        // [170]
+        literal =
+                '|'
+            >>  block_header[_a = chomping(_1), _b = indentation(_1), ref(n_) += _b]
+            >>  (
+                    literal_content(_a)[_val = _1] >> eps[ref(n_) -= _b]
+                |   eps(ref(n_) -= _b < -1) // "< -1" will always evaluate to false
+                )
+            ;
+
+        // [171]
+        l_nb_literal_text =
+            *l_empty >> repeat(ref(n_))[lit(' ')] >> +nb_char
+            ;
+
+        // [172]
+        b_nb_literal_text =
+            eol >> l_nb_literal_text
+            ;
+
+        // [173]
+        literal_content =
+                -(l_nb_literal_text >> *b_nb_literal_text >> eol)
+            >>  chomped_empty(_r1)
+            ;
+
+#if 0
+        // 8.1.3. Folded Style
+
+        // [174]
+        folded =
+            '>' >> block_header[_a = _1] >> folded_content(_a)[_val = _1]
+            ;
+
+        // [173]
+        folded_content =
+            TODO
+            ;
+#endif
 
         BOOST_SPIRIT_DEBUG_NODES(
             (end_of_input)

@@ -15,8 +15,27 @@
 #include <string>
 #include <boost/fusion/adapted/std_pair.hpp>
 
-namespace omd { namespace yaml { namespace parser
-{
+
+namespace omd { namespace yaml { namespace parser {
+
+    enum class chomping_t
+    {
+        strip, clip, keep
+    };
+
+    struct block_header_t
+    {
+        block_header_t ()
+            : chomping_ (chomping_t::clip), indentation_ (0)
+        {}
+        block_header_t (chomping_t chomping, int indentation)
+            : chomping_ (chomping), indentation_ (indentation)
+        {}
+
+        chomping_t chomping_;
+        int indentation_;
+    };
+
     template <typename Iterator>
     struct block : qi::grammar<Iterator, ast::value_t()>
     {
@@ -53,9 +72,37 @@ namespace omd { namespace yaml { namespace parser
 
         int current_indent; // our current indent level (spaces)
 
+        qi::rule<Iterator, std::string()> l_empty;
+
+        qi::rule<
+            Iterator,
+            block_header_t(),
+            qi::locals<chomping_t, int>
+        > block_header;
+
+        qi::rule<Iterator, int()> indentation_indicator;
+        qi::rule<Iterator, chomping_t()> chomping_indicator;
+        qi::rule<Iterator, std::string(chomping_t)> chomped_empty;
+        qi::rule<Iterator, std::string()> strip_empty;
+        qi::rule<Iterator, std::string()> keep_empty;
+        qi::rule<Iterator, std::string()> trail_comments;
+
+        qi::rule<
+            Iterator,
+            std::string(),
+            qi::locals<chomping_t, int>
+        > literal;
+
+        qi::rule<Iterator, std::string()> l_nb_literal_text;
+        qi::rule<Iterator, std::string()> b_nb_literal_text;
+        qi::rule<Iterator, std::string(chomping_t)> literal_content;
+
+        int n_; // our current indent level (spaces)
+
         typedef omd::yaml::parser::error_handler<Iterator> error_handler_t;
         boost::phoenix::function<error_handler_t> const error_handler;
     };
-}}}
+
+} } }
 
 #endif

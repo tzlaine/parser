@@ -222,6 +222,11 @@ namespace omd { namespace yaml { namespace parser {
             |   unquoted
             ;
 
+        // [27]
+        nb_char =
+            print - eol /* - bom */
+            ;
+
         // [34]
         ns_char =
             print - eol /* - bom */ - blank

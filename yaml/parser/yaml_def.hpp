@@ -52,6 +52,7 @@ namespace omd { namespace yaml { namespace parser {
         auto & tag_char = block_g.flow_g.scalar_value.string_value.tag_char;
         auto & uri_char = block_g.flow_g.scalar_value.string_value.uri_char;
         auto & tag_handle = block_g.flow_g.scalar_value.tag_handle;
+        auto & block_node = block_g;// TODO .block_node;
 
         auto pb = phx::push_back(_val, _1);
 
@@ -109,7 +110,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [207]
         bare_document =
-            block_g/*TODO block_node*/ - forbidden
+            block_node - forbidden
             ;
 
         // [208]
