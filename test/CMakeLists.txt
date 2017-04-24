@@ -9,7 +9,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR
 add_executable(parse_test block.cpp flow.cpp parser.cpp scalar.cpp yaml.cpp parse_yaml_test.cpp)
 target_link_libraries(parse_test yaml gtest)
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
-#target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -56,7 +56,7 @@ set(test_files
     data-types.yaml
     invoice.yaml
     relational.yaml
-#TODO    scalar.yaml # Appears to infinitely loop or recurse, depending on compiler.
+    scalar.yaml
     yaml_block_array1.yaml
     yaml_block_array2.yaml
     yaml_block_array3.yaml
