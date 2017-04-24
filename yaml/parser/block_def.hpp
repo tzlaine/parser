@@ -206,6 +206,7 @@ namespace omd { namespace yaml { namespace parser {
         auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
 
         auto & nb_char = flow_g.scalar_value.string_value.nb_char;
+        auto & ns_char = flow_g.scalar_value.string_value.ns_char;
         auto & separate = flow_g.scalar_value.string_value.separate;
 
         auto map_key = copy(
@@ -480,6 +481,11 @@ namespace omd { namespace yaml { namespace parser {
             >>  eol
             ;
 
+        b_l_folded =
+                eol >> +l_empty(_r1, _r2)   // b-l-trimmed [71]
+            |   eol
+            ;
+
         // 8.1 Block Scalar Styles
 
         // [162]
@@ -557,40 +563,56 @@ namespace omd { namespace yaml { namespace parser {
             >>  chomped_empty(_r1, _r2)
             ;
 
-#if 0
         // 8.1.3. Folded Style
 
         // [174]
         folded =
                 '>'
-            >>  block_header[_a = chomping(_1), _b = indentation(_1), ref(n_) += _b]
-            >>  (
-                    folded_content(_a)[_val = _1] >> eps[ref(n_) -= _b]
-                |   eps(ref(n_) -= _b < -1) // "< -1" will always evaluate to false
-                )
+            >>  block_header[_a = _r1 + indentation(_1), _b = chomping(_1)]
+            >>  folded_content(_a, _b)[_val = _1]
+            ;
+
+        // [175]
+        folded_text =
+            indent(_r1) >> ns_char >> *nb_char
+            ;
+
+        // [176]
+        folded_lines =
+            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block) >> folded_text(_r1))
+            ;
+
+        // [177]
+        spaced_text =
+            indent(_r1) >> blank >> *nb_char
+            ;
+
+        // [178]
+        spaced =
+            eol >> *l_empty(_r1, context_t::block)
             ;
 
         // [179]
         spaced_lines =
+            spaced_text(_r1) >> *(spaced(_r1) >> spaced_text(_r1))
             ;
 
         // [180]
         same_lines =
-                *l_empty
-            >>  (folded_lines | spaced_lines)
+                *l_empty(_r1, context_t::block)
+            >>  (folded_lines(_r1) | spaced_lines(_r1))
             ;
 
         // [181]
         diff_lines =
-            same_lines >> *(eol >> same_lines)
+            same_lines(_r1) >> *(eol >> same_lines(_r1))
             ;
 
         // [182]
         folded_content =
-                -(diff_lines >> chomped_last)
-            >>  chomped_empty
+                -(diff_lines(_r1) >> eol)
+            >>  chomped_empty(_r1, _r2)
             ;
-#endif
 
         BOOST_SPIRIT_DEBUG_NODES(
             (end_of_input)

@@ -81,6 +81,7 @@ namespace omd { namespace yaml { namespace parser {
 
         qi::rule<Iterator, std::string(int, context_t)> line_prefix;
         qi::rule<Iterator, std::string(int, context_t)> l_empty;
+        qi::rule<Iterator, std::string(int, context_t)> b_l_folded;
 
         qi::rule<
             Iterator,
@@ -104,6 +105,21 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, std::string(int)> l_nb_literal_text;
         qi::rule<Iterator, std::string(int)> b_nb_literal_text;
         qi::rule<Iterator, std::string(int, chomping_t)> literal_content;
+
+        qi::rule<
+            Iterator,
+            std::string(int),
+            qi::locals<int, chomping_t>
+        > folded;
+
+        qi::rule<Iterator, std::string(int)> folded_text;
+        qi::rule<Iterator, std::string(int)> folded_lines;
+        qi::rule<Iterator, std::string(int)> spaced_text;
+        qi::rule<Iterator, std::string(int)> spaced;
+        qi::rule<Iterator, std::string(int)> spaced_lines;
+        qi::rule<Iterator, std::string(int)> same_lines;
+        qi::rule<Iterator, std::string(int)> diff_lines;
+        qi::rule<Iterator, std::string(int, chomping_t)> folded_content;
 
         int n_; // our current indent level (spaces)
 
