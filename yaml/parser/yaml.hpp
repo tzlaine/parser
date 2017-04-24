@@ -26,7 +26,7 @@
 namespace omd { namespace yaml { namespace parser {
 
     template <typename Iterator>
-    struct yaml : qi::grammar<Iterator, ast::value_t()>
+    struct yaml : qi::grammar<Iterator, std::vector<ast::value_t>()>
     {
         yaml(std::string const& source_file = "");
 
@@ -36,10 +36,6 @@ namespace omd { namespace yaml { namespace parser {
         white_space_t ws;
 
         block_t block_g;
-        qi::rule<Iterator, ast::value_t()> stream;
-        qi::rule<Iterator, ast::value_t()> document;
-        qi::rule<Iterator, ast::value_t()> implicit_document;
-        qi::rule<Iterator, ast::array_t()> explicit_document_;
 
         qi::rule<Iterator> directive;
         qi::rule<Iterator> reserved_directive;
@@ -62,7 +58,11 @@ namespace omd { namespace yaml { namespace parser {
 #if YAML_HEADER_ONLY
     inline
 #endif
-    bool parse_yaml(std::istream& is, ast::value_t& result, std::string const& source_file = "");
+    bool parse_yaml(
+        std::istream & is,
+        std::vector<ast::value_t> & result,
+        std::string const& source_file = ""
+    );
 
 } } }
 

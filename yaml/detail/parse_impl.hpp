@@ -13,8 +13,11 @@
 #define PARSE_YAML_IMPLEMENTATION()                                     \
 namespace omd { namespace yaml { namespace parser {                     \
                                                                         \
-    bool parse_yaml(std::istream& is, ast::value_t& result, std::string const& source_file) \
-    {                                                                   \
+    bool parse_yaml(                                                    \
+        std::istream & is,                                              \
+        std::vector<ast::value_t> & result,                             \
+        std::string const & source_file                                 \
+    ) {                                                                 \
         std::string file;                                               \
         std::getline(is, file, '\0');                                   \
                                                                         \
@@ -32,8 +35,11 @@ namespace omd { namespace yaml { namespace parser {                     \
                                                                         \
         bool const retval =                                             \
             boost::spirit::qi::parse(first, last, p, result);           \
-        if (retval)                                                     \
-            ast::link_yaml(result);                                     \
+        if (retval) {                                                   \
+            for (auto & value : result) {                               \
+                ast::link_yaml(value);                                  \
+            }                                                           \
+        }                                                               \
         return retval;                                                  \
     }                                                                   \
                                                                         \

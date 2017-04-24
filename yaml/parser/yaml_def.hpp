@@ -21,7 +21,7 @@ namespace omd { namespace yaml { namespace parser {
 
     template <typename Iterator>
     yaml<Iterator>::yaml(std::string const& source_file)
-      : yaml::base_type(stream),
+      : yaml::base_type(yaml_stream),
         block_g(source_file),
         error_handler(error_handler_t(source_file))
     {
@@ -42,6 +42,8 @@ namespace omd { namespace yaml { namespace parser {
         qi::eol_type eol;
         qi::eoi_type eoi;
         qi::blank_type blank;
+        qi::omit_type omit;
+        qi::space_type qi_space;
 
         auto comment = copy('#' >> *(char_ - eol) >> eol);  // comments
         auto blank_eol = copy(*blank >> (comment | eol));   // empty until eol
@@ -53,30 +55,11 @@ namespace omd { namespace yaml { namespace parser {
 
         auto pb = phx::push_back(_val, _1);
 
-        stream =
-            skip(space)[document > block_g.end_of_input]
-            ;
-
-        document =
-                explicit_document
-            |   implicit_document
-            ;
-
-        explicit_document_ =
-                +((skip(space)["---"] >> blank_eol) > implicit_document)
-            >>  -skip(space)["..."]
-            ;
-
-        implicit_document =
-                block_g.flow_compound
-            |   block_g
-            ;
-
         // [82]
         directive =
                 '%'
             >>  (yaml_directive | tag_directive | reserved_directive)
-            >>  -comment
+            >>  blank_eol
             ;
 
         // [83]
@@ -105,12 +88,13 @@ namespace omd { namespace yaml { namespace parser {
 
         // [202]
         document_prefix =
-            /* TODO -bom >> */ *comment
+            // TODO -bom >>
+            +blank_eol
             ;
 
         // [205]
         document_suffix =
-            "..." >> comment
+            "..." >> blank_eol
             ;
 
         // [206]
@@ -130,7 +114,8 @@ namespace omd { namespace yaml { namespace parser {
 
         // [208]
         explicit_document =
-                "---"
+            "---"
+            >>  omit[*qi_space]
             >>  (bare_document | comment >> attr(ast::value_t()))
             ;
 
@@ -152,19 +137,30 @@ namespace omd { namespace yaml { namespace parser {
                 *document_prefix
             >>  -any_document[pb]
             >>  *(
-                    +document_suffix >> *document_prefix >> -any_document[pb]
-                 |  *document_prefix -explicit_document[pb]
+                    +document_suffix >> *document_prefix >> any_document[pb]
+                 |  *document_prefix >> explicit_document[pb]
                  )
+            >>  *document_suffix >> *document_prefix
+            >   block_g.end_of_input
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-            (stream)
-            (document)
+            (directive)
+            (reserved_directive)
+            (yaml_directive)
+            (tag_directive)
+            (tag_prefix)
+            (document_prefix)
+            (document_suffix)
+            (forbidden)
+            (bare_document)
             (explicit_document)
-            (implicit_document)
+            (directive_document)
+            (any_document)
+            (yaml_stream)
         );
 
-        qi::on_error<qi::fail>(stream, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(yaml_stream, error_handler(_1, _2, _3, _4));
     }
 
 } } }
