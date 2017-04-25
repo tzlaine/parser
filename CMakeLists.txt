@@ -5,7 +5,14 @@ set(std_flag)
 set(clang_on_linux false)
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(std_flag -std=c++11)
-    add_definitions(${std_flag} -stdlib=libc++ -g -Wall -ftemplate-depth-300)
+    add_definitions(
+        ${std_flag}
+        -stdlib=libc++
+        -g
+        -Wall
+        -Wno-parentheses
+        -ftemplate-depth-300
+    )
     if (CMAKE_SYSTEM_NAME STREQUAL Linux)
         set(clang_on_linux true)
     endif ()
