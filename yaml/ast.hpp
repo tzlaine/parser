@@ -54,6 +54,10 @@ namespace omd { namespace yaml { namespace ast
         string_t tag_;
         string_t anchor_;
     };
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream& operator<<(std::ostream& out, properties_t p)
+    { return out << p.tag_ << ',' << p.anchor_; }
+#endif
 
     struct object_t;
 

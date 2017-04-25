@@ -9,6 +9,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR
 add_executable(
     parse_test
     characters.cpp
+    basic_structures.cpp
     block.cpp
     flow.cpp
     parser.cpp
