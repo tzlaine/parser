@@ -25,21 +25,33 @@ namespace omd { namespace yaml { namespace parser {
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<< (std::ostream & os, chomping_t c)
     {
-        return os << (
-            c == chomping_t::strip ?
-            "strip" :
-            (c == chomping_t::clip ? "clip" : "keep")
-        );
+        switch (c) {
+        case chomping_t::strip: return os << "strip";
+        case chomping_t::clip: return os << "clip";
+        case chomping_t::keep: return os << "keep";
+        }
+        return os;
     }
 #endif
 
     enum class context_t {
-        block, flow
+        block_in, block_out,
+        flow_in, flow_out,
+        block_key, flow_key
     };
 
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<< (std::ostream & os, context_t c)
-    { return os << (c == context_t::block ? "block" : "flow"); }
+    {
+        switch (c) {
+#define CASE(x) case context_t::x: return os << #x
+        CASE(block_in); CASE(block_out);
+        CASE(flow_in); CASE(flow_out);
+        CASE(block_key); CASE(flow_key);
+#undef CASE
+        }
+        return os;
+    }
 #endif
 
     struct block_header_t

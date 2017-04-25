@@ -29,7 +29,6 @@ namespace omd { namespace yaml { namespace parser {
         using boost::spirit::qi::copy;
 
         qi::skip_type skip;
-        auto space = ws.start.alias();
 
         qi::_val_type _val;
         qi::_1_type _1;
@@ -110,7 +109,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [207]
         bare_document =
-            block_node - forbidden
+            block_node/*TODO (-1, context_t::block_in)*/ - forbidden
             ;
 
         // [208]

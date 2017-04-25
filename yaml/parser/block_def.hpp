@@ -150,6 +150,15 @@ namespace omd { namespace yaml { namespace parser {
             { return block_header.indentation_; }
         };
 
+        struct seq_spaces
+        {
+            template <typename, typename>
+            struct result { typedef int type; };
+
+            int operator() (int n, context_t c) const
+            { return c == context_t::block_out ? n - 1 : n; }
+        };
+
     }
 
     template <typename Iterator>
@@ -170,6 +179,7 @@ namespace omd { namespace yaml { namespace parser {
 
         phx::function<detail::chomping> chomping;
         phx::function<detail::indentation> indentation;
+        phx::function<detail::seq_spaces> seq_spaces; // [201]
         using phx::ref;
 
         using phx::construct;
@@ -472,7 +482,8 @@ namespace omd { namespace yaml { namespace parser {
 
         // [67]
         line_prefix =
-            indent(_r1) >> eps(_r2 == context_t::flow) >> -separate
+                indent(_r1)
+            >>  eps(_r2 == context_t::flow_in || _r2 == context_t::flow_out) >> -separate
             ;
 
         // [70]
@@ -526,7 +537,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [168]
         keep_empty =
-                *l_empty(_r1, context_t::block)
+                *l_empty(_r1, context_t::block_in)
             >>  -trail_comments(_r1)
             ;
 
@@ -549,7 +560,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [171]
         l_nb_literal_text =
-            *l_empty(_r1, context_t::block) >> indent(_r1) >> +nb_char
+            *l_empty(_r1, context_t::block_in) >> indent(_r1) >> +nb_char
             ;
 
         // [172]
@@ -579,7 +590,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [176]
         folded_lines =
-            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block) >> folded_text(_r1))
+            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block_in) >> folded_text(_r1))
             ;
 
         // [177]
@@ -589,7 +600,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [178]
         spaced =
-            eol >> *l_empty(_r1, context_t::block)
+            eol >> *l_empty(_r1, context_t::block_in)
             ;
 
         // [179]
@@ -599,7 +610,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [180]
         same_lines =
-                *l_empty(_r1, context_t::block)
+                *l_empty(_r1, context_t::block_in)
             >>  (folded_lines(_r1) | spaced_lines(_r1))
             ;
 
@@ -613,6 +624,66 @@ namespace omd { namespace yaml { namespace parser {
                 -(diff_lines(_r1) >> eol)
             >>  chomped_empty(_r1, _r2)
             ;
+
+#if 0
+        // 8.2.1. Block Sequences
+
+        auto_detect_indent =
+            eps[_val = 0] >> &(*lit(' ')[++_val])
+            ;
+
+        // [183]
+        block_sequence =
+                auto_detect_indent[_a = _1]
+            >>  +(indent(_a) >> block_seq_entry(_a))
+            ;
+
+        // [184]
+        block_seq_entry =
+                '-' >> !ns_char
+            >>  block_indented(_r1, context_t::block_in)
+            ;
+
+        // [185]
+        block_indented =
+            indent
+            ;
+#endif
+
+#if 0
+        // 8.2.3. Block Nodes
+
+        // [196]
+        block_node =
+            block_in_block(_r1, _r2) | flow_in_block(_r1)
+            ;
+
+        // [197]
+        flow_in_block =
+                separate(_r1 + 1, context_t::flow_out)
+            >>  flow_node/*TODO (_r1 + 1, context_t::flow_out)*/
+            >>  s_l_comments
+            ;
+
+        // [198]
+        block_in_block =
+            block_scalar(_r1, _r2) | block_collection(_r1, _r2)
+            ;
+
+        // [199]
+        block_scalar =
+                separate(_r1 + 1, _r2)
+            >>  -(properties(_r1 + 1, _r2) >> separate(_r1 + 1, _r2))
+            >>  (literal(_r1) | folded(_r1))
+            ;
+
+        // [200]
+        block_collection =
+                -(separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2))
+            >>  s_l_comments
+            >>  (block_sequence(seq_spaces(_r1, _r2)) | block_mapping(_r1))
+            ;
+#endif
 
         BOOST_SPIRIT_DEBUG_NODES(
             (indent)
