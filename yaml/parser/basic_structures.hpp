@@ -24,6 +24,7 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, std::string(int)> indent_lt; // indent <= n spaces
         qi::rule<Iterator, std::string(int)> indent_le; // indent < n spaces
         qi::rule<Iterator, std::string()> separate_in_line;
+        // TODO: All comments should probably return void.
         qi::rule<Iterator, std::string(int, context_t)> line_prefix;
         qi::rule<Iterator, std::string(int, context_t)> l_empty;
         qi::rule<Iterator, std::string(int, context_t)> b_l_folded;

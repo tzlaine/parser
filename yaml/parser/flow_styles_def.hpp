@@ -354,22 +354,22 @@ namespace omd { namespace yaml { namespace parser {
 
         // [152]
         flow_pair_yaml_key_entry =
-            implicit_yaml_key(_r1, _r2) >> flow_map_separate_value(_r1, _r2)
+            implicit_yaml_key(_r2) >> flow_map_separate_value(_r1, _r2)
             ;
 
         // [153]
         flow_pair_json_key_entry =
-            implicit_json_key(_r1, _r2) >> flow_map_adjacent_value(_r1, _r2)
+            implicit_json_key(_r2) >> flow_map_adjacent_value(_r1, _r2)
             ;
 
         // [154]
         implicit_yaml_key =
-            flow_yaml_node(_r1, _r2) >> -omit[separate_in_line]
+            flow_yaml_node(0, _r1) >> -omit[separate_in_line]
             ;
 
         // [155]
         implicit_json_key =
-            flow_json_node(_r1, _r2) >> -omit[separate_in_line]
+            flow_json_node(0, _r1) >> -omit[separate_in_line]
             ;
 
         // 7.5 Flow Nodes

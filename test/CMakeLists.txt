@@ -11,6 +11,7 @@ add_executable(
     characters.cpp
     basic_structures.cpp
     flow_style.cpp
+    block_style.cpp
     block.cpp
     flow.cpp
     parser.cpp

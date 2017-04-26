@@ -67,8 +67,8 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, ast::object_element_t(int, context_t)> flow_pair_entry;
         qi::rule<Iterator, ast::object_element_t(int, context_t)> flow_pair_yaml_key_entry;
         qi::rule<Iterator, ast::object_element_t(int, context_t)> flow_pair_json_key_entry;
-        qi::rule<Iterator, ast::value_t(int, context_t)> implicit_yaml_key;
-        qi::rule<Iterator, ast::value_t(int, context_t)> implicit_json_key;
+        qi::rule<Iterator, ast::value_t(context_t)> implicit_yaml_key;
+        qi::rule<Iterator, ast::value_t(context_t)> implicit_json_key;
 
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_yaml_content;
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_json_content;
