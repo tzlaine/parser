@@ -76,7 +76,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
-        qi::_r1_type _r1;
         qi::lit_type lit;
         qi::blank_type blank;
         qi::print_type print;
@@ -153,11 +152,10 @@ namespace omd { namespace yaml { namespace parser {
         esc_char =
                 '\\'
             >   (
-                    ('x' > hex)                     [push_utf8(_r1, _1)]
-                |   ('u' > hex4)                    [push_utf8(_r1, _1)]
-                |   ('U' > hex8)                    [push_utf8(_r1, _1)]
-                |   char_("0abtnvfre\"/\\N_LP\t ")  [push_esc(_r1, _1)]
-                // TODO | eol [_val += "\\\n"]
+                    ('x' > hex)                     [push_utf8(_val, _1)]
+                |   ('u' > hex4)                    [push_utf8(_val, _1)]
+                |   ('U' > hex8)                    [push_utf8(_val, _1)]
+                |   char_("0abtnvfre\"/\\N_LP\t ")  [push_esc(_val, _1)]
                 )
             ;
 

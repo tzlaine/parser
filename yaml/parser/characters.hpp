@@ -82,7 +82,7 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> ns_char;
         qi::rule<Iterator, std::string()> uri_char;
         qi::rule<Iterator, std::string()> tag_char;
-        qi::rule<Iterator, void(std::string &)> esc_char;
+        qi::rule<Iterator, std::string()> esc_char;
     };
 
 } } }

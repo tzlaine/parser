@@ -61,6 +61,11 @@ namespace omd { namespace yaml { namespace ast
 
     struct object_t;
 
+    // TODO:
+    // array_t -> seq_t
+    // object_t -> map_t
+    // anchored_object_t -> anchored_node_t
+    // object_element_t -> map_element_t
     struct value_t
         : boost::spirit::extended_variant<
           null_t,
