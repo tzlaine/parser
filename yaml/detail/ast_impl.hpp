@@ -581,9 +581,16 @@ namespace omd { namespace yaml { namespace ast
             : boost::static_visitor<std::size_t>
         {
             template <typename T>
-            std::size_t operator() (T const & val) const {
+            std::size_t operator() (T const & val) const
+            {
                 boost::hash<T> hasher;
                 return hasher(val);
+            }
+
+            std::size_t operator()(null_t const &) const
+            {
+                boost::hash<int> hasher;
+                return hasher(0);
             }
         };
     }

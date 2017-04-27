@@ -25,8 +25,8 @@ namespace omd { namespace yaml { namespace ast
     typedef double                              double_t;
     typedef int                                 int_t;
     typedef bool                                bool_t;
-    struct                                      null_t
-    {};
+
+    struct null_t {};
 
     // nulls always compare
     inline bool operator==(null_t a, null_t b) { return true;  }
