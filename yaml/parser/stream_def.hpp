@@ -20,7 +20,7 @@ namespace omd { namespace yaml { namespace parser {
 
     template <typename Iterator>
     stream<Iterator>::stream (std::string const & source_file)
-        : error_handler(error_handler_t(source_file))
+        : error_handler_ (error_handler_t(source_file))
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -123,7 +123,7 @@ namespace omd { namespace yaml { namespace parser {
             (end_of_input)
         );
 
-        qi::on_error<qi::fail>(yaml_stream, error_handler(_1, _2, _3, _4));
+        qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
 
 } } }

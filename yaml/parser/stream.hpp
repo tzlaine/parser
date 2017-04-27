@@ -39,7 +39,7 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator> end_of_input;
 
         using error_handler_t = error_handler<Iterator>;
-        boost::phoenix::function<error_handler_t> const error_handler;
+        boost::phoenix::function<error_handler_t> const error_handler_;
     };
 
 #if YAML_HEADER_ONLY

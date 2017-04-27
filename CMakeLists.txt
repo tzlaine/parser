@@ -18,7 +18,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     set(std_flag -std=c++11)
-    add_definitions(${std_flag} -g -Wall -ftemplate-depth-300)
+    add_definitions(${std_flag} -g -Wall -ftemplate-depth-300 -Wno-parentheses)
 endif ()
 
 include(dependencies)
