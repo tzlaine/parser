@@ -12,6 +12,7 @@ add_executable(
     basic_structures.cpp
     flow_style.cpp
     block_style.cpp
+    stream.cpp
     block.cpp
     flow.cpp
     parser.cpp
