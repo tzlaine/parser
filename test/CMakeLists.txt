@@ -13,11 +13,7 @@ add_executable(
     flow_style.cpp
     block_style.cpp
     stream.cpp
-    block.cpp
-    flow.cpp
     parser.cpp
-    scalar.cpp
-    yaml.cpp
     parse_yaml_test.cpp
 )
 target_link_libraries(parse_test yaml gtest)

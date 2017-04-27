@@ -19,7 +19,8 @@
 namespace omd { namespace yaml { namespace parser {
 
     template <typename Iterator>
-    stream<Iterator>::stream ()
+    stream<Iterator>::stream (std::string const & source_file)
+        : error_handler(error_handler_t(source_file))
     {
         qi::attr_type attr;
         qi::omit_type omit;

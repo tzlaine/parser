@@ -5,8 +5,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#if !defined(OMD_DETAIL_PARSE_IMPL_HPP)
-#define OMD_DETAIL_PARSE_IMPL_HPP
+#ifndef YAML_DETAIL_PARSE_IMPL_HPP
+#define YAML_DETAIL_PARSE_IMPL_HPP
 
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
@@ -31,10 +31,10 @@ namespace omd { namespace yaml { namespace parser {                     \
         iterator_type last;                                             \
         first.set_tabchars(1);                                          \
                                                                         \
-        omd::yaml::parser::yaml<iterator_type> p(source_file);          \
+        stream<iterator_type> p(source_file);                           \
                                                                         \
         bool const retval =                                             \
-            boost::spirit::qi::parse(first, last, p, result);           \
+            boost::spirit::qi::parse(first, last, p.yaml_stream, result); \
         if (retval) {                                                   \
             for (auto & value : result) {                               \
                 ast::link_yaml(value);                                  \

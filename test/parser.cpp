@@ -1,4 +1,4 @@
-#include <yaml/parser/yaml.hpp>
+#include <yaml/parser/stream.hpp>
 
 
 PARSE_YAML_IMPLEMENTATION()

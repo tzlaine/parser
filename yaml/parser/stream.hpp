@@ -23,7 +23,7 @@ namespace omd { namespace yaml { namespace parser {
     template <typename Iterator>
     struct stream
     {
-        stream ();
+        stream (std::string const & source_file);
 
         block_styles<Iterator> block_styles_;
 
@@ -38,7 +38,8 @@ namespace omd { namespace yaml { namespace parser {
 
         qi::rule<Iterator> end_of_input;
 
-        boost::phoenix::function<error_handler<Iterator>> const error_handler;
+        using error_handler_t = error_handler<Iterator>;
+        boost::phoenix::function<error_handler_t> const error_handler;
     };
 
 #if YAML_HEADER_ONLY
