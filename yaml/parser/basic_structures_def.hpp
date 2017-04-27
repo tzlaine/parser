@@ -21,7 +21,7 @@ namespace omd { namespace yaml { namespace parser {
 
         struct check_yaml_version
         {
-            template <typename S, typename C>
+            template <typename, typename>
             struct result { typedef void type; };
 
             void operator() (unsigned int major, unsigned int minor) const
@@ -35,6 +35,7 @@ namespace omd { namespace yaml { namespace parser {
     template <typename Iterator>
     basic_structures<Iterator>::basic_structures ()
     {
+        qi::attr_type attr;
         qi::uint_type uint_;
         qi::char_type char_;
         qi::_val_type _val;
@@ -105,9 +106,11 @@ namespace omd { namespace yaml { namespace parser {
         // 6.5 Line Folding
 
         // [73]
-        b_l_folded =
+        b_l_folded = (
                 eol >> +l_empty(_r1, _r2)   // b-l-trimmed [71]
             |   eol
+            )
+            >>  attr('\n')
             ;
 
         // [74]
@@ -200,8 +203,8 @@ namespace omd { namespace yaml { namespace parser {
 
         // [96]
         properties = (
-                tag_property[_a = _1] >> -(separate(_r1, _r2) >> anchor_property[_b = _1])
-            |   anchor_property[_b = _1] >> -(separate(_r1, _r2) >> tag_property[_a = _1])
+                tag_property[_a = _1] >> -(separate(_r1, _r2) >> anchor_property[_b = *_1])
+            |   anchor_property[_b = _1] >> -(separate(_r1, _r2) >> tag_property[_a = *_1])
             )
             [_val = construct<ast::properties_t>(_a, _b)]
             ;

@@ -329,7 +329,7 @@ namespace omd { namespace yaml { namespace parser {
         // [199]
         block_scalar =
                 separate(_r1 + 1, _r2)
-            >>  -(properties(_r1 + 1, _r2) >> separate(_r1 + 1, _r2))
+            >>  -omit[properties(_r1 + 1, _r2) >> separate(_r1 + 1, _r2)]
             >>  (literal(_r1) | folded(_r1))
             ;
 

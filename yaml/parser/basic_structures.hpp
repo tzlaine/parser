@@ -20,21 +20,21 @@ namespace omd { namespace yaml { namespace parser {
 
         characters<Iterator> characters_;
 
-        qi::rule<Iterator, std::string(int)> indent;    // indent exactly n spaces
-        qi::rule<Iterator, std::string(int)> indent_lt; // indent <= n spaces
-        qi::rule<Iterator, std::string(int)> indent_le; // indent < n spaces
-        qi::rule<Iterator, std::string()> separate_in_line;
+        qi::rule<Iterator, void(int)> indent;    // indent exactly n spaces
+        qi::rule<Iterator, void(int)> indent_lt; // indent <= n spaces
+        qi::rule<Iterator, void(int)> indent_le; // indent < n spaces
+        qi::rule<Iterator, void()> separate_in_line;
         // TODO: All comments should probably return void.
-        qi::rule<Iterator, std::string(int, context_t)> line_prefix;
-        qi::rule<Iterator, std::string(int, context_t)> l_empty;
-        qi::rule<Iterator, std::string(int, context_t)> b_l_folded;
-        qi::rule<Iterator, std::string(int)> flow_folded;
-        qi::rule<Iterator, std::string()> comment_text;
-        qi::rule<Iterator, std::string()> s_b_comment;
-        qi::rule<Iterator, std::string()> l_comment;
-        qi::rule<Iterator, std::string()> s_l_comments;
-        qi::rule<Iterator, std::string(int, context_t)> separate;
-        qi::rule<Iterator, std::string(int)> separate_lines;
+        qi::rule<Iterator, void(int, context_t)> line_prefix;
+        qi::rule<Iterator, void(int, context_t)> l_empty;
+        qi::rule<Iterator, char(int, context_t)> b_l_folded;
+        qi::rule<Iterator, char(int)> flow_folded;
+        qi::rule<Iterator, void()> comment_text;
+        qi::rule<Iterator, void()> s_b_comment;
+        qi::rule<Iterator, void()> l_comment;
+        qi::rule<Iterator, void()> s_l_comments;
+        qi::rule<Iterator, void(int, context_t)> separate;
+        qi::rule<Iterator, void(int)> separate_lines;
 
         qi::rule<Iterator> directive;
         qi::rule<Iterator> reserved_directive;
