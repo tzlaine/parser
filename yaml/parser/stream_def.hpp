@@ -74,8 +74,8 @@ namespace omd { namespace yaml { namespace parser {
         // [208]
         explicit_document =
                 "---"
-            >>  omit[*lit(' ')]
-            >>  (bare_document | attr(ast::value_t()) >> omit[s_l_comments])
+            >>  *lit(' ')
+            >>  (bare_document | attr(ast::value_t()) >> s_l_comments)
             ;
 
         // [209]

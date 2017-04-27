@@ -157,7 +157,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [171]
         literal_text =
-            *l_empty(_r1, context_t::block_in) >> omit[indent(_r1)] >> +nb_char
+            *l_empty(_r1, context_t::block_in) >> indent(_r1) >> +nb_char
             ;
 
         // [172]
@@ -182,7 +182,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [175]
         folded_text =
-            omit[indent(_r1)] >> ns_char >> *nb_char
+            indent(_r1) >> ns_char >> *nb_char
             ;
 
         // [176]
@@ -192,7 +192,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [177]
         spaced_text =
-            omit[indent(_r1)] >> blank >> *nb_char
+            indent(_r1) >> blank >> *nb_char
             ;
 
         // [178]
@@ -246,9 +246,9 @@ namespace omd { namespace yaml { namespace parser {
         // [185]
         // TODO: WTF is up with "m" in the spec?
         block_indented =
-                omit[indent(_r3)] >> (compact_sequence(_r1 + 1, _r3) | compact_mapping(_r1 + 1 + _r3))
+                indent(_r3) >> (compact_sequence(_r1 + 1, _r3) | compact_mapping(_r1 + 1 + _r3))
             |   block_node(_r1, _r2)
-            |   attr(ast::value_t()) >> omit[s_l_comments]
+            |   attr(ast::value_t()) >> s_l_comments
             ;
 
         // [186]
@@ -282,7 +282,7 @@ namespace omd { namespace yaml { namespace parser {
 
         // [191]
         block_map_explicit_value =
-            omit[indent(_r1)] >> ':' >> block_indented(_r1, context_t::block_out, 0) // TODO: Should the 0 be m?
+            indent(_r1) >> ':' >> block_indented(_r1, context_t::block_out, 0) // TODO: Should the 0 be m?
             ;
 
         // [192]
@@ -299,7 +299,7 @@ namespace omd { namespace yaml { namespace parser {
         // [194]
         block_map_implicit_value =
                 ':'
-            >>  (block_node(_r1, context_t::block_out) | attr(ast::value_t()) >> omit[s_l_comments])
+            >>  (block_node(_r1, context_t::block_out) | attr(ast::value_t()) >> s_l_comments)
             ;
 
         // [195]

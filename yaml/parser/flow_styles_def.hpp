@@ -250,13 +250,13 @@ namespace omd { namespace yaml { namespace parser {
 
         // [137]
         flow_sequence =
-            '[' >> -omit[separate(_r1, _r2)] >> -flow_seq_entries(_r1, in_flow(_r2)) >> ']'
+            '[' >> -separate(_r1, _r2) >> -flow_seq_entries(_r1, in_flow(_r2)) >> ']'
             ;
 
         // [138]
         flow_seq_entries =
-                flow_seq_entry(_r1, _r2) % omit[-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2)]
-            >>  omit[-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2)]
+                flow_seq_entry(_r1, _r2) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
+            >>  -(-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
             ;
 
         // [139]
@@ -269,18 +269,18 @@ namespace omd { namespace yaml { namespace parser {
 
         // [140]
         flow_mapping =
-            '{' >> -omit[separate(_r1, _r2)] >> -flow_map_entries(_r1, in_flow(_r2)) >> '}'
+            '{' >> -separate(_r1, _r2) >> -flow_map_entries(_r1, in_flow(_r2)) >> '}'
             ;
 
         // [141]
         flow_map_entries =
-                flow_map_entry(_r1, _r2) % omit[-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2)]
-            >>  omit[-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2)]
+                flow_map_entry(_r1, _r2) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
+            >>  -(-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
             ;
 
         // [142]
         flow_map_entry =
-                '?' >> omit[separate(_r1, _r2)] >> flow_map_explicit_entry(_r1, _r2)
+                '?' >> separate(_r1, _r2) >> flow_map_explicit_entry(_r1, _r2)
             |   flow_map_implicit_entry(_r1, _r2)
             ;
 
@@ -301,7 +301,7 @@ namespace omd { namespace yaml { namespace parser {
         flow_map_yaml_key_entry =
                 flow_yaml_node(_r1, _r2)
             >>  (
-                    -omit[separate(_r1, _r2)] >> flow_map_separate_value(_r1, _r2)
+                    -separate(_r1, _r2) >> flow_map_separate_value(_r1, _r2)
                 |   attr(ast::value_t())
                 )
             ;
@@ -316,7 +316,7 @@ namespace omd { namespace yaml { namespace parser {
                 ':'
             >>  !plain_safe(_r2)
             >>  (
-                    omit[separate(_r1, _r2)] >> flow_node(_r1, _r2)
+                    separate(_r1, _r2) >> flow_node(_r1, _r2)
                 |   attr(ast::value_t())
                 )
             ;
@@ -325,7 +325,7 @@ namespace omd { namespace yaml { namespace parser {
         flow_map_json_key_entry =
                 flow_json_node(_r1, _r2)
             >>  (
-                    -omit[separate(_r1, _r2)] >> flow_map_adjacent_value(_r1, _r2)
+                    -separate(_r1, _r2) >> flow_map_adjacent_value(_r1, _r2)
                 |   attr(ast::value_t())
                 )
             ;
@@ -334,7 +334,7 @@ namespace omd { namespace yaml { namespace parser {
         flow_map_adjacent_value =
                 ':'
             >>  (
-                    -omit[separate(_r1, _r2)] >> flow_node(_r1, _r2)
+                    -separate(_r1, _r2) >> flow_node(_r1, _r2)
                 |   attr(ast::value_t())
                 )
             ;
@@ -364,12 +364,12 @@ namespace omd { namespace yaml { namespace parser {
 
         // [154]
         implicit_yaml_key =
-            flow_yaml_node(0, _r1) >> -omit[separate_in_line]
+            flow_yaml_node(0, _r1) >> -separate_in_line
             ;
 
         // [155]
         implicit_json_key =
-            flow_json_node(0, _r1) >> -omit[separate_in_line]
+            flow_json_node(0, _r1) >> -separate_in_line
             ;
 
         // 7.5 Flow Nodes
@@ -400,12 +400,12 @@ namespace omd { namespace yaml { namespace parser {
                 as<ast::value_t>()[alias_node]
             |   flow_yaml_content(_r1, _r2)
             |   omit[properties(_r1, _r2)]
-            >>  (omit[separate(_r1, _r2)] >> flow_yaml_content(_r1, _r2) | attr(ast::value_t()))
+            >>  (separate(_r1, _r2) >> flow_yaml_content(_r1, _r2) | attr(ast::value_t()))
             ;
 
         // [160]
         flow_json_node =
-                -omit[properties(_r1, _r2) > separate(_r1, _r2)]
+                -(omit[properties(_r1, _r2)] > separate(_r1, _r2))
             >>  flow_json_content(_r1, _r2)
             ;
 
@@ -414,7 +414,7 @@ namespace omd { namespace yaml { namespace parser {
                 as<ast::value_t>()[alias_node]
             |   flow_content(_r1, _r2)
             |   omit[properties(_r1, _r2)]
-            >>  (omit[separate(_r1, _r2)] >> flow_content(_r1, _r2) | attr(ast::value_t()))
+            >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
             ;            
 
         BOOST_SPIRIT_DEBUG_NODES(
