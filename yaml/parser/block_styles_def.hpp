@@ -76,6 +76,7 @@ namespace yaml { namespace parser {
         phx::function<detail::indentation> indentation;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
         auto ins = phx::insert(_val, _1);
+        auto pb = phx::push_back(_val, _1);
 
         auto & nb_char = flow_styles_.basic_structures_.characters_.nb_char;
         auto & ns_char = flow_styles_.basic_structures_.characters_.ns_char;
@@ -233,7 +234,7 @@ namespace yaml { namespace parser {
         // [183]
         block_sequence =
                 auto_detect_indent[_a = _1 - _r1]
-            >>  +(indent(_r1 + _a) >> block_seq_entry(_r1, _a))
+            >>  +(indent(_r1 + _a) >> block_seq_entry(_r1, _a)[pb])
             ;
 
         // [184]
@@ -261,7 +262,7 @@ namespace yaml { namespace parser {
         // [187]
         block_mapping =
                 auto_detect_indent[_a = _r1]
-            >>  +(indent(_r1) >> block_map_entry(_r1)[ins])
+            >>  +(indent(_r1) >> block_map_entry(_r1)[ins]) // TODO: Report duplicate keys when found.
             ;
 
         // [188]

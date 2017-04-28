@@ -49,6 +49,7 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
+        qi::hold_type hold;
         qi::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
@@ -91,7 +92,7 @@ namespace yaml { namespace parser {
         // 7.3.1 Double Quoted Style
 
         // [107]
-        auto & nb_double_char =
+        nb_double_char =
                 basic_structures_.characters_.esc_char
             |   print - char_("\"\\")
             ;
@@ -233,7 +234,8 @@ namespace yaml { namespace parser {
 
         // [134]
         plain_next_line =
-            flow_folded(_r1) >> plain_char(_r2) >> plain_in_line(_r2)
+            // TODO: Apply hold[] everywhere appropriate.
+            hold[flow_folded(_r1) >> plain_char(_r2) >> plain_in_line(_r2)]
             ;
 
         // [135]

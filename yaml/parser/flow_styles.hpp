@@ -22,6 +22,7 @@ namespace yaml { namespace parser {
 
         qi::rule<Iterator, ast::alias_t()> alias_node;
 
+        qi::rule<Iterator, std::string()> nb_double_char;
         qi::rule<Iterator, std::string()> ns_double_char;
         qi::rule<Iterator, std::string(int, context_t)> double_quoted;
         qi::rule<Iterator, std::string(int, context_t)> double_text;

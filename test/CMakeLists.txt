@@ -85,7 +85,6 @@ foreach (yml_file_root ${yml_file_index})
 endforeach()
 
 set(invalid_yaml_test_suite_files
-    2JQS
     # TODO
 )
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
