@@ -17,7 +17,7 @@
 #include <boost/regex/pending/unicode_iterator.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -169,6 +169,6 @@ namespace omd { namespace yaml { namespace parser {
         );
     }
 
-} } }
+} }
 
 #endif

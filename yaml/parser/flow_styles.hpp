@@ -11,7 +11,7 @@
 #include <yaml/parser/basic_structures.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     template <typename Iterator>
     struct flow_styles
@@ -78,6 +78,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_node;
     };
 
-} } }
+} }
 
 #endif

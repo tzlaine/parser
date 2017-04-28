@@ -25,9 +25,9 @@ TEST(parse, test_parse_yaml)
 
     std::ifstream & in = *in_ptr;
 
-    using omd::yaml::ast::value_t;
-    using omd::yaml::parser::parse_yaml;
-    using omd::yaml::ast::print_yaml;
+    using yaml::ast::value_t;
+    using yaml::parser::parse_yaml;
+    using yaml::ast::print_yaml;
 
     std::vector<value_t> result;
     ASSERT_TRUE((parse_yaml(in, result, filename))) << "failed initial parse of " << filename;
@@ -38,7 +38,7 @@ TEST(parse, test_parse_yaml)
 
     {
         std::stringstream expanded_once;
-        omd::yaml::ast::print_yaml<3, true>(expanded_once, result[0]);
+        yaml::ast::print_yaml<3, true>(expanded_once, result[0]);
         std::vector<value_t> reparsed_once_result;
         bool const expanded_once_parse =
             parse_yaml(expanded_once, reparsed_once_result, filename + std::string("_expanded_once_string"));
@@ -46,7 +46,7 @@ TEST(parse, test_parse_yaml)
         EXPECT_EQ(reparsed_once_result.size(), 1u);
         if (expanded_once_parse && reparsed_once_result.size() == 1u) {
             std::stringstream expanded_twice;
-            omd::yaml::ast::print_yaml<3, true>(expanded_twice, reparsed_once_result[0]);
+            yaml::ast::print_yaml<3, true>(expanded_twice, reparsed_once_result[0]);
             std::vector<value_t> reparsed_twice_result;
             bool const expanded_twice_parse =
                 parse_yaml(expanded_twice, reparsed_twice_result, filename + std::string("_expanded_twice_string"));
@@ -60,7 +60,7 @@ TEST(parse, test_parse_yaml)
 
     {
         std::stringstream unexpanded;
-        omd::yaml::ast::print_yaml(unexpanded, result[0]);
+        yaml::ast::print_yaml(unexpanded, result[0]);
         std::vector<value_t> reparsed_result;
         bool const unexpanded_parse =
             parse_yaml(unexpanded, reparsed_result, filename + std::string("_unexpanded_string"));

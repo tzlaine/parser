@@ -11,7 +11,7 @@
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
 #define PARSE_YAML_IMPLEMENTATION()                                     \
-namespace omd { namespace yaml { namespace parser {                     \
+namespace yaml { namespace parser {                                     \
                                                                         \
     bool parse_yaml(                                                    \
         std::istream & is,                                              \
@@ -43,7 +43,7 @@ namespace omd { namespace yaml { namespace parser {                     \
         return retval;                                                  \
     }                                                                   \
                                                                         \
-} } }
+} }
 
 #if YAML_HEADER_ONLY
 PARSE_YAML_IMPLEMENTATION()

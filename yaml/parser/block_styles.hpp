@@ -11,7 +11,7 @@
 #include <yaml/parser/flow_styles.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     enum class chomping_t {
         strip, clip, keep
@@ -115,6 +115,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t(int, context_t)> block_collection;
     };
 
-} } }
+} }
 
 #endif

@@ -17,7 +17,7 @@
 #include <boost/phoenix/object/construct.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -470,6 +470,6 @@ namespace omd { namespace yaml { namespace parser {
         );
     }
 
-} } }
+} }
 
 #endif

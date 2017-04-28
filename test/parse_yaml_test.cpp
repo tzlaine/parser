@@ -25,9 +25,9 @@ TEST(parse, test_parse_yaml)
 
     std::ifstream & in = *in_ptr;
 
-    using omd::yaml::ast::value_t;
-    using omd::yaml::parser::parse_yaml;
-    using omd::yaml::ast::print_yaml;
+    using yaml::ast::value_t;
+    using yaml::parser::parse_yaml;
+    using yaml::ast::print_yaml;
 
     std::vector<value_t> result;
     ASSERT_TRUE((parse_yaml(in, result, filename))) << "failed initial parse of " << filename;

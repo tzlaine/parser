@@ -11,7 +11,7 @@
 #include <yaml/parser/characters.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     template <typename Iterator>
     struct basic_structures
@@ -54,6 +54,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> anchor_name;
     };
 
-} } }
+} }
 
 #endif

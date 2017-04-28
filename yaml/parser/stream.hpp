@@ -18,7 +18,7 @@
 #endif
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     template <typename Iterator>
     struct stream
@@ -51,7 +51,7 @@ namespace omd { namespace yaml { namespace parser {
         std::string const& source_file = ""
     );
 
-} } }
+} }
 
 #include <yaml/detail/parse_impl.hpp>
 

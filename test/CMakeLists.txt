@@ -18,7 +18,7 @@ add_executable(
 )
 target_link_libraries(parse_test yaml gtest)
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
-#target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -37,7 +37,7 @@ add_executable(
 )
 target_link_libraries(parse_round_trip_test yaml gtest)
 target_compile_definitions(parse_round_trip_test PRIVATE -DYAML_HEADER_ONLY=0)
-target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+#target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 endif()
 
 if (clang_on_linux)

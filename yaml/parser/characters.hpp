@@ -20,7 +20,7 @@
 #include <string>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
@@ -85,6 +85,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> esc_char;
     };
 
-} } }
+} }
 
 #endif

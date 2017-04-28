@@ -6,8 +6,8 @@
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
-#ifndef OMD_AST_VALUE_IMPL_HPP
-#define OMD_AST_VALUE_IMPL_HPP
+#ifndef AST_VALUE_IMPL_HPP
+#define AST_VALUE_IMPL_HPP
 
 #include <yaml/ast.hpp>
 
@@ -20,8 +20,8 @@
 #include <map>
 
 
-namespace omd { namespace yaml { namespace ast
-{
+namespace yaml { namespace ast {
+
     namespace detail
     {
         struct depth_f
@@ -677,6 +677,7 @@ namespace omd { namespace yaml { namespace ast
         boost::apply_visitor(f, val.get());
         return out;
     }
-}}}
+
+} }
 
 #endif

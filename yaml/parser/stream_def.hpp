@@ -16,7 +16,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 
 
-namespace omd { namespace yaml { namespace parser {
+namespace yaml { namespace parser {
 
     template <typename Iterator>
     stream<Iterator>::stream (std::string const & source_file)
@@ -126,6 +126,6 @@ namespace omd { namespace yaml { namespace parser {
         qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
 
-} } }
+} }
 
 #endif

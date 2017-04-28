@@ -16,4 +16,4 @@ typedef std::string::const_iterator base_iterator_type;
 typedef boost::spirit::classic::position_iterator<base_iterator_type>
     iterator_type;
 
-template struct omd::yaml::parser::block_styles<iterator_type>;
+template struct yaml::parser::block_styles<iterator_type>;

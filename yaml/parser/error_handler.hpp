@@ -6,8 +6,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#if !defined(OMD_COMMON_ERROR_HANDLER_HPP)
-#define OMD_COMMON_ERROR_HANDLER_HPP
+#ifndef COMMON_ERROR_HANDLER_HPP
+#define COMMON_ERROR_HANDLER_HPP
 
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -15,8 +15,8 @@
 #include <string>
 #include <iostream>
 
-namespace omd { namespace yaml { namespace parser
-{
+namespace yaml { namespace parser {
+
     template <typename Iterator>
     struct error_handler
     {
@@ -70,6 +70,7 @@ namespace omd { namespace yaml { namespace parser
             std::cerr << "^_" << std::endl;
         }
     };
-}}}
+
+} }
 
 #endif
