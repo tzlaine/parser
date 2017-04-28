@@ -1,5 +1,5 @@
 /**
- *   Copyright (C) 2010 Zach Laine
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -341,6 +341,8 @@ namespace yaml { namespace parser {
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (auto_detect_indent)
+
             (block_header)
             (indentation_indicator)
             (chomping_indicator)
