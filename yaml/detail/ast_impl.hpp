@@ -34,7 +34,7 @@ namespace yaml { namespace ast {
                 return 0;
             }
 
-            int operator()(anchored_object_t const& anchored) const
+            int operator()(anchored_node_t const& anchored) const
             {
                 return boost::apply_visitor(*this, anchored.second.get());
             }
@@ -47,10 +47,10 @@ namespace yaml { namespace ast {
                 return boost::apply_visitor(*this, alias.second->get());
             }
 
-            int operator()(object_t const& obj) const
+            int operator()(map_t const& obj) const
             {
                 int max_depth = 0;
-                for (object_element_t const& val : obj)
+                for (map_element_t const& val : obj)
                 {
                     int element_depth = boost::apply_visitor(*this, val.second.get());
                     max_depth = (std::max)(max_depth, element_depth);
@@ -58,7 +58,7 @@ namespace yaml { namespace ast {
                 return max_depth + 1;
             }
 
-            int operator()(array_t const& arr) const
+            int operator()(seq_t const& arr) const
             {
                 int max_depth = 0;
                 for (value_t const& val : arr)
@@ -76,13 +76,13 @@ namespace yaml { namespace ast {
             return boost::apply_visitor(f, val.get());
         }
 
-        inline int depth(array_t const& arr)
+        inline int depth(seq_t const& arr)
         {
             depth_f f;
             return f(arr);
         }
 
-        inline int depth(object_t const& obj)
+        inline int depth(map_t const& obj)
         {
             depth_f f;
             return f(obj);
@@ -172,7 +172,7 @@ namespace yaml { namespace ast {
                 out << d;
             }
 
-            void operator()(anchored_object_t const& anchored) const
+            void operator()(anchored_node_t const& anchored) const
             {
                 if (!expand_aliases)
                     out << '&' << anchored.first << ' ';
@@ -200,12 +200,12 @@ namespace yaml { namespace ast {
                 out << val;
             }
 
-            void print_json_object(object_t const& obj) const
+            void print_json_object(map_t const& obj) const
             {
                 out << '{';
                 bool first = true;
 
-                for (object_element_t const& val : obj)
+                for (map_element_t const& val : obj)
                 {
                     if (first)
                     {
@@ -231,12 +231,12 @@ namespace yaml { namespace ast {
                 return (level <= primary_level) || (depth(val) > 1);
             }
 
-            void print_yaml_object(object_t const& obj) const
+            void print_yaml_object(map_t const& obj) const
             {
                 current_indent += spaces;
                 bool first = true;
 
-                for (object_element_t const& val : obj)
+                for (map_element_t const& val : obj)
                 {
                     if (first)
                     {
@@ -267,7 +267,7 @@ namespace yaml { namespace ast {
                 current_indent -= spaces;
             }
 
-            void operator()(object_t const& obj) const
+            void operator()(map_t const& obj) const
             {
                 ++level;
                 if (dont_print_inline(obj))
@@ -277,7 +277,7 @@ namespace yaml { namespace ast {
                 --level;
             }
 
-            void print_json_array(array_t const& arr) const
+            void print_json_array(seq_t const& arr) const
             {
                 out << '[';
                 bool first = true;
@@ -294,7 +294,7 @@ namespace yaml { namespace ast {
                 out << ']';
             }
 
-            void print_yaml_array(array_t const& arr) const
+            void print_yaml_array(seq_t const& arr) const
             {
                 bool first = true;
 
@@ -320,7 +320,7 @@ namespace yaml { namespace ast {
                 current_indent -= spaces;
             }
 
-            void operator()(array_t const& arr) const
+            void operator()(seq_t const& arr) const
             {
                 ++level;
                 if (dont_print_inline(arr))
@@ -350,7 +350,7 @@ namespace yaml { namespace ast {
             {
             }
 
-            void operator()(anchored_object_t& anchored)
+            void operator()(anchored_node_t& anchored)
             {
                 if (phase == 2)
                     return;
@@ -362,11 +362,11 @@ namespace yaml { namespace ast {
                 boost::apply_visitor(*this, anchored.second.get());
             }
 
-            void operator()(anchored_object_t const& anchored)
+            void operator()(anchored_node_t const& anchored)
             {
                 // Don't worry, this (const_cast) is safe. We are just going to link
                 // the key. The key itself will remain stable for the map's purpose.
-                (*this)(const_cast<anchored_object_t&>(anchored));
+                (*this)(const_cast<anchored_node_t&>(anchored));
             }
 
             void operator()(alias_t& alias)
@@ -390,7 +390,7 @@ namespace yaml { namespace ast {
                 (*this)(const_cast<alias_t&>(alias));
             }
 
-            void operator()(object_t& obj)
+            void operator()(map_t& obj)
             {
                 typedef std::pair<value_t, value_t> pair;
                 for (pair & val : obj)
@@ -400,7 +400,7 @@ namespace yaml { namespace ast {
                 }
             }
 
-            void operator()(array_t& arr)
+            void operator()(seq_t& arr)
             {
                 for (value_t & val : arr)
                 {
@@ -426,19 +426,19 @@ namespace yaml { namespace ast {
                 return a < b;
             }
 
-            bool operator()(anchored_object_t const& a, anchored_object_t const& b) const
+            bool operator()(anchored_node_t const& a, anchored_node_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a.first < b.first;
             }
 
-            bool operator()(anchored_object_t const& a, string_t const& b) const
+            bool operator()(anchored_node_t const& a, string_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a.first < b;
             }
 
-            bool operator()(string_t const& a, anchored_object_t const& b) const
+            bool operator()(string_t const& a, anchored_node_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a < b.first;
@@ -462,24 +462,24 @@ namespace yaml { namespace ast {
                 return a < b.first;
             }
 
-            bool operator()(anchored_object_t const& a, alias_t const& b) const
+            bool operator()(anchored_node_t const& a, alias_t const& b) const
             {
                 // anchors and aliases are compared using their names (IDs)
                 return a.first < b.first;
             }
 
-            bool operator()(alias_t const& a, anchored_object_t const& b) const
+            bool operator()(alias_t const& a, anchored_node_t const& b) const
             {
                 // anchors and aliases are compared using their names (IDs)
                 return a.first < b.first;
             }
 
-            bool operator()(object_t const& a, object_t const& b)
+            bool operator()(map_t const& a, map_t const& b)
             {
                 return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
             }
 
-            bool operator()(array_t const& a, array_t const& b)
+            bool operator()(seq_t const& a, seq_t const& b)
             {
                 return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
             }
@@ -502,19 +502,19 @@ namespace yaml { namespace ast {
                 return a == b;
             }
 
-            bool operator()(anchored_object_t const& a, anchored_object_t const& b) const
+            bool operator()(anchored_node_t const& a, anchored_node_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a.first == b.first;
             }
 
-            bool operator()(anchored_object_t const& a, string_t const& b) const
+            bool operator()(anchored_node_t const& a, string_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a.first == b;
             }
 
-            bool operator()(string_t const& a, anchored_object_t const& b) const
+            bool operator()(string_t const& a, anchored_node_t const& b) const
             {
                 // anchors are compared using their names (IDs)
                 return a == b.first;
@@ -538,24 +538,24 @@ namespace yaml { namespace ast {
                 return a == b.first;
             }
 
-            bool operator()(anchored_object_t const& a, alias_t const& b) const
+            bool operator()(anchored_node_t const& a, alias_t const& b) const
             {
                 // anchors and aliases are compared using their names (IDs)
                 return a.first == b.first;
             }
 
-            bool operator()(alias_t const& a, anchored_object_t const& b) const
+            bool operator()(alias_t const& a, anchored_node_t const& b) const
             {
                 // anchors and aliases are compared using their names (IDs)
                 return a.first == b.first;
             }
 
-            bool operator()(object_t const& a, object_t const& b)
+            bool operator()(map_t const& a, map_t const& b)
             {
                 if (a.size() != b.size())
                     return false;
-                object_t::const_iterator ii = b.begin();
-                for (object_t::const_iterator i = a.begin(); i != a.end(); ++i)
+                map_t::const_iterator ii = b.begin();
+                for (map_t::const_iterator i = a.begin(); i != a.end(); ++i)
                 {
                     if (*i != *ii++)
                         return false;
@@ -563,12 +563,12 @@ namespace yaml { namespace ast {
                 return true;
             }
 
-            bool operator()(array_t const& a, array_t const& b)
+            bool operator()(seq_t const& a, seq_t const& b)
             {
                 if (a.size() != b.size())
                     return false;
-                array_t::const_iterator ii = b.begin();
-                for (array_t::const_iterator i = a.begin(); i != a.end(); ++i)
+                seq_t::const_iterator ii = b.begin();
+                for (seq_t::const_iterator i = a.begin(); i != a.end(); ++i)
                 {
                     if (*i != *ii++)
                         return false;
@@ -617,40 +617,40 @@ namespace yaml { namespace ast {
         return boost::apply_visitor(detail::value_compare(), a.get(), b.get());
     }
 
-    struct object_t::index_t
+    struct map_t::index_t
     {
         std::unordered_map<value_t, element_iterator_t, boost::hash<value_t>> map_;
     };
 
-    inline object_t::object_t ()
+    inline map_t::map_t ()
         : index_ (new index_t)
     {}
 
-    inline object_t::object_t (object_t const & o)
+    inline map_t::map_t (map_t const & o)
         : elements_ (o.elements_)
         , index_ (o.index_ ? new index_t(*o.index_.get()) : nullptr)
     {}
 
-    inline object_t & object_t::operator= (object_t const & rhs)
+    inline map_t & map_t::operator= (map_t const & rhs)
     {
-        object_t tmp(rhs);
+        map_t tmp(rhs);
         *this = std::move(tmp);
         return *this;
     }
 
-    inline std::pair<object_t::iterator, bool> object_t::insert (object_element_t const & e)
+    inline std::pair<map_t::iterator, bool> map_t::insert (map_element_t const & e)
     {
         auto const index_it = index_->map_.find(e.first);
         if (index_it == index_->map_.end()) {
             iterator const it = elements_.insert(elements_.end(), e);
             index_->map_[e.first] = it;
-            return std::pair<object_t::iterator, bool>{it, true};
+            return std::pair<map_t::iterator, bool>{it, true};
         } else {
-            return std::pair<object_t::iterator, bool>{index_it->second, false};
+            return std::pair<map_t::iterator, bool>{index_it->second, false};
         }
     }
 
-    inline object_t::iterator object_t::insert (const_iterator at, object_element_t const & e)
+    inline map_t::iterator map_t::insert (const_iterator at, map_element_t const & e)
     {
         BOOST_ASSERT(index_->map_.find(e.first) == index_->map_.end());
         iterator const it = elements_.insert(at, e);

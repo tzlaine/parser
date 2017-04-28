@@ -287,7 +287,7 @@ namespace yaml { namespace parser {
         // [143]
         flow_map_explicit_entry =
                 flow_map_implicit_entry(_r1, _r2)
-            |   attr(ast::object_element_t())
+            |   attr(ast::map_element_t())
             ;
 
         // [144]

@@ -93,20 +93,20 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string(int, chomping_t)> folded_content;
 
         qi::rule<Iterator, int()> auto_detect_indent;
-        qi::rule<Iterator, ast::array_t(int), qi::locals<int>> block_sequence;
+        qi::rule<Iterator, ast::seq_t(int), qi::locals<int>> block_sequence;
         qi::rule<Iterator, ast::value_t(int n, int m)> block_seq_entry;
         qi::rule<Iterator, ast::value_t(int n, context_t, int m)> block_indented;
-        qi::rule<Iterator, ast::array_t(int n, int m)> compact_sequence;
+        qi::rule<Iterator, ast::seq_t(int n, int m)> compact_sequence;
 
-        qi::rule<Iterator, ast::object_t(int), qi::locals<int>> block_mapping;
-        qi::rule<Iterator, ast::object_element_t(int)> block_map_entry;
-        qi::rule<Iterator, ast::object_element_t(int)> block_map_explicit_entry;
+        qi::rule<Iterator, ast::map_t(int), qi::locals<int>> block_mapping;
+        qi::rule<Iterator, ast::map_element_t(int)> block_map_entry;
+        qi::rule<Iterator, ast::map_element_t(int)> block_map_explicit_entry;
         qi::rule<Iterator, ast::value_t(int)> block_map_explicit_key;
         qi::rule<Iterator, ast::value_t(int)> block_map_explicit_value;
-        qi::rule<Iterator, ast::object_element_t(int)> block_map_implicit_entry;
+        qi::rule<Iterator, ast::map_element_t(int)> block_map_implicit_entry;
         qi::rule<Iterator, ast::value_t()> block_map_implicit_key;
         qi::rule<Iterator, ast::value_t(int)> block_map_implicit_value;
-        qi::rule<Iterator, ast::object_t(int)> compact_mapping;
+        qi::rule<Iterator, ast::map_t(int)> compact_mapping;
 
         qi::rule<Iterator, ast::value_t(int, context_t)> block_node;
         qi::rule<Iterator, ast::value_t(int)> flow_in_block;
