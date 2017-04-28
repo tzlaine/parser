@@ -35,6 +35,41 @@ TEST(parse, test_parse_yaml)
 
     print_yaml(std::cout, result[0]);
     std::cout << std::endl;
+
+    {
+        std::stringstream expanded_once;
+        omd::yaml::ast::print_yaml<3, true>(expanded_once, result[0]);
+        std::vector<value_t> reparsed_once_result;
+        bool const expanded_once_parse =
+            parse_yaml(expanded_once, reparsed_once_result, filename + std::string("_expanded_once_string"));
+        EXPECT_TRUE(expanded_once_parse) << "reparse of expanded_once string failed!";
+        EXPECT_EQ(reparsed_once_result.size(), 1u);
+        if (expanded_once_parse && reparsed_once_result.size() == 1u) {
+            std::stringstream expanded_twice;
+            omd::yaml::ast::print_yaml<3, true>(expanded_twice, reparsed_once_result[0]);
+            std::vector<value_t> reparsed_twice_result;
+            bool const expanded_twice_parse =
+                parse_yaml(expanded_twice, reparsed_twice_result, filename + std::string("_expanded_twice_string"));
+            EXPECT_TRUE(expanded_twice_parse) << "reparse of expanded_twice string failed!";
+            EXPECT_EQ(reparsed_twice_result.size(), 1u);
+            if (expanded_twice_parse && reparsed_twice_result.size() == 1u) {
+                EXPECT_EQ(reparsed_twice_result, reparsed_once_result) << "in parse -> print and expand -> parse -> print and expand -> parse, the final parse differs from middle parse!";
+            }
+        }
+    }
+
+    {
+        std::stringstream unexpanded;
+        omd::yaml::ast::print_yaml(unexpanded, result[0]);
+        std::vector<value_t> reparsed_result;
+        bool const unexpanded_parse =
+            parse_yaml(unexpanded, reparsed_result, filename + std::string("_unexpanded_string"));
+        EXPECT_TRUE(unexpanded_parse) << "reparse of unexpanded string failed!";
+        EXPECT_EQ(reparsed_result.size(), 1u);
+        if (unexpanded_parse && reparsed_result.size() == 1u) {
+            EXPECT_EQ(reparsed_result, result) << "result of parse -> print and don't expand -> parse differs from initial parse!";
+        }
+    }
 }
 
 

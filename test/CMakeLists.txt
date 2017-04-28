@@ -23,6 +23,27 @@ if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
 
+# TODO: Turn this on after the parse tests pass.
+if (false)
+add_executable(
+    parse_round_trip_test
+    characters.cpp
+    basic_structures.cpp
+    flow_style.cpp
+    block_style.cpp
+    stream.cpp
+    parser.cpp
+    parse_yaml_round_trip_test.cpp
+)
+target_link_libraries(parse_round_trip_test yaml gtest)
+target_compile_definitions(parse_round_trip_test PRIVATE -DYAML_HEADER_ONLY=0)
+target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+endif()
+
+if (clang_on_linux)
+    target_link_libraries(parse_round_trip_test c++)
+endif ()
+
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
     message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
@@ -52,6 +73,15 @@ foreach (yml_file_root ${yml_file_index})
         --gtest_catch_exceptions=1
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
     )
+    # TODO: Turn this on after the parse tests pass.
+    if (false)
+        add_test(
+            parse_test_round_trip_${yml_file_root}
+            ${CMAKE_CURRENT_BINARY_DIR}/parse_round_trip_test
+            --gtest_catch_exceptions=1
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
+        )
+    endif()
 endforeach()
 
 set(test_files
