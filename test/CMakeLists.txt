@@ -18,7 +18,7 @@ add_executable(
 )
 target_link_libraries(parse_test yaml gtest)
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
-target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+#target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -84,6 +84,14 @@ foreach (yml_file_root ${yml_file_index})
     endif()
 endforeach()
 
+set(invalid_yaml_test_suite_files
+    2JQS
+    # TODO
+)
+foreach (yml_file_root ${invalid_yaml_test_suite_files})
+    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
+endforeach()
+
 set(test_files
     anchors.yaml
     basic_yaml_block.yaml
@@ -116,7 +124,6 @@ set(test_files
     yaml_block_map7.yaml
     yaml_block_map8.yaml
     yaml_block_map9.yaml
-    escaped_percent_27NA.yml
 )
 foreach (test_file ${test_files})
     add_test(
@@ -125,4 +132,26 @@ foreach (test_file ${test_files})
         --gtest_catch_exceptions=1
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
+    # TODO: Turn this on after the parse tests pass.
+    if (false)
+        add_test(
+            parse_test_round_trip_${test_file}
+            ${CMAKE_CURRENT_BINARY_DIR}/parse_round_trip_test
+            --gtest_catch_exceptions=1
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
+        )
+    endif()
+endforeach()
+
+set(invalid_test_files
+    escaped_percent_27NA.yml
+)
+foreach (invalid_test_file ${invalid_test_files})
+    add_test(
+        parse_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        --gtest_catch_exceptions=1
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
+    )
+    set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
 endforeach()
