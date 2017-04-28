@@ -115,12 +115,13 @@ namespace yaml { namespace parser {
             ;
 
         // [112]
-        double_escaped =
+        double_escaped = hold[
                 *blank
             >> '\\'
             >> eol
             >> *l_empty(_r1, context_t::flow_in)
             >> line_prefix(_r1, context_t::flow_in)
+            ]
             ;
 
         // [113]
@@ -130,17 +131,18 @@ namespace yaml { namespace parser {
 
         // [114]
         double_in_line =
-            *(*blank >> ns_double_char)
+            *hold[*blank >> ns_double_char]
             ;
 
         // [115]
-        double_next_line =
+        double_next_line = hold[
             double_break(_r1)
-            >>  -(
+            >>  -hold[
                     ns_double_char
                 >>  double_in_line
                 >>  (double_next_line(_r1) | *blank)
-                )
+                ]
+            ]
             ;
 
         // [116]
@@ -174,17 +176,18 @@ namespace yaml { namespace parser {
 
         // [123]
         single_in_line =
-            *(*blank >> ns_single_char)
+            *hold[*blank >> ns_single_char]
             ;
 
         // [124]
-        single_next_line =
+        single_next_line = hold[
             flow_folded(_r1)
-            >>  -(
+            >>  -hold[
                     ns_single_char
                 >> single_in_line
                 >>  (single_next_line(_r1) >> *blank)
-                )
+                ]
+            ]
             ;
 
         // [125]
@@ -200,7 +203,7 @@ namespace yaml { namespace parser {
         // [126]
         plain_first =
                 (ns_char - indicator)
-            |   char_("?:-") >> &plain_safe(_r1)
+            |   hold[char_("?:-") >> &plain_safe(_r1)]
             ;
 
         // [127]
@@ -212,8 +215,8 @@ namespace yaml { namespace parser {
         // [130]
         plain_char =
                 plain_safe(_r1) - char_(":#")
-            |   ns_char >> &lit('#')
-            |   ':' >> plain_safe(_r1)
+            |   hold[ns_char >> &lit('#')]
+            |   hold[':' >> plain_safe(_r1)]
             ;
 
         // [131]
@@ -224,12 +227,12 @@ namespace yaml { namespace parser {
 
         // [132]
         plain_in_line =
-            *(*blank >> plain_char(_r1))
+            *hold[*blank >> plain_char(_r1)]
             ;
 
         // [133]
         plain_one_line =
-            plain_first(_r1) >> plain_in_line(_r1)
+            hold[plain_first(_r1) >> plain_in_line(_r1)]
             ;
 
         // [134]
