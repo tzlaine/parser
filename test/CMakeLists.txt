@@ -139,6 +139,7 @@ set(test_files
     yaml_block_map7.yaml
     yaml_block_map8.yaml
     yaml_block_map9.yaml
+    simple_flow_plain.yml
 )
 foreach (test_file ${test_files})
     add_test(
