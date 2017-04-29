@@ -23,8 +23,8 @@ namespace yaml { namespace parser {
 
         struct in_flow
         {
-            template <typename S, typename C>
-            struct result { typedef context_t type; };
+            template <typename, typename>
+            struct result { using type = context_t; };
 
             context_t operator() (context_t c) const
             {
@@ -67,6 +67,10 @@ namespace yaml { namespace parser {
         using phx::construct;
 
         auto ins = phx::insert(_val, _1);
+
+#ifdef BOOST_SPIRIT_DEBUG
+        phx::function<detail::print_indent> print_indent;
+#endif
 
         auto & ns_char = basic_structures_.characters_.ns_char;
 
@@ -237,6 +241,7 @@ namespace yaml { namespace parser {
 
         // [134]
         plain_next_line =
+            YAML_PARSER_PRINT_INDENT >>
             // TODO: Apply hold[] everywhere appropriate.
             hold[flow_folded(_r1) >> plain_char(_r2) >> plain_in_line(_r2)]
             ;
@@ -415,12 +420,13 @@ namespace yaml { namespace parser {
             ;
 
         // [161]
-        flow_node =
+        flow_node = YAML_PARSER_PRINT_INDENT >> (
                 as<ast::value_t>()[alias_node]
             |   flow_content(_r1, _r2)
             |   omit[properties(_r1, _r2)]
             >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
-            ;            
+            )
+            ;
 
         BOOST_SPIRIT_DEBUG_NODES(
             (alias_node)

@@ -78,6 +78,10 @@ namespace yaml { namespace parser {
         auto ins = phx::insert(_val, _1);
         auto pb = phx::push_back(_val, _1);
 
+#ifdef BOOST_SPIRIT_DEBUG
+        phx::function<detail::print_indent> print_indent;
+#endif
+
         auto & nb_char = flow_styles_.basic_structures_.characters_.nb_char;
         auto & ns_char = flow_styles_.basic_structures_.characters_.ns_char;
 
@@ -229,6 +233,9 @@ namespace yaml { namespace parser {
         // indentation > current indentation.
         auto_detect_indent =
             eps[_val = 0] >> &(*lit(' ')[++_val])
+#ifdef BOOST_SPIRIT_DEBUG
+            >> eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
+#endif
             ;
 
         // [183]
@@ -311,8 +318,9 @@ namespace yaml { namespace parser {
         // 8.2.3. Block Nodes
 
         // [196]
-        block_node =
+        block_node = YAML_PARSER_PRINT_INDENT >> (
             block_in_block(_r1, _r2) | flow_in_block(_r1)
+            )
             ;
 
         // [197]
