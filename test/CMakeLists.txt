@@ -6,6 +6,16 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
 
+set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.")
+set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
+if (USE_ASAN AND USE_UBSAN)
+    message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
+elseif (USE_ASAN)
+    set(link_flags -fsanitize=address)
+elseif (USE_UBSAN)
+    set(link_flags -fsanitize=undefined)
+endif()
+
 add_executable(
     parse_test
     characters.cpp
@@ -16,8 +26,11 @@ add_executable(
     parser.cpp
     parse_yaml_test.cpp
 )
-target_link_libraries(parse_test yaml gtest)
+target_link_libraries(parse_test yaml gtest ${link_flags})
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(parse_test PRIVATE ${link_flags})
+endif()
 target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
@@ -35,14 +48,17 @@ add_executable(
     parser.cpp
     parse_yaml_round_trip_test.cpp
 )
-target_link_libraries(parse_round_trip_test yaml gtest)
+target_link_libraries(parse_round_trip_test yaml gtest ${link_flags})
 target_compile_definitions(parse_round_trip_test PRIVATE -DYAML_HEADER_ONLY=0)
-#target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(parse_test PRIVATE ${link_flags})
 endif()
+#target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 
 if (clang_on_linux)
     target_link_libraries(parse_round_trip_test c++)
 endif ()
+endif()
 
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
