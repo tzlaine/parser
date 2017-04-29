@@ -161,8 +161,10 @@ namespace yaml { namespace parser {
 
         BOOST_SPIRIT_DEBUG_NODES(
             (bom)
+#if 0
             (nb_char)
             (ns_char)
+#endif
             (uri_char)
             (tag_char)
             (esc_char)
