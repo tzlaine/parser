@@ -78,8 +78,8 @@ namespace yaml { namespace parser {
 
         qi::rule<Iterator> bom;
 
-        qi::rule<Iterator, std::string()> nb_char;
-        qi::rule<Iterator, std::string()> ns_char;
+        qi::rule<Iterator, char()> nb_char;
+        qi::rule<Iterator, char()> ns_char;
         qi::rule<Iterator, std::string()> uri_char;
         qi::rule<Iterator, std::string()> tag_char;
         qi::rule<Iterator, std::string()> esc_char;

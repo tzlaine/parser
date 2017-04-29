@@ -216,7 +216,7 @@ namespace yaml { namespace parser {
         plain_char =
                 plain_safe(_r1) - char_(":#")
             |   hold[ns_char >> &lit('#')]
-            |   hold[':' >> plain_safe(_r1)]
+            |   hold[char_(':') >> plain_safe(_r1)]
             ;
 
         // [131]

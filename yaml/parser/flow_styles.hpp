@@ -32,16 +32,16 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string(int)> double_next_line;
         qi::rule<Iterator, std::string(int)> double_multi_line;
 
-        qi::rule<Iterator, std::string()> nb_single_char;
-        qi::rule<Iterator, std::string()> ns_single_char;
+        qi::rule<Iterator, char()> nb_single_char;
+        qi::rule<Iterator, char()> ns_single_char;
         qi::rule<Iterator, std::string(int, context_t)> single_quoted;
         qi::rule<Iterator, std::string(int, context_t)> single_text;
         qi::rule<Iterator, std::string()> single_in_line;
         qi::rule<Iterator, std::string(int)> single_next_line;
         qi::rule<Iterator, std::string(int)> single_multi_line;
 
-        qi::rule<Iterator, std::string(context_t)> plain_first;
-        qi::rule<Iterator, std::string(context_t)> plain_safe;
+        qi::rule<Iterator, char(context_t)> plain_first;
+        qi::rule<Iterator, char(context_t)> plain_safe;
         qi::rule<Iterator, std::string(context_t)> plain_char;
         qi::rule<Iterator, std::string(int, context_t)> plain;
         qi::rule<Iterator, std::string(context_t)> plain_in_line;
