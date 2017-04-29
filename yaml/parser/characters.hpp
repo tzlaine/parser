@@ -20,7 +20,32 @@
 #include <string>
 
 
+#ifdef BOOST_SPIRIT_DEBUG
+#define YAML_PARSER_PRINT_INDENT >> eps(print_indent(_r1))
+#else
+#define YAML_PARSER_PRINT_INDENT
+#endif
+
+
 namespace yaml { namespace parser {
+
+    namespace detail {
+
+#ifdef BOOST_SPIRIT_DEBUG
+        struct print_indent
+        {
+            template <typename>
+            struct result { using type = bool; };
+
+            bool operator() (int n) const
+            {
+                std::cerr << n << " ======================================== " << n << "\n";
+                return true;
+            }
+        };
+#endif
+
+    }
 
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
