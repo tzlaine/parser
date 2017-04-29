@@ -230,20 +230,24 @@ namespace yaml { namespace parser {
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+#if 0
             (indent)
             (indent_lt)
             (indent_le)
             (separate_in_line)
             (line_prefix)
             (l_empty)
+#endif
             (b_l_folded)
             (flow_folded)
+#if 0
             (comment_text)
             (s_b_comment)
             (l_comment)
             (s_l_comments)
             (separate)
             (separate_lines)
+#endif
             (directive)
             (reserved_directive)
             (yaml_directive)
