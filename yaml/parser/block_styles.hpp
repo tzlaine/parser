@@ -111,8 +111,18 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t(int, context_t)> block_node;
         qi::rule<Iterator, ast::value_t(int)> flow_in_block;
         qi::rule<Iterator, ast::value_t(int, context_t)> block_in_block;
-        qi::rule<Iterator, ast::value_t(int, context_t)> block_scalar;
-        qi::rule<Iterator, ast::value_t(int, context_t)> block_collection;
+
+        qi::rule<
+            Iterator,
+            ast::value_t(int, context_t),
+            qi::locals<ast::properties_t>
+        > block_scalar;
+
+        qi::rule<
+            Iterator,
+            ast::value_t(int, context_t),
+            qi::locals<ast::properties_t>
+        > block_collection;
     };
 
 } }

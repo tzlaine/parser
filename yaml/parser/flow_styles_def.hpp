@@ -42,6 +42,15 @@ namespace yaml { namespace parser {
             }
         };
 
+        struct alias_from_anchor
+        {
+            template <typename, typename>
+            struct result { using type = ast::alias_t; };
+
+            ast::alias_t operator() (ast::alias_t const & anchor) const
+            { return ast::alias_t(anchor.first, anchor.second); }
+        };
+
     }
 
     template <typename Iterator>
@@ -53,6 +62,7 @@ namespace yaml { namespace parser {
         qi::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
+        qi::_a_type _a;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
         qi::lit_type lit;
@@ -66,6 +76,8 @@ namespace yaml { namespace parser {
         using phx::function;
         using phx::construct;
 
+        phx::function<detail::alias_from_anchor> alias_from_anchor;
+        phx::function<detail::handle_properties> handle_properties;
         auto ins = phx::insert(_val, _1);
 
 #ifdef BOOST_SPIRIT_DEBUG
@@ -74,7 +86,6 @@ namespace yaml { namespace parser {
 
         auto & ns_char = basic_structures_.characters_.ns_char;
 
-        auto & anchor_name = basic_structures_.anchor_name;
         auto & flow_folded = basic_structures_.flow_folded;
         auto & l_empty = basic_structures_.l_empty;
         auto & line_prefix = basic_structures_.line_prefix;
@@ -87,8 +98,7 @@ namespace yaml { namespace parser {
         // [104]
         alias_node =
                 '*'
-            >   anchor_name
-            >   attr((ast::value_t*)0)
+            >   anchors[_val = alias_from_anchor(_1)]
             ;
 
         // 7.3 Flow Scalar Styles
@@ -407,24 +417,27 @@ namespace yaml { namespace parser {
 
         // [159]
         flow_yaml_node =
-                as<ast::value_t>()[alias_node]
-            |   flow_yaml_content(_r1, _r2)
-            |   omit[properties(_r1, _r2)]
+                as<ast::value_t>()[alias_node][_val = _1]
+            |   flow_yaml_content(_r1, _r2)[_val = _1]
+            |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_yaml_content(_r1, _r2) | attr(ast::value_t()))
+                [_val = handle_properties(_a, _1, phx::ref(anchors))]
             ;
 
         // [160]
         flow_json_node =
-                -(omit[properties(_r1, _r2)] > separate(_r1, _r2))
+                -(omit[properties(_r1, _r2)[_a = _1]] > separate(_r1, _r2))
             >>  flow_json_content(_r1, _r2)
+                [_val = handle_properties(_a, _1, phx::ref(anchors))]
             ;
 
         // [161]
         flow_node = YAML_PARSER_PRINT_INDENT >> (
-                as<ast::value_t>()[alias_node]
-            |   flow_content(_r1, _r2)
-            |   omit[properties(_r1, _r2)]
+                as<ast::value_t>()[alias_node][_val = _1]
+            |   flow_content(_r1, _r2)[_val = _1]
+            |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
+                [_val = handle_properties(_a, _1, phx::ref(anchors))]
             )
             ;
 

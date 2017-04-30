@@ -19,19 +19,17 @@
 
 namespace yaml { namespace ast {
 
-    // ------------------- AST types --------------------
-    //
-    typedef std::string                         string_t;
-    typedef double                              double_t;
-    typedef int                                 int_t;
-    typedef bool                                bool_t;
+    using string_t = std::string;
+    using double_t = double;
+    using int_t = int;
+    using bool_t = bool;
 
-    struct null_t {};
-
-    // nulls always compare
-    inline bool operator==(null_t a, null_t b) { return true;  }
-    inline bool operator!=(null_t a, null_t b) { return false; }
-    inline bool operator<(null_t a, null_t b) { return false; }
+    struct null_t
+    {
+        friend bool operator==(null_t a, null_t b) { return true; }
+        friend bool operator!=(null_t a, null_t b) { return false; }
+        friend bool operator<(null_t a, null_t b) { return false; }
+    };
 
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream& operator<<(std::ostream& out, null_t)
@@ -40,10 +38,9 @@ namespace yaml { namespace ast {
 
     struct value_t;
 
-    typedef std::pair<value_t, value_t>                  map_element_t;
-    typedef boost::container::stable_vector<value_t>     seq_t;
-    typedef std::pair<string_t, value_t>                 anchored_node_t;
-    typedef std::pair<string_t, value_t*>                alias_t;
+    using map_element_t = std::pair<value_t, value_t>;
+    using seq_t = boost::container::stable_vector<value_t>;
+    using alias_t = std::pair<string_t, std::shared_ptr<value_t>>;
 
     struct properties_t
     {
@@ -52,6 +49,9 @@ namespace yaml { namespace ast {
             : tag_ (std::move(tag)), anchor_ (std::move(anchor))
         {}
 
+        explicit operator bool () const
+        { return tag_ != "" || anchor_ != ""; }
+
         string_t tag_;
         string_t anchor_;
     };
@@ -59,6 +59,8 @@ namespace yaml { namespace ast {
     inline std::ostream& operator<<(std::ostream& out, properties_t p)
     { return out << p.tag_ << ',' << p.anchor_; }
 #endif
+
+    using properties_node_t = std::pair<properties_t, value_t>;
 
     struct map_t;
 
@@ -72,7 +74,7 @@ namespace yaml { namespace ast {
           boost::recursive_wrapper<map_t>,
           seq_t,
           alias_t,
-          boost::recursive_wrapper<anchored_node_t>
+          boost::recursive_wrapper<properties_node_t>
         >
     {
         value_t(char const* val) : base_type(string_t(val)) {}
@@ -84,10 +86,9 @@ namespace yaml { namespace ast {
         value_t(map_t const& val) : base_type(val) {}
         value_t(seq_t const& val) : base_type(val) {}
         value_t(alias_t const& val) : base_type(val) {}
-        value_t(anchored_node_t const& val) : base_type(val) {}
+        value_t(properties_node_t const& val) : base_type(val) {}
 
-        value_t(value_t const& rhs)
-            : base_type(rhs.get()) {}
+        value_t(value_t const& rhs) : base_type(rhs.get()) {}
     };
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<< (std::ostream & os, value_t const & v)
@@ -152,9 +153,6 @@ namespace yaml { namespace ast {
         struct index_t;
         std::unique_ptr<index_t> index_;
     };
-
-    // Link all aliases in a YAML value
-    void link_yaml(value_t& val);
 
     // Print a YAML value
     template <int Spaces, bool ExpandAliases>

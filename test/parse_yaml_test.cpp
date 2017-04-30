@@ -46,6 +46,9 @@ int main (int argc, char** argv)
         return 1;
     }
 
+    // TODO: Cruft.  Replace this with tests that have different
+    // BOMs/encodings.
+
     // Last arg must be the name of the file to parse.
     filename = argv[argc - 1];
     std::ifstream in(filename, std::ios_base::in);

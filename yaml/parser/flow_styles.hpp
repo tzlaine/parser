@@ -13,12 +13,43 @@
 
 namespace yaml { namespace parser {
 
+    namespace detail {
+
+        struct handle_properties
+        {
+            template <typename, typename, typename>
+            struct result { using type = ast::value_t; };
+
+            template <typename T>
+            ast::value_t operator() (
+                ast::properties_t const & properties,
+                T const & x,
+                qi::symbols<char, ast::alias_t> & anchors
+            ) const {
+                if (properties.anchor_ != "") {
+                    std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
+                    anchors.remove(properties.anchor_);
+                    anchors.add(
+                        properties.anchor_,
+                        ast::alias_t(properties.anchor_, anchor_ptr)
+                    );
+                }
+                if (properties)
+                    return ast::value_t(ast::properties_node_t(properties, ast::value_t(x)));
+                return ast::value_t(x);
+            }
+        };
+
+    }
+
     template <typename Iterator>
     struct flow_styles
     {
         flow_styles ();
 
         basic_structures<Iterator> basic_structures_;
+
+        qi::symbols<char, ast::alias_t> anchors;
 
         qi::rule<Iterator, ast::alias_t()> alias_node;
 
@@ -74,9 +105,24 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_yaml_content;
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_json_content;
         qi::rule<Iterator, ast::value_t(int, context_t)> flow_content;
-        qi::rule<Iterator, ast::value_t(int, context_t)> flow_yaml_node;
-        qi::rule<Iterator, ast::value_t(int, context_t)> flow_json_node;
-        qi::rule<Iterator, ast::value_t(int, context_t)> flow_node;
+
+        qi::rule<
+            Iterator,
+            ast::value_t(int, context_t),
+            qi::locals<ast::properties_t>
+        > flow_yaml_node;
+
+        qi::rule<
+            Iterator,
+            ast::value_t(int, context_t),
+            qi::locals<ast::properties_t>
+        > flow_json_node;
+
+        qi::rule<
+            Iterator,
+            ast::value_t(int, context_t),
+            qi::locals<ast::properties_t>
+        > flow_node;
     };
 
 } }

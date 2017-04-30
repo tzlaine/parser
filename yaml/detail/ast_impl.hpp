@@ -34,9 +34,9 @@ namespace yaml { namespace ast {
                 return 0;
             }
 
-            int operator()(anchored_node_t const& anchored) const
+            int operator()(properties_node_t const& pn) const
             {
-                return boost::apply_visitor(*this, anchored.second.get());
+                return boost::apply_visitor(*this, pn.second.get());
             }
 
             int operator()(alias_t const& alias) const
@@ -172,11 +172,11 @@ namespace yaml { namespace ast {
                 out << d;
             }
 
-            void operator()(anchored_node_t const& anchored) const
+            void operator()(properties_node_t const& pn) const
             {
-                if (!expand_aliases)
-                    out << '&' << anchored.first << ' ';
-                boost::apply_visitor(*this, anchored.second.get());
+                if (pn.first.anchor_ != "" && !expand_aliases)
+                    out << '&' << pn.first.anchor_ << ' ';
+                boost::apply_visitor(*this, pn.second.get());
             }
 
             void operator()(alias_t const& alias) const
@@ -337,78 +337,6 @@ namespace yaml { namespace ast {
             }
         };
 
-        struct yaml_linker
-        {
-            typedef void result_type;
-            std::map<std::string, value_t*> symbol_table;
-            int phase;
-
-            yaml_linker() : phase(1) {}
-
-            template <typename T>
-            void operator()(T& val)
-            {
-            }
-
-            void operator()(anchored_node_t& anchored)
-            {
-                if (phase == 2)
-                    return;
-
-                // Note: it is possuble to re-define an alias as per yaml specs.
-                symbol_table[anchored.first] = &anchored.second;
-
-                // Now link the anchored object
-                boost::apply_visitor(*this, anchored.second.get());
-            }
-
-            void operator()(anchored_node_t const& anchored)
-            {
-                // Don't worry, this (const_cast) is safe. We are just going to link
-                // the key. The key itself will remain stable for the map's purpose.
-                (*this)(const_cast<anchored_node_t&>(anchored));
-            }
-
-            void operator()(alias_t& alias)
-            {
-                if (phase == 1)
-                    return;
-
-                std::map<std::string, value_t*>::iterator
-                    iter = symbol_table.find(alias.first);
-
-                // This cannot happen. The parser makes sure that there is an anchor
-                // for each alias in the yaml document.
-                BOOST_ASSERT(iter != symbol_table.end());
-                alias.second = iter->second;
-            }
-
-            void operator()(alias_t const& alias)
-            {
-                // Don't worry, this (const_cast) is safe. We are just going to link
-                // the key. The key itself will remain stable for the map's purpose.
-                (*this)(const_cast<alias_t&>(alias));
-            }
-
-            void operator()(map_t& obj)
-            {
-                typedef std::pair<value_t, value_t> pair;
-                for (pair & val : obj)
-                {
-                    boost::apply_visitor(*this, val.first.get());
-                    boost::apply_visitor(*this, val.second.get());
-                }
-            }
-
-            void operator()(seq_t& arr)
-            {
-                for (value_t & val : arr)
-                {
-                    boost::apply_visitor(*this, val.get());
-                }
-            }
-        };
-
         struct value_compare
         {
             typedef bool result_type;
@@ -426,52 +354,15 @@ namespace yaml { namespace ast {
                 return a < b;
             }
 
-            bool operator()(anchored_node_t const& a, anchored_node_t const& b) const
+            bool operator()(properties_node_t const& a, properties_node_t const& b) const
             {
-                // anchors are compared using their names (IDs)
-                return a.first < b.first;
-            }
-
-            bool operator()(anchored_node_t const& a, string_t const& b) const
-            {
-                // anchors are compared using their names (IDs)
-                return a.first < b;
-            }
-
-            bool operator()(string_t const& a, anchored_node_t const& b) const
-            {
-                // anchors are compared using their names (IDs)
-                return a < b.first;
+                return a.second < b.second;
             }
 
             bool operator()(alias_t const& a, alias_t const& b) const
             {
-                // aliases are compared using their names (IDs)
-                return a.first < b.first;
-            }
-
-            bool operator()(alias_t const& a, string_t const& b) const
-            {
-                // aliases are compared using their names (IDs)
-                return a.first < b;
-            }
-
-            bool operator()(string_t const& a, alias_t const& b) const
-            {
-                // aliases are compared using their names (IDs)
-                return a < b.first;
-            }
-
-            bool operator()(anchored_node_t const& a, alias_t const& b) const
-            {
-                // anchors and aliases are compared using their names (IDs)
-                return a.first < b.first;
-            }
-
-            bool operator()(alias_t const& a, anchored_node_t const& b) const
-            {
-                // anchors and aliases are compared using their names (IDs)
-                return a.first < b.first;
+                // aliases are compared using their referents
+                return *a.second < *b.second;
             }
 
             bool operator()(map_t const& a, map_t const& b)
@@ -502,52 +393,15 @@ namespace yaml { namespace ast {
                 return a == b;
             }
 
-            bool operator()(anchored_node_t const& a, anchored_node_t const& b) const
+            bool operator()(properties_node_t const& a, properties_node_t const& b) const
             {
-                // anchors are compared using their names (IDs)
-                return a.first == b.first;
-            }
-
-            bool operator()(anchored_node_t const& a, string_t const& b) const
-            {
-                // anchors are compared using their names (IDs)
-                return a.first == b;
-            }
-
-            bool operator()(string_t const& a, anchored_node_t const& b) const
-            {
-                // anchors are compared using their names (IDs)
-                return a == b.first;
+                return a.second == b.second;
             }
 
             bool operator()(alias_t const& a, alias_t const& b) const
             {
-                // aliases are compared using their names (IDs)
-                return a.first == b.first;
-            }
-
-            bool operator()(alias_t const& a, string_t const& b) const
-            {
-                // aliases are compared using their names (IDs)
-                return a.first == b;
-            }
-
-            bool operator()(string_t const& a, alias_t const& b) const
-            {
-                // aliases are compared using their names (IDs)
-                return a == b.first;
-            }
-
-            bool operator()(anchored_node_t const& a, alias_t const& b) const
-            {
-                // anchors and aliases are compared using their names (IDs)
-                return a.first == b.first;
-            }
-
-            bool operator()(alias_t const& a, anchored_node_t const& b) const
-            {
-                // anchors and aliases are compared using their names (IDs)
-                return a.first == b.first;
+                // aliases are compared using their referents
+                return a.second == b.second;
             }
 
             bool operator()(map_t const& a, map_t const& b)
@@ -593,6 +447,16 @@ namespace yaml { namespace ast {
                 return hasher(0);
             }
         };
+    }
+
+    inline std::size_t hash_value (value_t const & val);
+
+    inline std::size_t hash_value (properties_node_t const & pn)
+    {
+        std::size_t seed = hash_value(pn.first.tag_);
+        boost::hash_combine(seed, pn.first.anchor_);
+        boost::hash_combine(seed, pn.second);
+        return seed;
     }
 
     inline std::size_t hash_value (value_t const & val)
@@ -656,18 +520,6 @@ namespace yaml { namespace ast {
         iterator const it = elements_.insert(at, e);
         index_->map_[e.first] = it;
         return it;
-    }
-
-    inline void link_yaml(value_t& val)
-    {
-        detail::yaml_linker f;
-
-        // phase 1: collect all anchors
-        boost::apply_visitor(f, val.get());
-
-        // phase 2: link all aliases
-        f.phase = 2;
-        boost::apply_visitor(f, val.get());
     }
 
     template <int Spaces, bool ExpandAliases>

@@ -24,7 +24,7 @@ namespace yaml { namespace parser {
         struct chomping
         {
             template <typename>
-            struct result { typedef chomping_t type; };
+            struct result { using type = chomping_t; };
 
             chomping_t operator() (block_header_t block_header) const
             { return block_header.chomping_; }
@@ -33,7 +33,7 @@ namespace yaml { namespace parser {
         struct indentation
         {
             template <typename>
-            struct result { typedef int type; };
+            struct result { using type = int; };
 
             int operator() (block_header_t block_header) const
             { return block_header.indentation_; }
@@ -42,7 +42,7 @@ namespace yaml { namespace parser {
         struct seq_spaces
         {
             template <typename, typename>
-            struct result { typedef int type; };
+            struct result { using type = int; };
 
             int operator() (int n, context_t c) const
             { return c == context_t::block_out ? n - 1 : n; }
@@ -72,6 +72,7 @@ namespace yaml { namespace parser {
         using phx::function;
         using phx::construct;
 
+        phx::function<detail::handle_properties> handle_properties;
         phx::function<detail::chomping> chomping;
         phx::function<detail::indentation> indentation;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
@@ -96,6 +97,7 @@ namespace yaml { namespace parser {
         auto & separate = flow_styles_.basic_structures_.separate;
         auto & properties = flow_styles_.basic_structures_.properties;
 
+        auto & anchors = flow_styles_.anchors;
         auto & flow_node = flow_styles_.flow_node;
         auto & implicit_yaml_key = flow_styles_.implicit_yaml_key;
         auto & implicit_json_key = flow_styles_.implicit_json_key;
@@ -338,15 +340,21 @@ namespace yaml { namespace parser {
         // [199]
         block_scalar =
                 separate(_r1 + 1, _r2)
-            >>  -omit[properties(_r1 + 1, _r2) >> separate(_r1 + 1, _r2)]
+            >>  -omit[properties(_r1 + 1, _r2)[_a = _1] >> separate(_r1 + 1, _r2)]
             >>  (literal(_r1) | folded(_r1))
+                [_val = handle_properties(_a, _1, phx::ref(anchors))]
             ;
 
         // [200]
         block_collection =
-                -omit[separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2)]
+                -omit[separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2)[_a = _1]]
             >>  s_l_comments
-            >>  (block_sequence(seq_spaces(_r1, _r2)) | block_mapping(_r1))
+            >>  (
+                    block_sequence(seq_spaces(_r1, _r2))
+                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                |   block_mapping(_r1)
+                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                )
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

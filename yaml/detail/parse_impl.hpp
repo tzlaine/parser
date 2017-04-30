@@ -35,11 +35,6 @@ namespace yaml { namespace parser {                                     \
                                                                         \
         bool const retval =                                             \
             boost::spirit::qi::parse(first, last, p.yaml_stream, result); \
-        if (retval) {                                                   \
-            for (auto & value : result) {                               \
-                ast::link_yaml(value);                                  \
-            }                                                           \
-        }                                                               \
         return retval;                                                  \
     }                                                                   \
                                                                         \
