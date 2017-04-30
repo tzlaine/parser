@@ -337,45 +337,6 @@ namespace yaml { namespace ast {
             }
         };
 
-        struct value_compare
-        {
-            typedef bool result_type;
-
-            template <typename A, typename B>
-            bool operator()(A const& a, B const& b) const
-            {
-                BOOST_ASSERT(false); // this should not happen. We cannot compare different types
-                return false;
-            }
-
-            template <typename T>
-            bool operator()(T const& a, T const& b) const
-            {
-                return a < b;
-            }
-
-            bool operator()(properties_node_t const& a, properties_node_t const& b) const
-            {
-                return a.second < b.second;
-            }
-
-            bool operator()(alias_t const& a, alias_t const& b) const
-            {
-                // aliases are compared using their referents
-                return *a.second < *b.second;
-            }
-
-            bool operator()(map_t const& a, map_t const& b)
-            {
-                return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
-            }
-
-            bool operator()(seq_t const& a, seq_t const& b)
-            {
-                return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
-            }
-        };
-
         struct value_equal
         {
             typedef bool result_type;
@@ -474,11 +435,6 @@ namespace yaml { namespace ast {
     inline bool operator!=(value_t const& a, value_t const& b)
     {
         return !(a == b);
-    }
-
-    inline bool operator<(value_t const& a, value_t const& b)
-    {
-        return boost::apply_visitor(detail::value_compare(), a.get(), b.get());
     }
 
     struct map_t::index_t
