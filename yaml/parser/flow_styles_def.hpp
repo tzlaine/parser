@@ -42,15 +42,6 @@ namespace yaml { namespace parser {
             }
         };
 
-        struct alias_from_anchor
-        {
-            template <typename, typename>
-            struct result { using type = ast::alias_t; };
-
-            ast::alias_t operator() (ast::alias_t const & anchor) const
-            { return ast::alias_t(anchor.first, anchor.second); }
-        };
-
     }
 
     template <typename Iterator>
@@ -76,7 +67,6 @@ namespace yaml { namespace parser {
         using phx::function;
         using phx::construct;
 
-        phx::function<detail::alias_from_anchor> alias_from_anchor;
         phx::function<detail::handle_properties> handle_properties;
         auto ins = phx::insert(_val, _1);
 
@@ -98,7 +88,7 @@ namespace yaml { namespace parser {
         // [104]
         alias_node =
                 '*'
-            >   anchors[_val = alias_from_anchor(_1)]
+            >   anchors
             ;
 
         // 7.3 Flow Scalar Styles
