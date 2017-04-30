@@ -1,5 +1,5 @@
 # XXX Why are tabs allowed as indentation after dash?
-- foo:<TAB> bar
+- foo:	 bar
 - - baz
-  -<TAB>baz
+  -	baz
 

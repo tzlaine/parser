@@ -1,7 +1,7 @@
 # Tabs and spaces
-quoted: "Quoted <TAB>"
-block:<TAB>|
+quoted: "Quoted 	"
+block:	|
   void main() {
-  <TAB>printf("Hello, world!\n");
+  	printf("Hello, world!\n");
   }
 

@@ -8,6 +8,6 @@ Not indented:
  Flow style: [    # Leading spaces
    By two,        # in flow style
   Also by two,    # are neither
-  <TAB>Still by two   # content nor
+  	Still by two   # content nor
     ]             # indentation.
 
