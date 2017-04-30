@@ -241,7 +241,7 @@ namespace yaml { namespace parser {
 
         // [134]
         plain_next_line =
-            YAML_PARSER_PRINT_INDENT >>
+            YAML_PARSER_PRINT_INDENT
             // TODO: Apply hold[] everywhere appropriate.
             hold[flow_folded(_r1) >> plain_char(_r2) >> plain_in_line(_r2)]
             ;
@@ -422,7 +422,7 @@ namespace yaml { namespace parser {
             ;
 
         // [161]
-        flow_node = YAML_PARSER_PRINT_INDENT >> (
+        flow_node = YAML_PARSER_PRINT_INDENT (
                 as<ast::value_t>()[alias_node][_val = _1]
             |   flow_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]

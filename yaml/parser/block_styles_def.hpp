@@ -323,7 +323,7 @@ namespace yaml { namespace parser {
         // 8.2.3. Block Nodes
 
         // [196]
-        block_node = YAML_PARSER_PRINT_INDENT >> (
+        block_node = YAML_PARSER_PRINT_INDENT (
             block_in_block(_r1, _r2) | flow_in_block(_r1)
             )
             ;

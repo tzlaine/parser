@@ -21,7 +21,7 @@
 
 
 #ifdef BOOST_SPIRIT_DEBUG
-#define YAML_PARSER_PRINT_INDENT eps(print_indent(_r1))
+#define YAML_PARSER_PRINT_INDENT eps(print_indent(_r1)) >>
 #else
 #define YAML_PARSER_PRINT_INDENT
 #endif
