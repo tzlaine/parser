@@ -344,7 +344,6 @@ namespace yaml { namespace ast {
             template <typename A, typename B>
             bool operator()(A const& a, B const& b) const
             {
-                BOOST_ASSERT(false); // this should not happen. We cannot compare different types
                 return false;
             }
 
