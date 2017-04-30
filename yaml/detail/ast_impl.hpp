@@ -401,6 +401,25 @@ namespace yaml { namespace ast {
                 return hasher(val);
             }
 
+            std::size_t operator()(seq_t const & seq) const
+            {
+                std::size_t seed = 0;
+                for (auto const & e : seq) {
+                    boost::hash_combine(seed, (*this)(e));
+                }
+                return seed;
+            }
+
+            std::size_t operator()(map_t const & map) const
+            {
+                std::size_t seed = 0;
+                for (auto const & e : map) {
+                    boost::hash_combine(seed, (*this)(e.first));
+                    boost::hash_combine(seed, (*this)(e.second));
+                }
+                return seed;
+            }
+
             std::size_t operator()(null_t const &) const
             {
                 boost::hash<int> hasher;
@@ -409,13 +428,11 @@ namespace yaml { namespace ast {
         };
     }
 
-    inline std::size_t hash_value (value_t const & val);
-
-    inline std::size_t hash_value (properties_node_t const & pn)
+    inline std::size_t hash_value (properties_t const & p)
     {
-        std::size_t seed = hash_value(pn.first.tag_);
-        boost::hash_combine(seed, pn.first.anchor_);
-        boost::hash_combine(seed, pn.second);
+        boost::hash<std::string> hasher;
+        std::size_t seed = hasher(p.tag_);
+        boost::hash_combine(seed, p.anchor_);
         return seed;
     }
 
