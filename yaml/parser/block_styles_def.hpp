@@ -105,8 +105,8 @@ namespace yaml { namespace parser {
 
         // [162]
         block_header = (
-                indentation_indicator[_a = _1] >> +blank >> chomping_indicator[_b = _1]
-            |   chomping_indicator[_b = _1] >> +blank >> indentation_indicator[_a = _1]
+                indentation_indicator[_a = _1] >> chomping_indicator[_b = _1]
+            |   chomping_indicator[_b = _1] >> indentation_indicator[_a = _1]
             )
             >>  s_b_comment
             [_val = construct<block_header_t>(_a, _b)]
