@@ -207,7 +207,7 @@ namespace yaml { namespace parser {
         // [126]
         plain_first =
                 (ns_char - indicator)
-            |   hold[char_("?:-") >> &plain_safe(_r1)]
+            |   hold[char_("?:-") >> plain_safe(_r1)]
             ;
 
         // [127]
