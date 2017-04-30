@@ -94,9 +94,9 @@ namespace yaml { namespace parser {
 
         qi::rule<Iterator, int()> auto_detect_indent;
         qi::rule<Iterator, ast::seq_t(int), qi::locals<int>> block_sequence;
-        qi::rule<Iterator, ast::value_t(int n, int m)> block_seq_entry;
-        qi::rule<Iterator, ast::value_t(int n, context_t, int m)> block_indented;
-        qi::rule<Iterator, ast::seq_t(int n, int m)> compact_sequence;
+        qi::rule<Iterator, ast::value_t(int n)> block_seq_entry;
+        qi::rule<Iterator, ast::value_t(int n, context_t), qi::locals<int>> block_indented;
+        qi::rule<Iterator, ast::seq_t(int n)> compact_sequence;
 
         qi::rule<Iterator, ast::map_t(int), qi::locals<int>> block_mapping;
         qi::rule<Iterator, ast::map_element_t(int)> block_map_entry;

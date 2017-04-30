@@ -59,7 +59,6 @@ namespace yaml { namespace parser {
         qi::_1_type _1;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
-        qi::_r3_type _r3;
         qi::_a_type _a;
         qi::_b_type _b;
         qi::lit_type lit;
@@ -243,27 +242,31 @@ namespace yaml { namespace parser {
         // [183]
         block_sequence =
                 auto_detect_indent[_a = _1]
-            >>  +(indent(_a) >> block_seq_entry(_r1, _a - _r1)[pb])
+            >>  +(indent(_a) >> block_seq_entry(_a)[pb])
             ;
 
         // [184]
         block_seq_entry =
                 '-'
             >>  !ns_char
-            >>  block_indented(_r1, context_t::block_in, _r2)
+            >>  block_indented(_r1, context_t::block_in)
             ;
 
         // [185]
-        // TODO: WTF is up with "m" in the spec?
         block_indented =
-                indent(_r3) >> (compact_sequence(_r1 + 1, _r3) | compact_mapping(_r1 + 1 + _r3))
-            |   block_node(_r1, _r2)
+                auto_detect_indent[_a = _1]
+            >>  indent(_a)
+            >>  (
+                    compact_sequence(_r1 + 1 + _a)[_val = _1]
+                |   compact_mapping(_r1 + 1 + _a)[_val = _1]
+                )
+            |   block_node(_r1, _r2)[_val = _1]
             |   attr(ast::value_t()) >> s_l_comments
             ;
 
         // [186]
         compact_sequence =
-            block_seq_entry(_r1, _r2) % indent(_r1)
+            block_seq_entry(_r1) % indent(_r1)
             ;
 
         // 8.2.1. Block Mappings
@@ -287,12 +290,12 @@ namespace yaml { namespace parser {
 
         // [190]
         block_map_explicit_key =
-            '?' >> block_indented(_r1, context_t::block_out, 0) // TODO: Should the 0 be m?
+            '?' >> block_indented(_r1, context_t::block_out)
             ;
 
         // [191]
         block_map_explicit_value =
-            indent(_r1) >> ':' >> block_indented(_r1, context_t::block_out, 0) // TODO: Should the 0 be m?
+            indent(_r1) >> ':' >> block_indented(_r1, context_t::block_out)
             ;
 
         // [192]
