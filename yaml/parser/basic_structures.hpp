@@ -16,7 +16,7 @@ namespace yaml { namespace parser {
     template <typename Iterator>
     struct basic_structures
     {
-        basic_structures ();
+        explicit basic_structures (boost::phoenix::function<error_handler_t> const & error_handler);
 
         characters<Iterator> characters_;
 
@@ -51,6 +51,8 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> tag_property;
         qi::rule<Iterator, std::string()> anchor_property;
         qi::rule<Iterator, std::string()> anchor_name;
+
+        std::reference_wrapper<boost::phoenix::function<error_handler_t> const> error_handler_;
     };
 
 } }

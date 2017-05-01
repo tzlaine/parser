@@ -51,7 +51,8 @@ namespace yaml { namespace parser {
     }
 
     template <typename Iterator>
-    block_styles<Iterator>::block_styles ()
+    block_styles<Iterator>::block_styles (boost::phoenix::function<error_handler_t> const & error_handler)
+        : flow_styles_ (error_handler)
     {
         qi::attr_type attr;
         qi::omit_type omit;

@@ -50,7 +50,7 @@ namespace yaml { namespace parser {
     template <typename Iterator>
     struct block_styles
     {
-        block_styles ();
+        explicit block_styles (boost::phoenix::function<error_handler_t> const & error_handler);
 
         flow_styles<Iterator> flow_styles_;
 

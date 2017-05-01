@@ -45,7 +45,7 @@ namespace yaml { namespace parser {
     template <typename Iterator>
     struct flow_styles
     {
-        flow_styles ();
+        explicit flow_styles (boost::phoenix::function<error_handler_t> const & error_handler);
 
         basic_structures<Iterator> basic_structures_;
 

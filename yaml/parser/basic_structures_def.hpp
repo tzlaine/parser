@@ -24,16 +24,38 @@ namespace yaml { namespace parser {
             template <typename, typename>
             struct result { using type = void; };
 
-            void operator() (unsigned int major, unsigned int minor) const
-            {
-                // TODO: report warnings and errors for YAML versions != 1.2
+            template <typename Pass>
+            void operator() (
+                unsigned int major,
+                unsigned int minor,
+                error_handler_t const & error_handler,
+                Pass & pass
+            ) const {
+                if (major != 1) {
+                    std::stringstream oss;
+                    oss << "The current document has a %YAML "
+                        << major << '.' << minor
+                        << " directive.  This parser recognizes "
+                           "YAML 1.2, and so cannot continue.\n";
+                    error_handler.report_error(oss.str());
+                    pass = false;
+                } else if (minor != 2) {
+                    std::stringstream oss;
+                    oss << "The current document has a %YAML "
+                        << major << '.' << minor
+                        << " directive.  This parser recognizes "
+                           "YAML 1.2, and so might not work.  "
+                           "Trying anyway...\n";
+                    error_handler.report_warning(oss.str());
+                }
             }
         };
 
     }
 
     template <typename Iterator>
-    basic_structures<Iterator>::basic_structures ()
+    basic_structures<Iterator>::basic_structures (boost::phoenix::function<error_handler_t> const & error_handler)
+        : error_handler_ (error_handler)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
@@ -50,11 +72,13 @@ namespace yaml { namespace parser {
         qi::eol_type eol;
         qi::eps_type eps;
         qi::repeat_type repeat;
+        qi::_pass_type _pass;
 
         namespace phx = boost::phoenix;
         using qi::copy;
         using phx::function;
         using phx::construct;
+        using phx::cref;
 
         auto & nb_char = characters_.nb_char;
         auto & ns_char = characters_.ns_char;
@@ -176,7 +200,11 @@ namespace yaml { namespace parser {
 
         // [86]
         yaml_directive =
-            "YAML" > +blank >> uint_[_a = _1] >> '.' > uint_[check_yaml_version(_a, _1)]
+                "YAML"
+            >   +blank
+            >   uint_[_a = _1]
+            >   '.'
+            >   uint_[check_yaml_version(_a, _1, phx::cref(error_handler_.get().f), _pass)]
             ;
 
         // [88]

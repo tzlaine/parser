@@ -20,7 +20,6 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
-        template <typename Iterator>
         struct check_encoding
         {
             template <typename, typename, typename>
@@ -29,7 +28,7 @@ namespace yaml { namespace parser {
             template <typename Pass>
             void operator() (
                 encoding_t encoding,
-                typename stream<Iterator>::error_handler_t const & error_handler,
+                error_handler_t const & error_handler,
                 Pass & pass
             ) const {
                 if (encoding != encoding_t::utf8) {
@@ -53,7 +52,8 @@ namespace yaml { namespace parser {
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback
     )
-        : error_handler_ (error_handler_t(source_file, errors_callback, warnings_callback))
+        : block_styles_ (error_handler_)
+        , error_handler_ (error_handler_t(source_file, errors_callback, warnings_callback))
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -73,7 +73,7 @@ namespace yaml { namespace parser {
         namespace phx = boost::phoenix;
         using phx::function;
 
-        phx::function<detail::check_encoding<Iterator>> check_encoding;
+        phx::function<detail::check_encoding> check_encoding;
 
         auto pb = phx::push_back(_val, _1);
 

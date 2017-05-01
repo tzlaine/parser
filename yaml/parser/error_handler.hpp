@@ -34,13 +34,12 @@ namespace yaml { namespace parser {
         std::string msg_;
     };
 
-    template <typename Iterator>
-    struct error_handler
+    struct error_handler_t
     {
         template <typename, typename, typename, typename>
         struct result { using type = void; };
 
-        error_handler (
+        error_handler_t (
             std::string const& source_file,
             reporting_fn_t const & errors,
             reporting_fn_t const & warnings
@@ -64,8 +63,10 @@ namespace yaml { namespace parser {
                 warning_fn_(msg);
         }
 
+        template <typename Iterator>
         void operator() (
-            Iterator first, Iterator last,
+            Iterator first,
+            Iterator last,
             Iterator err_pos,
             boost::spirit::info const& what
         ) const {
