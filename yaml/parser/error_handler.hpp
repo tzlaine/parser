@@ -51,6 +51,8 @@ namespace yaml { namespace parser {
 
         void report_error (std::string const & msg) const
         {
+            // TODO: This really needs file:line:col, regardless of source (ie
+            // not just when (*this)() is called).
             if (error_fn_)
                 error_fn_(msg);
             else
@@ -59,6 +61,8 @@ namespace yaml { namespace parser {
 
         void report_warning (std::string const & msg) const
         {
+            // TODO: This really needs file:line:col, regardless of source (ie
+            // not just when (*this)() is called).
             if (warning_fn_)
                 warning_fn_(msg);
         }

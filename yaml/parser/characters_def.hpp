@@ -161,6 +161,8 @@ namespace yaml { namespace parser {
 
         BOOST_SPIRIT_DEBUG_NODES(
             (bom)
+            // TODO: Separate out the naming of these things from debugging
+            // them; give them user-friendly names.
 #if 0
             (nb_char)
             (ns_char)

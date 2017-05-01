@@ -28,6 +28,7 @@ namespace yaml { namespace parser {
             ) const {
                 if (properties.anchor_ != "") {
                     std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
+                    // TODO: Emit a warning when an anchor is redefined.
                     anchors.remove(properties.anchor_);
                     anchors.add(
                         properties.anchor_,
