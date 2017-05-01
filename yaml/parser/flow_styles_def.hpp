@@ -274,7 +274,7 @@ namespace yaml { namespace parser {
 
         // [139]
         flow_seq_entry =
-                as<ast::value_t>()[flow_pair(_r1, _r2)]
+                as<ast::value_t>{}[flow_pair(_r1, _r2)]
             |   flow_node(_r1, _r2)
             ;
 
@@ -410,7 +410,7 @@ namespace yaml { namespace parser {
 
         // [159]
         flow_yaml_node =
-                as<ast::value_t>()[alias_node][_val = _1]
+                as<ast::value_t>{}[alias_node][_val = _1]
             |   flow_yaml_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_yaml_content(_r1, _r2) | attr(ast::value_t()))
@@ -426,7 +426,7 @@ namespace yaml { namespace parser {
 
         // [161]
         flow_node = YAML_PARSER_PRINT_INDENT (
-                as<ast::value_t>()[alias_node][_val = _1]
+                as<ast::value_t>{}[alias_node][_val = _1]
             |   flow_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
