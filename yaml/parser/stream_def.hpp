@@ -18,6 +18,35 @@
 
 namespace yaml { namespace parser {
 
+    namespace detail {
+
+        template <typename Iterator>
+        struct check_encoding
+        {
+            template <typename, typename, typename>
+            struct result { using type = void; };
+
+            template <typename Pass>
+            void operator() (
+                encoding_t encoding,
+                typename stream<Iterator>::error_handler_t const & error_handler,
+                Pass & pass
+            ) const {
+                if (encoding != encoding_t::utf8) {
+                    std::stringstream oss;
+                    oss << "BOM for encoding "
+                        << encoding
+                        << " was encountered in the stream, but only "
+                        << encoding_t::utf8
+                        << " encoding is supported.\n";
+                    error_handler.report_error(oss.str());
+                    pass = false;
+                }
+            }
+        };
+
+    }
+
     template <typename Iterator>
     stream<Iterator>::stream (
         std::string const & source_file,
@@ -29,6 +58,7 @@ namespace yaml { namespace parser {
         qi::attr_type attr;
         qi::omit_type omit;
         qi::char_type char_;
+        qi::_pass_type _pass;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_2_type _2;
@@ -36,10 +66,14 @@ namespace yaml { namespace parser {
         qi::_4_type _4;
         qi::lit_type lit;
         qi::blank_type blank;
+        qi::eps_type eps;
         qi::eoi_type eoi;
         qi::eol_type eol;
 
         namespace phx = boost::phoenix;
+        using phx::function;
+
+        phx::function<detail::check_encoding<Iterator>> check_encoding;
 
         auto pb = phx::push_back(_val, _1);
 
@@ -54,7 +88,7 @@ namespace yaml { namespace parser {
 
         // [202]
         document_prefix =
-            -full_bom >> +l_comment
+            -full_bom[check_encoding(_1, phx::cref(error_handler_.f), _pass)] >> +l_comment
             ;
 
         // [205]
@@ -84,7 +118,7 @@ namespace yaml { namespace parser {
 
         // [209]
         directive_document =
-            +directive >>  explicit_document
+            +directive >> explicit_document
             ;
 
         // [210]
@@ -109,7 +143,7 @@ namespace yaml { namespace parser {
         // Allow empty and comment lines at end of input.
         end_of_input =
                 *(
-                    +blank >> '#' >> *(char_ - eol) >> eol
+                    *blank >> '#' >> *(char_ - eol) >> eol
                 |   *blank >> eol
                 )
             >>  eoi

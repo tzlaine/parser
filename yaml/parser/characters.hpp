@@ -76,19 +76,17 @@ namespace yaml { namespace parser {
         utf8
     };
 
-#ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<< (std::ostream & os, encoding_t c)
     {
         switch (c) {
-#define CASE(x) case encoding_t::x: return os << #x
-        CASE(utf32_be); CASE(utf32_le);
-        CASE(utf16_be); CASE(utf16_le);
-        CASE(utf8);
-#undef CASE
+        case encoding_t::utf32_be: return os << "UTF-32 big-endian";
+        case encoding_t::utf32_le: return os << "UTF-32 little-endian";
+        case encoding_t::utf16_be: return os << "UTF-16 big-endian";
+        case encoding_t::utf16_le: return os << "UTF-16 little-endian";
+        case encoding_t::utf8: return os << "UTF-8";
         }
         return os;
     }
-#endif
 
     using uchar_t = boost::uint32_t; // Unicode code point
 
@@ -96,8 +94,6 @@ namespace yaml { namespace parser {
     struct characters
     {
         characters ();
-
-        // TODO encoding_t read_initial_full_bom (Iterator & first, Iterator last) const;
 
         qi::rule<Iterator, encoding_t()> full_bom;
 
