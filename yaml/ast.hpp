@@ -40,7 +40,7 @@ namespace yaml { namespace ast {
 
     using map_element_t = std::pair<value_t, value_t>;
     using seq_t = boost::container::stable_vector<value_t>;
-    using alias_t = std::pair<string_t, std::shared_ptr<value_t>>;
+    using alias_t = std::pair<string_t, std::shared_ptr<value_t>>; // TODO: Make this shared_ptr point to const.
 
     struct properties_t
     {
