@@ -230,8 +230,6 @@ namespace yaml { namespace parser {
 
         // 8.2.1. Block Sequences
 
-        // TODO: Check the indentation level; only pass the check if
-        // indentation > current indentation.
         auto_detect_indent =
             eps[_val = 0] >> &(*lit(' ')[++_val])
 #ifdef BOOST_SPIRIT_DEBUG

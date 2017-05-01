@@ -24,7 +24,6 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, void(int)> indent_lt; // indent <= n spaces
         qi::rule<Iterator, void(int)> indent_le; // indent < n spaces
         qi::rule<Iterator, void()> separate_in_line;
-        // TODO: All comments should probably return void.
         qi::rule<Iterator, void(int, context_t)> line_prefix;
         qi::rule<Iterator, void(int, context_t)> l_empty;
         qi::rule<Iterator, char(int, context_t)> b_l_folded;
