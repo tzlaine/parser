@@ -19,8 +19,12 @@
 namespace yaml { namespace parser {
 
     template <typename Iterator>
-    stream<Iterator>::stream (std::string const & source_file)
-        : error_handler_ (error_handler_t(source_file))
+    stream<Iterator>::stream (
+        std::string const & source_file,
+        reporting_fn_t const & errors_callback,
+        reporting_fn_t const & warnings_callback
+    )
+        : error_handler_ (error_handler_t(source_file, errors_callback, warnings_callback))
     {
         qi::attr_type attr;
         qi::omit_type omit;

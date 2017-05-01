@@ -10,31 +10,44 @@
 
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
+
 #define PARSE_YAML_IMPLEMENTATION()                                     \
 namespace yaml { namespace parser {                                     \
                                                                         \
     bool parse_yaml(                                                    \
         std::istream & is,                                              \
         std::vector<ast::value_t> & result,                             \
-        std::string const & source_file                                 \
+        std::string const & source_file,                                \
+        reporting_fn_t const & errors_callback,                         \
+        reporting_fn_t const & warnings_callback                        \
     ) {                                                                 \
         std::string file;                                               \
         std::getline(is, file, '\0');                                   \
                                                                         \
-        typedef std::string::const_iterator base_iterator_type;         \
+        using base_iterator_type = std::string::const_iterator;         \
         base_iterator_type sfirst(file.begin());                        \
         base_iterator_type slast(file.end());                           \
                                                                         \
-        typedef boost::spirit::classic::position_iterator<base_iterator_type> \
-            iterator_type;                                              \
+        using iterator_type = boost::spirit::classic::position_iterator< \
+            base_iterator_type                                          \
+        >;                                                              \
         iterator_type first(sfirst, slast);                             \
         iterator_type last;                                             \
         first.set_tabchars(1);                                          \
                                                                         \
-        stream<iterator_type> p(source_file);                           \
+        stream<iterator_type> p(                                        \
+            source_file,                                                \
+            errors_callback,                                            \
+            warnings_callback                                           \
+        );                                                              \
                                                                         \
-        bool const retval =                                             \
-            boost::spirit::qi::parse(first, last, p.yaml_stream, result); \
+        bool const retval = boost::spirit::qi::parse(                   \
+            first,                                                      \
+            last,                                                       \
+            p.yaml_stream,                                              \
+            result                                                      \
+        );                                                              \
+                                                                        \
         return retval;                                                  \
     }                                                                   \
                                                                         \

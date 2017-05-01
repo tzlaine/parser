@@ -1,6 +1,7 @@
 /**
  *   Copyright (C) 2010, 2011 Object Modeling Designs : consultomd.com
  *   Copyright (c) 2010 Joel de Guzman
+ *   Copyright (C) 2017 Zach Laine
  *
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -13,62 +14,106 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
 #include <string>
-#include <iostream>
+#include <sstream>
+
 
 namespace yaml { namespace parser {
+
+    using reporting_fn_t = std::function<void (std::string const &)>;
+
+    struct parse_error
+        : std::exception
+    {
+        parse_error (std::string const & msg)
+            : msg_ (msg)
+        {}
+
+        virtual char const * what () const noexcept
+        { return msg_.c_str(); }
+
+        std::string msg_;
+    };
 
     template <typename Iterator>
     struct error_handler
     {
         template <typename, typename, typename, typename>
-        struct result { typedef void type; };
+        struct result { using type = void; };
 
-        std::string source_file;
-        error_handler(std::string const& source_file_ = "")
-          : source_file(source_file_)
+        error_handler (
+            std::string const& source_file,
+            reporting_fn_t const & errors,
+            reporting_fn_t const & warnings
+        )
+            : source_file_ (source_file)
+            , error_fn_ (errors)
+            , warning_fn_ (warnings)
+        {}
+
+        void report_error (std::string const & msg) const
         {
+            if (error_fn_)
+                error_fn_(msg);
+            else
+                throw parse_error(msg);
         }
 
-        void operator()(
-            Iterator first, Iterator last,
-            Iterator err_pos, boost::spirit::info const& what) const
+        void report_warning (std::string const & msg) const
         {
-            typename Iterator::position_t pos = err_pos.get_position();
-            int line = pos.line;
+            if (warning_fn_)
+                warning_fn_(msg);
+        }
 
-            if (source_file != "")
-                std::cerr << "In file " << source_file << ", ";
-            else
-                std::cerr << "In ";
-
-            if (line != -1)
-                std::cerr << "line " << line << ':' << std::endl;
-
-            if (what.tag == "anchor_name")
-                std::cerr << "Error! The anchor referenced by this alias is undefined:" << std::endl;
-            else
-                std::cerr << "Error! Expecting " << what << " here:" << std::endl;
+        void operator() (
+            Iterator first, Iterator last,
+            Iterator err_pos,
+            boost::spirit::info const& what
+        ) const {
+            typename Iterator::position_t const pos = err_pos.get_position();
 
             int ci = 0;
             int col = 0;
             Iterator line_start = boost::spirit::get_line_start(first, err_pos);
+            int const line = 1 + std::count(first, line_start, '\n');
 
-            for (Iterator i = ++line_start; i != last; ++i, ++ci)
-            {
+            std::string error_line;
+            for (Iterator i = ++line_start; i != last; ++i, ++ci) {
                 typename Iterator::value_type c = *i;
                 if (i == err_pos)
                     col = ci;
                 if (c == '\r' || c == '\n')
                     break;
-                std::cerr << c;
+                error_line += c;
             }
 
-            std::cerr << std::endl;
-            for (int i = 0; i != col; ++i)
-                std::cerr << '_';
+            std::ostringstream oss;
 
-            std::cerr << "^_" << std::endl;
+            if (source_file_ == "")
+                oss << "<Unknown source>:";
+            else
+                oss << source_file_ << ':';
+
+            oss << line << ':' << col << ": error: ";
+
+            if (what.tag == "anchors")
+                oss << "The anchor referenced by this alias is not yet defined:\n";
+            else
+                oss << "Expected " << what << ":\n";
+
+            oss << error_line << '\n';
+            for (int i = 0; i != col; ++i) {
+                oss << ' ';
+            }
+
+            oss << "^\n";
+
+            report_error(oss.str());
         }
+
+    private:
+        std::string source_file_;
+        std::function<void (std::string const &)> error_fn_;
+        std::function<void (std::string const &)> warning_fn_;
     };
 
 } }

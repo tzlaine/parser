@@ -23,7 +23,11 @@ namespace yaml { namespace parser {
     template <typename Iterator>
     struct stream
     {
-        stream (std::string const & source_file);
+        stream (
+            std::string const & source_file,
+            reporting_fn_t const & errors_callback,
+            reporting_fn_t const & warnings_callback
+        );
 
         block_styles<Iterator> block_styles_;
 
@@ -48,7 +52,9 @@ namespace yaml { namespace parser {
     bool parse_yaml(
         std::istream & is,
         std::vector<ast::value_t> & result,
-        std::string const& source_file = ""
+        std::string const & source_file = "",
+        reporting_fn_t const & errors_callback = reporting_fn_t(),
+        reporting_fn_t const & warnings_callback = reporting_fn_t()
     );
 
 } }

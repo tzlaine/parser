@@ -83,6 +83,8 @@ namespace yaml { namespace parser {
         auto & separate_in_line = basic_structures_.separate_in_line;
         auto & properties = basic_structures_.properties;
 
+        anchors.name("anchors");
+
         // 7.1 Alias Nodes
 
         // [104]
