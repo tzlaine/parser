@@ -22,7 +22,7 @@ namespace yaml { namespace parser {
         struct check_yaml_version
         {
             template <typename, typename>
-            struct result { typedef void type; };
+            struct result { using type = void; };
 
             void operator() (unsigned int major, unsigned int minor) const
             {

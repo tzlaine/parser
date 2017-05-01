@@ -26,7 +26,7 @@ namespace yaml { namespace ast {
     {
         struct depth_f
         {
-            typedef int result_type;
+            using result_type = int;
 
             template <typename T>
             int operator()(T const& val) const
@@ -91,7 +91,7 @@ namespace yaml { namespace ast {
         template <int Spaces, bool ExpandAliases>
         struct yaml_printer
         {
-            typedef void result_type;
+            using result_type = void;
             static int const spaces = Spaces;
             static int const primary_level = 0;
             static bool const expand_aliases = ExpandAliases;
@@ -122,8 +122,8 @@ namespace yaml { namespace ast {
                 if (!is_key)
                     out << '"';
 
-                typedef ::boost::uint32_t ucs4_char;
-                typedef boost::u8_to_u32_iterator<std::string::const_iterator> iter_t;
+                using ucs4_char = ::boost::uint32_t;
+                using iter_t = boost::u8_to_u32_iterator<std::string::const_iterator>;
                 iter_t f = utf.begin();
                 iter_t l = utf.end();
 
@@ -339,7 +339,7 @@ namespace yaml { namespace ast {
 
         struct value_equal
         {
-            typedef bool result_type;
+            using result_type = bool;
 
             template <typename A, typename B>
             bool operator()(A const& a, B const& b) const

@@ -24,11 +24,11 @@ namespace yaml { namespace parser {
         struct push_utf8
         {
             template <typename S, typename C>
-            struct result { typedef void type; };
+            struct result { using type = void; };
 
             void operator() (std::string & utf8, uchar_t code_point) const
             {
-                typedef std::back_insert_iterator<std::string> insert_iter;
+                using insert_iter = std::back_insert_iterator<std::string>;
                 insert_iter out_iter(utf8);
                 boost::utf8_output_iterator<insert_iter> utf8_iter(out_iter);
                 *utf8_iter++ = code_point;
@@ -38,7 +38,7 @@ namespace yaml { namespace parser {
         struct push_esc
         {
             template <typename S, typename C>
-            struct result { typedef void type; };
+            struct result { using type = void; };
 
             void operator() (std::string & utf8, uchar_t c) const
             {
