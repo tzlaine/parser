@@ -263,13 +263,13 @@ namespace yaml { namespace parser {
 
         // [137]
         flow_sequence =
-            '[' >> -separate(_r1, _r2) >> -flow_seq_entries(_r1, in_flow(_r2)) >> ']'
+            '[' >> -separate(_r1, _r2) >> -flow_seq_entries(_r1, in_flow(_r2)) >> -separate(_r1, _r2) >> ']'
             ;
 
         // [138]
         flow_seq_entries =
                 flow_seq_entry(_r1, _r2) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
-            >>  -(-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
+            >>  -(-separate(_r1, _r2) >> ',')
             ;
 
         // [139]
@@ -282,13 +282,13 @@ namespace yaml { namespace parser {
 
         // [140]
         flow_mapping =
-            '{' >> -separate(_r1, _r2) >> -flow_map_entries(_r1, in_flow(_r2)) >> '}'
+            '{' >> -separate(_r1, _r2) >> -flow_map_entries(_r1, in_flow(_r2)) >> -separate(_r1, _r2) >> '}'
             ;
 
         // [141]
         flow_map_entries =
                 flow_map_entry(_r1, _r2) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
-            >>  -(-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
+            >>  -(-separate(_r1, _r2) >> ',')
             ;
 
         // [142]
