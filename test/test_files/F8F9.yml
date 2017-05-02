@@ -2,13 +2,13 @@
   # Comments:
 strip: |-
   # text
-<SPC><SPC>
+  
  # Clip
   # comments:
 
 clip: |
   # text
-<SPC>
+ 
  # Keep
   # comments:
 

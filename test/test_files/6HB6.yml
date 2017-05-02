@@ -1,6 +1,6 @@
   # Leading comment line spaces are
    # neither content nor indentation.
-<SPC><SPC><SPC><SPC>
+    
 Not indented:
  By one space: |
     By four

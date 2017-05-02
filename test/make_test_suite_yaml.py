@@ -34,7 +34,7 @@ for tml_file in tml_files:
     last_line = first_line + 1
     while last_line < len(contents) and '+++' not in contents[last_line]:
         last_line += 1
-    in_yaml = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t')
+    in_yaml = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t').replace('<SPC>', ' ')
     tmp_file = open('tmp', 'w')
     tmp_file.write(in_yaml)
     tmp_file.close()
