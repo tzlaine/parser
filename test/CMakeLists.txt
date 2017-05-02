@@ -162,7 +162,7 @@ endforeach()
 set(invalid_test_files
     escaped_percent_27NA.yml
 )
-foreach (invalid_test_file ${invalid_test_files})
+foreach (test_file ${invalid_test_files})
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
