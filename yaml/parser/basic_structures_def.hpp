@@ -244,9 +244,22 @@ namespace yaml { namespace parser {
             |   '!'                                 // non_specific_tag [100]
             ;
 
+        // [22]
+        auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
+
         // [101]
+        // TODO: The spec says flow-indicator (",[]{}") here, not indicator.
+        // Document this.  Reference test 2SXE.yml:
+        // Before:
+//&a : key: &a value
+// foo:
+//  *a:
+        // After:
+//&a: key: &a value
+//foo:
+//  *a:
         anchor_property =
-            '&' >> +(ns_char - char_(",[]{}"))
+            '&' >> +(ns_char - indicator)
             ;
 
         // [102]
