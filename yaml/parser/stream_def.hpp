@@ -142,11 +142,8 @@ namespace yaml { namespace parser {
 
         // Allow empty and comment lines at end of input.
         end_of_input =
-                *(
-                    *blank >> '#' >> *(char_ - eol) >> eol
-                |   *blank >> eol
-                )
-            >>  eoi
+                *(*blank >> -('#' >> *(char_ - eol)) >> eol)
+            >>  *blank >> -('#' >> *(char_ - eoi)) >> eoi
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
