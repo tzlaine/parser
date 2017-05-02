@@ -76,7 +76,7 @@ namespace yaml { namespace parser {
         ) const {
             Iterator line_start = boost::spirit::get_line_start(first, err_pos);
             std::string error_line;
-            for (Iterator it = ++line_start; it != last; ++it) {
+            for (Iterator it = line_start; it != last; ++it) {
                 typename Iterator::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
@@ -102,7 +102,7 @@ namespace yaml { namespace parser {
                 oss << "Expected " << what << ":\n";
 
             oss << error_line << '\n';
-            for (int i = 0; i != column; ++i) {
+            for (int i = 1; i != column; ++i) {
                 oss << ' ';
             }
 
