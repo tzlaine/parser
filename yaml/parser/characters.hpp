@@ -97,8 +97,8 @@ namespace yaml { namespace parser {
 
         qi::rule<Iterator, encoding_t()> full_bom;
 
+        qi::rule<Iterator, char()> printable;
         qi::rule<Iterator> bom;
-
         qi::rule<Iterator, char()> nb_char;
         qi::rule<Iterator, char()> ns_char;
         qi::rule<Iterator, std::string()> uri_char;

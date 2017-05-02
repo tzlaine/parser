@@ -78,7 +78,6 @@ namespace yaml { namespace parser {
         qi::_1_type _1;
         qi::lit_type lit;
         qi::blank_type blank;
-        qi::print_type print;
         qi::eol_type eol;
         qi::alnum_type alnum;
         qi::hex_type hex;
@@ -110,6 +109,11 @@ namespace yaml { namespace parser {
             |   byte_('\xef') >> byte_('\xbb') >> byte_('\xbf') [_val = encoding_t::utf8]
             ;
 
+        // [1]
+        printable =
+            char_("\t\n\f\x20-\x7e")
+            ;
+
         // [3]
         bom =
             byte_('\xfe') >> byte_('\xff')
@@ -119,14 +123,14 @@ namespace yaml { namespace parser {
 
         // [27]
         nb_char =
-            print - eol - bom
+            printable - eol - bom
             ;
 
         // 5.5. White Space Characters
 
         // [34]
         ns_char =
-            print - eol - bom - blank
+            printable - eol - bom - blank
             ;
 
         // 5.6. Miscellaneous Characters

@@ -61,7 +61,6 @@ namespace yaml { namespace parser {
         qi::blank_type blank;
         qi::eol_type eol;
         qi::eps_type eps;
-        qi::print_type print;
 
         namespace phx = boost::phoenix;
         using qi::as;
@@ -76,6 +75,7 @@ namespace yaml { namespace parser {
 #endif
 
         auto & ns_char = basic_structures_.characters_.ns_char;
+        auto & printable = basic_structures_.characters_.printable;
 
         auto & flow_folded = basic_structures_.flow_folded;
         auto & l_empty = basic_structures_.l_empty;
@@ -101,7 +101,7 @@ namespace yaml { namespace parser {
         // [107]
         nb_double_char =
                 basic_structures_.characters_.esc_char
-            |   print - char_("\"\\")
+            |   printable - char_("\"\\")
             ;
 
         // [108]
@@ -161,7 +161,7 @@ namespace yaml { namespace parser {
 
         // [118]
         nb_single_char =
-            lit("''") >> attr('\'') | print - '\''
+            lit("''") >> attr('\'') | printable - '\''
             ;
 
         // [119]
