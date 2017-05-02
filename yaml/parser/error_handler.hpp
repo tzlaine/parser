@@ -72,24 +72,20 @@ namespace yaml { namespace parser {
             Iterator first,
             Iterator last,
             Iterator err_pos,
-            boost::spirit::info const& what
+            boost::spirit::info const & what
         ) const {
-            typename Iterator::position_t const pos = err_pos.get_position();
-
-            int ci = 0;
-            int col = 0;
             Iterator line_start = boost::spirit::get_line_start(first, err_pos);
-            int const line = 1 + std::count(first, line_start, '\n');
-
             std::string error_line;
-            for (Iterator i = ++line_start; i != last; ++i, ++ci) {
-                typename Iterator::value_type c = *i;
-                if (i == err_pos)
-                    col = ci;
+            for (Iterator it = ++line_start; it != last; ++it) {
+                typename Iterator::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
                 error_line += c;
             }
+
+            typename Iterator::position_t const pos = err_pos.get_position();
+            int const line = pos.line;
+            int const column = pos.column;
 
             std::ostringstream oss;
 
@@ -98,7 +94,7 @@ namespace yaml { namespace parser {
             else
                 oss << source_file_ << ':';
 
-            oss << line << ':' << col << ": error: ";
+            oss << line << ':' << column << ": error: ";
 
             if (what.tag == "anchors")
                 oss << "The anchor referenced by this alias is not yet defined:\n";
@@ -106,7 +102,7 @@ namespace yaml { namespace parser {
                 oss << "Expected " << what << ":\n";
 
             oss << error_line << '\n';
-            for (int i = 0; i != col; ++i) {
+            for (int i = 0; i != column; ++i) {
                 oss << ' ';
             }
 
