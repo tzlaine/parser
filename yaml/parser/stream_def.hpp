@@ -57,6 +57,7 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
+        qi::raw_type raw;
         qi::char_type char_;
         qi::_pass_type _pass;
         qi::_val_type _val;
@@ -74,6 +75,7 @@ namespace yaml { namespace parser {
         using phx::function;
 
         phx::function<detail::check_encoding> check_encoding;
+        function<detail::check_start_of_line> check_start_of_line;
 
         auto pb = phx::push_back(_val, _1);
 
@@ -98,9 +100,8 @@ namespace yaml { namespace parser {
 
         // [206]
         forbidden =
-            /* TODO: This should properly begin with start of line. */
-            /* >> */
-                (lit("---") | "...")
+                raw[eps][check_start_of_line(_1, _pass)]
+            >>  (lit("---") | "...")
             >>  (eol | blank | eoi)
             ;
 

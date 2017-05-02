@@ -13,6 +13,24 @@
 
 namespace yaml { namespace parser {
 
+    namespace detail {
+
+        struct check_start_of_line
+        {
+            template <typename, typename>
+            struct result { using type = void; };
+
+            template <typename Range, typename Pass>
+            void operator() (Range const & range, Pass & pass) const
+            {
+                int const column = range.begin().get_position().column;
+                if (column != 1)
+                    pass = false;
+            }
+        };
+
+    }
+
     template <typename Iterator>
     struct basic_structures
     {
@@ -51,6 +69,9 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> tag_property;
         qi::rule<Iterator, std::string()> anchor_property;
         qi::rule<Iterator, std::string()> anchor_name;
+
+        qi::rule<Iterator> one_time_eoi;
+        int eoi_seen_count_;
 
         std::reference_wrapper<boost::phoenix::function<error_handler_t> const> error_handler_;
     };

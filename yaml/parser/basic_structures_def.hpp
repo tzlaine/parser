@@ -51,11 +51,41 @@ namespace yaml { namespace parser {
             }
         };
 
+        // HACK!  This is a dirty, dirty hack that bears explaining.  Many
+        // productions in the YAML 1.2 spec include "newline | end-of-input"
+        // (e.g. b-comment).  This poses a problem, since many of the uses of
+        // this construct (say, using b-comment) are repeated via Kleene star.
+        // Spirit consumes a character when parsing a newline (qi::eol), but
+        // *not* when parsing end-of-input (qi::eoi).
+        //
+        // So, when a rule contains *foo, where foo = ... *b-comment, infinite
+        // looping results at the end of input, since qi::eoi succeeds without
+        // advancing the parser's read position.
+        //
+        // The natural inclination is to create a consuming version of eoi --
+        // and since eoi is unique, that state can be shared across all rules
+        // in the parser.  Sadly, this does not work, because some
+        // (transitive) uses of eoi in this YAML parser may need to backtrack
+        // back to before the eoi was seen and try some other productions.
+        //
+        // As a workaround, I've created a limited-repetition eoi.  Hopefully,
+        // the constant below is larger that the greatest amount of
+        // backtracking and retrying of eoi that can occur.
+        struct first_time_eoi
+        {
+            template <typename>
+            struct result { using type = bool; };
+
+            bool operator() (int & eoi_seen_count) const
+            { return ++eoi_seen_count < 100; }
+        };
+
     }
 
     template <typename Iterator>
     basic_structures<Iterator>::basic_structures (boost::phoenix::function<error_handler_t> const & error_handler)
-        : error_handler_ (error_handler)
+        : eoi_seen_count_ (0)
+        , error_handler_ (error_handler)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
@@ -70,15 +100,16 @@ namespace yaml { namespace parser {
         qi::blank_type blank;
         qi::alnum_type alnum;
         qi::eol_type eol;
+        qi::eoi_type eoi;
         qi::eps_type eps;
         qi::repeat_type repeat;
+        qi::raw_type raw;
         qi::_pass_type _pass;
 
         namespace phx = boost::phoenix;
         using qi::copy;
         using phx::function;
         using phx::construct;
-        using phx::cref;
 
         auto & nb_char = characters_.nb_char;
         auto & ns_char = characters_.ns_char;
@@ -86,6 +117,8 @@ namespace yaml { namespace parser {
         auto & uri_char = characters_.uri_char;
 
         function<detail::check_yaml_version> check_yaml_version;
+        function<detail::check_start_of_line> check_start_of_line;
+        function<detail::first_time_eoi> first_time_eoi;
 
         // 6.1. Indentation Spaces
 
@@ -108,7 +141,9 @@ namespace yaml { namespace parser {
 
         // [66]
         separate_in_line =
-            *blank             // Should properly be +blank|start-of-line
+            *blank
+            // TODO: This should properly be:
+            // (+blank | raw[eps][check_start_of_line(_1, _pass)])
             ;
 
         // 6.3. Line Prefixes
@@ -154,17 +189,17 @@ namespace yaml { namespace parser {
         // [77]
         s_b_comment =
                 -(separate_in_line >> -comment_text)
-            >>  eol                                   // b-comment [77]
+            >>  (eol | one_time_eoi)                  // b-comment [77]
             ;
 
         // [78]
         l_comment =
-            separate_in_line >> -comment_text >> eol
+            separate_in_line >> -comment_text >> (eol | one_time_eoi)
             ;
 
         // [79]
         s_l_comments =
-                -s_b_comment  // Should properly be s_b_comment|start-of-line
+                (s_b_comment | raw[eps][check_start_of_line(_1, _pass)])
             >>  *l_comment
             ;
 
@@ -178,7 +213,7 @@ namespace yaml { namespace parser {
 
         // [81]
         separate_lines =
-                s_l_comments
+            s_l_comments
             >>  indent(_r1) >> -separate_in_line   // flow-line-prefix [69]
             |   separate_in_line
             ;
@@ -268,6 +303,10 @@ namespace yaml { namespace parser {
         // [103]
         anchor_name =
             +(ns_char - char_(",[]{}"))
+            ;
+
+        one_time_eoi =
+            eoi >> eps(first_time_eoi(phx::ref(eoi_seen_count_)))
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(

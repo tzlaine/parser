@@ -96,6 +96,7 @@ namespace yaml { namespace parser {
         auto & s_l_comments = flow_styles_.basic_structures_.s_l_comments;
         auto & separate = flow_styles_.basic_structures_.separate;
         auto & properties = flow_styles_.basic_structures_.properties;
+        auto & one_time_eoi = flow_styles_.basic_structures_.one_time_eoi;
 
         auto & anchors = flow_styles_.anchors;
         auto & flow_node = flow_styles_.flow_node;
@@ -149,7 +150,7 @@ namespace yaml { namespace parser {
         // [169]
         trail_comments =
                 indent_lt(_r1)
-            >>  '#' >> *nb_char >> eol
+            >>  '#' >> *nb_char >> (eol | one_time_eoi)
             >>  *l_comment
             ;
 
@@ -174,7 +175,7 @@ namespace yaml { namespace parser {
 
         // [173]
         literal_content =
-                -(literal_text(_r1) >> *literal_next(_r1) >> eol)
+                -(literal_text(_r1) >> *literal_next(_r1) >> (eol | one_time_eoi))
             >>  chomped_empty(_r1, _r2)
             ;
 
@@ -225,7 +226,7 @@ namespace yaml { namespace parser {
 
         // [182]
         folded_content =
-                -(diff_lines(_r1) >> eol)
+                -(diff_lines(_r1) >> (eol | one_time_eoi))
             >>  chomped_empty(_r1, _r2)
             ;
 
@@ -349,7 +350,12 @@ namespace yaml { namespace parser {
 
         // [200]
         block_collection =
-                -omit[separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2)[_a = _1]]
+                s_l_comments
+            >>  (
+                    block_sequence(seq_spaces(_r1, _r2))[_val = _1]
+                |   block_mapping(_r1)[_val = _1]
+                )
+            |   omit[separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2)[_a = _1]]
             >>  s_l_comments
             >>  (
                     block_sequence(seq_spaces(_r1, _r2))
