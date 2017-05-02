@@ -140,7 +140,7 @@ namespace yaml { namespace parser {
 
         // [39]
         uri_char =
-                char_("%") > hex[push_utf8(_val, _1)]
+                char_("%") >> hex[push_utf8(_val, _1)]
             |   word_char
             |   char_("#;/?:@&=+$,_.!~*'()[]")
             ;
@@ -155,7 +155,7 @@ namespace yaml { namespace parser {
         // [62]
         esc_char =
                 '\\'
-            >   (
+            >>  (
                     ('x' > hex)                     [push_utf8(_val, _1)]
                 |   ('u' > hex4)                    [push_utf8(_val, _1)]
                 |   ('U' > hex8)                    [push_utf8(_val, _1)]
