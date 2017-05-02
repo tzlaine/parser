@@ -31,7 +31,6 @@ TEST(parse, test_parse_yaml)
 
     std::vector<value_t> result;
     ASSERT_TRUE((parse_yaml(in, result, filename))) << "failed initial parse of " << filename;
-    ASSERT_TRUE(!result.empty());
 
     for (auto const & doc : result) {
         print_yaml(std::cout, doc);
