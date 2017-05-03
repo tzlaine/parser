@@ -18,6 +18,7 @@ all_files = sorted([f for f in os.listdir(in_path) if os.path.isfile(os.path.joi
 tml_files = [f for f in all_files if f.endswith('.tml')]
 
 tests = []
+error_tests = []
 
 for tml_file in tml_files:
     tml_file_root = os.path.splitext(tml_file)[0]
@@ -25,6 +26,12 @@ for tml_file in tml_files:
     yml_path = os.path.join(args.output_dir, tml_file_root + '.yml')
 
     contents = open(tml_path, 'r').readlines()
+
+    error_test = False
+    for line in contents:
+        if line.startswith('tags:') and 'error' in line:
+            error_test = True
+
     first_line = 0
     while first_line < len(contents) and 'in-yaml' not in contents[first_line]:
         first_line += 1
@@ -35,13 +42,20 @@ for tml_file in tml_files:
     while last_line < len(contents) and '+++' not in contents[last_line]:
         last_line += 1
     in_yaml = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t').replace('<SPC>', ' ')
+
     tmp_file = open('tmp', 'w')
     tmp_file.write(in_yaml)
     tmp_file.close()
     shutil.move('tmp', yml_path)
-    tests.append(tml_file_root)
+    if error_test:
+        error_tests.append(tml_file_root)
+    else:
+        tests.append(tml_file_root)
 
 index_file = open(os.path.join(args.output_dir, 'index.cmake'), 'w')
 index_file.write('set(yml_file_index\n\n')
 index_file.write('\n'.join(tests) + '\n')
+index_file.write('\n)\n')
+index_file.write('set(error_yml_file_index\n\n')
+index_file.write('\n'.join(error_tests) + '\n')
 index_file.write('\n)\n')
