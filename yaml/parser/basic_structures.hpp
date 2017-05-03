@@ -31,6 +31,15 @@ namespace yaml { namespace parser {
 
     }
 
+    enum class eoi_state_t
+    {
+        not_at_end, at_end
+    };
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream & operator<< (std::ostream & os, eoi_state_t s)
+    { return os << (s == eoi_state_t::not_at_end ? "not_at_end" : "at_end"); }
+#endif
+
     template <typename Iterator>
     struct basic_structures
     {
@@ -47,13 +56,13 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, char(int, context_t)> b_l_folded;
         qi::rule<Iterator, char(int)> flow_folded;
         qi::rule<Iterator, void()> comment_text;
-        qi::rule<Iterator, void()> s_b_comment;
-        qi::rule<Iterator, void()> l_comment;
-        qi::rule<Iterator, void()> s_l_comments;
+        qi::rule<Iterator, void(eoi_state_t &)> s_b_comment;
+        qi::rule<Iterator, void(eoi_state_t &)> l_comment;
+        qi::rule<Iterator, void(eoi_state_t &)> s_l_comments;
         qi::rule<Iterator, void(int, context_t)> separate;
-        qi::rule<Iterator, void(int)> separate_lines;
+        qi::rule<Iterator, void(int), qi::locals<eoi_state_t>> separate_lines;
 
-        qi::rule<Iterator> directive;
+        qi::rule<Iterator, qi::locals<eoi_state_t>> directive;
         qi::rule<Iterator> reserved_directive;
         qi::rule<Iterator, qi::locals<unsigned int>> yaml_directive;
         qi::rule<Iterator> tag_directive;
@@ -70,8 +79,7 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string()> anchor_property;
         qi::rule<Iterator, std::string()> anchor_name;
 
-        qi::rule<Iterator> one_time_eoi;
-        int eoi_seen_count_;
+        qi::rule<Iterator, void (eoi_state_t &)> one_time_eoi;
 
         std::reference_wrapper<boost::phoenix::function<error_handler_t> const> error_handler_;
     };

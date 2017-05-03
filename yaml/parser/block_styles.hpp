@@ -57,7 +57,7 @@ namespace yaml { namespace parser {
         qi::rule<
             Iterator,
             block_header_t(),
-            qi::locals<int, chomping_t>
+            qi::locals<int, chomping_t, eoi_state_t>
         > block_header;
 
         qi::rule<Iterator, int()> indentation_indicator;
@@ -65,7 +65,7 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, std::string(int, chomping_t)> chomped_empty;
         qi::rule<Iterator, std::string(int)> strip_empty;
         qi::rule<Iterator, std::string(int)> keep_empty;
-        qi::rule<Iterator, std::string(int)> trail_comments;
+        qi::rule<Iterator, std::string(int), qi::locals<eoi_state_t>> trail_comments;
 
         qi::rule<
             Iterator,
@@ -95,7 +95,7 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, int()> auto_detect_indent;
         qi::rule<Iterator, ast::seq_t(int), qi::locals<int>> block_sequence;
         qi::rule<Iterator, ast::value_t(int n)> block_seq_entry;
-        qi::rule<Iterator, ast::value_t(int n, context_t), qi::locals<int>> block_indented;
+        qi::rule<Iterator, ast::value_t(int n, context_t), qi::locals<int, eoi_state_t>> block_indented;
         qi::rule<Iterator, ast::seq_t(int n)> compact_sequence;
 
         qi::rule<Iterator, ast::map_t(int), qi::locals<int>> block_mapping;
@@ -105,11 +105,11 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, ast::value_t(int)> block_map_explicit_value;
         qi::rule<Iterator, ast::map_element_t(int)> block_map_implicit_entry;
         qi::rule<Iterator, ast::value_t()> block_map_implicit_key;
-        qi::rule<Iterator, ast::value_t(int)> block_map_implicit_value;
+        qi::rule<Iterator, ast::value_t(int), qi::locals<eoi_state_t>> block_map_implicit_value;
         qi::rule<Iterator, ast::map_t(int)> compact_mapping;
 
         qi::rule<Iterator, ast::value_t(int, context_t)> block_node;
-        qi::rule<Iterator, ast::value_t(int)> flow_in_block;
+        qi::rule<Iterator, ast::value_t(int), qi::locals<eoi_state_t>> flow_in_block;
         qi::rule<Iterator, ast::value_t(int, context_t)> block_in_block;
 
         qi::rule<
@@ -121,7 +121,7 @@ namespace yaml { namespace parser {
         qi::rule<
             Iterator,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t>
+            qi::locals<ast::properties_t, eoi_state_t>
         > block_collection;
     };
 

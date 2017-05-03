@@ -62,10 +62,12 @@ namespace yaml { namespace parser {
         qi::_r2_type _r2;
         qi::_a_type _a;
         qi::_b_type _b;
+        qi::_c_type _c;
         qi::lit_type lit;
         qi::blank_type blank;
         qi::digit_type digit;
         qi::eol_type eol;
+        qi::eoi_type eoi;
         qi::eps_type eps;
 
         namespace phx = boost::phoenix;
@@ -110,7 +112,7 @@ namespace yaml { namespace parser {
                 indentation_indicator[_a = _1] >> chomping_indicator[_b = _1]
             |   chomping_indicator[_b = _1] >> indentation_indicator[_a = _1]
             )
-            >>  s_b_comment
+            >>  s_b_comment(_c = eoi_state_t::not_at_end)
             [_val = construct<block_header_t>(_a, _b)]
             ;
 
@@ -150,8 +152,8 @@ namespace yaml { namespace parser {
         // [169]
         trail_comments =
                 indent_lt(_r1)
-            >>  '#' >> *nb_char >> (eol | one_time_eoi)
-            >>  *l_comment
+            >>  '#' >> *nb_char >> (eol | eoi)
+            >>  *l_comment(_a = eoi_state_t::not_at_end)
             ;
 
         // 8.1.2. Literal Style
@@ -175,7 +177,7 @@ namespace yaml { namespace parser {
 
         // [173]
         literal_content =
-                -(literal_text(_r1) >> *literal_next(_r1) >> (eol | one_time_eoi))
+                -(literal_text(_r1) >> *literal_next(_r1) >> (eol | eoi))
             >>  chomped_empty(_r1, _r2)
             ;
 
@@ -226,7 +228,7 @@ namespace yaml { namespace parser {
 
         // [182]
         folded_content =
-                -(diff_lines(_r1) >> (eol | one_time_eoi))
+                -(diff_lines(_r1) >> (eol | eoi))
             >>  chomped_empty(_r1, _r2)
             ;
 
@@ -261,7 +263,7 @@ namespace yaml { namespace parser {
                 |   compact_mapping(_r1 + 1 + _a)[_val = _1]
                 )
             |   block_node(_r1, _r2)[_val = _1]
-            |   attr(ast::value_t()) >> s_l_comments
+            |   attr(ast::value_t()) >> s_l_comments(_b = eoi_state_t::not_at_end)
             ;
 
         // [186]
@@ -312,7 +314,10 @@ namespace yaml { namespace parser {
         // [194]
         block_map_implicit_value =
                 ':'
-            >>  (block_node(_r1, context_t::block_out) | attr(ast::value_t()) >> s_l_comments)
+            >>  (
+                    block_node(_r1, context_t::block_out)
+                |   attr(ast::value_t()) >> s_l_comments(_a = eoi_state_t::not_at_end)
+                )
             ;
 
         // [195]
@@ -332,7 +337,7 @@ namespace yaml { namespace parser {
         flow_in_block =
                 separate(_r1 + 1, context_t::flow_out)
             >>  flow_node(_r1 + 1, context_t::flow_out)
-            >>  s_l_comments
+            >>  s_l_comments(_a = eoi_state_t::not_at_end)
             ;
 
         // [198]
@@ -350,13 +355,13 @@ namespace yaml { namespace parser {
 
         // [200]
         block_collection =
-                s_l_comments
+                s_l_comments(_b = eoi_state_t::not_at_end)
             >>  (
                     block_sequence(seq_spaces(_r1, _r2))[_val = _1]
                 |   block_mapping(_r1)[_val = _1]
                 )
             |   omit[separate(_r1 + 1, _r2) >> properties(_r1 + 1, _r2)[_a = _1]]
-            >>  s_l_comments
+            >>  s_l_comments(_b = eoi_state_t::not_at_end)
             >>  (
                     block_sequence(seq_spaces(_r1, _r2))
                     [_val = handle_properties(_a, _1, phx::ref(anchors))]

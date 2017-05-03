@@ -65,6 +65,7 @@ namespace yaml { namespace parser {
         qi::_2_type _2;
         qi::_3_type _3;
         qi::_4_type _4;
+        qi::_a_type _a;
         qi::lit_type lit;
         qi::blank_type blank;
         qi::eps_type eps;
@@ -90,12 +91,13 @@ namespace yaml { namespace parser {
 
         // [202]
         document_prefix =
-            -full_bom[check_encoding(_1, phx::cref(error_handler_.f), _pass)] >> +l_comment
+                -full_bom[check_encoding(_1, phx::cref(error_handler_.f), _pass)]
+            >>  eps[_a = eoi_state_t::not_at_end] >> +l_comment(_a) >> eps(_a == eoi_state_t::not_at_end)
             ;
 
         // [205]
         document_suffix =
-            "..." >> s_l_comments
+            "..." >> s_l_comments(_a = eoi_state_t::not_at_end)
             ;
 
         // [206]
@@ -113,8 +115,8 @@ namespace yaml { namespace parser {
         // [208]
         explicit_document =
                 "---"
-            >>  *lit(' ')
-            >>  (bare_document | attr(ast::value_t()) >> s_l_comments)
+            >>  *lit(' ') // TODO: This is not in the spec.
+            >>  (bare_document | attr(ast::value_t()) >> s_l_comments(_a = eoi_state_t::not_at_end))
             ;
 
         // [209]

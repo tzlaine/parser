@@ -58,9 +58,9 @@ namespace yaml { namespace parser {
         // Spirit consumes a character when parsing a newline (qi::eol), but
         // *not* when parsing end-of-input (qi::eoi).
         //
-        // So, when a rule contains *foo, where foo = ... *b-comment, infinite
-        // looping results at the end of input, since qi::eoi succeeds without
-        // advancing the parser's read position.
+        // So, when a rule contains, say, *b-comment, infinite looping
+        // results, since qi::eoi succeeds without advancing the parser's read
+        // position.
         //
         // The natural inclination is to create a consuming version of eoi --
         // and since eoi is unique, that state can be shared across all rules
@@ -68,24 +68,27 @@ namespace yaml { namespace parser {
         // (transitive) uses of eoi in this YAML parser may need to backtrack
         // back to before the eoi was seen and try some other productions.
         //
-        // As a workaround, I've created a limited-repetition eoi.  Hopefully,
-        // the constant below is larger that the greatest amount of
-        // backtracking and retrying of eoi that can occur.
+        // As a workaround, I've created a repetition-detecting eoi.  The
+        // state is passed in, and the first time eoi is seen, the state
+        // changes.  Subsequent eoi detections will fail.
         struct first_time_eoi
         {
             template <typename>
             struct result { using type = bool; };
 
-            bool operator() (int & eoi_seen_count) const
-            { return ++eoi_seen_count < 100; }
+            bool operator() (eoi_state_t & state) const
+            {
+                bool const retval = state == eoi_state_t::not_at_end;
+                state = eoi_state_t::at_end;
+                return retval;
+            }
         };
 
     }
 
     template <typename Iterator>
     basic_structures<Iterator>::basic_structures (boost::phoenix::function<error_handler_t> const & error_handler)
-        : eoi_seen_count_ (0)
-        , error_handler_ (error_handler)
+        : error_handler_ (error_handler)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
@@ -189,18 +192,18 @@ namespace yaml { namespace parser {
         // [77]
         s_b_comment =
                 -(separate_in_line >> -comment_text)
-            >>  (eol | one_time_eoi)                  // b-comment [77]
+            >>  (eol | eoi >> eps(first_time_eoi(_r1)))                  // b-comment [77]
             ;
 
         // [78]
         l_comment =
-            separate_in_line >> -comment_text >> (eol | one_time_eoi)
+            separate_in_line >> -comment_text >> (eol | eoi >> eps(first_time_eoi(_r1)))
             ;
 
         // [79]
         s_l_comments =
-                (s_b_comment | raw[eps][check_start_of_line(_1, _pass)])
-            >>  *l_comment
+                 (s_b_comment(_r1) | raw[eps][check_start_of_line(_1, _pass)])
+            >>  *l_comment(_r1)
             ;
 
         // 6.7 Separation Lines
@@ -213,7 +216,7 @@ namespace yaml { namespace parser {
 
         // [81]
         separate_lines =
-                s_l_comments
+                s_l_comments(_a = eoi_state_t::not_at_end)
             >>  indent(_r1) >> -separate_in_line   // flow-line-prefix [69]
             |   separate_in_line
             ;
@@ -224,7 +227,7 @@ namespace yaml { namespace parser {
         directive =
                 '%'
             >>  (yaml_directive | tag_directive | reserved_directive)
-            >>  s_l_comments
+            >>  s_l_comments(_a = eoi_state_t::not_at_end)
             ;
 
         // [83]
@@ -306,11 +309,11 @@ namespace yaml { namespace parser {
             ;
 
         one_time_eoi =
-            eoi >> eps(first_time_eoi(phx::ref(eoi_seen_count_)))
+            eoi >> eps(first_time_eoi(_r1))
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
-#if 0
+#if 1
             (indent)
             (indent_lt)
             (indent_le)
@@ -320,7 +323,7 @@ namespace yaml { namespace parser {
 #endif
             (b_l_folded)
             (flow_folded)
-#if 0
+#if 1
             (comment_text)
             (s_b_comment)
             (l_comment)

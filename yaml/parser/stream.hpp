@@ -31,11 +31,11 @@ namespace yaml { namespace parser {
 
         block_styles<Iterator> block_styles_;
 
-        qi::rule<Iterator> document_prefix;
-        qi::rule<Iterator> document_suffix;
+        qi::rule<Iterator, qi::locals<eoi_state_t>> document_prefix;
+        qi::rule<Iterator, qi::locals<eoi_state_t>> document_suffix;
         qi::rule<Iterator> forbidden;
         qi::rule<Iterator, ast::value_t()> bare_document;
-        qi::rule<Iterator, ast::value_t()> explicit_document;
+        qi::rule<Iterator, ast::value_t(), qi::locals<eoi_state_t>> explicit_document;
         qi::rule<Iterator, ast::value_t()> directive_document;
         qi::rule<Iterator, ast::value_t()> any_document;
         qi::rule<Iterator, std::vector<ast::value_t>()> yaml_stream;
