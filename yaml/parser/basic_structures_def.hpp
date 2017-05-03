@@ -213,7 +213,7 @@ namespace yaml { namespace parser {
 
         // [81]
         separate_lines =
-            s_l_comments
+                s_l_comments
             >>  indent(_r1) >> -separate_in_line   // flow-line-prefix [69]
             |   separate_in_line
             ;
