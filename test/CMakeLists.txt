@@ -141,6 +141,7 @@ set(test_files
     yaml_block_map8.yaml
     yaml_block_map9.yaml
     simple_flow_plain.yml
+    escaped_percent_27NA.yml
 )
 foreach (test_file ${test_files})
     add_test(
@@ -161,7 +162,7 @@ foreach (test_file ${test_files})
 endforeach()
 
 set(invalid_test_files
-    escaped_percent_27NA.yml
+    # TODO
 )
 foreach (test_file ${invalid_test_files})
     add_test(
