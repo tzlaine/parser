@@ -101,7 +101,7 @@ foreach (yml_file_root ${yml_file_index})
 endforeach()
 
 set(invalid_yaml_test_suite_files
-    # TODO
+    2SXE # Has the pattern a: b: without a line break.
 )
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
     set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
