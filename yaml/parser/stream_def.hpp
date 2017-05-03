@@ -115,7 +115,6 @@ namespace yaml { namespace parser {
         // [208]
         explicit_document =
                 "---"
-            >>  *lit(' ') // TODO: This is not in the spec.
             >>  (bare_document | attr(ast::value_t()) >> s_l_comments(_a = eoi_state_t::not_at_end))
             ;
 
