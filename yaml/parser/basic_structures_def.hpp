@@ -239,10 +239,10 @@ namespace yaml { namespace parser {
         // [86]
         yaml_directive =
                 "YAML"
-            >   +blank
-            >   uint_[_a = _1]
-            >   '.'
-            >   uint_[check_yaml_version(_a, _1, phx::cref(error_handler_.get().f), _pass)]
+            >>  +blank
+            >>  uint_[_a = _1]
+            >>  '.'
+            >>  uint_[check_yaml_version(_a, _1, phx::cref(error_handler_.get().f), _pass)]
             ;
 
         // [88]
