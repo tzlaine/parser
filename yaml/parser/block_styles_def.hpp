@@ -98,7 +98,6 @@ namespace yaml { namespace parser {
         auto & s_l_comments = flow_styles_.basic_structures_.s_l_comments;
         auto & separate = flow_styles_.basic_structures_.separate;
         auto & properties = flow_styles_.basic_structures_.properties;
-        auto & one_time_eoi = flow_styles_.basic_structures_.one_time_eoi;
 
         auto & anchors = flow_styles_.anchors;
         auto & flow_node = flow_styles_.flow_node;
