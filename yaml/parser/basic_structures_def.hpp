@@ -144,9 +144,7 @@ namespace yaml { namespace parser {
 
         // [66]
         separate_in_line =
-            *blank
-            // TODO: This should properly be:
-            // (+blank | raw[eps][check_start_of_line(_1, _pass)])
+            (+blank | raw[eps][check_start_of_line(_1, _pass)])
             ;
 
         // 6.3. Line Prefixes
