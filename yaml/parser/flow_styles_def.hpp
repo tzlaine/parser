@@ -74,8 +74,9 @@ namespace yaml { namespace parser {
         phx::function<detail::print_indent> print_indent;
 #endif
 
+        auto & esc_char = basic_structures_.characters_.esc_char;
+        auto & nb_json = basic_structures_.characters_.nb_json;
         auto & ns_char = basic_structures_.characters_.ns_char;
-        auto & printable = basic_structures_.characters_.printable;
 
         auto & flow_folded = basic_structures_.flow_folded;
         auto & l_empty = basic_structures_.l_empty;
@@ -100,8 +101,8 @@ namespace yaml { namespace parser {
 
         // [107]
         nb_double_char =
-                basic_structures_.characters_.esc_char
-            |   printable - char_("\"\\")
+                esc_char
+            |   nb_json - char_("\"\\")
             ;
 
         // [108]
@@ -161,7 +162,7 @@ namespace yaml { namespace parser {
 
         // [118]
         nb_single_char =
-            lit("''") >> attr('\'') | printable - '\''
+            lit("''") >> attr('\'') | nb_json - '\''
             ;
 
         // [119]
@@ -436,6 +437,7 @@ namespace yaml { namespace parser {
 
         BOOST_SPIRIT_DEBUG_NODES(
             (alias_node)
+            (nb_double_char)
             (ns_double_char)
             (double_quoted)
             (double_text)

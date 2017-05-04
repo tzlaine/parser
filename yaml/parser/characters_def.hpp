@@ -114,6 +114,11 @@ namespace yaml { namespace parser {
             char_("\t\n\f\x20-\x7e")
             ;
 
+        // [2]
+        nb_json =
+            '\t' | char_ - char_("\x00-\x19")
+            ;
+
         // [3]
         bom =
             byte_('\xfe') >> byte_('\xff')
@@ -164,6 +169,10 @@ namespace yaml { namespace parser {
             ;
 
         BOOST_SPIRIT_DEBUG_NODES(
+            (printable)
+#if 1
+            (nb_json)
+#endif
             (bom)
             // TODO: Separate out the naming of these things from debugging
             // them; give them user-friendly names.
