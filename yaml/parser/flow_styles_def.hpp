@@ -135,7 +135,7 @@ namespace yaml { namespace parser {
 
         // [113]
         double_break =
-            double_escaped(_r1) | flow_folded(_r1)
+            double_escaped(_r1) | flow_folded(_r1, false)
             ;
 
         // [114]
@@ -191,7 +191,7 @@ namespace yaml { namespace parser {
 
         // [124]
         single_next_line = hold[
-            flow_folded(_r1)
+            flow_folded(_r1, false)
             >>  -hold[
                     ns_single_char
                 >> single_in_line
@@ -253,7 +253,7 @@ namespace yaml { namespace parser {
         plain_next_line =
             YAML_PARSER_PRINT_INDENT
             // TODO: Apply hold[] everywhere appropriate.
-            hold[flow_folded(_r1) >> plain_char(_r2) >> plain_in_line(_r2)]
+            hold[flow_folded(_r1, true) >> plain_char(_r2) >> plain_in_line(_r2)]
             ;
 
         // [135]

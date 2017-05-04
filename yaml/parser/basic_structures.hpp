@@ -53,8 +53,8 @@ namespace yaml { namespace parser {
         qi::rule<Iterator, void()> separate_in_line;
         qi::rule<Iterator, void(int, context_t)> line_prefix;
         qi::rule<Iterator, void(int, context_t)> l_empty;
-        qi::rule<Iterator, char(int, context_t)> b_l_folded;
-        qi::rule<Iterator, char(int)> flow_folded;
+        qi::rule<Iterator, char(int, context_t, bool stop_at_document_delimiter)> b_l_folded;
+        qi::rule<Iterator, char(int, bool stop_at_document_delimiter)> flow_folded;
         qi::rule<Iterator, void()> comment_text;
         qi::rule<Iterator, void(eoi_state_t &)> s_b_comment;
         qi::rule<Iterator, void(eoi_state_t &)> l_comment;

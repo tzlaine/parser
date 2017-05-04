@@ -97,6 +97,7 @@ namespace yaml { namespace parser {
         qi::_1_type _1;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
+        qi::_r3_type _r3;
         qi::_a_type _a;
         qi::_b_type _b;
         qi::lit_type lit;
@@ -166,17 +167,17 @@ namespace yaml { namespace parser {
         // 6.5 Line Folding
 
         // [73]
-        b_l_folded = (
-                eol >> +l_empty(_r1, _r2)   // b-l-trimmed [71]
-            |   eol
-            )
+        b_l_folded =
+                eol
+            >>  (eps(!_r3) | !(lit("...") | "---"))
+            >>  *l_empty(_r1, _r2)   // b-l-trimmed [71]
             >>  attr('\n')
             ;
 
         // [74]
         flow_folded =
                 -separate_in_line
-            >>  b_l_folded(_r1, context_t::flow_in)
+            >>  b_l_folded(_r1, context_t::flow_in, _r2)
             >>  line_prefix(_r1, context_t::flow_in)
             ;
 

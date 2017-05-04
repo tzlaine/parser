@@ -171,7 +171,7 @@ namespace yaml { namespace parser {
 
         // [172]
         literal_next =
-            eol >> literal_text(_r1)
+            eol >> !(lit("...") | "---") >> literal_text(_r1)
             ;
 
         // [173]
@@ -196,7 +196,7 @@ namespace yaml { namespace parser {
 
         // [176]
         folded_lines =
-            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block_in) >> folded_text(_r1))
+            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block_in, true) >> folded_text(_r1))
             ;
 
         // [177]
