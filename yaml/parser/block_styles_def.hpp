@@ -133,7 +133,7 @@ namespace yaml { namespace parser {
         // [166]
         chomped_empty =
                 eps(_r2 == chomping_t::keep) >> keep_empty(_r1)
-            |   strip_empty(_r1)
+            |   eps(_r2 != chomping_t::keep) >> strip_empty(_r1)
             ;
 
         // [167]

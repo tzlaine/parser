@@ -119,7 +119,8 @@ namespace yaml { namespace parser {
         double_text =
                 eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in)
             >>  double_multi_line(_r1)
-            |   *nb_double_char                 // double-one-line [111]
+            |   eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
+            >>  *nb_double_char                 // double-one-line [111]
             ;
 
         // [112]
@@ -179,7 +180,8 @@ namespace yaml { namespace parser {
         single_text =
                 eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in)
             >>  single_multi_line(_r1)
-            |   *nb_single_char
+            |   eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
+            >>  *nb_single_char
             ;
 
         // [123]
@@ -216,8 +218,10 @@ namespace yaml { namespace parser {
 
         // [127]
         plain_safe =
-                eps(_r1 == context_t::flow_out || _r1 == context_t::block_key) >> ns_char
-            |   ns_char - char_(",[]{}")
+                eps(_r1 == context_t::flow_out || _r1 == context_t::block_key)
+            >>  ns_char
+            |   eps(_r1 == context_t::flow_in || _r1 == context_t::flow_key)
+            >>  ns_char - char_(",[]{}")
             ;
 
         // [130]
@@ -229,8 +233,10 @@ namespace yaml { namespace parser {
 
         // [131]
         plain =
-            eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in) >> plain_multi_line(_r1, _r2)
-            |   plain_one_line(_r2)
+                eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in)
+            >>  plain_multi_line(_r1, _r2)
+            |   eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
+            >>  plain_one_line(_r2)
             ;
 
         // [132]

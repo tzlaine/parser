@@ -208,8 +208,10 @@ namespace yaml { namespace parser {
 
         // [80]
         separate =
-                eps(_r2 == context_t::block_key || _r2 == context_t::flow_key) >> separate_in_line
-            |   separate_lines(_r1)
+                eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
+            >>  separate_in_line
+            |   eps(!(_r2 == context_t::block_key || _r2 == context_t::flow_key))
+            >>  separate_lines(_r1)
             ;
 
         // [81]
