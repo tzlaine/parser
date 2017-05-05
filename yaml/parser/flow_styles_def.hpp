@@ -191,11 +191,11 @@ namespace yaml { namespace parser {
 
         // [124]
         single_next_line = hold[
-            flow_folded(_r1, false)
+                flow_folded(_r1, false)
             >>  -hold[
                     ns_single_char
-                >> single_in_line
-                >>  (single_next_line(_r1) >> *blank)
+                >>  single_in_line
+                >>  (single_next_line(_r1) | *blank)
                 ]
             ]
             ;
