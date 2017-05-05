@@ -312,9 +312,9 @@ namespace yaml { namespace parser {
 
         // [144]
         flow_map_implicit_entry =
-                flow_map_yaml_key_entry(_r1, _r2)
+                flow_map_json_key_entry(_r1, _r2)
+            |   flow_map_yaml_key_entry(_r1, _r2)
             |   flow_map_empty_key_entry(_r1, _r2)
-            |   flow_map_json_key_entry(_r1, _r2)
             ;
 
         // [145]
@@ -409,8 +409,8 @@ namespace yaml { namespace parser {
 
         // [158]
         flow_content =
-                flow_yaml_content(_r1, _r2)
-            |   flow_json_content(_r1, _r2)
+                flow_json_content(_r1, _r2)
+            |   flow_yaml_content(_r1, _r2)
             ;
 
         // TODO: Use Niabelek trick to handle parse after properties.
