@@ -48,9 +48,8 @@ namespace yaml { namespace parser {
 #if YAML_HEADER_ONLY
     inline
 #endif
-    bool parse_yaml(
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         std::istream & is,
-        std::vector<ast::value_t> & result,
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
         reporting_fn_t const & warnings_callback = reporting_fn_t()

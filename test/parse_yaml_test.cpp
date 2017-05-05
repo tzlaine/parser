@@ -29,10 +29,10 @@ TEST(parse, test_parse_yaml)
     using yaml::parser::parse_yaml;
     using yaml::ast::print_yaml;
 
-    std::vector<value_t> result;
-    ASSERT_TRUE((parse_yaml(in, result, filename))) << "failed initial parse of " << filename;
+    boost::optional<std::vector<value_t>> result = parse_yaml(in, filename);
+    ASSERT_TRUE(result) << "failed initial parse of " << filename;
 
-    for (auto const & doc : result) {
+    for (auto const & doc : *result) {
         print_yaml(std::cout, doc);
     }
     std::cout << std::endl;

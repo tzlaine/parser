@@ -14,9 +14,8 @@
 #define PARSE_YAML_IMPLEMENTATION()                                     \
 namespace yaml { namespace parser {                                     \
                                                                         \
-    bool parse_yaml(                                                    \
+    boost::optional<std::vector<ast::value_t>> parse_yaml(              \
         std::istream & is,                                              \
-        std::vector<ast::value_t> & result,                             \
         std::string const & source_file,                                \
         reporting_fn_t const & errors_callback,                         \
         reporting_fn_t const & warnings_callback                        \
@@ -41,14 +40,21 @@ namespace yaml { namespace parser {                                     \
             warnings_callback                                           \
         );                                                              \
                                                                         \
-        bool const retval = boost::spirit::qi::parse(                   \
+        std::vector<ast::value_t> documents;                            \
+        bool const success = boost::spirit::qi::parse(                  \
             first,                                                      \
             last,                                                       \
             p.yaml_stream,                                              \
-            result                                                      \
+            documents                                                   \
         );                                                              \
                                                                         \
-        return retval;                                                  \
+        if (success) {                                                  \
+            return boost::optional<std::vector<ast::value_t>>(          \
+                std::move(documents)                                    \
+            );                                                          \
+        } else {                                                        \
+            return boost::optional<std::vector<ast::value_t>>{};        \
+        }                                                               \
     }                                                                   \
                                                                         \
 } }
