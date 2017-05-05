@@ -76,7 +76,11 @@ namespace yaml { namespace parser {
         ) const {
             Iterator line_start = boost::spirit::get_line_start(first, err_pos);
             std::string error_line;
-            for (Iterator it = ++line_start; it != last; ++it) {
+            if (line_start != last &&
+                (*line_start == '\r' || *line_start == '\n')) {
+                ++line_start;
+            }
+            for (Iterator it = line_start; it != last; ++it) {
                 typename Iterator::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
