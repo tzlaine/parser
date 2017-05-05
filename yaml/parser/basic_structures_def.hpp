@@ -248,7 +248,7 @@ namespace yaml { namespace parser {
 
         // [88]
         tag_directive =
-            "TAG" > +blank > tag_handle > +blank > tag_prefix
+            "TAG" >> +blank >> tag_handle >> +blank >> tag_prefix
             // TODO [add tag to tag symbol table]
             ;
 

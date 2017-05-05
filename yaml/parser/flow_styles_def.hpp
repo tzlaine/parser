@@ -426,7 +426,7 @@ namespace yaml { namespace parser {
 
         // [160]
         flow_json_node =
-                -(omit[properties(_r1, _r2)[_a = _1]] > separate(_r1, _r2))
+                -(omit[properties(_r1, _r2)[_a = _1]] >> separate(_r1, _r2))
             >>  flow_json_content(_r1, _r2)
                 [_val = handle_properties(_a, _1, phx::ref(anchors))]
             ;
