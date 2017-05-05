@@ -111,12 +111,12 @@ namespace yaml { namespace parser {
 
         // [1]
         printable =
-            char_("\t\n\f\x20-\x7e")
+            char_("\t\n\f\x20-\x7e") // TODO: This should properly have other chars in it once we can parse UTf8.
             ;
 
         // [2]
         nb_json =
-            '\t' | char_ - char_("\x00-\x19")
+            char_("\t\x20-\x7e") // TODO: This should properly be \t | anything >= \x20
             ;
 
         // [3]
