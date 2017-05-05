@@ -102,8 +102,11 @@ endforeach()
 
 set(invalid_yaml_test_suite_files
     2SXE # Has the pattern a: b: without a line break.
-    NHX8 # Has a bare "\" (not starting an escape sequence) outside of any single- or double-quoted string.
-    P94K # Has a bare "\" (not starting an escape sequence) outside of any single- or double-quoted string.
+
+    # Each has a bare "\" (not starting an escape sequence) outside of any
+    # single- or double-quoted string, in the middle of a block mapping.
+    NHX8 P94K
+
     ${error_yml_file_index}
 )
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
