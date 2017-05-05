@@ -107,6 +107,10 @@ set(invalid_yaml_test_suite_files
     # single- or double-quoted string, in the middle of a block mapping.
     NHX8 P94K
 
+    # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
+    # indented.
+    XW4D
+
     ${error_yml_file_index}
 )
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
