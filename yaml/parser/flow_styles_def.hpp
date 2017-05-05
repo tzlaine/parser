@@ -226,9 +226,9 @@ namespace yaml { namespace parser {
 
         // [130]
         plain_char =
-                plain_safe(_r1) - char_(":#")
-            |   hold[ns_char >> char_('#')]
+                hold[ns_char >> char_('#')]
             |   hold[char_(':') >> plain_safe(_r1)]
+            |   plain_safe(_r1) - char_(":#")
             ;
 
         // [131]
