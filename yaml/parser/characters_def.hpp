@@ -97,8 +97,7 @@ namespace yaml { namespace parser {
         // 5.2. Character Encodings
 
         full_bom =
-                eps[_val = encoding_t::utf8]
-            |   byte_('\x00') >> byte_('\x00') >> byte_('\xfe') >> byte_('\xff') [_val = encoding_t::utf32_be]
+                byte_('\x00') >> byte_('\x00') >> byte_('\xfe') >> byte_('\xff') [_val = encoding_t::utf32_be]
             |   byte_('\x00') >> byte_('\x00') >> byte_('\x00') >> byte_ [_val = encoding_t::utf32_be]
             |   byte_('\xff') >> byte_('\xfe') >> byte_('\x00') >> byte_('\x00') [_val = encoding_t::utf32_le]
             |   byte_ >> byte_('\x00') >> byte_('\x00') >> byte_('\x00') [_val = encoding_t::utf32_le]

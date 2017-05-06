@@ -48,6 +48,14 @@ namespace yaml { namespace parser {
 #if YAML_HEADER_ONLY
     inline
 #endif
+    encoding_t read_bom (std::istream & is);
+
+    template <typename Iter>
+    encoding_t read_bom (Iter & first, Iter last);
+
+#if YAML_HEADER_ONLY
+    inline
+#endif
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         std::istream & is,
         std::string const & source_file = "",
@@ -56,7 +64,5 @@ namespace yaml { namespace parser {
     );
 
 } }
-
-#include <yaml/detail/parse_impl.hpp>
 
 #endif

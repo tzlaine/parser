@@ -47,9 +47,6 @@ int main (int argc, char** argv)
         return 1;
     }
 
-    // TODO: Cruft.  Replace this with tests that have different
-    // BOMs/encodings.
-
     // Last arg must be the name of the file to parse.
     filename = argv[argc - 1];
     std::ifstream in(filename, std::ios_base::in);
@@ -60,21 +57,6 @@ int main (int argc, char** argv)
         std::cerr << "Error: Could not open input file: "
                   << filename << std::endl;
         return 1;
-    }
-
-    // Ignore the BOM marking the beginning of a UTF-8 file in Windows
-    char c = in.peek();
-    if (c == '\xef')
-    {
-        char s[4];
-        in >> s[0] >> s[1] >> s[2];
-        s[3] = '\0';
-        if (s != std::string("\xef\xbb\xbf"))
-        {
-            std::cerr << "Error: Unexpected characters from input file: "
-                      << filename << std::endl;
-            return 1;
-        }
     }
 
     int argc_ = argc - 1; // Don't give filename arg to GTest.

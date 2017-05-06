@@ -23,7 +23,6 @@ add_executable(
     flow_style.cpp
     block_style.cpp
     stream.cpp
-    parser.cpp
     parse_yaml_test.cpp
 )
 target_link_libraries(parse_test yaml gtest ${link_flags})
@@ -45,7 +44,6 @@ add_executable(
     flow_style.cpp
     block_style.cpp
     stream.cpp
-    parser.cpp
     parse_yaml_round_trip_test.cpp
 )
 target_link_libraries(parse_round_trip_test yaml gtest ${link_flags})
@@ -151,6 +149,9 @@ set(test_files
     yaml_block_map9.yaml
     simple_flow_plain.yml
     escaped_percent_27NA.yml
+
+    # "cat basic_yaml_block.yaml basic_yaml_block.yaml" (contains 2 BOMs).
+    basic_yaml_block_twice.yaml
 )
 foreach (test_file ${test_files})
     add_test(
