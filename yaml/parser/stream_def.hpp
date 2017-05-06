@@ -21,7 +21,7 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
-        bool check_encoding (encoding_t encoding, error_handler_t const & error_handler)
+        inline bool check_encoding (encoding_t encoding, error_handler_t const & error_handler)
         {
             if (encoding != encoding_t::utf8) {
                 std::stringstream oss;
@@ -48,7 +48,6 @@ namespace yaml { namespace parser {
         , error_handler_ (error_handler_t(source_file, errors_callback, warnings_callback))
     {
         qi::attr_type attr;
-        qi::omit_type omit;
         qi::raw_type raw;
         qi::char_type char_;
         qi::_pass_type _pass;
@@ -71,6 +70,8 @@ namespace yaml { namespace parser {
 
         auto pb = phx::push_back(_val, _1);
 
+        auto & full_bom = block_styles_.flow_styles_.basic_structures_.characters_.full_bom;
+
         auto & directive = block_styles_.flow_styles_.basic_structures_.directive;
         auto & l_comment = block_styles_.flow_styles_.basic_structures_.l_comment;
         auto & s_l_comments = block_styles_.flow_styles_.basic_structures_.s_l_comments;
@@ -80,8 +81,8 @@ namespace yaml { namespace parser {
 
         // [202]
         document_prefix =
-            // BOM is read prior to each document.
-            eps[_a = eoi_state_t::not_at_end] >> +l_comment(_a) >> eps(_a == eoi_state_t::not_at_end)
+                !full_bom // BOM is read prior to each document.
+            >>  eps[_a = eoi_state_t::not_at_end] >> +l_comment(_a) >> eps(_a == eoi_state_t::not_at_end)
             ;
 
         // [205]
@@ -92,24 +93,27 @@ namespace yaml { namespace parser {
         // [206]
         forbidden =
                 raw[eps][check_start_of_line(_1, _pass)]
-            >>  (lit("---") | "...")
+            >>  (-full_bom >> "---" | "...")
             >>  (eol | blank | eoi)
             ;
 
         // [207]
         bare_document =
-            block_node(-1, context_t::block_in) - forbidden
+                !full_bom // BOM is read prior to each document.
+            >>  block_node(-1, context_t::block_in) - forbidden
             ;
 
         // [208]
         explicit_document =
-                "---"
+                !full_bom // BOM is read prior to each document.
+            >>  "---"
             >>  (bare_document | attr(ast::value_t()) >> s_l_comments(_a = eoi_state_t::not_at_end))
             ;
 
         // [209]
         directive_document =
-            +directive >> explicit_document
+                !full_bom // BOM is read prior to each document.
+            >>  +directive >> explicit_document
             ;
 
         // [210]
@@ -124,11 +128,10 @@ namespace yaml { namespace parser {
                 *document_prefix
             >>  -any_document[pb]
             >>  *(
-                    +document_suffix >> *document_prefix >> any_document[pb]
-                 |  *document_prefix >> explicit_document[pb]
-                 )
-            >>  *document_suffix >> *document_prefix
-            >   omit[end_of_input]
+                    +(document_suffix >> !full_bom) >> *document_prefix >> any_document[pb]
+                |   *document_prefix >> explicit_document[pb]
+                )
+            >>  *(document_suffix >> !full_bom) >> *document_prefix
             ;
 
         // Allow empty and comment lines at end of input.
@@ -266,9 +269,6 @@ namespace yaml { namespace parser {
         if (!detail::check_encoding(first_encoding, p.error_handler_.f))
             return retval;
 
-        // TODO: Communicate lines read in previous iterations to
-        // error_handler_t.
-
         std::string contents;
         std::getline(is, contents, '\0');
 
@@ -280,12 +280,49 @@ namespace yaml { namespace parser {
         first.set_tabchars(1);
 
         std::vector<ast::value_t> documents;
-        bool const success = boost::spirit::qi::parse(
-            first,
-            last,
-            p.yaml_stream,
-            documents
-        );
+        std::vector<ast::value_t> temp_documents;
+        bool success = true;
+        do {
+            auto initial = first;
+            success = qi::parse(first, last, p.yaml_stream, temp_documents);
+
+            if (!success || first == initial)
+                break;
+
+            std::move(
+                temp_documents.begin(), temp_documents.end(),
+                std::back_inserter(documents)
+            );
+            temp_documents.clear();
+
+            bool doc_boundary = qi::parse(first, last, +p.document_suffix);
+
+            auto const encoding = read_bom(first, last);
+            if (!detail::check_encoding(encoding, p.error_handler_.f)) {
+                success = false;
+            } else {
+                auto pos = first.get_position();
+                pos.column = 1;
+                first.set_position(pos);
+            }
+
+            if (!doc_boundary) {
+                qi::lit_type lit;
+                doc_boundary = qi::parse(first, last, &lit("---"));
+            }
+
+            // If there's not a ... or --- separator, don't keep reading
+            // documents.  However, this is not an error by itself.
+            if (!doc_boundary)
+                break;
+        } while (success);
+
+        if (success) {
+            success = qi::parse(first, last, p.end_of_input);
+
+            if (!success)
+                p.error_handler_.f.report_error("Expected end of input\n");
+        }
 
         if (success)
             retval = std::move(documents);

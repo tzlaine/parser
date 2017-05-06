@@ -33,7 +33,9 @@ TEST(parse, test_parse_yaml)
     ASSERT_TRUE(result) << "failed initial parse of " << filename;
 
     for (auto const & doc : *result) {
+        std::cout << "---\n";
         print_yaml(std::cout, doc);
+        std::cout << "\n";
     }
     std::cout << std::endl;
 }

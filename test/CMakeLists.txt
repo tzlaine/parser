@@ -150,8 +150,8 @@ set(test_files
     simple_flow_plain.yml
     escaped_percent_27NA.yml
 
-    # "cat basic_yaml_block.yaml basic_yaml_block.yaml" (contains 2 BOMs).
-    basic_yaml_block_twice.yaml
+    # Repeated contents of basic_yaml_block.yaml (contains >1 BOM).
+    basic_yaml_block_repeated.yaml
 )
 foreach (test_file ${test_files})
     add_test(
