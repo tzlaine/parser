@@ -44,6 +44,7 @@ namespace yaml { namespace parser {
     struct basic_structures_t
     {
         using iterator_t = pos_iterator<CharIter>;
+        using iter_range_t = uchar_range<CharIter>;
 
         explicit basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler);
 
@@ -52,12 +53,12 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, void(int)> indent;    // indent exactly n spaces
         qi::rule<iterator_t, void(int)> indent_lt; // indent <= n spaces
         qi::rule<iterator_t, void(int)> indent_le; // indent < n spaces
-        qi::rule<iterator_t, void()> separate_in_line;
+        qi::rule<iterator_t> separate_in_line;
         qi::rule<iterator_t, void(int, context_t)> line_prefix;
         qi::rule<iterator_t, void(int, context_t)> l_empty;
         qi::rule<iterator_t, char(int, context_t, bool stop_at_document_delimiter)> b_l_folded;
         qi::rule<iterator_t, char(int, bool stop_at_document_delimiter)> flow_folded;
-        qi::rule<iterator_t, void()> comment_text;
+        qi::rule<iterator_t> comment_text;
         qi::rule<iterator_t, void(eoi_state_t &)> s_b_comment;
         qi::rule<iterator_t, void(eoi_state_t &)> l_comment;
         qi::rule<iterator_t, void(eoi_state_t &)> s_l_comments;
@@ -74,12 +75,12 @@ namespace yaml { namespace parser {
         qi::rule<
             iterator_t,
             ast::properties_t(int, context_t),
-            qi::locals<ast::string_t, ast::string_t>
+            qi::locals<iter_range_t, iter_range_t>
         > properties;
 
-        qi::rule<iterator_t, std::string()> tag_property;
-        qi::rule<iterator_t, std::string()> anchor_property;
-        qi::rule<iterator_t, std::string()> anchor_name;
+        qi::rule<iterator_t, iter_range_t()> tag_property;
+        qi::rule<iterator_t, iter_range_t()> anchor_property;
+        qi::rule<iterator_t, iter_range_t()> anchor_name;
 
         qi::rule<iterator_t, void (eoi_state_t &)> one_time_eoi;
 

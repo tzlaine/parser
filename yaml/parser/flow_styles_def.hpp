@@ -51,9 +51,10 @@ namespace yaml { namespace parser {
         qi::attr_type attr;
         qi::omit_type omit;
         qi::hold_type hold;
-        qi::char_type char_;
+        qi::unicode::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
+        qi::_2_type _2;
         qi::_a_type _a;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
@@ -68,6 +69,7 @@ namespace yaml { namespace parser {
         using phx::construct;
 
         phx::function<detail::handle_properties> handle_properties;
+        phx::function<detail::push_utf8> push_utf8;
         auto ins = phx::insert(_val, _1);
 
 #ifdef BOOST_SPIRIT_DEBUG
@@ -118,16 +120,16 @@ namespace yaml { namespace parser {
         // [110]
         double_text =
                 eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in)
-            >>  double_multi_line(_r1)
+            >>  double_multi_line(_r1)[_val = _1]
             |   eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
-            >>  *nb_double_char                 // double-one-line [111]
+            >>  *nb_double_char[push_utf8(_val, _1)] // double-one-line [111]
             ;
 
         // [112]
         double_escaped = hold[
                 *blank
             >> '\\'
-            >> eol
+            >> omit[eol]
             >> *l_empty(_r1, context_t::flow_in)
             >> line_prefix(_r1, context_t::flow_in)
             ]
@@ -140,16 +142,16 @@ namespace yaml { namespace parser {
 
         // [114]
         double_in_line =
-            *hold[*blank >> ns_double_char]
+            *hold[*blank[_val += _1] >> ns_double_char[push_utf8(_val, _1)]]
             ;
 
         // [115]
         double_next_line = hold[
-            double_break(_r1)
+                double_break(_r1)[_val == _1]
             >>  -hold[
-                    ns_double_char
-                >>  double_in_line
-                >>  (double_next_line(_r1) | *blank)
+                    ns_double_char[push_utf8(_val, _1)]
+                >>  double_in_line[_val += _1]
+                >>  (double_next_line(_r1)[_val += _1] | *blank[_val += _1])
                 ]
             ]
             ;
@@ -179,23 +181,23 @@ namespace yaml { namespace parser {
         // [121]
         single_text =
                 eps(_r2 == context_t::flow_out || _r2 == context_t::flow_in)
-            >>  single_multi_line(_r1)
+            >>  single_multi_line(_r1)[_val = _1]
             |   eps(_r2 == context_t::block_key || _r2 == context_t::flow_key)
-            >>  *nb_single_char
+            >>  *nb_single_char[push_utf8(_val, _1)]
             ;
 
         // [123]
         single_in_line =
-            *hold[*blank >> ns_single_char]
+            *hold[*blank[_val += _1] >> ns_single_char[push_utf8(_val, _1)]]
             ;
 
         // [124]
         single_next_line = hold[
-                flow_folded(_r1, false)
+                flow_folded(_r1, false)[_val = _1]
             >>  -hold[
-                    ns_single_char
-                >>  single_in_line
-                >>  (single_next_line(_r1) | *blank)
+                    ns_single_char[push_utf8(_val, _1)]
+                >>  single_in_line[_val += _1]
+                >>  (single_next_line(_r1)[_val += _1] | *blank[_val += _1])
                 ]
             ]
             ;
@@ -212,8 +214,8 @@ namespace yaml { namespace parser {
 
         // [126]
         plain_first =
-                (ns_char - indicator)
-            |   hold[char_("?:-") >> plain_safe(_r1)]
+                (ns_char - indicator)[push_utf8(_val, _1)]
+            |   hold[char_("?:-") >> plain_safe(_r1)[push_utf8(_val, _1)]]
             ;
 
         // [127]
@@ -226,9 +228,9 @@ namespace yaml { namespace parser {
 
         // [130]
         plain_char =
-                hold[ns_char >> char_('#')]
-            |   hold[char_(':') >> plain_safe(_r1)]
-            |   plain_safe(_r1) - char_(":#")
+                (ns_char >> char_('#'))[push_utf8(_val, _1, _2)]
+            |   (char_(':') >> plain_safe(_r1))[push_utf8(_val, _1, _2)]
+            |   (plain_safe(_r1) - char_(":#"))[push_utf8(_val, _1)]
             ;
 
         // [131]

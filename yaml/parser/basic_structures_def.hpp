@@ -84,6 +84,21 @@ namespace yaml { namespace parser {
             }
         };
 
+        struct to_str
+        {
+            template <typename>
+            struct result { using type = std::string; };
+
+            template <typename CharIter>
+            std::string operator() (boost::iterator_range<pos_iterator<CharIter>> range) const
+            {
+                using iterator_t = typename boost::iterator_range<pos_iterator<CharIter>>::iterator;
+                boost::u32_to_u8_iterator<iterator_t> first(range.begin());
+                boost::u32_to_u8_iterator<iterator_t> last(range.end());
+                return std::string(first, last);
+            }
+        };
+
     }
 
     template <typename CharIter>
@@ -92,7 +107,7 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::uint_type uint_;
-        qi::char_type char_;
+        qi::unicode::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_r1_type _r1;
@@ -102,7 +117,7 @@ namespace yaml { namespace parser {
         qi::_b_type _b;
         qi::lit_type lit;
         qi::blank_type blank;
-        qi::alnum_type alnum;
+        qi::unicode::alnum_type alnum;
         qi::eol_type eol;
         qi::eoi_type eoi;
         qi::eps_type eps;
@@ -123,6 +138,7 @@ namespace yaml { namespace parser {
         function<detail::check_yaml_version> check_yaml_version;
         function<detail::check_start_of_line> check_start_of_line;
         function<detail::first_time_eoi> first_time_eoi;
+        function<detail::to_str> to_str;
 
         // 6.1. Indentation Spaces
 
@@ -171,7 +187,7 @@ namespace yaml { namespace parser {
                 eol
             >>  (eps(!_r3) | !(lit("...") | "---"))
             >>  *l_empty(_r1, _r2)   // b-l-trimmed [71]
-            >>  attr('\n')
+            >>  attr(' ')
             ;
 
         // [74]
@@ -269,18 +285,21 @@ namespace yaml { namespace parser {
         // 6.9 Node Properties
 
         // [96]
+        // TODO: Defer construction of an ast::properties_t until we know
+        // we'll keep it.
         properties = (
                 tag_property[_a = _1] >> -(separate(_r1, _r2) >> anchor_property[_b = *_1])
             |   anchor_property[_b = _1] >> -(separate(_r1, _r2) >> tag_property[_a = *_1])
             )
-            [_val = construct<ast::properties_t>(_a, _b)]
+            [_val = construct<ast::properties_t>(to_str(_a), to_str(_b))]
             ;
 
         // [97]
-        tag_property %=
+        tag_property = raw[
                 lit('!') >> "<" > +uri_char > ">"   // verbatim_tag [98]
             |   tag_handle >> +tag_char             // shorthand_tag [99]
             |   '!'                                 // non_specific_tag [100]
+            ]
             ;
 
         // [22]
@@ -298,7 +317,7 @@ namespace yaml { namespace parser {
 //foo:
 //  *a:
         anchor_property =
-            '&' >> +(ns_char - indicator)
+            '&' >> raw[+(ns_char - indicator)]
             ;
 
         // [102]
@@ -306,7 +325,7 @@ namespace yaml { namespace parser {
 
         // [103]
         anchor_name =
-            +(ns_char - char_(",[]{}"))
+            raw[+(ns_char - char_(",[]{}"))]
             ;
 
         one_time_eoi =

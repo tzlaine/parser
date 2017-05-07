@@ -56,8 +56,8 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t, ast::alias_t()> alias_node;
 
-        qi::rule<iterator_t, std::string()> nb_double_char;
-        qi::rule<iterator_t, std::string()> ns_double_char;
+        qi::rule<iterator_t, parsed_uchar_t()> nb_double_char;
+        qi::rule<iterator_t, parsed_uchar_t()> ns_double_char;
         qi::rule<iterator_t, std::string(int, context_t)> double_quoted;
         qi::rule<iterator_t, std::string(int, context_t)> double_text;
         qi::rule<iterator_t, std::string(int)> double_escaped;
@@ -66,16 +66,16 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int)> double_next_line;
         qi::rule<iterator_t, std::string(int)> double_multi_line;
 
-        qi::rule<iterator_t, char()> nb_single_char;
-        qi::rule<iterator_t, char()> ns_single_char;
+        qi::rule<iterator_t, parsed_uchar_t()> nb_single_char;
+        qi::rule<iterator_t, parsed_uchar_t()> ns_single_char;
         qi::rule<iterator_t, std::string(int, context_t)> single_quoted;
         qi::rule<iterator_t, std::string(int, context_t)> single_text;
         qi::rule<iterator_t, std::string()> single_in_line;
         qi::rule<iterator_t, std::string(int)> single_next_line;
         qi::rule<iterator_t, std::string(int)> single_multi_line;
 
-        qi::rule<iterator_t, char(context_t)> plain_first;
-        qi::rule<iterator_t, char(context_t)> plain_safe;
+        qi::rule<iterator_t, std::string(context_t)> plain_first;
+        qi::rule<iterator_t, parsed_uchar_t(context_t)> plain_safe;
         qi::rule<iterator_t, std::string(context_t)> plain_char;
         qi::rule<iterator_t, std::string(int, context_t)> plain;
         qi::rule<iterator_t, std::string(context_t)> plain_in_line;

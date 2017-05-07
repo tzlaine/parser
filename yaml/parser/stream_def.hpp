@@ -14,6 +14,7 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/regex/pending/unicode_iterator.hpp>
 
 
 namespace yaml { namespace parser {
@@ -69,7 +70,7 @@ namespace yaml { namespace parser {
 
         auto pb = phx::push_back(_val, _1);
 
-        auto & full_bom = block_styles_.flow_styles_.basic_structures_.characters_.full_bom;
+        auto & bom = block_styles_.flow_styles_.basic_structures_.characters_.bom;
 
         auto & directive = block_styles_.flow_styles_.basic_structures_.directive;
         auto & l_comment = block_styles_.flow_styles_.basic_structures_.l_comment;
@@ -80,7 +81,7 @@ namespace yaml { namespace parser {
 
         // [202]
         document_prefix =
-                !full_bom // BOM is read prior to each document.
+                !bom // BOM is read prior to each document.
             >>  eps[_a = eoi_state_t::not_at_end] >> +l_comment(_a) >> eps(_a == eoi_state_t::not_at_end)
             ;
 
@@ -92,26 +93,26 @@ namespace yaml { namespace parser {
         // [206]
         forbidden =
                 raw[eps][check_start_of_line(_1, _pass)]
-            >>  (-full_bom >> "---" | "...")
+            >>  (-bom >> "---" | "...")
             >>  (eol | blank | eoi)
             ;
 
         // [207]
         bare_document =
-                !full_bom // BOM is read prior to each document.
+                !bom // BOM is read prior to each document.
             >>  block_node(-1, context_t::block_in) - forbidden
             ;
 
         // [208]
         explicit_document =
-                !full_bom // BOM is read prior to each document.
+                !bom // BOM is read prior to each document.
             >>  "---"
             >>  (bare_document | attr(ast::value_t()) >> s_l_comments(_a = eoi_state_t::not_at_end))
             ;
 
         // [209]
         directive_document =
-                !full_bom // BOM is read prior to each document.
+                !bom // BOM is read prior to each document.
             >>  +directive >> explicit_document
             ;
 
@@ -127,10 +128,10 @@ namespace yaml { namespace parser {
                 *document_prefix
             >>  -any_document[pb]
             >>  *(
-                    +(document_suffix >> !full_bom) >> *document_prefix >> any_document[pb]
+                    +(document_suffix >> !bom) >> *document_prefix >> any_document[pb]
                 |   *document_prefix >> explicit_document[pb]
                 )
-            >>  *(document_suffix >> !full_bom) >> *document_prefix
+            >>  *(document_suffix >> !bom) >> *document_prefix
             ;
 
         // Allow empty and comment lines at end of input.
@@ -156,7 +157,7 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
-        inline encoding_t read_bom_impl (char const * buf, int & size)
+        inline encoding_t read_bom_8 (char const * buf, int & size)
         {
             auto retval = encoding_t::utf8;
 
@@ -213,7 +214,7 @@ namespace yaml { namespace parser {
             is.putback(buf[i]);
         }
 
-        auto const retval = detail::read_bom_impl(buf, size);
+        auto const retval = detail::read_bom_8(buf, size);
 
         for (int i = 0; i < size; ++i) {
             is.get();
@@ -223,7 +224,8 @@ namespace yaml { namespace parser {
     }
 
     template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last)
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
+                         typename std::enable_if<sizeof(typename CharIter::value_type) == 1u>::type*)
     {
         pos_iterator<CharIter> it = first;
         int size = 0;
@@ -235,11 +237,20 @@ namespace yaml { namespace parser {
             ++size;
         }
 
-        auto const retval = detail::read_bom_impl(buf, size);
+        auto const retval = detail::read_bom_8(buf, size);
 
         std::advance(first, size);
 
         return retval;
+    }
+
+    template <typename CharIter>
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
+                         typename std::enable_if<sizeof(typename CharIter::value_type) == 4u>::type*)
+    {
+        if (first != last && *first == 0xfeff)
+            ++first;
+        return encoding_t::utf8;
     }
 
 #if YAML_HEADER_ONLY
@@ -253,8 +264,9 @@ namespace yaml { namespace parser {
     ) {
         boost::optional<std::vector<ast::value_t>> retval;
 
-        using char_iterator_t = std::string::const_iterator;
-        using iterator_t = stream_t<char_iterator_t>::iterator_t;
+        using raw_char_iterator_t = boost::u8_to_u32_iterator<std::string::const_iterator>;
+        using ustring_t = std::basic_string<uchar_t>;
+        using char_iterator_t = ustring_t::const_iterator;
 
         stream_t<char_iterator_t> p(
             source_file,
@@ -266,13 +278,23 @@ namespace yaml { namespace parser {
         if (!detail::check_encoding(first_encoding, p.error_handler_.f))
             return retval;
 
-        std::string contents;
-        std::getline(is, contents, '\0');
+        std::string raw_contents;
+        char buf[4096];
+        while (is) {
+            is.read(buf, sizeof(buf));
+            raw_contents.append(buf, buf + is.gcount());
+        }
+        ustring_t contents(
+            raw_char_iterator_t(raw_contents.begin()),
+            raw_char_iterator_t(raw_contents.end())
+        );
 
-        char_iterator_t sfirst(contents.begin());
-        char_iterator_t slast(contents.end());
+        char_iterator_t contents_first(contents.begin());
+        char_iterator_t contents_last(contents.end());
 
-        iterator_t first(sfirst, slast);
+        using iterator_t = stream_t<char_iterator_t>::iterator_t;
+
+        iterator_t first(contents_first, contents_last);
         iterator_t last;
         first.set_tabchars(1);
 

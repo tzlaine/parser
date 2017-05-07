@@ -10,5 +10,5 @@
 #include <fstream>
 #include <string>
 
-typedef std::string::const_iterator char_iterator_t;
+using char_iterator_t = yaml::parser::ustring_t::const_iterator;
 template struct yaml::parser::stream_t<char_iterator_t>;

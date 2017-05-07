@@ -67,7 +67,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int, chomping_t)> chomped_empty;
         qi::rule<iterator_t, std::string(int)> strip_empty;
         qi::rule<iterator_t, std::string(int)> keep_empty;
-        qi::rule<iterator_t, std::string(int), qi::locals<eoi_state_t>> trail_comments;
+        qi::rule<iterator_t, void(int), qi::locals<eoi_state_t>> trail_comments;
 
         qi::rule<
             iterator_t,

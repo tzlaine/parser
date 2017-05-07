@@ -13,6 +13,8 @@
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -33,6 +35,9 @@ namespace yaml { namespace parser {
 
         std::string msg_;
     };
+
+    template <typename CharIter>
+    using pos_iterator = boost::spirit::classic::position_iterator<CharIter>;
 
     struct error_handler_t
     {
@@ -67,27 +72,29 @@ namespace yaml { namespace parser {
                 warning_fn_(msg);
         }
 
-        template <typename Iter>
+        template <typename CharIter>
         void operator() (
-            Iter first,
-            Iter last,
-            Iter err_pos,
+            pos_iterator<CharIter> first,
+            pos_iterator<CharIter> last,
+            pos_iterator<CharIter> err_pos,
             boost::spirit::info const & what
         ) const {
-            Iter line_start = boost::spirit::get_line_start(first, err_pos);
+            using iterator_t = pos_iterator<CharIter>;
+
+            iterator_t line_start = boost::spirit::get_line_start(first, err_pos);
             std::string error_line;
             if (line_start != last && *line_start == '\r')
                 ++line_start;
             if (line_start != last && *line_start == '\n')
                 ++line_start;
-            for (Iter it = line_start; it != last; ++it) {
-                typename Iter::value_type c = *it;
+            for (iterator_t it = line_start; it != last; ++it) {
+                typename iterator_t::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
                 error_line += c;
             }
 
-            typename Iter::position_t const pos = err_pos.get_position();
+            typename iterator_t::position_t const pos = err_pos.get_position();
             int const line = pos.line;
             int const column = pos.column;
 

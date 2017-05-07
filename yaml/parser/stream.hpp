@@ -8,14 +8,12 @@
 #ifndef YAML_PARSER_STREAM_HPP
 #define YAML_PARSER_STREAM_HPP
 
-#define BOOST_SPIRIT_NO_PREDEFINED_TERMINALS
-
-#include <yaml/parser/block_styles.hpp>
-
-
+// TODO: Create a macro for YAML_HEADER_ONLY_INLINE
 #ifndef YAML_HEADER_ONLY
 #define YAML_HEADER_ONLY 1
 #endif
+
+#include <yaml/parser/block_styles.hpp>
 
 
 namespace yaml { namespace parser {
@@ -53,7 +51,12 @@ namespace yaml { namespace parser {
     encoding_t read_bom (std::istream & is);
 
     template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last);
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
+                         typename std::enable_if<sizeof(typename CharIter::value_type) == 1u>::type* = 0);
+
+    template <typename CharIter>
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
+                         typename std::enable_if<sizeof(typename CharIter::value_type) == 4u>::type* = 0);
 
 #if YAML_HEADER_ONLY
     inline

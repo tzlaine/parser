@@ -77,6 +77,7 @@ namespace yaml { namespace parser {
         phx::function<detail::handle_properties> handle_properties;
         phx::function<detail::chomping> chomping;
         phx::function<detail::indentation> indentation;
+        phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
         auto ins = phx::insert(_val, _1);
         auto pb = phx::push_back(_val, _1);
@@ -166,7 +167,7 @@ namespace yaml { namespace parser {
 
         // [171]
         literal_text =
-            *l_empty(_r1, context_t::block_in) >> indent(_r1) >> +nb_char
+            *l_empty(_r1, context_t::block_in) >> indent(_r1) >> +nb_char[push_utf8(_val, _1)]
             ;
 
         // [172]
@@ -191,7 +192,7 @@ namespace yaml { namespace parser {
 
         // [175]
         folded_text =
-            indent(_r1) >> ns_char >> *nb_char
+            indent(_r1) >> ns_char[push_utf8(_val, _1)] >> *nb_char[push_utf8(_val, _1)]
             ;
 
         // [176]
@@ -201,7 +202,7 @@ namespace yaml { namespace parser {
 
         // [177]
         spaced_text =
-            indent(_r1) >> blank >> *nb_char
+            indent(_r1) >> blank[_val = _1] >> *nb_char[push_utf8(_val, _1)]
             ;
 
         // [178]
