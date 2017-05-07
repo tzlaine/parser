@@ -16,6 +16,7 @@
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_copy.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
 
 #include <string>
 
@@ -90,21 +91,26 @@ namespace yaml { namespace parser {
 
     using uchar_t = boost::uint32_t; // Unicode code point
 
-    template <typename Iterator>
-    struct characters
+    template <typename CharIter>
+    using pos_iterator = boost::spirit::classic::position_iterator<CharIter>;
+
+    template <typename CharIter>
+    struct characters_t
     {
-        characters ();
+        using iterator_t = pos_iterator<CharIter>;
 
-        qi::rule<Iterator, encoding_t()> full_bom;
+        characters_t ();
 
-        qi::rule<Iterator, char()> printable;
-        qi::rule<Iterator, char()> nb_json;
-        qi::rule<Iterator> bom;
-        qi::rule<Iterator, char()> nb_char;
-        qi::rule<Iterator, char()> ns_char;
-        qi::rule<Iterator, std::string()> uri_char;
-        qi::rule<Iterator, std::string()> tag_char;
-        qi::rule<Iterator, std::string()> esc_char;
+        qi::rule<iterator_t, encoding_t()> full_bom;
+
+        qi::rule<iterator_t, char()> printable;
+        qi::rule<iterator_t, char()> nb_json;
+        qi::rule<iterator_t> bom;
+        qi::rule<iterator_t, char()> nb_char;
+        qi::rule<iterator_t, char()> ns_char;
+        qi::rule<iterator_t, std::string()> uri_char;
+        qi::rule<iterator_t, std::string()> tag_char;
+        qi::rule<iterator_t, std::string()> esc_char;
     };
 
 } }

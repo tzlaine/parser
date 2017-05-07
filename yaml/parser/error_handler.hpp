@@ -67,27 +67,27 @@ namespace yaml { namespace parser {
                 warning_fn_(msg);
         }
 
-        template <typename Iterator>
+        template <typename Iter>
         void operator() (
-            Iterator first,
-            Iterator last,
-            Iterator err_pos,
+            Iter first,
+            Iter last,
+            Iter err_pos,
             boost::spirit::info const & what
         ) const {
-            Iterator line_start = boost::spirit::get_line_start(first, err_pos);
+            Iter line_start = boost::spirit::get_line_start(first, err_pos);
             std::string error_line;
             if (line_start != last && *line_start == '\r')
                 ++line_start;
             if (line_start != last && *line_start == '\n')
                 ++line_start;
-            for (Iterator it = line_start; it != last; ++it) {
-                typename Iterator::value_type c = *it;
+            for (Iter it = line_start; it != last; ++it) {
+                typename Iter::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
                 error_line += c;
             }
 
-            typename Iterator::position_t const pos = err_pos.get_position();
+            typename Iter::position_t const pos = err_pos.get_position();
             int const line = pos.line;
             int const column = pos.column;
 

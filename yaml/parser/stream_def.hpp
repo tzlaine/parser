@@ -14,7 +14,6 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/classic_position_iterator.hpp>
 
 
 namespace yaml { namespace parser {
@@ -38,8 +37,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename Iterator>
-    stream<Iterator>::stream (
+    template <typename CharIter>
+    stream_t<CharIter>::stream_t (
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback
@@ -223,10 +222,10 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    template <typename Iter>
-    encoding_t read_bom (Iter & first, Iter last)
+    template <typename CharIter>
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last)
     {
-        Iter it = first;
+        pos_iterator<CharIter> it = first;
         int size = 0;
         char buf[4];
         for (char & c : buf) {
@@ -254,12 +253,10 @@ namespace yaml { namespace parser {
     ) {
         boost::optional<std::vector<ast::value_t>> retval;
 
-        using base_iterator_type = std::string::const_iterator;
-        using iterator_type = boost::spirit::classic::position_iterator<
-            base_iterator_type
-        >;
+        using char_iterator_t = std::string::const_iterator;
+        using iterator_t = stream_t<char_iterator_t>::iterator_t;
 
-        stream<iterator_type> p(
+        stream_t<char_iterator_t> p(
             source_file,
             errors_callback,
             warnings_callback
@@ -272,11 +269,11 @@ namespace yaml { namespace parser {
         std::string contents;
         std::getline(is, contents, '\0');
 
-        base_iterator_type sfirst(contents.begin());
-        base_iterator_type slast(contents.end());
+        char_iterator_t sfirst(contents.begin());
+        char_iterator_t slast(contents.end());
 
-        iterator_type first(sfirst, slast);
-        iterator_type last;
+        iterator_t first(sfirst, slast);
+        iterator_t last;
         first.set_tabchars(1);
 
         std::vector<ast::value_t> documents;

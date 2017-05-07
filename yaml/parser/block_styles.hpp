@@ -47,79 +47,81 @@ namespace yaml { namespace parser {
 #endif
     };
 
-    template <typename Iterator>
-    struct block_styles
+    template <typename CharIter>
+    struct block_styles_t
     {
-        explicit block_styles (boost::phoenix::function<error_handler_t> const & error_handler);
+        using iterator_t = pos_iterator<CharIter>;
 
-        flow_styles<Iterator> flow_styles_;
+        explicit block_styles_t (boost::phoenix::function<error_handler_t> const & error_handler);
+
+        flow_styles_t<CharIter> flow_styles_;
 
         qi::rule<
-            Iterator,
+            iterator_t,
             block_header_t(),
             qi::locals<int, chomping_t, eoi_state_t>
         > block_header;
 
-        qi::rule<Iterator, int()> indentation_indicator;
-        qi::rule<Iterator, chomping_t()> chomping_indicator;
-        qi::rule<Iterator, std::string(int, chomping_t)> chomped_empty;
-        qi::rule<Iterator, std::string(int)> strip_empty;
-        qi::rule<Iterator, std::string(int)> keep_empty;
-        qi::rule<Iterator, std::string(int), qi::locals<eoi_state_t>> trail_comments;
+        qi::rule<iterator_t, int()> indentation_indicator;
+        qi::rule<iterator_t, chomping_t()> chomping_indicator;
+        qi::rule<iterator_t, std::string(int, chomping_t)> chomped_empty;
+        qi::rule<iterator_t, std::string(int)> strip_empty;
+        qi::rule<iterator_t, std::string(int)> keep_empty;
+        qi::rule<iterator_t, std::string(int), qi::locals<eoi_state_t>> trail_comments;
 
         qi::rule<
-            Iterator,
+            iterator_t,
             std::string(int),
             qi::locals<int, chomping_t>
         > literal;
 
-        qi::rule<Iterator, std::string(int)> literal_text;
-        qi::rule<Iterator, std::string(int)> literal_next;
-        qi::rule<Iterator, std::string(int, chomping_t)> literal_content;
+        qi::rule<iterator_t, std::string(int)> literal_text;
+        qi::rule<iterator_t, std::string(int)> literal_next;
+        qi::rule<iterator_t, std::string(int, chomping_t)> literal_content;
 
         qi::rule<
-            Iterator,
+            iterator_t,
             std::string(int),
             qi::locals<int, chomping_t>
         > folded;
 
-        qi::rule<Iterator, std::string(int)> folded_text;
-        qi::rule<Iterator, std::string(int)> folded_lines;
-        qi::rule<Iterator, std::string(int)> spaced_text;
-        qi::rule<Iterator, std::string(int)> spaced;
-        qi::rule<Iterator, std::string(int)> spaced_lines;
-        qi::rule<Iterator, std::string(int)> same_lines;
-        qi::rule<Iterator, std::string(int)> diff_lines;
-        qi::rule<Iterator, std::string(int, chomping_t)> folded_content;
+        qi::rule<iterator_t, std::string(int)> folded_text;
+        qi::rule<iterator_t, std::string(int)> folded_lines;
+        qi::rule<iterator_t, std::string(int)> spaced_text;
+        qi::rule<iterator_t, std::string(int)> spaced;
+        qi::rule<iterator_t, std::string(int)> spaced_lines;
+        qi::rule<iterator_t, std::string(int)> same_lines;
+        qi::rule<iterator_t, std::string(int)> diff_lines;
+        qi::rule<iterator_t, std::string(int, chomping_t)> folded_content;
 
-        qi::rule<Iterator, int()> auto_detect_indent;
-        qi::rule<Iterator, ast::seq_t(int), qi::locals<int>> block_sequence;
-        qi::rule<Iterator, ast::value_t(int n)> block_seq_entry;
-        qi::rule<Iterator, ast::value_t(int n, context_t), qi::locals<int, eoi_state_t>> block_indented;
-        qi::rule<Iterator, ast::seq_t(int n)> compact_sequence;
+        qi::rule<iterator_t, int()> auto_detect_indent;
+        qi::rule<iterator_t, ast::seq_t(int), qi::locals<int>> block_sequence;
+        qi::rule<iterator_t, ast::value_t(int n)> block_seq_entry;
+        qi::rule<iterator_t, ast::value_t(int n, context_t), qi::locals<int, eoi_state_t>> block_indented;
+        qi::rule<iterator_t, ast::seq_t(int n)> compact_sequence;
 
-        qi::rule<Iterator, ast::map_t(int), qi::locals<int>> block_mapping;
-        qi::rule<Iterator, ast::map_element_t(int)> block_map_entry;
-        qi::rule<Iterator, ast::map_element_t(int)> block_map_explicit_entry;
-        qi::rule<Iterator, ast::value_t(int)> block_map_explicit_key;
-        qi::rule<Iterator, ast::value_t(int)> block_map_explicit_value;
-        qi::rule<Iterator, ast::map_element_t(int)> block_map_implicit_entry;
-        qi::rule<Iterator, ast::value_t()> block_map_implicit_key;
-        qi::rule<Iterator, ast::value_t(int), qi::locals<eoi_state_t>> block_map_implicit_value;
-        qi::rule<Iterator, ast::map_t(int)> compact_mapping;
+        qi::rule<iterator_t, ast::map_t(int), qi::locals<int>> block_mapping;
+        qi::rule<iterator_t, ast::map_element_t(int)> block_map_entry;
+        qi::rule<iterator_t, ast::map_element_t(int)> block_map_explicit_entry;
+        qi::rule<iterator_t, ast::value_t(int)> block_map_explicit_key;
+        qi::rule<iterator_t, ast::value_t(int)> block_map_explicit_value;
+        qi::rule<iterator_t, ast::map_element_t(int)> block_map_implicit_entry;
+        qi::rule<iterator_t, ast::value_t()> block_map_implicit_key;
+        qi::rule<iterator_t, ast::value_t(int), qi::locals<eoi_state_t>> block_map_implicit_value;
+        qi::rule<iterator_t, ast::map_t(int)> compact_mapping;
 
-        qi::rule<Iterator, ast::value_t(int, context_t)> block_node;
-        qi::rule<Iterator, ast::value_t(int), qi::locals<eoi_state_t>> flow_in_block;
-        qi::rule<Iterator, ast::value_t(int, context_t)> block_in_block;
+        qi::rule<iterator_t, ast::value_t(int, context_t)> block_node;
+        qi::rule<iterator_t, ast::value_t(int), qi::locals<eoi_state_t>> flow_in_block;
+        qi::rule<iterator_t, ast::value_t(int, context_t)> block_in_block;
 
         qi::rule<
-            Iterator,
+            iterator_t,
             ast::value_t(int, context_t),
             qi::locals<ast::properties_t>
         > block_scalar;
 
         qi::rule<
-            Iterator,
+            iterator_t,
             ast::value_t(int, context_t),
             qi::locals<ast::properties_t, eoi_state_t>
         > block_collection;

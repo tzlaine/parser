@@ -86,8 +86,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename Iterator>
-    basic_structures<Iterator>::basic_structures (boost::phoenix::function<error_handler_t> const & error_handler)
+    template <typename CharIter>
+    basic_structures_t<CharIter>::basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler)
         : error_handler_ (error_handler)
     {
         qi::attr_type attr;

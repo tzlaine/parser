@@ -10,10 +10,5 @@
 #include <fstream>
 #include <string>
 
-#include <boost/spirit/include/classic_position_iterator.hpp>
-
-typedef std::string::const_iterator base_iterator_type;
-typedef boost::spirit::classic::position_iterator<base_iterator_type>
-    iterator_type;
-
-template struct yaml::parser::basic_structures<iterator_type>;
+typedef std::string::const_iterator char_iterator_t;
+template struct yaml::parser::basic_structures_t<char_iterator_t>;

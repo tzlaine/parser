@@ -20,27 +20,29 @@
 
 namespace yaml { namespace parser {
 
-    template <typename Iterator>
-    struct stream
+    template <typename CharIter>
+    struct stream_t
     {
-        stream (
+        using iterator_t = pos_iterator<CharIter>;
+
+        stream_t (
             std::string const & source_file,
             reporting_fn_t const & errors_callback,
             reporting_fn_t const & warnings_callback
         );
 
-        block_styles<Iterator> block_styles_;
+        block_styles_t<CharIter> block_styles_;
 
-        qi::rule<Iterator, qi::locals<eoi_state_t>> document_prefix;
-        qi::rule<Iterator, qi::locals<eoi_state_t>> document_suffix;
-        qi::rule<Iterator> forbidden;
-        qi::rule<Iterator, ast::value_t()> bare_document;
-        qi::rule<Iterator, ast::value_t(), qi::locals<eoi_state_t>> explicit_document;
-        qi::rule<Iterator, ast::value_t()> directive_document;
-        qi::rule<Iterator, ast::value_t()> any_document;
-        qi::rule<Iterator, std::vector<ast::value_t>()> yaml_stream;
+        qi::rule<iterator_t, qi::locals<eoi_state_t>> document_prefix;
+        qi::rule<iterator_t, qi::locals<eoi_state_t>> document_suffix;
+        qi::rule<iterator_t> forbidden;
+        qi::rule<iterator_t, ast::value_t()> bare_document;
+        qi::rule<iterator_t, ast::value_t(), qi::locals<eoi_state_t>> explicit_document;
+        qi::rule<iterator_t, ast::value_t()> directive_document;
+        qi::rule<iterator_t, ast::value_t()> any_document;
+        qi::rule<iterator_t, std::vector<ast::value_t>()> yaml_stream;
 
-        qi::rule<Iterator> end_of_input;
+        qi::rule<iterator_t> end_of_input;
 
         boost::phoenix::function<error_handler_t> const error_handler_;
     };
@@ -50,8 +52,8 @@ namespace yaml { namespace parser {
 #endif
     encoding_t read_bom (std::istream & is);
 
-    template <typename Iter>
-    encoding_t read_bom (Iter & first, Iter last);
+    template <typename CharIter>
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last);
 
 #if YAML_HEADER_ONLY
     inline

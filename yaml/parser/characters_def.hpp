@@ -69,8 +69,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename Iterator>
-    characters<Iterator>::characters ()
+    template <typename CharIter>
+    characters_t<CharIter>::characters_t ()
     {
         qi::byte_type byte_;
         qi::char_type char_;
