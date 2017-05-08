@@ -1,0 +1,12 @@
+{
+  "sequence": [
+    "entry",
+    [
+      "nested"
+    ]
+  ],
+  "mapping": {
+    "foo": "bar"
+  }
+}
+

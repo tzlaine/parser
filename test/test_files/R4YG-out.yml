@@ -1,0 +1,11 @@
+- |
+  detected
+- >2
+
+
+  # detected
+- |2
+   explicit
+# XXX > becomes "?
+- "\t\ndetected\n"
+

@@ -20,10 +20,32 @@ tml_files = [f for f in all_files if f.endswith('.tml')]
 tests = []
 error_tests = []
 
+def write_section(contents, section_name, path):
+    first_line = 0
+    while first_line < len(contents) and section_name not in contents[first_line]:
+        first_line += 1
+    if first_line == len(contents):
+        return False
+    first_line += 1
+    last_line = first_line + 1
+    while last_line < len(contents) and '+++' not in contents[last_line]:
+        last_line += 1
+    section = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t').replace('<SPC>', ' ')
+    if section == '':
+        return False
+
+    tmp_file = open('tmp', 'w')
+    tmp_file.write(section)
+    tmp_file.close()
+    shutil.move('tmp', path)
+    return True
+
 for tml_file in tml_files:
     tml_file_root = os.path.splitext(tml_file)[0]
     tml_path = os.path.join(in_path, tml_file)
-    yml_path = os.path.join(args.output_dir, tml_file_root + '.yml')
+    in_yml_path = os.path.join(args.output_dir, tml_file_root + '.yml')
+    out_yml_path = os.path.join(args.output_dir, tml_file_root + '-out.yml')
+    json_path = os.path.join(args.output_dir, tml_file_root + '.json')
 
     contents = open(tml_path, 'r').readlines()
 
@@ -32,25 +54,16 @@ for tml_file in tml_files:
         if line.startswith('tags:') and 'error' in line:
             error_test = True
 
-    first_line = 0
-    while first_line < len(contents) and 'in-yaml' not in contents[first_line]:
-        first_line += 1
-    if first_line == len(contents):
+    if write_section(contents, 'in-yaml', in_yml_path) == False:
         continue
-    first_line += 1
-    last_line = first_line + 1
-    while last_line < len(contents) and '+++' not in contents[last_line]:
-        last_line += 1
-    in_yaml = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t').replace('<SPC>', ' ')
-
-    tmp_file = open('tmp', 'w')
-    tmp_file.write(in_yaml)
-    tmp_file.close()
-    shutil.move('tmp', yml_path)
     if error_test:
         error_tests.append(tml_file_root)
-    else:
-        tests.append(tml_file_root)
+        continue
+    
+    tests.append(tml_file_root)
+
+    write_section(contents, 'out-yaml', out_yml_path)
+    write_section(contents, 'json', json_path)
 
 index_file = open(os.path.join(args.output_dir, 'index.cmake'), 'w')
 index_file.write('set(yml_file_index\n\n')
