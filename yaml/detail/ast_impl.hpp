@@ -91,6 +91,8 @@ namespace yaml { namespace ast {
         template <int Spaces, bool ExpandAliases>
         struct yaml_printer
         {
+            static_assert(Spaces >= 1, "Spaces must be positive");
+
             using result_type = void;
             static int const spaces = Spaces;
             static int const primary_level = 0;
@@ -103,9 +105,7 @@ namespace yaml { namespace ast {
 
             yaml_printer(std::ostream& out_)
                 : out(out_), current_indent(-spaces), is_key(false), level(-1)
-            {
-                BOOST_ASSERT(spaces >= 2);
-            }
+            {}
 
             void operator()(null_t) const
             {
@@ -500,7 +500,6 @@ namespace yaml { namespace ast {
 
     inline map_t::iterator map_t::insert (const_iterator at, map_element_t const & e)
     {
-        BOOST_ASSERT(index_->map_.find(e.first) == index_->map_.end());
         iterator const it = elements_.insert(at, e);
         index_->map_[e.first] = it;
         return it;
