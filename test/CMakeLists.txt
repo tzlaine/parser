@@ -29,11 +29,11 @@ add_library(
     stream.cpp
 )
 target_link_libraries(yaml_test_lib yaml gtest ${link_flags})
-target_compile_definitions(yaml_test_lib PRIVATE -DYAML_HEADER_ONLY=0)
+target_compile_definitions(yaml_test_lib PUBLIC -DYAML_HEADER_ONLY=0)
 if (USE_ASAN OR USE_UBSAN)
-    target_compile_options(yaml_test_lib PRIVATE ${link_flags})
+    target_compile_options(yaml_test_lib PUBLIC ${link_flags})
 endif()
-#target_compile_definitions(yaml_test_lib INTERFACE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+#target_compile_definitions(yaml_test_lib PUBLIC -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(yaml_test_lib c++)
 endif ()
@@ -46,10 +46,6 @@ add_executable(
     parse_yaml_test.cpp
 )
 target_link_libraries(parse_test yaml yaml_test_lib gtest ${link_flags})
-target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
-if (USE_ASAN OR USE_UBSAN)
-    target_compile_options(parse_test PRIVATE ${link_flags})
-endif()
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -62,10 +58,6 @@ add_executable(
     parse_yaml_compare_test.cpp
 )
 target_link_libraries(parse_compare_test yaml yaml_test_lib gtest ${link_flags})
-target_compile_definitions(parse_compare_test PRIVATE -DYAML_HEADER_ONLY=0)
-if (USE_ASAN OR USE_UBSAN)
-    target_compile_options(parse_compare_test PRIVATE ${link_flags})
-endif()
 if (clang_on_linux)
     target_link_libraries(parse_compare_test c++)
 endif ()
@@ -85,11 +77,6 @@ add_executable(
     parse_yaml_round_trip_test.cpp
 )
 target_link_libraries(parse_round_trip_test yaml gtest ${link_flags})
-target_compile_definitions(parse_round_trip_test PRIVATE -DYAML_HEADER_ONLY=0)
-if (USE_ASAN OR USE_UBSAN)
-    target_compile_options(parse_test PRIVATE ${link_flags})
-endif()
-#target_compile_definitions(parse_round_trip_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 
 if (clang_on_linux)
     target_link_libraries(parse_round_trip_test c++)
@@ -242,7 +229,7 @@ set(invalid_comparison_tests
     parse_compare_test_S3PD_in_vs_json # YAML null vs. JSON "" mismatch
 )
 
-foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
+foreach (yml_file_root ${yml_file_index})
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}-out.yml)
         add_test(
             parse_compare_test_${yml_file_root}_in_vs_out
@@ -251,6 +238,7 @@ foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}-out.yml
         )
+        set(parse_compare_test_${yml_file_root}_in_vs_out_sentinal true)
     endif()
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.json)
         add_test(
@@ -260,18 +248,19 @@ foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.json
         )
+        set(parse_compare_test_${yml_file_root}_in_vs_json_sentinal true)
     endif()
 endforeach()
 
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
-    if (TARGET parse_compare_test_${yml_file_root}_in_vs_out)
+    if (DEFINED parse_compare_test_${yml_file_root}_in_vs_out_sentinal)
         set_tests_properties(
             parse_compare_test_${yml_file_root}_in_vs_out
             PROPERTIES
                 WILL_FAIL true
         )
     endif()
-    if (TARGET parse_compare_test_${yml_file_root}_in_vs_json)
+    if (TARGET parse_compare_test_${yml_file_root}_in_vs_json_sentinal)
         set_tests_properties(
             parse_compare_test_${yml_file_root}_in_vs_json
             PROPERTIES
