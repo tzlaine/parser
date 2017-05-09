@@ -16,25 +16,63 @@ elseif (USE_UBSAN)
     set(link_flags -fsanitize=undefined)
 endif()
 
-add_executable(
-    parse_test
+##################################################
+# Static test lib
+##################################################
+add_library(
+    yaml_test_lib
+    STATIC
     characters.cpp
     basic_structures.cpp
     flow_style.cpp
     block_style.cpp
     stream.cpp
+)
+target_link_libraries(yaml_test_lib yaml gtest ${link_flags})
+target_compile_definitions(yaml_test_lib PRIVATE -DYAML_HEADER_ONLY=0)
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(yaml_test_lib PRIVATE ${link_flags})
+endif()
+#target_compile_definitions(yaml_test_lib INTERFACE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+if (clang_on_linux)
+    target_link_libraries(yaml_test_lib c++)
+endif ()
+
+##################################################
+# Parse-only test executable
+##################################################
+add_executable(
+    parse_test
     parse_yaml_test.cpp
 )
-target_link_libraries(parse_test yaml gtest ${link_flags})
+target_link_libraries(parse_test yaml yaml_test_lib gtest ${link_flags})
 target_compile_definitions(parse_test PRIVATE -DYAML_HEADER_ONLY=0)
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(parse_test PRIVATE ${link_flags})
 endif()
-target_compile_definitions(parse_test PRIVATE -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
 
+##################################################
+# Parse-and-compare test executable
+##################################################
+add_executable(
+    parse_compare_test
+    parse_yaml_compare_test.cpp
+)
+target_link_libraries(parse_compare_test yaml yaml_test_lib gtest ${link_flags})
+target_compile_definitions(parse_compare_test PRIVATE -DYAML_HEADER_ONLY=0)
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(parse_compare_test PRIVATE ${link_flags})
+endif()
+if (clang_on_linux)
+    target_link_libraries(parse_compare_test c++)
+endif ()
+
+##################################################
+# Parse-write-read round-trip test executable
+##################################################
 # TODO: Turn this on after the parse tests pass.
 if (false)
 add_executable(
@@ -58,6 +96,9 @@ if (clang_on_linux)
 endif ()
 endif()
 
+##################################################
+# Make test files from .tml files
+##################################################
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
     message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
@@ -80,6 +121,23 @@ else ()
 endif()
 
 include(test_files/index.cmake)
+set(invalid_yaml_test_suite_files
+    2SXE # Has the pattern a: b: without a line break.
+
+    # Each has a bare "\" (not starting an escape sequence) outside of any
+    # single- or double-quoted string, in the middle of a block mapping.
+    NHX8 P94K
+
+    # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
+    # indented.
+    XW4D
+
+    ${error_yml_file_index}
+)
+
+##################################################
+# Parse-only tests
+##################################################
 foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
     add_test(
         parse_test_${yml_file_root}
@@ -98,19 +156,6 @@ foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
     endif()
 endforeach()
 
-set(invalid_yaml_test_suite_files
-    2SXE # Has the pattern a: b: without a line break.
-
-    # Each has a bare "\" (not starting an escape sequence) outside of any
-    # single- or double-quoted string, in the middle of a block mapping.
-    NHX8 P94K
-
-    # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
-    # indented.
-    XW4D
-
-    ${error_yml_file_index}
-)
 foreach (yml_file_root ${invalid_yaml_test_suite_files})
     set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
 endforeach()
@@ -182,4 +227,45 @@ foreach (test_file ${invalid_test_files})
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
     set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
+endforeach()
+
+##################################################
+# Parse-and-compare tests
+##################################################
+foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}-out.yml)
+        add_test(
+            parse_compare_test_${yml_file_root}_in_vs_out
+            ${CMAKE_CURRENT_BINARY_DIR}/parse_compare_test
+            --gtest_catch_exceptions=1
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}-out.yml
+        )
+    endif()
+    if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.json)
+        add_test(
+            parse_compare_test_${yml_file_root}_in_vs_json
+            ${CMAKE_CURRENT_BINARY_DIR}/parse_compare_test
+            --gtest_catch_exceptions=1
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.json
+        )
+    endif()
+endforeach()
+
+foreach (yml_file_root ${invalid_yaml_test_suite_files})
+    if (TARGET parse_compare_test_${yml_file_root}_in_vs_out)
+        set_tests_properties(
+            parse_compare_test_${yml_file_root}_in_vs_out
+            PROPERTIES
+                WILL_FAIL true
+        )
+    endif()
+    if (TARGET parse_compare_test_${yml_file_root}_in_vs_json)
+        set_tests_properties(
+            parse_compare_test_${yml_file_root}_in_vs_json
+            PROPERTIES
+                WILL_FAIL true
+        )
+    endif()
 endforeach()
