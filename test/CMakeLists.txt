@@ -232,6 +232,16 @@ endforeach()
 ##################################################
 # Parse-and-compare tests
 ##################################################
+set(invalid_comparison_tests
+    parse_compare_test_2JQS_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_4ABK_in_vs_out  # Borked yaml-out section
+    parse_compare_test_4ABK_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_C2DT_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_DFF7_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_FRK4_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_S3PD_in_vs_json # YAML null vs. JSON "" mismatch
+)
+
 foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
     if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}-out.yml)
         add_test(
@@ -268,4 +278,8 @@ foreach (yml_file_root ${invalid_yaml_test_suite_files})
                 WILL_FAIL true
         )
     endif()
+endforeach()
+
+foreach (test ${invalid_comparison_tests})
+    set_tests_properties(${test} PROPERTIES WILL_FAIL true)
 endforeach()
