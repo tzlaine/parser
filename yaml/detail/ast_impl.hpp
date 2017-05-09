@@ -22,8 +22,8 @@
 
 namespace yaml { namespace ast {
 
-    namespace detail
-    {
+    namespace detail {
+
         struct depth_f
         {
             using result_type = int;
@@ -373,7 +373,7 @@ namespace yaml { namespace ast {
             bool operator()(alias_t const& a, alias_t const& b) const
             {
                 // aliases are compared using their referents
-                return a.second == b.second;
+                return *a.second == *b.second;
             }
 
             bool operator()(map_t const& a, map_t const& b)
