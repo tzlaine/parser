@@ -358,6 +358,18 @@ namespace yaml { namespace ast {
                 return a.second == b.second;
             }
 
+            template <typename T>
+            bool operator()(properties_node_t const& a, T const& b) const
+            {
+                return a.second == b;
+            }
+
+            template <typename T>
+            bool operator()(T const& a, properties_node_t const& b) const
+            {
+                return a == b.second;
+            }
+
             bool operator()(alias_t const& a, alias_t const& b) const
             {
                 // aliases are compared using their referents
