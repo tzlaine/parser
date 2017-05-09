@@ -29,17 +29,17 @@ namespace yaml { namespace ast {
             using result_type = int;
 
             template <typename T>
-            int operator()(T const& val) const
+            int operator() (T const & val) const
             {
                 return 0;
             }
 
-            int operator()(properties_node_t const& pn) const
+            int operator() (properties_node_t const & pn) const
             {
                 return boost::apply_visitor(*this, pn.second.get());
             }
 
-            int operator()(alias_t const& alias) const
+            int operator() (alias_t const & alias) const
             {
                 BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
                                             // fired, then you are trying to traverse an
@@ -47,22 +47,20 @@ namespace yaml { namespace ast {
                 return boost::apply_visitor(*this, alias.second->get());
             }
 
-            int operator()(map_t const& obj) const
+            int operator() (map_t const & obj) const
             {
                 int max_depth = 0;
-                for (map_element_t const& val : obj)
-                {
+                for (map_element_t const & val : obj) {
                     int element_depth = boost::apply_visitor(*this, val.second.get());
                     max_depth = (std::max)(max_depth, element_depth);
                 }
                 return max_depth + 1;
             }
 
-            int operator()(seq_t const& arr) const
+            int operator() (seq_t const & arr) const
             {
                 int max_depth = 0;
-                for (value_t const& val : arr)
-                {
+                for (value_t const & val : arr) {
                     int element_depth = boost::apply_visitor(*this, val.get());
                     max_depth = (std::max)(max_depth, element_depth);
                 }
@@ -70,123 +68,146 @@ namespace yaml { namespace ast {
             }
         };
 
-        inline int depth(value_t const& val)
+        inline int depth (value_t const & val)
         {
             depth_f f;
             return boost::apply_visitor(f, val.get());
         }
 
-        inline int depth(seq_t const& arr)
+        inline int depth (seq_t const & arr)
         {
             depth_f f;
             return f(arr);
         }
 
-        inline int depth(map_t const& obj)
+        inline int depth (map_t const & obj)
         {
             depth_f f;
             return f(obj);
         }
 
-        template <int Spaces, bool ExpandAliases>
+        template <
+            int Spaces,
+            bool ExpandAliases,
+            bool InlineCollections,
+            bool ExplicitMapEntriesAndTags
+        >
         struct yaml_printer
         {
-            static_assert(Spaces >= 1, "Spaces must be positive");
+            static_assert(Spaces >= 2, "Spaces must be >= 2");
 
             using result_type = void;
+
             static int const spaces = Spaces;
             static int const primary_level = 0;
             static bool const expand_aliases = ExpandAliases;
+            static bool const inline_collections = InlineCollections;
+            static bool const explicit_markings = ExplicitMapEntriesAndTags;
 
-            std::ostream& out;
-            mutable int current_indent;
-            mutable bool is_key;
-            mutable int level;
+            std::ostream & out_;
+            mutable int current_indent_;
+            mutable bool is_key_;
+            mutable int level_;
 
-            yaml_printer(std::ostream& out_)
-                : out(out_), current_indent(-spaces), is_key(false), level(-1)
+            yaml_printer (std::ostream & out)
+                : out_ (out)
+                , current_indent_ (-spaces)
+                , is_key_ (false)
+                , level_ (-1)
             {}
 
-            void operator()(null_t) const
+            void operator() (null_t) const
             {
-                out << "null";
+                if (explicit_markings)
+                    out_ << "!!null ";
+
+                out_ << "null";
             }
 
-            void operator()(bool b) const
+            void operator() (bool b) const
             {
-                out << (b ? "true" : "false");
+                if (explicit_markings)
+                    out_ << "!!bool ";
+
+                out_ << (b ? "true" : "false");
             }
 
-            void operator()(std::string const& utf) const
+            void operator() (std::string const & utf) const
             {
-                if (!is_key)
-                    out << '"';
+                if (explicit_markings)
+                    out_ << "!!str ";
 
-                using ucs4_char = ::boost::uint32_t;
+                if (explicit_markings || !is_key_)
+                    out_ << '"';
+
+                using uchar_t = ::boost::uint32_t;
                 using iter_t = boost::u8_to_u32_iterator<std::string::const_iterator>;
-                iter_t f = utf.begin();
-                iter_t l = utf.end();
+                iter_t first = utf.begin();
+                iter_t last = utf.end();
 
-                for (iter_t i = f; i != l; ++i)
-                {
-                    ucs4_char c = *i;
-                    switch (c)
-                    {
-                        case 0:       out << "\\0"; break;
-                        case 0x7:     out << "\\a"; break;
-                        case 0x8:     out << "\\b"; break;
-                        case 0x9:     out << "\\t"; break;
-                        case 0xA:     out << "\\n"; break;
-                        case 0xB:     out << "\\v"; break;
-                        case 0xC:     out << "\\f"; break;
-                        case 0xD:     out << "\\r"; break;
-                        case 0x1B:    out << "\\e"; break;
-                        case '"':     out << "\\\""; break;
-                        case '\\':    out << "\\\\"; break;
-                        case 0xA0:    out << "\\_"; break;
-                        case 0x85:    out << "\\N"; break;
-                        case 0x2028:  out << "\\L"; break;
-                        case 0x2029:  out << "\\P"; break;
-                        default:      out << boost::spirit::to_utf8(c);
+                while (first != last) {
+                    uchar_t c = *first;
+                    ++first;
+                    switch (c) {
+                        case 0:       out_ << "\\0"; break;
+                        case 0x7:     out_ << "\\a"; break;
+                        case 0x8:     out_ << "\\b"; break;
+                        case 0x9:     out_ << "\\t"; break;
+                        case 0xA:     out_ << "\\n"; break;
+                        case 0xB:     out_ << "\\v"; break;
+                        case 0xC:     out_ << "\\f"; break;
+                        case 0xD:     out_ << "\\r"; break;
+                        case 0x1B:    out_ << "\\e"; break;
+                        case '"':     out_ << "\\\""; break;
+                        case '\\':    out_ << "\\\\"; break;
+                        case 0xA0:    out_ << "\\_"; break;
+                        case 0x85:    out_ << "\\N"; break;
+                        case 0x2028:  out_ << "\\L"; break;
+                        case 0x2029:  out_ << "\\P"; break;
+                        default:      out_ << boost::spirit::to_utf8(c);
                     }
                 }
 
-                if (!is_key)
-                    out << "\"";
+                if (explicit_markings || !is_key_)
+                    out_ << "\"";
             }
 
-            void operator()(double d) const
+            void operator() (double d) const
             {
-                if (boost::math::isnan(d))
-                {
-                    out << ".NaN";
-                    return;
-                }
-                if (boost::math::isinf(d))
-                {
+                if (explicit_markings)
+                    out_ << "!!float ";
+
+                if (boost::math::isnan(d)) {
+                    out_ << ".NaN";
+                } else if (boost::math::isinf(d)) {
                     if (d < 0.0)
-                        out << '-';
-                    out << ".inf";
-                    return;
+                        out_ << '-';
+                    out_ << ".inf";
+                } else {
+                    out_ << d;
                 }
-                out << d;
             }
 
-            void operator()(properties_node_t const& pn) const
+            void operator() (int i) const
+            {
+                if (explicit_markings)
+                    out_ << "!!int ";
+
+                out_ << i;
+            }
+
+            void operator() (properties_node_t const & pn) const
             {
                 if (pn.first.anchor_ != "" && !expand_aliases)
-                    out << '&' << pn.first.anchor_ << ' ';
+                    out_ << '&' << pn.first.anchor_ << ' ';
                 boost::apply_visitor(*this, pn.second.get());
             }
 
-            void operator()(alias_t const& alias) const
+            void operator() (alias_t const & alias) const
             {
-                if (!expand_aliases)
-                {
-                    out << '*' << alias.first << ' ';
-                }
-                else
-                {
+                if (!expand_aliases) {
+                    out_ << '*' << alias.first << ' ';
+                } else {
                     BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
                                                 // fired, then you are trying to traverse an
                                                 // unlinked yaml object.
@@ -194,146 +215,165 @@ namespace yaml { namespace ast {
                 }
             }
 
-            template <typename T>
-            void operator()(T const& val) const
+            void print_json_map (map_t const & map) const
             {
-                out << val;
-            }
-
-            void print_json_object(map_t const& obj) const
-            {
-                out << '{';
+                out_ << '{';
                 bool first = true;
 
-                for (map_element_t const& val : obj)
-                {
+                for (map_element_t const & val : map) {
                     if (first)
-                    {
                         first = false;
-                    }
                     else
-                    {
-                        out << ", ";
-                    }
-                    is_key = true;
+                        out_ << ", ";
+                    is_key_ = true;
                     boost::apply_visitor(*this, val.first.get());
-                    is_key = false;
-                    out << " : ";
+                    is_key_ = false;
+                    out_ << " : ";
                     boost::apply_visitor(*this, val.second.get());
                 }
 
-                out << '}';
+                out_ << '}';
             }
 
             template <typename T>
-            bool dont_print_inline(T const& val) const
+            bool dont_print_inline (T const & val) const
+            { return !inline_collections || level_ <= primary_level || depth(val) > 1; }
+
+            void print_yaml_map (map_t const & map) const
             {
-                return (level <= primary_level) || (depth(val) > 1);
-            }
-
-            void print_yaml_object(map_t const& obj) const
-            {
-                current_indent += spaces;
-                bool first = true;
-
-                for (map_element_t const& val : obj)
-                {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
-                        out << std::endl;
-                        indent(current_indent);
-                    }
-
-                    is_key = true;
-                    boost::apply_visitor(*this, val.first.get());
-                    is_key = false;
-
-                    if (depth(val.second) > 1)
-                    {
-                        out << " :\n";
-                        indent(current_indent + spaces);
-                        boost::apply_visitor(*this, val.second.get());
-                    }
-                    else
-                    {
-                        out << " : ";
-                        boost::apply_visitor(*this, val.second.get());
-                    }
+                if (explicit_markings) {
+                    out_ << "{\n";
+                    current_indent_ += spaces;
                 }
-                current_indent -= spaces;
-            }
 
-            void operator()(map_t const& obj) const
-            {
-                ++level;
-                if (dont_print_inline(obj))
-                    print_yaml_object(obj);
-                else
-                    print_json_object(obj);
-                --level;
-            }
-
-            void print_json_array(seq_t const& arr) const
-            {
-                out << '[';
+                current_indent_ += spaces;
                 bool first = true;
 
-                for (value_t const& val : arr)
-                {
+                for (map_element_t const & val : map) {
+                    if (explicit_markings) {
+                        indent(current_indent_);
+                        out_ << "? ";
+                    } else if (first) {
+                        first = false;
+                    } else {
+                        out_ << std::endl;
+                        indent(current_indent_);
+                    }
+
+                    is_key_ = true;
+                    boost::apply_visitor(*this, val.first.get());
+                    is_key_ = false;
+
+                    if (explicit_markings) {
+                        out_ << '\n';
+                        indent(current_indent_);
+                        out_ << ": ";
+                    } else if (depth(val.second) > 1) {
+                        out_ << " :\n";
+                        indent(current_indent_ + spaces);
+                    } else {
+                        out_ << " : ";
+                    }
+
+                    boost::apply_visitor(*this, val.second.get());
+
+                    if (explicit_markings)
+                        out_ << ",\n";
+                }
+
+                current_indent_ -= spaces;
+
+                if (explicit_markings) {
+                    current_indent_ -= spaces;
+                    indent(current_indent_);
+                    out_ << '}';
+                }
+            }
+
+            void operator() (map_t const & map) const
+            {
+                if (explicit_markings)
+                    out_ << "!!map ";
+
+                ++level_;
+                if (dont_print_inline(map))
+                    print_yaml_map(map);
+                else
+                    print_json_map(map);
+                --level_;
+            }
+
+            void print_json_seq (seq_t const & seq) const
+            {
+                out_ << '[';
+                bool first = true;
+
+                for (value_t const & val : seq) {
                     if (first)
                         first = false;
                     else
-                        out << ", ";
+                        out_ << ", ";
                     boost::apply_visitor(*this, val.get());
                 }
 
-                out << ']';
+                out_ << ']';
             }
 
-            void print_yaml_array(seq_t const& arr) const
+            void print_yaml_seq (seq_t const & seq) const
             {
+                if (explicit_markings) {
+                    out_ << "[\n";
+                    current_indent_ += spaces;
+                }
+
                 bool first = true;
 
-                for (value_t const& val : arr)
-                {
-                    if (first)
-                    {
+                for (value_t const & val : seq) {
+                    if (explicit_markings) {
+                        indent(current_indent_);
+                    } else if (first) {
                         first = false;
                         indent(spaces - 2);
-                        out << "- "; // print the indicator
-                        current_indent += spaces;
-                    }
-                    else
-                    {
-                        out << std::endl;
-                        indent(current_indent + spaces - 2);
-                        out << "- "; // print the indicator
+                        out_ << "- "; // print the indicator
+                        current_indent_ += spaces;
+                    } else {
+                        out_ << std::endl;
+                        indent(current_indent_ + spaces - 2);
+                        out_ << "- "; // print the indicator
                     }
 
                     boost::apply_visitor(*this, val.get());
+
+                    if (explicit_markings)
+                        out_ << ",\n";
                 }
 
-                current_indent -= spaces;
+                current_indent_ -= spaces;
+
+                if (explicit_markings) {
+                    indent(current_indent_);
+                    out_ << ']';
+                }
             }
 
-            void operator()(seq_t const& arr) const
+            void operator() (seq_t const & seq) const
             {
-                ++level;
-                if (dont_print_inline(arr))
-                    print_yaml_array(arr);
+                if (explicit_markings)
+                    out_ << "!!seq ";
+
+                ++level_;
+                if (dont_print_inline(seq))
+                    print_yaml_seq(seq);
                 else
-                    print_json_array(arr);
-                --level;
+                    print_json_seq(seq);
+                --level_;
             }
 
-            void indent(int indent_spaces) const
+            void indent (int indent_spaces) const
             {
-                for (int i = 0; i < indent_spaces; ++i)
-                    out << ' ';
+                for (int i = 0; i < indent_spaces; ++i) {
+                    out_ << ' ';
+                }
             }
         };
 
@@ -342,60 +382,45 @@ namespace yaml { namespace ast {
             using result_type = bool;
 
             template <typename A, typename B>
-            bool operator()(A const& a, B const& b) const
-            {
-                return false;
-            }
+            bool operator() (A const & a, B const & b) const
+            { return false; }
 
             template <typename T>
-            bool operator()(T const& a, T const& b) const
-            {
-                return a == b;
-            }
+            bool operator() (T const & a, T const & b) const
+            { return a == b; }
 
-            bool operator()(properties_node_t const& a, properties_node_t const& b) const
-            {
-                return a.second == b.second;
-            }
+            bool operator() (properties_node_t const & a, properties_node_t const & b) const
+            { return a.second == b.second; }
 
             template <typename T>
-            bool operator()(properties_node_t const& a, T const& b) const
-            {
-                return a.second == b;
-            }
+            bool operator() (properties_node_t const & a, T const & b) const
+            { return a.second == b; }
 
             template <typename T>
-            bool operator()(T const& a, properties_node_t const& b) const
-            {
-                return a == b.second;
-            }
+            bool operator() (T const & a, properties_node_t const & b) const
+            { return a == b.second; }
 
-            bool operator()(alias_t const& a, alias_t const& b) const
-            {
-                // aliases are compared using their referents
-                return *a.second == *b.second;
-            }
+            bool operator() (alias_t const & a, alias_t const & b) const
+            { return *a.second == *b.second; }
 
-            bool operator()(map_t const& a, map_t const& b)
+            bool operator() (map_t const & a, map_t const & b)
             {
                 if (a.size() != b.size())
                     return false;
                 map_t::const_iterator ii = b.begin();
-                for (map_t::const_iterator i = a.begin(); i != a.end(); ++i)
-                {
+                for (map_t::const_iterator i = a.begin(); i != a.end(); ++i) {
                     if (*i != *ii++)
                         return false;
                 }
                 return true;
             }
 
-            bool operator()(seq_t const& a, seq_t const& b)
+            bool operator() (seq_t const & a, seq_t const & b)
             {
                 if (a.size() != b.size())
                     return false;
                 seq_t::const_iterator ii = b.begin();
-                for (seq_t::const_iterator i = a.begin(); i != a.end(); ++i)
-                {
+                for (seq_t::const_iterator i = a.begin(); i != a.end(); ++i) {
                     if (*i != *ii++)
                         return false;
                 }
@@ -455,12 +480,12 @@ namespace yaml { namespace ast {
         return seed;
     }
 
-    inline bool operator==(value_t const& a, value_t const& b)
+    inline bool operator== (value_t const & a, value_t const & b)
     {
         return boost::apply_visitor(detail::value_equal(), a.get(), b.get());
     }
 
-    inline bool operator!=(value_t const& a, value_t const& b)
+    inline bool operator!= (value_t const & a, value_t const & b)
     {
         return !(a == b);
     }
@@ -505,10 +530,10 @@ namespace yaml { namespace ast {
         return it;
     }
 
-    template <int Spaces, bool ExpandAliases>
-    inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
+    template <int Spaces, bool ExpandAliases, bool InlineCollections, bool ExplicitMapEntriesAndTags>
+    inline std::ostream & print_yaml(std::ostream & out, value_t const & val)
     {
-        detail::yaml_printer<Spaces, ExpandAliases> f(out);
+        detail::yaml_printer<Spaces, ExpandAliases, InlineCollections, ExplicitMapEntriesAndTags> f(out);
         boost::apply_visitor(f, val.get());
         return out;
     }

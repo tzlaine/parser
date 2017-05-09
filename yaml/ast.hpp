@@ -154,12 +154,17 @@ namespace yaml { namespace ast {
         std::unique_ptr<index_t> index_;
     };
 
-    // Print a YAML value
-    template <int Spaces, bool ExpandAliases>
-    std::ostream& print_yaml(std::ostream& out, value_t const& val);
+    template <int Spaces, bool ExpandAliases, bool InlineCollections, bool ExplicitMapEntriesAndTags>
+    std::ostream & print_yaml(std::ostream & out, value_t const & val);
 
-    inline std::ostream& print_yaml(std::ostream& out, value_t const& val)
-    { return print_yaml<2, false>(out, val); }
+    inline std::ostream & print_yaml(std::ostream & out, value_t const & val)
+    { return print_yaml<2, false, true, false>(out, val); }
+
+    inline std::ostream & print_yaml_canonical(std::ostream & out, value_t const & val)
+    {
+        out << "%YAML 1.2\n---\n";
+        return print_yaml<2, true, false, true>(out, val);
+    }
 
     // ---------------------------------------------------
 

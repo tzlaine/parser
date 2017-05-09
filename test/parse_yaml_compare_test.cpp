@@ -40,8 +40,7 @@ TEST(parse, test_parse_yaml)
               << filename_1 << "\n"
               << "========================================\n";
     for (auto const & doc : *result_1) {
-        std::cout << "---\n";
-        print_yaml(std::cout, doc);
+        print_yaml_canonical(std::cout, doc);
         std::cout << "\n";
     }
     std::cout << std::endl;
@@ -50,8 +49,7 @@ TEST(parse, test_parse_yaml)
               << filename_2 << "\n"
               << "========================================\n";
     for (auto const & doc : *result_2) {
-        std::cout << "---\n";
-        print_yaml(std::cout, doc);
+        print_yaml_canonical(std::cout, doc);
         std::cout << "\n";
     }
     std::cout << std::endl;
