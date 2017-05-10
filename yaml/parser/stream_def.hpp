@@ -21,7 +21,8 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
-        inline bool check_encoding (encoding_t encoding, error_handler_t const & error_handler)
+        template <typename ErrorFn>
+        inline bool check_encoding (encoding_t encoding, ErrorFn const & error_fn)
         {
             if (encoding != encoding_t::utf8) {
                 std::stringstream oss;
@@ -30,7 +31,7 @@ namespace yaml { namespace parser {
                     << " was encountered in the stream, but only "
                     << encoding_t::utf8
                     << " encoding is supported.\n";
-                error_handler.report_error(oss.str());
+                error_fn(oss.str());
                 return false;
             }
             return true;
@@ -275,7 +276,16 @@ namespace yaml { namespace parser {
         );
 
         auto const first_encoding = read_bom(is);
-        if (!detail::check_encoding(first_encoding, p.error_handler_.f))
+        auto const encoding_ok = detail::check_encoding(
+            first_encoding,
+            [&errors_callback](std::string const & msg) {
+                if (errors_callback)
+                    errors_callback(msg);
+                else
+                    throw parse_error(msg);
+            }
+        );
+        if (!encoding_ok)
             return retval;
 
         std::string raw_contents;
@@ -317,7 +327,12 @@ namespace yaml { namespace parser {
             bool doc_boundary = qi::parse(first, last, +p.document_suffix);
 
             auto const encoding = read_bom(first, last);
-            if (!detail::check_encoding(encoding, p.error_handler_.f)) {
+            auto const encoding_ok = detail::check_encoding(
+                encoding,
+                [&p](std::string const & msg) {p.error_handler_.f.report_error(msg);}
+            );
+
+            if (!encoding_ok) {
                 success = false;
             } else {
                 auto pos = first.get_position();
