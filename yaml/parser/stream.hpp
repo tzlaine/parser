@@ -50,13 +50,13 @@ namespace yaml { namespace parser {
 #endif
     encoding_t read_bom (std::istream & is);
 
-    template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
-                         typename std::enable_if<sizeof(typename CharIter::value_type) == 1u>::type* = 0);
+#if YAML_HEADER_ONLY
+    inline
+#endif
+    encoding_t read_bom (char const *& first, char const * last);
 
     template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
-                         typename std::enable_if<sizeof(typename CharIter::value_type) == 4u>::type* = 0);
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last);
 
 #if YAML_HEADER_ONLY
     inline
@@ -66,6 +66,17 @@ namespace yaml { namespace parser {
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
         reporting_fn_t const & warnings_callback = reporting_fn_t()
+    );
+
+#if YAML_HEADER_ONLY
+    inline
+#endif
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
+        char const * raw_first,
+        char const * raw_last,
+        std::string const & source_file,
+        reporting_fn_t const & errors_callback,
+        reporting_fn_t const & warnings_callback
     );
 
 } }

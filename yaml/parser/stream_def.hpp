@@ -224,30 +224,19 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
-                         typename std::enable_if<sizeof(typename CharIter::value_type) == 1u>::type*)
+#if YAML_HEADER_ONLY
+    inline
+#endif
+    encoding_t read_bom (char const *& first, char const * last)
     {
-        pos_iterator<CharIter> it = first;
-        int size = 0;
-        char buf[4];
-        for (char & c : buf) {
-            if (it == last)
-                break;
-            c = *it++;
-            ++size;
-        }
-
-        auto const retval = detail::read_bom_8(buf, size);
-
-        std::advance(first, size);
-
+        int size = std::min<int>(last - first, 4);
+        auto const retval = detail::read_bom_8(first, size);
+        first += size;
         return retval;
     }
 
     template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last,
-                         typename std::enable_if<sizeof(typename CharIter::value_type) == 4u>::type*)
+    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last)
     {
         if (first != last && *first == 0xfeff)
             ++first;
@@ -258,14 +247,15 @@ namespace yaml { namespace parser {
     inline
 #endif
     boost::optional<std::vector<ast::value_t>> parse_yaml(
-        std::istream & is,
+        char const * raw_first,
+        char const * raw_last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback
     ) {
         boost::optional<std::vector<ast::value_t>> retval;
 
-        using raw_char_iterator_t = boost::u8_to_u32_iterator<std::string::const_iterator>;
+        using raw_char_iterator_t = boost::u8_to_u32_iterator<char const *>;
         using ustring_t = std::basic_string<uchar_t>;
         using char_iterator_t = ustring_t::const_iterator;
 
@@ -275,7 +265,7 @@ namespace yaml { namespace parser {
             warnings_callback
         );
 
-        auto const first_encoding = read_bom(is);
+        auto const first_encoding = read_bom(raw_first, raw_last);
         auto const encoding_ok = detail::check_encoding(
             first_encoding,
             [&errors_callback](std::string const & msg) {
@@ -288,16 +278,10 @@ namespace yaml { namespace parser {
         if (!encoding_ok)
             return retval;
 
-        std::string raw_contents;
-        char buf[4096];
-        while (is) {
-            is.read(buf, sizeof(buf));
-            raw_contents.append(buf, buf + is.gcount());
-        }
-        ustring_t contents(
-            raw_char_iterator_t(raw_contents.begin()),
-            raw_char_iterator_t(raw_contents.end())
-        );
+        ustring_t contents{
+            raw_char_iterator_t(raw_first),
+            raw_char_iterator_t(raw_last)
+        };
 
         char_iterator_t contents_first(contents.begin());
         char_iterator_t contents_last(contents.end());
@@ -362,6 +346,30 @@ namespace yaml { namespace parser {
             retval = std::move(documents);
 
         return retval;
+    }
+
+#if YAML_HEADER_ONLY
+    inline
+#endif
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
+        std::istream & is,
+        std::string const & source_file,
+        reporting_fn_t const & errors_callback,
+        reporting_fn_t const & warnings_callback
+    ) {
+        std::string raw_contents;
+        char buf[4096];
+        while (is) {
+            is.read(buf, sizeof(buf));
+            raw_contents.append(buf, buf + is.gcount());
+        }
+        return parse_yaml(
+            raw_contents.c_str(),
+            raw_contents.c_str() + raw_contents.size(),
+            source_file,
+            errors_callback,
+            warnings_callback
+        );
     }
 
 } }
