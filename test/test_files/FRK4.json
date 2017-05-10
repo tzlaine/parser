@@ -1,3 +1,2 @@
 # XXX Why are nulls spaces here?
 { "foo": "", "": "bar" }
-

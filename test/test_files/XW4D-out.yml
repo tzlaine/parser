@@ -7,4 +7,3 @@ e: &node
 - x: y
 block: >
   abcde
-

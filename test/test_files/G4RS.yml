@@ -5,4 +5,3 @@ hex esc: "\x0d\x0a is \r\n"
 single: '"Howdy!" he cried.'
 quoted: ' # Not a ''comment''.'
 tie-fighter: '|\-*-/|'
-

@@ -4,4 +4,3 @@ clip: ""
 # XXX why is libyaml emitting 2 (or literal at all)
 keep: |2+
 \
-

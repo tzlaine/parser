@@ -30,8 +30,10 @@ def write_section(contents, section_name, path):
     last_line = first_line + 1
     while last_line < len(contents) and '+++' not in contents[last_line]:
         last_line += 1
+    if last_line < len(contents) - 1 and contents[last_line - 1] == '\n':
+        last_line -= 1
     section = ''.join(contents[first_line : last_line]).replace(r'\%', '%').replace(r'\#', '#').replace('<TAB>', '\t').replace('<SPC>', ' ')
-    if section == '':
+    if section == '' and section_name != 'in-yaml':
         return False
 
     tmp_file = open('tmp', 'w')

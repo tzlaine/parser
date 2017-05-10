@@ -4,4 +4,3 @@ hex esc: "\r\n is \r\n"
 single: '"Howdy!" he cried.'
 quoted: ' # Not a ''comment''.'
 tie-fighter: '|\-*-/|'
-

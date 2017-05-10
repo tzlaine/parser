@@ -3,4 +3,3 @@ c: !!int 42
 e: !!str f
 g: h
 !!int 23: !!bool false
-

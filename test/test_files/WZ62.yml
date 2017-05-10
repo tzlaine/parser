@@ -2,4 +2,3 @@
   foo : !!str,
   !!str : bar,
 }
-

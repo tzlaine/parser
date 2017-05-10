@@ -3,4 +3,3 @@
 - !local foo
 - !!str bar
 - !e!tag%21 baz
-

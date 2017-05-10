@@ -5,4 +5,3 @@ block: "void main() {\n\tprintf(\"Hello, world!\\n\");\n}\n"
 #   void main() {
 #   	printf("Hello, world!\n");
 #   }
-

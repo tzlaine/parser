@@ -4,4 +4,3 @@ sequence: !!seq
   - nested
 mapping: !!map
   foo: bar
-
