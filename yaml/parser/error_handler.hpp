@@ -7,37 +7,20 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef COMMON_ERROR_HANDLER_HPP
-#define COMMON_ERROR_HANDLER_HPP
+#ifndef YAML_PARSER_ERROR_HANDLER_HPP
+#define YAML_PARSER_ERROR_HANDLER_HPP
+
+#include <yaml/parser/parser_fwd.hpp>
 
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
-#include <boost/spirit/include/classic_position_iterator.hpp>
 
 #include <string>
 #include <sstream>
 
 
 namespace yaml { namespace parser {
-
-    using reporting_fn_t = std::function<void (std::string const &)>;
-
-    struct parse_error
-        : std::exception
-    {
-        parse_error (std::string const & msg)
-            : msg_ (msg)
-        {}
-
-        virtual char const * what () const noexcept
-        { return msg_.c_str(); }
-
-        std::string msg_;
-    };
-
-    template <typename CharIter>
-    using pos_iterator = boost::spirit::classic::position_iterator<CharIter>;
 
     struct error_handler_t
     {

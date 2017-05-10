@@ -8,40 +8,11 @@
 #ifndef YAML_PARSER_FLOW_STYLES_HPP
 #define YAML_PARSER_FLOW_STYLES_HPP
 
+#include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/basic_structures.hpp>
 
 
 namespace yaml { namespace parser {
-
-    namespace detail {
-
-        struct handle_properties
-        {
-            template <typename, typename, typename>
-            struct result { using type = ast::value_t; };
-
-            template <typename T>
-            ast::value_t operator() (
-                ast::properties_t const & properties,
-                T const & x,
-                qi::symbols<char, ast::alias_t> & anchors
-            ) const {
-                if (properties.anchor_ != "") {
-                    std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
-                    // TODO: Emit a warning when an anchor is redefined.
-                    anchors.remove(properties.anchor_);
-                    anchors.add(
-                        properties.anchor_,
-                        ast::alias_t(properties.anchor_, anchor_ptr)
-                    );
-                }
-                if (properties)
-                    return ast::value_t(ast::properties_node_t(properties, ast::value_t(x)));
-                return ast::value_t(x);
-            }
-        };
-
-    }
 
     template <typename CharIter>
     struct flow_styles_t

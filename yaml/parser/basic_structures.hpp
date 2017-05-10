@@ -8,37 +8,11 @@
 #ifndef YAML_PARSER_BASIC_STRUCTURES_HPP
 #define YAML_PARSER_BASIC_STRUCTURES_HPP
 
+#include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/characters.hpp>
 
 
 namespace yaml { namespace parser {
-
-    namespace detail {
-
-        struct check_start_of_line
-        {
-            template <typename, typename>
-            struct result { using type = void; };
-
-            template <typename Range, typename Pass>
-            void operator() (Range const & range, Pass & pass) const
-            {
-                int const column = range.begin().get_position().column;
-                if (column != 1)
-                    pass = false;
-            }
-        };
-
-    }
-
-    enum class eoi_state_t
-    {
-        not_at_end, at_end
-    };
-#ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, eoi_state_t s)
-    { return os << (s == eoi_state_t::not_at_end ? "not_at_end" : "at_end"); }
-#endif
 
     template <typename CharIter>
     struct basic_structures_t

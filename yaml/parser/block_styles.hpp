@@ -8,44 +8,11 @@
 #ifndef YAML_PARSER_BLOCK_STYLES_HPP
 #define YAML_PARSER_BLOCK_STYLES_HPP
 
+#include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/flow_styles.hpp>
 
 
 namespace yaml { namespace parser {
-
-    enum class chomping_t {
-        strip, clip, keep
-    };
-
-#ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, chomping_t c)
-    {
-        switch (c) {
-        case chomping_t::strip: return os << "strip";
-        case chomping_t::clip: return os << "clip";
-        case chomping_t::keep: return os << "keep";
-        }
-        return os;
-    }
-#endif
-
-    struct block_header_t
-    {
-        block_header_t ()
-            : indentation_ (0), chomping_ (chomping_t::clip)
-        {}
-        block_header_t (int indentation, chomping_t chomping)
-            : indentation_ (indentation), chomping_ (chomping)
-        {}
-
-        int indentation_;
-        chomping_t chomping_;
-
-#ifdef BOOST_SPIRIT_DEBUG
-        inline friend std::ostream & operator<< (std::ostream & os, block_header_t b)
-        { return os << b.indentation_ << ',' << b.chomping_; }
-#endif
-    };
 
     template <typename CharIter>
     struct block_styles_t

@@ -8,7 +8,7 @@
 #ifndef YAML_PARSER_STREAM_HPP
 #define YAML_PARSER_STREAM_HPP
 
-#include <yaml/config.hpp>
+#include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/block_styles.hpp>
 
 
