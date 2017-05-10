@@ -51,6 +51,7 @@ namespace yaml { namespace parser {
     struct block_styles_t
     {
         using iterator_t = pos_iterator<CharIter>;
+        using iterator_range_t = boost::iterator_range<iterator_t>;
 
         explicit block_styles_t (boost::phoenix::function<error_handler_t> const & error_handler);
 
@@ -64,9 +65,10 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t, int()> indentation_indicator;
         qi::rule<iterator_t, chomping_t()> chomping_indicator;
-        qi::rule<iterator_t, std::string(int, chomping_t)> chomped_empty;
-        qi::rule<iterator_t, std::string(int)> strip_empty;
-        qi::rule<iterator_t, std::string(int)> keep_empty;
+        qi::rule<iterator_t, std::string(chomping_t)> chomped_last;
+        qi::rule<iterator_t, iterator_range_t(int, chomping_t, std::string &)> chomped_empty;
+        qi::rule<iterator_t, iterator_range_t(int)> strip_empty;
+        qi::rule<iterator_t, iterator_range_t(int)> keep_empty;
         qi::rule<iterator_t, void(int), qi::locals<eoi_state_t>> trail_comments;
 
         qi::rule<

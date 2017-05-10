@@ -48,6 +48,19 @@ namespace yaml { namespace parser {
             { return c == context_t::block_out ? n - 1 : n; }
         };
 
+        struct append
+        {
+            template <typename, typename>
+            struct result { using type = void; };
+
+            template <typename Range>
+            void operator() (std::string & str, Range r) const
+            {
+                using iterator_t = boost::u32_to_u8_iterator<typename Range::iterator> ;
+                str.append(iterator_t(r.begin()), iterator_t(r.end()));
+            }
+        };
+
     }
 
     template <typename CharIter>
@@ -56,10 +69,12 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
+        qi::raw_type raw;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
+        qi::_r3_type _r3;
         qi::_a_type _a;
         qi::_b_type _b;
         qi::_c_type _c;
@@ -78,6 +93,7 @@ namespace yaml { namespace parser {
         phx::function<detail::chomping> chomping;
         phx::function<detail::indentation> indentation;
         phx::function<detail::push_utf8> push_utf8;
+        phx::function<detail::append> append;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
         auto ins = phx::insert(_val, _1);
         auto pb = phx::push_back(_val, _1);
@@ -105,6 +121,9 @@ namespace yaml { namespace parser {
         auto & implicit_yaml_key = flow_styles_.implicit_yaml_key;
         auto & implicit_json_key = flow_styles_.implicit_json_key;
 
+        // TODO: Add eps > eps after fully parsed seq/map entries (and in flow
+        // styles), for better error reporting.
+
         // 8.1 Block Scalar Styles
 
         // [162]
@@ -131,21 +150,27 @@ namespace yaml { namespace parser {
             |   eps[_val = chomping_t::clip]
             ;
 
+        // [165]
+        chomped_last =
+                eps(_r1 == chomping_t::strip) >> (eol | eoi)
+            |   eps(_r1 != chomping_t::strip) >> (eol[_val += "\n"] | eoi)
+            ;
+
         // [166]
         chomped_empty =
-                eps(_r2 == chomping_t::keep) >> keep_empty(_r1)
-            |   eps(_r2 != chomping_t::keep) >> strip_empty(_r1)
+                eps(_r2 == chomping_t::keep) >> keep_empty(_r1)[append(_r3, _1)]
+            |   eps(_r2 != chomping_t::keep) >> strip_empty(_r1)[append(_r3, _1)]
             ;
 
         // [167]
         strip_empty =
-                *(indent_le(_r1) >> eol)
+                raw[*(indent_le(_r1) >> eol)]
             >>  -trail_comments(_r1)
             ;
 
         // [168]
         keep_empty =
-                *l_empty(_r1, context_t::block_in)
+                raw[*l_empty(_r1, context_t::block_in)]
             >>  -trail_comments(_r1)
             ;
 
@@ -153,7 +178,7 @@ namespace yaml { namespace parser {
         trail_comments =
                 indent_lt(_r1)
             >>  '#' >> *nb_char >> (eol | eoi)
-            >>  *l_comment(_a = eoi_state_t::not_at_end)
+            >>  eps[_a = eoi_state_t::not_at_end] >> *l_comment(_a)
             ;
 
         // 8.1.2. Literal Style
@@ -161,8 +186,11 @@ namespace yaml { namespace parser {
         // [170]
         literal =
                 '|'
-            >>  block_header[_a = _r1 + indentation(_1), _b = chomping(_1)]
-            >>  literal_content(_a, _b)[_val = _1]
+            >>  block_header[_a = indentation(_1), _b = chomping(_1)]
+            >>  (
+                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> literal_content(_r1 + _a, _b)[_val = _1]
+                |   eps(_a != 0) >> literal_content(_r1 + _a, _b)[_val = _1]
+                )
             ;
 
         // [171]
@@ -177,8 +205,8 @@ namespace yaml { namespace parser {
 
         // [173]
         literal_content =
-                -(literal_text(_r1) >> *literal_next(_r1) >> (eol | eoi))
-            >>  chomped_empty(_r1, _r2)
+                -(literal_text(_r1) >> *literal_next(_r1) >> chomped_last(_r2))
+            >>  chomped_empty(_r1, _r2, _val)
             ;
 
         // 8.1.3. Folded Style
@@ -186,8 +214,11 @@ namespace yaml { namespace parser {
         // [174]
         folded =
                 '>'
-            >>  omit[block_header[_a = _r1 + indentation(_1), _b = chomping(_1)]]
-            >>  folded_content(_a, _b)
+            >>  block_header[_a = indentation(_1), _b = chomping(_1)]
+            >>  (
+                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> folded_content(_r1 + _a, _b)[_val = _1]
+                |   eps(_a != 0) >> folded_content(_r1 + _a, _b)[_val = _1]
+                )
             ;
 
         // [175]
@@ -228,8 +259,8 @@ namespace yaml { namespace parser {
 
         // [182]
         folded_content =
-                -(diff_lines(_r1) >> (eol | eoi))
-            >>  chomped_empty(_r1, _r2)
+                -(diff_lines(_r1) >> chomped_last(_r2))
+            >>  chomped_empty(_r1, _r2, _val)
             ;
 
         // 8.2.1. Block Sequences
