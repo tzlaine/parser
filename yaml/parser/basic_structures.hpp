@@ -89,4 +89,8 @@ namespace yaml { namespace parser {
 
 } }
 
+#if YAML_HEADER_ONLY
+#include <yaml/parser/basic_structures_def.hpp>
+#endif
+
 #endif

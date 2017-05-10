@@ -131,4 +131,8 @@ namespace yaml { namespace parser {
 
 } }
 
+#if YAML_HEADER_ONLY
+#include <yaml/parser/block_styles_def.hpp>
+#endif
+
 #endif

@@ -198,9 +198,7 @@ namespace yaml { namespace parser {
 
     }
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (std::istream & is)
     {
         int size = 0;
@@ -224,9 +222,7 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (char const *& first, char const * last)
     {
         int size = std::min<int>(last - first, 4);
@@ -243,9 +239,7 @@ namespace yaml { namespace parser {
         return encoding_t::utf8;
     }
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
@@ -348,9 +342,7 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         std::istream & is,
         std::string const & source_file,

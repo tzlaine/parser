@@ -130,4 +130,8 @@ namespace yaml { namespace parser {
 
 } }
 
+#if YAML_HEADER_ONLY
+#include <yaml/parser/flow_styles_def.hpp>
+#endif
+
 #endif

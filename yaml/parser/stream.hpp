@@ -8,11 +8,7 @@
 #ifndef YAML_PARSER_STREAM_HPP
 #define YAML_PARSER_STREAM_HPP
 
-// TODO: Create a macro for YAML_HEADER_ONLY_INLINE
-#ifndef YAML_HEADER_ONLY
-#define YAML_HEADER_ONLY 1
-#endif
-
+#include <yaml/config.hpp>
 #include <yaml/parser/block_styles.hpp>
 
 
@@ -45,32 +41,16 @@ namespace yaml { namespace parser {
         boost::phoenix::function<error_handler_t> const error_handler_;
     };
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (std::istream & is);
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (char const *& first, char const * last);
 
     template <typename CharIter>
     encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last);
 
-#if YAML_HEADER_ONLY
-    inline
-#endif
-    boost::optional<std::vector<ast::value_t>> parse_yaml(
-        std::istream & is,
-        std::string const & source_file = "",
-        reporting_fn_t const & errors_callback = reporting_fn_t(),
-        reporting_fn_t const & warnings_callback = reporting_fn_t()
-    );
-
-#if YAML_HEADER_ONLY
-    inline
-#endif
+    YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
@@ -79,6 +59,18 @@ namespace yaml { namespace parser {
         reporting_fn_t const & warnings_callback
     );
 
+    YAML_HEADER_ONLY_INLINE
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
+        std::istream & is,
+        std::string const & source_file = "",
+        reporting_fn_t const & errors_callback = reporting_fn_t(),
+        reporting_fn_t const & warnings_callback = reporting_fn_t()
+    );
+
 } }
+
+#if YAML_HEADER_ONLY
+#include <yaml/parser/stream_def.hpp>
+#endif
 
 #endif

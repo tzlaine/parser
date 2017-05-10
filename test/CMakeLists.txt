@@ -6,7 +6,7 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
 
-set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.")
+set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
 set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
 if (USE_ASAN AND USE_UBSAN)
     message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
@@ -15,6 +15,24 @@ elseif (USE_ASAN)
 elseif (USE_UBSAN)
     set(link_flags -fsanitize=undefined)
 endif()
+
+set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DYAML_HEADER_ONLY=1.")
+
+
+##################################################
+# Header-only build test
+##################################################
+if (BUILD_HEADER_ONLY_TEST)
+add_executable(
+    header_only_parse_test
+    parse_yaml_test.cpp
+)
+target_link_libraries(header_only_parse_test yaml gtest ${link_flags})
+target_compile_definitions(header_only_parse_test PRIVATE -DYAML_HEADER_ONLY=1)
+if (clang_on_linux)
+    target_link_libraries(header_only_parse_test c++)
+endif ()
+endif ()
 
 ##################################################
 # Static test lib
@@ -29,7 +47,6 @@ add_library(
     stream.cpp
 )
 target_link_libraries(yaml_test_lib yaml gtest ${link_flags})
-target_compile_definitions(yaml_test_lib PUBLIC -DYAML_HEADER_ONLY=0)
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml_test_lib PUBLIC ${link_flags})
 endif()
