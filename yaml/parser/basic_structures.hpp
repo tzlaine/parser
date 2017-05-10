@@ -14,15 +14,11 @@
 
 namespace yaml { namespace parser {
 
-    template <typename CharIter>
     struct basic_structures_t
     {
-        using iterator_t = pos_iterator<CharIter>;
-        using iter_range_t = uchar_range<CharIter>;
-
         explicit basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler);
 
-        characters_t<CharIter> characters_;
+        characters_t characters_;
 
         qi::rule<iterator_t, void(int)> indent;    // indent exactly n spaces
         qi::rule<iterator_t, void(int)> indent_lt; // indent <= n spaces
@@ -49,12 +45,12 @@ namespace yaml { namespace parser {
         qi::rule<
             iterator_t,
             ast::properties_t(int, context_t),
-            qi::locals<iter_range_t, iter_range_t>
+            qi::locals<iterator_range_t, iterator_range_t>
         > properties;
 
-        qi::rule<iterator_t, iter_range_t()> tag_property;
-        qi::rule<iterator_t, iter_range_t()> anchor_property;
-        qi::rule<iterator_t, iter_range_t()> anchor_name;
+        qi::rule<iterator_t, iterator_range_t()> tag_property;
+        qi::rule<iterator_t, iterator_range_t()> anchor_property;
+        qi::rule<iterator_t, iterator_range_t()> anchor_name;
 
         qi::rule<iterator_t, void (eoi_state_t &)> one_time_eoi;
 

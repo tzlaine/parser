@@ -61,11 +61,8 @@ namespace yaml { namespace parser {
         }
     };
 
-    template <typename CharIter>
-    using pos_iterator = boost::spirit::classic::position_iterator<CharIter>;
-
-    template <typename CharIter>
-    using uchar_range = boost::iterator_range<pos_iterator<CharIter>>;
+    using iterator_t = boost::spirit::classic::position_iterator<uchar_t const *>;
+    using iterator_range_t = boost::iterator_range<iterator_t>;
 
 
     // Parser enums.

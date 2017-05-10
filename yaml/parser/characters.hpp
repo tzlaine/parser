@@ -14,11 +14,8 @@
 
 namespace yaml { namespace parser {
 
-    template <typename CharIter>
     struct characters_t
     {
-        using iterator_t = pos_iterator<CharIter>;
-
         characters_t ();
 
         qi::rule<iterator_t, parsed_uchar_t()> printable;

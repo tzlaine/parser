@@ -89,10 +89,9 @@ namespace yaml { namespace parser {
             template <typename>
             struct result { using type = std::string; };
 
-            template <typename CharIter>
-            std::string operator() (boost::iterator_range<pos_iterator<CharIter>> range) const
+            std::string operator() (iterator_range_t range) const
             {
-                using iterator_t = typename boost::iterator_range<pos_iterator<CharIter>>::iterator;
+                using iterator_t = iterator_range_t::iterator;
                 boost::u32_to_u8_iterator<iterator_t> first(range.begin());
                 boost::u32_to_u8_iterator<iterator_t> last(range.end());
                 return std::string(first, last);
@@ -101,8 +100,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename CharIter>
-    basic_structures_t<CharIter>::basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler)
+    YAML_HEADER_ONLY_INLINE
+    basic_structures_t::basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler)
         : error_handler_ (error_handler)
     {
         qi::attr_type attr;

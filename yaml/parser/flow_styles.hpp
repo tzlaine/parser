@@ -14,14 +14,11 @@
 
 namespace yaml { namespace parser {
 
-    template <typename CharIter>
     struct flow_styles_t
     {
-        using iterator_t = pos_iterator<CharIter>;
-
         explicit flow_styles_t (boost::phoenix::function<error_handler_t> const & error_handler);
 
-        basic_structures_t<CharIter> basic_structures_;
+        basic_structures_t basic_structures_;
 
         qi::symbols<char, ast::alias_t> anchors;
 

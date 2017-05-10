@@ -22,7 +22,7 @@ namespace yaml { namespace parser {
     namespace detail {
 
         template <typename ErrorFn>
-        inline bool check_encoding (encoding_t encoding, ErrorFn const & error_fn)
+        bool check_encoding (encoding_t encoding, ErrorFn const & error_fn)
         {
             if (encoding != encoding_t::utf8) {
                 std::stringstream oss;
@@ -39,8 +39,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename CharIter>
-    stream_t<CharIter>::stream_t (
+    YAML_HEADER_ONLY_INLINE
+    stream_t::stream_t (
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback
@@ -231,8 +231,8 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    template <typename CharIter>
-    encoding_t read_bom (pos_iterator<CharIter> & first, pos_iterator<CharIter> last)
+    YAML_HEADER_ONLY_INLINE
+    encoding_t read_bom (iterator_t & first, iterator_t last)
     {
         if (first != last && *first == 0xfeff)
             ++first;
@@ -250,10 +250,8 @@ namespace yaml { namespace parser {
         boost::optional<std::vector<ast::value_t>> retval;
 
         using raw_char_iterator_t = boost::u8_to_u32_iterator<char const *>;
-        using ustring_t = std::basic_string<uchar_t>;
-        using char_iterator_t = ustring_t::const_iterator;
 
-        stream_t<char_iterator_t> p(
+        stream_t p(
             source_file,
             errors_callback,
             warnings_callback
@@ -277,12 +275,7 @@ namespace yaml { namespace parser {
             raw_char_iterator_t(raw_last)
         };
 
-        char_iterator_t contents_first(contents.begin());
-        char_iterator_t contents_last(contents.end());
-
-        using iterator_t = stream_t<char_iterator_t>::iterator_t;
-
-        iterator_t first(contents_first, contents_last);
+        iterator_t first(&*contents.begin(), &*contents.end());
         iterator_t last;
         first.set_tabchars(1);
 

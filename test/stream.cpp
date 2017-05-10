@@ -6,9 +6,3 @@
  */
 
 #include <yaml/parser/stream_def.hpp>
-#include <iostream>
-#include <fstream>
-#include <string>
-
-using char_iterator_t = yaml::parser::ustring_t::const_iterator;
-template struct yaml::parser::stream_t<char_iterator_t>;

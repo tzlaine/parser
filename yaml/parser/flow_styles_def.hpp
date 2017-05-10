@@ -44,8 +44,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename CharIter>
-    flow_styles_t<CharIter>::flow_styles_t (boost::phoenix::function<error_handler_t> const & error_handler)
+    YAML_HEADER_ONLY_INLINE
+    flow_styles_t::flow_styles_t (boost::phoenix::function<error_handler_t> const & error_handler)
         : basic_structures_ (error_handler)
     {
         qi::attr_type attr;

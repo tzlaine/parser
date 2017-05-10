@@ -14,15 +14,11 @@
 
 namespace yaml { namespace parser {
 
-    template <typename CharIter>
     struct block_styles_t
     {
-        using iterator_t = pos_iterator<CharIter>;
-        using iterator_range_t = boost::iterator_range<iterator_t>;
-
         explicit block_styles_t (boost::phoenix::function<error_handler_t> const & error_handler);
 
-        flow_styles_t<CharIter> flow_styles_;
+        flow_styles_t flow_styles_;
 
         qi::rule<
             iterator_t,

@@ -55,15 +55,12 @@ namespace yaml { namespace parser {
                 warning_fn_(msg);
         }
 
-        template <typename CharIter>
         void operator() (
-            pos_iterator<CharIter> first,
-            pos_iterator<CharIter> last,
-            pos_iterator<CharIter> err_pos,
+            iterator_t first,
+            iterator_t last,
+            iterator_t err_pos,
             boost::spirit::info const & what
         ) const {
-            using iterator_t = pos_iterator<CharIter>;
-
             iterator_t line_start = boost::spirit::get_line_start(first, err_pos);
             std::string error_line;
             if (line_start != last && *line_start == '\r')

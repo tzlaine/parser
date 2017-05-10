@@ -55,8 +55,8 @@ namespace yaml { namespace parser {
 
     }
 
-    template <typename CharIter>
-    characters_t<CharIter>::characters_t ()
+    YAML_HEADER_ONLY_INLINE
+    characters_t::characters_t ()
     {
         qi::unicode::char_type char_;
         qi::_val_type _val;
