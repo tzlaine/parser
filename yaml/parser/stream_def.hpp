@@ -41,12 +41,16 @@ namespace yaml { namespace parser {
 
     YAML_HEADER_ONLY_INLINE
     stream_t::stream_t (
+        iterator_t & first,
+        iterator_t last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback
     )
         : block_styles_ (error_handler_)
-        , error_handler_ (error_handler_t(source_file, errors_callback, warnings_callback))
+        , error_handler_ (
+            error_handler_t(first, last, source_file, errors_callback, warnings_callback)
+        )
     {
         qi::attr_type attr;
         qi::raw_type raw;
@@ -239,6 +243,7 @@ namespace yaml { namespace parser {
         return encoding_t::utf8;
     }
 
+    // TODO: Change signature to return a vector and a bool.
     YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
@@ -250,12 +255,6 @@ namespace yaml { namespace parser {
         boost::optional<std::vector<ast::value_t>> retval;
 
         using raw_char_iterator_t = boost::u8_to_u32_iterator<char const *>;
-
-        stream_t p(
-            source_file,
-            errors_callback,
-            warnings_callback
-        );
 
         auto const first_encoding = read_bom(raw_first, raw_last);
         auto const encoding_ok = detail::check_encoding(
@@ -279,12 +278,20 @@ namespace yaml { namespace parser {
         iterator_t last;
         first.set_tabchars(1);
 
+        stream_t parser(
+            first,
+            last,
+            source_file,
+            errors_callback,
+            warnings_callback
+        );
+
         std::vector<ast::value_t> documents;
         std::vector<ast::value_t> temp_documents;
         bool success = true;
         do {
             auto initial = first;
-            success = qi::parse(first, last, p.yaml_stream, temp_documents);
+            success = qi::parse(first, last, parser.yaml_stream, temp_documents);
 
             if (!success || first == initial)
                 break;
@@ -295,12 +302,14 @@ namespace yaml { namespace parser {
             );
             temp_documents.clear();
 
-            bool doc_boundary = qi::parse(first, last, +p.document_suffix);
+            bool doc_boundary = qi::parse(first, last, +parser.document_suffix);
 
             auto const encoding = read_bom(first, last);
             auto const encoding_ok = detail::check_encoding(
                 encoding,
-                [&p](std::string const & msg) {p.error_handler_.f.report_error(msg);}
+                [&parser](std::string const & msg) {
+                    parser.error_handler_.f.report_preformatted_error(msg);
+                }
             );
 
             if (!encoding_ok) {
@@ -323,10 +332,10 @@ namespace yaml { namespace parser {
         } while (success);
 
         if (success) {
-            success = qi::parse(first, last, p.end_of_input);
+            success = qi::parse(first, last, parser.end_of_input);
 
             if (!success)
-                p.error_handler_.f.report_error("Expected end of input\n");
+                parser.error_handler_.f.report_error("end of input");
         }
 
         if (success)

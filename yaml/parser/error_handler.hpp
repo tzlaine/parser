@@ -28,31 +28,46 @@ namespace yaml { namespace parser {
         struct result { using type = void; };
 
         error_handler_t (
+            iterator_t & first,
+            iterator_t last,
             std::string const& source_file,
             reporting_fn_t const & errors,
             reporting_fn_t const & warnings
         )
-            : source_file_ (source_file)
+            : first_ (first)
+            , last_ (last)
+            , current_ (first)
+            , source_file_ (source_file)
             , error_fn_ (errors)
             , warning_fn_ (warnings)
         {}
 
-        void report_error (std::string const & msg) const
+        void report_error (std::string const & what) const
         {
-            // TODO: This really needs file:line:col, regardless of source (ie
-            // not just when (*this)() is called).
+            std::ostringstream oss;
+            format_error(first_, last_, current_, what, "", oss);
             if (error_fn_)
-                error_fn_(msg);
+                error_fn_(oss.str());
             else
-                throw parse_error(msg);
+                throw parse_error(oss.str());
         }
 
-        void report_warning (std::string const & msg) const
+        void report_preformatted_error (std::string const & msg) const
         {
-            // TODO: This really needs file:line:col, regardless of source (ie
-            // not just when (*this)() is called).
+            std::ostringstream oss;
+            format_error(first_, last_, current_, msg, oss);
+            if (error_fn_)
+                error_fn_(oss.str());
+            else
+                throw parse_error(oss.str());
+        }
+
+        void report_warning (std::string const & what) const
+        {
+            std::ostringstream oss;
+            format_warning(what, oss);
             if (warning_fn_)
-                warning_fn_(msg);
+                warning_fn_(oss.str());
         }
 
         void operator() (
@@ -61,8 +76,20 @@ namespace yaml { namespace parser {
             iterator_t err_pos,
             boost::spirit::info const & what
         ) const {
+            std::ostringstream oss;
+            format_error(first, last, err_pos, what, what.tag, oss);
+            report_error(oss.str());
+        }
+
+        std::pair<std::string, int> format_prefix (
+            iterator_t first,
+            iterator_t last,
+            iterator_t err_pos,
+            bool error,
+            std::ostringstream & oss
+        ) const {
             iterator_t line_start = boost::spirit::get_line_start(first, err_pos);
-            std::string error_line;
+            std::pair<std::string, int> retval;
             if (line_start != last && *line_start == '\r')
                 ++line_start;
             if (line_start != last && *line_start == '\n')
@@ -71,38 +98,85 @@ namespace yaml { namespace parser {
                 typename iterator_t::value_type c = *it;
                 if (c == '\r' || c == '\n')
                     break;
-                error_line += c;
+                retval.first += c;
             }
 
             typename iterator_t::position_t const pos = err_pos.get_position();
             int const line = pos.line;
             int const column = pos.column;
-
-            std::ostringstream oss;
+            retval.second = column;
 
             if (source_file_ == "")
                 oss << "<Unknown source>:";
             else
                 oss << source_file_ << ':';
 
-            oss << line << ':' << column << ": error: ";
+            oss << line << ':' << column << ": " << (error ? "error" : "warning") << ": ";
 
-            if (what.tag == "anchors")
+            return retval;
+        }
+
+        template <typename What>
+        void format_error (
+            iterator_t first,
+            iterator_t last,
+            iterator_t err_pos,
+            What const & what,
+            std::string const & tag,
+            std::ostringstream & oss
+        ) const {
+            auto error_line_and_column = format_prefix(first, last, err_pos, true, oss);
+
+            if (tag == "anchors")
                 oss << "The anchor referenced by this alias is not yet defined:\n";
             else
                 oss << "Expected " << what << ":\n";
 
-            oss << error_line << '\n';
-            for (int i = 1; i != column; ++i) {
+            oss << error_line_and_column.first << '\n';
+            for (int i = 1; i != error_line_and_column.second; ++i) {
                 oss << ' ';
             }
 
             oss << "^\n";
+        }
 
-            report_error(oss.str());
+        void format_error (
+            iterator_t first,
+            iterator_t last,
+            iterator_t err_pos,
+            std::string const & msg,
+            std::ostringstream & oss
+        ) const {
+            auto error_line_and_column = format_prefix(first, last, err_pos, true, oss);
+
+            oss << msg;
+
+            oss << error_line_and_column.first << '\n';
+            for (int i = 1; i != error_line_and_column.second; ++i) {
+                oss << ' ';
+            }
+
+            oss << "^\n";
+        }
+
+        void format_warning (std::string const & msg, std::ostringstream & oss) const
+        {
+            auto error_line_and_column = format_prefix(first_, last_, current_, false, oss);
+
+            oss << msg << ":\n";
+
+            oss << error_line_and_column.first << '\n';
+            for (int i = 1; i != error_line_and_column.second; ++i) {
+                oss << ' ';
+            }
+
+            oss << "^\n";
         }
 
     private:
+        iterator_t first_;
+        iterator_t last_;
+        iterator_t & current_;
         std::string source_file_;
         std::function<void (std::string const &)> error_fn_;
         std::function<void (std::string const &)> warning_fn_;

@@ -37,7 +37,7 @@ namespace yaml { namespace parser {
                         << major << '.' << minor
                         << " directive.  This parser recognizes "
                            "YAML 1.2, and so cannot continue.\n";
-                    error_handler.report_error(oss.str());
+                    error_handler.report_preformatted_error(oss.str());
                     pass = false;
                 } else if (minor != 2) {
                     std::stringstream oss;

@@ -17,6 +17,8 @@ namespace yaml { namespace parser {
     struct stream_t
     {
         stream_t (
+            iterator_t & first,
+            iterator_t last,
             std::string const & source_file,
             reporting_fn_t const & errors_callback,
             reporting_fn_t const & warnings_callback
