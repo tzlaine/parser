@@ -188,7 +188,7 @@ namespace yaml { namespace parser {
                 '|'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> literal_content(_r1 + _a, _b)[_val = _1]
+                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> literal_content(_a, _b)[_val = _1]
                 |   eps(_a != 0) >> literal_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
@@ -216,7 +216,7 @@ namespace yaml { namespace parser {
                 '>'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> folded_content(_r1 + _a, _b)[_val = _1]
+                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> folded_content(_a, _b)[_val = _1]
                 |   eps(_a != 0) >> folded_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
