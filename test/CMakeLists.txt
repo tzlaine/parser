@@ -33,7 +33,7 @@ target_compile_definitions(yaml_test_lib PUBLIC -DYAML_HEADER_ONLY=0)
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml_test_lib PUBLIC ${link_flags})
 endif()
-#target_compile_definitions(yaml_test_lib PUBLIC -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
+target_compile_definitions(yaml_test_lib PUBLIC -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(yaml_test_lib c++)
 endif ()
@@ -112,8 +112,9 @@ set(invalid_yaml_test_suite_files
     2SXE # Has the pattern a: b: without a line break.
 
     # Each has a bare "\" (not starting an escape sequence) outside of any
-    # single- or double-quoted string, in the middle of a block mapping.
-    NHX8 P94K
+    # single- or double-quoted string, not indented, in the middle of a block
+    # mapping.
+    NHX8 P94K 5GBF
 
     # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
     # indented.
@@ -227,6 +228,9 @@ set(invalid_comparison_tests
     parse_compare_test_DFF7_in_vs_json # YAML null vs. JSON "" mismatch
     parse_compare_test_FRK4_in_vs_json # YAML null vs. JSON "" mismatch
     parse_compare_test_S3PD_in_vs_json # YAML null vs. JSON "" mismatch
+
+    # Contains "!!str: bar" as a map entry, but the ":" is a valid tag-char
+    parse_compare_test_WZ62_in_vs_out
 )
 
 foreach (yml_file_root ${yml_file_index})
@@ -260,7 +264,7 @@ foreach (yml_file_root ${invalid_yaml_test_suite_files})
                 WILL_FAIL true
         )
     endif()
-    if (TARGET parse_compare_test_${yml_file_root}_in_vs_json_sentinal)
+    if (DEFINED parse_compare_test_${yml_file_root}_in_vs_json_sentinal)
         set_tests_properties(
             parse_compare_test_${yml_file_root}_in_vs_json
             PROPERTIES
