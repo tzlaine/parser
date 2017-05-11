@@ -40,7 +40,7 @@ namespace yaml { namespace parser {
             qi::locals<int, chomping_t>
         > literal;
 
-        qi::rule<iterator_t, std::string(int)> literal_text;
+        qi::rule<iterator_t, std::string(int), qi::locals<std::string>> literal_text;
         qi::rule<iterator_t, std::string(int)> literal_next;
         qi::rule<iterator_t, std::string(int, chomping_t)> literal_content;
 

@@ -191,7 +191,10 @@ namespace yaml { namespace parser {
 
         // [171]
         literal_text =
-            *l_empty(_r1, context_t::block_in) >> indent(_r1) >> +nb_char[push_utf8(_val, _1)]
+                *l_empty(_r1, context_t::block_in)[_a += "\n"]
+            >>  indent(_r1)
+            >>  nb_char[_val += _a, push_utf8(_val, _1)]
+            >>  *nb_char[push_utf8(_val, _1)]
             ;
 
         // [172]
