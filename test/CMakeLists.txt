@@ -18,6 +18,8 @@ endif()
 
 set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DYAML_HEADER_ONLY=1.")
 
+add_definitions(${cxx_defs})
+
 
 ##################################################
 # Header-only build test
