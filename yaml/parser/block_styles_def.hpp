@@ -210,7 +210,7 @@ namespace yaml { namespace parser {
 
         // [172]
         literal_next =
-            eol >> !(lit("...") | "---") >> literal_text(_r1)
+            eol >> !(lit("...") | "---") >> literal_text(_r1)[_val += "\n", _val += _1]
             ;
 
         // [173]
