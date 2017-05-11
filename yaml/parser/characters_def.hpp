@@ -56,7 +56,7 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    characters_t::characters_t ()
+    characters_t::characters_t (bool verbose)
     {
         qi::unicode::char_type char_;
         qi::_val_type _val;
@@ -141,22 +141,20 @@ namespace yaml { namespace parser {
                 )
             ;
 
-        BOOST_SPIRIT_DEBUG_NODES(
-            (printable)
-#if 1
-            (nb_json)
-#endif
-            (bom)
-            // TODO: Separate out the naming of these things from debugging
-            // them; give them user-friendly names.
-#if 0
-            (nb_char)
-            (ns_char)
-#endif
-            (uri_char)
-            (tag_char)
-            (esc_char)
-        );
+        // TODO: Separate out the naming of these things from debugging
+        // them; give them user-friendly names.
+        if (verbose) {
+            BOOST_SPIRIT_DEBUG_NODES(
+                (printable)
+                (nb_json)
+                (bom)
+                (nb_char)
+                (ns_char)
+                (uri_char)
+                (tag_char)
+                (esc_char)
+            );
+        }
     }
 
 } }

@@ -16,7 +16,7 @@ namespace yaml { namespace parser {
 
     struct characters_t
     {
-        characters_t ();
+        explicit characters_t (bool verbose);
 
         qi::rule<iterator_t, parsed_uchar_t()> printable;
         qi::rule<iterator_t, parsed_uchar_t()> nb_json;

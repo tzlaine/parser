@@ -101,8 +101,12 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    basic_structures_t::basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler)
-        : error_handler_ (error_handler)
+    basic_structures_t::basic_structures_t (
+        boost::phoenix::function<error_handler_t> const & error_handler,
+        bool verbose
+    )
+        : characters_ (verbose)
+        , error_handler_ (error_handler)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
@@ -331,36 +335,34 @@ namespace yaml { namespace parser {
             eoi >> eps(first_time_eoi(_r1))
             ;
 
-        BOOST_SPIRIT_DEBUG_NODES(
-#if 1
-            (indent)
-            (indent_lt)
-            (indent_le)
-            (separate_in_line)
-            (line_prefix)
-            (l_empty)
-#endif
-            (b_l_folded)
-            (flow_folded)
-#if 1
-            (comment_text)
-            (s_b_comment)
-            (l_comment)
-            (s_l_comments)
-            (separate)
-            (separate_lines)
-#endif
-            (directive)
-            (reserved_directive)
-            (yaml_directive)
-            (tag_directive)
-            (tag_handle)
-            (tag_prefix)
-            (properties)
-            (tag_property)
-            (anchor_property)
-            (anchor_name)
-        );
+        if (verbose) {
+            BOOST_SPIRIT_DEBUG_NODES(
+                (indent)
+                (indent_lt)
+                (indent_le)
+                (separate_in_line)
+                (line_prefix)
+                (l_empty)
+                (b_l_folded)
+                (flow_folded)
+                (comment_text)
+                (s_b_comment)
+                (l_comment)
+                (s_l_comments)
+                (separate)
+                (separate_lines)
+                (directive)
+                (reserved_directive)
+                (yaml_directive)
+                (tag_directive)
+                (tag_handle)
+                (tag_prefix)
+                (properties)
+                (tag_property)
+                (anchor_property)
+                (anchor_name)
+            );
+        }
     }
 
 } }

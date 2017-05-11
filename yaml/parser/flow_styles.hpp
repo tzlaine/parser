@@ -16,7 +16,10 @@ namespace yaml { namespace parser {
 
     struct flow_styles_t
     {
-        explicit flow_styles_t (boost::phoenix::function<error_handler_t> const & error_handler);
+        explicit flow_styles_t (
+            boost::phoenix::function<error_handler_t> const & error_handler,
+            bool verbose
+        );
 
         basic_structures_t basic_structures_;
 

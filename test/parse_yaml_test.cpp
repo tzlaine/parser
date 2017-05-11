@@ -17,6 +17,7 @@
 
 char const * filename = nullptr;
 std::ifstream * in_ptr = nullptr;
+bool verbose = false;
 
 
 TEST(parse, test_parse_yaml)
@@ -26,10 +27,12 @@ TEST(parse, test_parse_yaml)
     std::ifstream & in = *in_ptr;
 
     using yaml::ast::value_t;
+    using yaml::parser::reporting_fn_t;
     using yaml::parser::parse_yaml;
     using yaml::ast::print_yaml;
 
-    boost::optional<std::vector<value_t>> result = parse_yaml(in, filename);
+    boost::optional<std::vector<value_t>> result =
+        parse_yaml(in, filename, reporting_fn_t(), reporting_fn_t(), verbose);
     ASSERT_TRUE(result) << "failed initial parse of " << filename;
 
     for (auto const & doc : *result) {
@@ -62,6 +65,12 @@ int main (int argc, char** argv)
     }
 
     int argc_ = argc - 1; // Don't give filename arg to GTest.
+
+    if (1 < argc_ && argv[argc_ - 1] == std::string("-v")) {
+        verbose = true;
+        --argc_;
+    }
+
     ::testing::InitGoogleTest(&argc_, argv);
     return RUN_ALL_TESTS();
 }

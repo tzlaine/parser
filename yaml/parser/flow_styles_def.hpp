@@ -45,8 +45,11 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    flow_styles_t::flow_styles_t (boost::phoenix::function<error_handler_t> const & error_handler)
-        : basic_structures_ (error_handler)
+    flow_styles_t::flow_styles_t (
+        boost::phoenix::function<error_handler_t> const & error_handler,
+        bool verbose
+    )
+        : basic_structures_ (error_handler, verbose)
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -253,10 +256,15 @@ namespace yaml { namespace parser {
 
         // [134]
         plain_next_line =
-            YAML_PARSER_PRINT_INDENT
-            // TODO: Apply hold[] everywhere appropriate.
             hold[flow_folded(_r1, true) >> plain_char(_r2) >> plain_in_line(_r2)]
             ;
+
+        if (verbose) {
+            plain_next_line =
+                YAML_PARSER_PRINT_INDENT
+                hold[flow_folded(_r1, true) >> plain_char(_r2) >> plain_in_line(_r2)]
+                ;
+        }
 
         // [135]
         plain_multi_line =
@@ -434,67 +442,78 @@ namespace yaml { namespace parser {
             ;
 
         // [161]
-        flow_node = YAML_PARSER_PRINT_INDENT (
+        flow_node =
                 as<ast::value_t>{}[alias_node][_val = _1]
             |   flow_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
                 [_val = handle_properties(_a, _1, phx::ref(anchors))]
-            )
             ;
 
-        BOOST_SPIRIT_DEBUG_NODES(
-            (alias_node)
-            (nb_double_char)
-            (ns_double_char)
-            (double_quoted)
-            (double_text)
-            (double_escaped)
-            (double_break)
-            (double_in_line)
-            (double_next_line)
-            (double_multi_line)
-            (nb_single_char)
-            (ns_single_char)
-            (single_quoted)
-            (single_text)
-            (single_in_line)
-            (single_next_line)
-            (single_multi_line)
-            (plain_first)
-            (plain_safe)
-            (plain_char)
-            (plain)
-            (plain_in_line)
-            (plain_one_line)
-            (plain_next_line)
-            (plain_multi_line)
-            (flow_sequence)
-            (flow_seq_entries)
-            (flow_seq_entry)
-            (flow_mapping)
-            (flow_map_entries)
-            (flow_map_entry)
-            (flow_map_explicit_entry)
-            (flow_map_implicit_entry)
-            (flow_map_yaml_key_entry)
-            (flow_map_empty_key_entry)
-            (flow_map_separate_value)
-            (flow_map_json_key_entry)
-            (flow_map_adjacent_value)
-            (flow_pair)
-            (flow_pair_entry)
-            (flow_pair_yaml_key_entry)
-            (flow_pair_json_key_entry)
-            (implicit_yaml_key)
-            (implicit_json_key)
-            (flow_yaml_content)
-            (flow_json_content)
-            (flow_content)
-            (flow_yaml_node)
-            (flow_json_node)
-            (flow_node)
-        );
+        if (verbose) {
+            flow_node = YAML_PARSER_PRINT_INDENT (
+                    as<ast::value_t>{}[alias_node][_val = _1]
+                |   flow_content(_r1, _r2)[_val = _1]
+                |   omit[properties(_r1, _r2)[_a = _1]]
+                >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
+                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+            );
+        }
+
+        if (verbose) {
+            BOOST_SPIRIT_DEBUG_NODES(
+                (alias_node)
+                (nb_double_char)
+                (ns_double_char)
+                (double_quoted)
+                (double_text)
+                (double_escaped)
+                (double_break)
+                (double_in_line)
+                (double_next_line)
+                (double_multi_line)
+                (nb_single_char)
+                (ns_single_char)
+                (single_quoted)
+                (single_text)
+                (single_in_line)
+                (single_next_line)
+                (single_multi_line)
+                (plain_first)
+                (plain_safe)
+                (plain_char)
+                (plain)
+                (plain_in_line)
+                (plain_one_line)
+                (plain_next_line)
+                (plain_multi_line)
+                (flow_sequence)
+                (flow_seq_entries)
+                (flow_seq_entry)
+                (flow_mapping)
+                (flow_map_entries)
+                (flow_map_entry)
+                (flow_map_explicit_entry)
+                (flow_map_implicit_entry)
+                (flow_map_yaml_key_entry)
+                (flow_map_empty_key_entry)
+                (flow_map_separate_value)
+                (flow_map_json_key_entry)
+                (flow_map_adjacent_value)
+                (flow_pair)
+                (flow_pair_entry)
+                (flow_pair_yaml_key_entry)
+                (flow_pair_json_key_entry)
+                (implicit_yaml_key)
+                (implicit_json_key)
+                (flow_yaml_content)
+                (flow_json_content)
+                (flow_content)
+                (flow_yaml_node)
+                (flow_json_node)
+                (flow_node)
+            );
+        }
     }
 
 } }

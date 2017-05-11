@@ -50,7 +50,6 @@ target_link_libraries(yaml_test_lib yaml gtest ${link_flags})
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml_test_lib PUBLIC ${link_flags})
 endif()
-target_compile_definitions(yaml_test_lib PUBLIC -DBOOST_SPIRIT_DEBUG) # Uncomment to get verbose trace of Spirit parse.
 if (clang_on_linux)
     target_link_libraries(yaml_test_lib c++)
 endif ()

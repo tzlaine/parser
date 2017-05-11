@@ -21,7 +21,8 @@ namespace yaml { namespace parser {
             iterator_t last,
             std::string const & source_file,
             reporting_fn_t const & errors_callback,
-            reporting_fn_t const & warnings_callback
+            reporting_fn_t const & warnings_callback,
+            bool verbose
         );
 
         block_styles_t block_styles_;
@@ -53,9 +54,10 @@ namespace yaml { namespace parser {
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
-        std::string const & source_file,
-        reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
+        std::string const & source_file = "",
+        reporting_fn_t const & errors_callback = reporting_fn_t(),
+        reporting_fn_t const & warnings_callback = reporting_fn_t(),
+        bool verbose = false
     );
 
     YAML_HEADER_ONLY_INLINE
@@ -63,7 +65,8 @@ namespace yaml { namespace parser {
         std::istream & is,
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
-        reporting_fn_t const & warnings_callback = reporting_fn_t()
+        reporting_fn_t const & warnings_callback = reporting_fn_t(),
+        bool verbose = false
     );
 
 } }

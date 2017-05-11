@@ -60,8 +60,11 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    block_styles_t::block_styles_t (boost::phoenix::function<error_handler_t> const & error_handler)
-        : flow_styles_ (error_handler)
+    block_styles_t::block_styles_t (
+        boost::phoenix::function<error_handler_t> const & error_handler,
+        bool verbose
+    )
+        : flow_styles_ (error_handler, verbose)
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -270,29 +273,38 @@ namespace yaml { namespace parser {
 
         auto_detect_indent =
             eps[_val = 0] >> &(*lit(' ')[++_val])
-#ifdef BOOST_SPIRIT_DEBUG
-            >> eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
-#endif
             ;
+
+        if (verbose) {
+            auto_detect_indent =
+                    eps[_val = 0] >> &(*lit(' ')[++_val])
+                >> eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
+                ;
+        }
 
         scalar_auto_detect_indent =
                 eps[_val = 0]
             >>  &(
-                    *(
-                        eps[_a = 0] >> *lit(' ')[++_a] >> eol[update_max(_val, _a)]
-#ifdef BOOST_SPIRIT_DEBUG
-                    >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
-#endif
-                    )
-                    >>  eps[_a = 0] >> *lit(' ')[++_a] >> eps(_val <= _a)[_val = _a] // TODO: Generate a specific error message here.
-#ifdef BOOST_SPIRIT_DEBUG
-                >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
-#endif
+                    *(eps[_a = 0] >> *lit(' ')[++_a] >> eol[update_max(_val, _a)])
+                >>  eps[_a = 0] >> *lit(' ')[++_a] >> eps(_val <= _a)[_val = _a] // TODO: Generate a specific error message here.
                 )
-#ifdef BOOST_SPIRIT_DEBUG
-            >>  eps[phx::ref(std::cerr) << "m_final=" << _val << " ----------------------------------------\n"]
-#endif
             ;
+
+
+        if (verbose) {
+            scalar_auto_detect_indent =
+                    eps[_val = 0]
+                >>  &(
+                        *(
+                            eps[_a = 0] >> *lit(' ')[++_a] >> eol[update_max(_val, _a)]
+                        >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
+                        )
+                    >>  eps[_a = 0] >> *lit(' ')[++_a] >> eps(_val <= _a)[_val = _a]
+                    >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
+                    )
+                >>  eps[phx::ref(std::cerr) << "m_final=" << _val << " ----------------------------------\n"]
+                ;
+        }
 
         // [183]
         block_sequence =
@@ -381,10 +393,16 @@ namespace yaml { namespace parser {
         // 8.2.3. Block Nodes
 
         // [196]
-        block_node = YAML_PARSER_PRINT_INDENT (
+        block_node =
             block_in_block(_r1, _r2) | flow_in_block(_r1)
-            )
             ;
+
+        if (verbose) {
+            block_node =
+                YAML_PARSER_PRINT_INDENT
+                (block_in_block(_r1, _r2) | flow_in_block(_r1))
+                ;
+        }
 
         // [197]
         flow_in_block =
@@ -423,49 +441,51 @@ namespace yaml { namespace parser {
                 )
             ;
 
-        BOOST_SPIRIT_DEBUG_NODES(
-            (auto_detect_indent)
-            (scalar_auto_detect_indent)
+        if (verbose) {
+            BOOST_SPIRIT_DEBUG_NODES(
+                (auto_detect_indent)
+                (scalar_auto_detect_indent)
 
-            (block_header)
-            (indentation_indicator)
-            (chomping_indicator)
-            (chomped_empty)
-            (strip_empty)
-            (keep_empty)
-            (trail_comments)
-            (literal)
-            (literal_text)
-            (literal_next)
-            (literal_content)
-            (folded)
-            (folded_text)
-            (folded_lines)
-            (spaced_text)
-            (spaced)
-            (spaced_lines)
-            (same_lines)
-            (diff_lines)
-            (folded_content)
-            (block_sequence)
-            (block_seq_entry)
-            (block_indented)
-            (compact_sequence)
-            (block_mapping)
-            (block_map_entry)
-            (block_map_explicit_entry)
-            (block_map_explicit_key)
-            (block_map_explicit_value)
-            (block_map_implicit_entry)
-            (block_map_implicit_key)
-            (block_map_implicit_value)
-            (compact_mapping)
-            (block_node)
-            (flow_in_block)
-            (block_in_block)
-            (block_scalar)
-            (block_collection)
-        );
+                (block_header)
+                (indentation_indicator)
+                (chomping_indicator)
+                (chomped_empty)
+                (strip_empty)
+                (keep_empty)
+                (trail_comments)
+                (literal)
+                (literal_text)
+                (literal_next)
+                (literal_content)
+                (folded)
+                (folded_text)
+                (folded_lines)
+                (spaced_text)
+                (spaced)
+                (spaced_lines)
+                (same_lines)
+                (diff_lines)
+                (folded_content)
+                (block_sequence)
+                (block_seq_entry)
+                (block_indented)
+                (compact_sequence)
+                (block_mapping)
+                (block_map_entry)
+                (block_map_explicit_entry)
+                (block_map_explicit_key)
+                (block_map_explicit_value)
+                (block_map_implicit_entry)
+                (block_map_implicit_key)
+                (block_map_implicit_value)
+                (compact_mapping)
+                (block_node)
+                (flow_in_block)
+                (block_in_block)
+                (block_scalar)
+                (block_collection)
+            );
+        }
     }
 
 } }

@@ -45,9 +45,10 @@ namespace yaml { namespace parser {
         iterator_t last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
+        reporting_fn_t const & warnings_callback,
+        bool verbose
     )
-        : block_styles_ (error_handler_)
+        : block_styles_ (error_handler_, verbose)
         , error_handler_ (
             error_handler_t(first, last, source_file, errors_callback, warnings_callback)
         )
@@ -145,17 +146,19 @@ namespace yaml { namespace parser {
             >>  *blank >> -('#' >> *(char_ - eoi)) >> eoi
             ;
 
-        BOOST_SPIRIT_DEBUG_NODES(
-            (document_prefix)
-            (document_suffix)
-            (forbidden)
-            (bare_document)
-            (explicit_document)
-            (directive_document)
-            (any_document)
-            (yaml_stream)
-            (end_of_input)
-        );
+        if (verbose) {
+            BOOST_SPIRIT_DEBUG_NODES(
+                (document_prefix)
+                (document_suffix)
+                (forbidden)
+                (bare_document)
+                (explicit_document)
+                (directive_document)
+                (any_document)
+                (yaml_stream)
+                (end_of_input)
+            );
+        }
 
         qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
@@ -245,12 +248,13 @@ namespace yaml { namespace parser {
 
     // TODO: Change signature to return a vector and a bool.
     YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml(
+    boost::optional<std::vector<ast::value_t>> parse_yaml (
         char const * raw_first,
         char const * raw_last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
+        reporting_fn_t const & warnings_callback,
+        bool verbose
     ) {
         boost::optional<std::vector<ast::value_t>> retval;
 
@@ -278,12 +282,17 @@ namespace yaml { namespace parser {
         iterator_t last;
         first.set_tabchars(1);
 
+#ifndef BOOST_SPIRIT_DEBUG
+        verbose = false;
+#endif
+
         stream_t parser(
             first,
             last,
             source_file,
             errors_callback,
-            warnings_callback
+            warnings_callback,
+            verbose
         );
 
         std::vector<ast::value_t> documents;
@@ -345,11 +354,12 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml(
+    boost::optional<std::vector<ast::value_t>> parse_yaml (
         std::istream & is,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
+        reporting_fn_t const & warnings_callback,
+        bool verbose
     ) {
         std::string raw_contents;
         char buf[4096];
@@ -357,12 +367,18 @@ namespace yaml { namespace parser {
             is.read(buf, sizeof(buf));
             raw_contents.append(buf, buf + is.gcount());
         }
+
+#ifndef BOOST_SPIRIT_DEBUG
+        verbose = false;
+#endif
+
         return parse_yaml(
             raw_contents.c_str(),
             raw_contents.c_str() + raw_contents.size(),
             source_file,
             errors_callback,
-            warnings_callback
+            warnings_callback,
+            verbose
         );
     }
 

@@ -16,7 +16,10 @@ namespace yaml { namespace parser {
 
     struct basic_structures_t
     {
-        explicit basic_structures_t (boost::phoenix::function<error_handler_t> const & error_handler);
+        explicit basic_structures_t (
+            boost::phoenix::function<error_handler_t> const & error_handler,
+            bool verbose
+        );
 
         characters_t characters_;
 

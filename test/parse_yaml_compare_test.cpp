@@ -17,6 +17,7 @@ char const * filename_1 = nullptr;
 char const * filename_2 = nullptr;
 std::ifstream * in_1_ptr = nullptr;
 std::ifstream * in_2_ptr = nullptr;
+bool verbose = false;
 
 
 TEST(parse, test_parse_yaml)
@@ -28,12 +29,15 @@ TEST(parse, test_parse_yaml)
     std::ifstream & in_2 = *in_2_ptr;
 
     using yaml::ast::value_t;
+    using yaml::parser::reporting_fn_t;
     using yaml::parser::parse_yaml;
     using yaml::ast::print_yaml;
 
-    boost::optional<std::vector<value_t>> result_1 = parse_yaml(in_1, filename_1);
+    boost::optional<std::vector<value_t>> result_1 =
+        parse_yaml(in_1, filename_1, reporting_fn_t(), reporting_fn_t(), verbose);
     ASSERT_TRUE(result_1) << "failed initial parse of " << filename_1;
-    boost::optional<std::vector<value_t>> result_2 = parse_yaml(in_2, filename_2);
+    boost::optional<std::vector<value_t>> result_2 =
+        parse_yaml(in_2, filename_2, reporting_fn_t(), reporting_fn_t(), verbose);
     ASSERT_TRUE(result_2) << "failed initial parse of " << filename_2;
 
     std::cout << "========================================\n"
@@ -88,7 +92,13 @@ int main (int argc, char** argv)
         return 1;
     }
 
-    int argc_ = argc - 1; // Don't give filename arg to GTest.
+    int argc_ = argc - 2; // Don't give filename args to GTest.
+
+    if (1 < argc_ && argv[argc_ - 1] == std::string("-v")) {
+        verbose = true;
+        --argc_;
+    }
+
     ::testing::InitGoogleTest(&argc_, argv);
     return RUN_ALL_TESTS();
 }
