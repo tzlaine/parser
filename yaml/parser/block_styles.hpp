@@ -29,9 +29,9 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, int()> indentation_indicator;
         qi::rule<iterator_t, chomping_t()> chomping_indicator;
         qi::rule<iterator_t, std::string(chomping_t)> chomped_last;
-        qi::rule<iterator_t, iterator_range_t(int, chomping_t, std::string &)> chomped_empty;
-        qi::rule<iterator_t, iterator_range_t(int)> strip_empty;
-        qi::rule<iterator_t, iterator_range_t(int)> keep_empty;
+        qi::rule<iterator_t, void(int, chomping_t, std::string &)> chomped_empty;
+        qi::rule<iterator_t, void(int)> strip_empty;
+        qi::rule<iterator_t, std::string(int)> keep_empty;
         qi::rule<iterator_t, void(int), qi::locals<eoi_state_t>> trail_comments;
 
         qi::rule<
@@ -55,7 +55,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int)> spaced_text;
         qi::rule<iterator_t, std::string(int)> spaced;
         qi::rule<iterator_t, std::string(int)> spaced_lines;
-        qi::rule<iterator_t, std::string(int)> same_lines;
+        qi::rule<iterator_t, std::string(int), qi::locals<std::string>> same_lines;
         qi::rule<iterator_t, std::string(int)> diff_lines;
         qi::rule<iterator_t, std::string(int, chomping_t)> folded_content;
 

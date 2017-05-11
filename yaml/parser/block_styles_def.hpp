@@ -48,19 +48,6 @@ namespace yaml { namespace parser {
             { return c == context_t::block_out ? n - 1 : n; }
         };
 
-        struct append
-        {
-            template <typename, typename>
-            struct result { using type = void; };
-
-            template <typename Range>
-            void operator() (std::string & str, Range r) const
-            {
-                using iterator_t = boost::u32_to_u8_iterator<typename Range::iterator> ;
-                str.append(iterator_t(r.begin()), iterator_t(r.end()));
-            }
-        };
-
         struct update_max
         {
             template <typename, typename>
@@ -78,9 +65,9 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
-        qi::raw_type raw;
         qi::_val_type _val;
         qi::_1_type _1;
+        qi::_2_type _2;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
         qi::_r3_type _r3;
@@ -102,7 +89,6 @@ namespace yaml { namespace parser {
         phx::function<detail::chomping> chomping;
         phx::function<detail::indentation> indentation;
         phx::function<detail::push_utf8> push_utf8;
-        phx::function<detail::append> append;
         phx::function<detail::update_max> update_max;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
         auto ins = phx::insert(_val, _1);
@@ -168,19 +154,19 @@ namespace yaml { namespace parser {
 
         // [166]
         chomped_empty =
-                eps(_r2 == chomping_t::keep) >> keep_empty(_r1)[append(_r3, _1)]
-            |   eps(_r2 != chomping_t::keep) >> strip_empty(_r1)[append(_r3, _1)]
+                eps(_r2 == chomping_t::keep) >> keep_empty(_r1)[_r3 += _1]
+            |   eps(_r2 != chomping_t::keep) >> strip_empty(_r1)
             ;
 
         // [167]
         strip_empty =
-                raw[*(indent_le(_r1) >> eol)]
+                *(indent_le(_r1) >> eol)
             >>  -trail_comments(_r1)
             ;
 
         // [168]
         keep_empty =
-                raw[*l_empty(_r1, context_t::block_in)]
+                *l_empty(_r1, context_t::block_in)[_val += "\n"]
             >>  -trail_comments(_r1)
             ;
 
@@ -238,7 +224,8 @@ namespace yaml { namespace parser {
 
         // [176]
         folded_lines =
-            folded_text(_r1) >> *(b_l_folded(_r1, context_t::block_in, true) >> folded_text(_r1))
+                folded_text(_r1)[_val += _1]
+            >>  *(b_l_folded(_r1, context_t::block_in, true) >> folded_text(_r1))[_val += _1, _val += _2]
             ;
 
         // [177]
@@ -248,23 +235,26 @@ namespace yaml { namespace parser {
 
         // [178]
         spaced =
-            eol >> *l_empty(_r1, context_t::block_in)
+                eol
+            >>  (*l_empty(_r1, context_t::block_in))[_val += "\n"]
             ;
 
         // [179]
         spaced_lines =
-            spaced_text(_r1) >> *(spaced(_r1) >> spaced_text(_r1))
+                spaced_text(_r1)[_val += _1]
+            >>  *(spaced(_r1) >> spaced_text(_r1))[_val += _1, _val += _2]
             ;
 
         // [180]
         same_lines =
-                *l_empty(_r1, context_t::block_in)
-            >>  (folded_lines(_r1) | spaced_lines(_r1))
+                *l_empty(_r1, context_t::block_in)[_a += "\n"]
+            >>  (folded_lines(_r1)[_val += _a, _val += _1] | spaced_lines(_r1)[_val += _a, _val += _1])
             ;
 
         // [181]
         diff_lines =
-            same_lines(_r1) >> *(eol >> same_lines(_r1))
+                same_lines(_r1)[_val += _1]
+            >>  *(eol >> same_lines(_r1)[_val += "\n", _val += _1])
             ;
 
         // [182]
