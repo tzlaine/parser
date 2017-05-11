@@ -303,7 +303,7 @@ namespace yaml { namespace parser {
 
         // [183]
         block_sequence =
-                auto_detect_indent[_a = _1]
+                auto_detect_indent[_a = _1] >> eps(_r1 < _a)
             >>  +(indent(_a) >> block_seq_entry(_a)[pb])
             ;
 
@@ -335,7 +335,7 @@ namespace yaml { namespace parser {
 
         // [187]
         block_mapping =
-                auto_detect_indent[_a = _1]
+                auto_detect_indent[_a = _1] >> eps(_r1 < _a)
             >>  +(indent(_a) >> block_map_entry(_a)[ins]) // TODO: Report duplicate keys when found.
             ;
 
