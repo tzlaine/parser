@@ -60,6 +60,8 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int, chomping_t)> folded_content;
 
         qi::rule<iterator_t, int()> auto_detect_indent;
+        qi::rule<iterator_t, int(), qi::locals<int>> scalar_auto_detect_indent;
+
         qi::rule<iterator_t, ast::seq_t(int), qi::locals<int>> block_sequence;
         qi::rule<iterator_t, ast::value_t(int n)> block_seq_entry;
         qi::rule<iterator_t, ast::value_t(int n, context_t), qi::locals<int, eoi_state_t>> block_indented;

@@ -167,8 +167,8 @@ namespace yaml { namespace parser {
 
         // [67]
         line_prefix =
-                indent(_r1)
-            >>  eps(_r2 == context_t::flow_in || _r2 == context_t::flow_out) >> -separate(_r1, _r2)
+                eps(_r2 == context_t::block_in || _r2 == context_t::block_out) >> indent(_r1)
+            |   eps(_r2 == context_t::flow_in || _r2 == context_t::flow_out) >> indent(_r1) >> -separate(_r1, _r2)
             ;
 
         // 6.4 Empty Lines

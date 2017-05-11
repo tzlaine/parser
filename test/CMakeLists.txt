@@ -133,6 +133,9 @@ set(invalid_yaml_test_suite_files
     # mapping.
     NHX8 P94K 5GBF
 
+    # A bare "\" in the middle of a block scalar, without proper indentation.
+    G992 M9B4
+
     # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
     # indented.
     XW4D

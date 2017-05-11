@@ -61,6 +61,15 @@ namespace yaml { namespace parser {
             }
         };
 
+        struct update_max
+        {
+            template <typename, typename>
+            struct result { using type = void; };
+
+            void operator() (int & max_indent, int this_line_indent) const
+            { max_indent = (std::max)(max_indent, this_line_indent); }
+        };
+
     }
 
     YAML_HEADER_ONLY_INLINE
@@ -94,6 +103,7 @@ namespace yaml { namespace parser {
         phx::function<detail::indentation> indentation;
         phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::append> append;
+        phx::function<detail::update_max> update_max;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
         auto ins = phx::insert(_val, _1);
         auto pb = phx::push_back(_val, _1);
@@ -188,7 +198,7 @@ namespace yaml { namespace parser {
                 '|'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> literal_content(_a, _b)[_val = _1]
+                    eps(_a == 0) >> scalar_auto_detect_indent[_a = _1] >> literal_content(_a, _b)[_val = _1]
                 |   eps(_a != 0) >> literal_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
@@ -216,7 +226,7 @@ namespace yaml { namespace parser {
                 '>'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> auto_detect_indent[_a = _1] >> folded_content(_a, _b)[_val = _1]
+                    eps(_a == 0) >> scalar_auto_detect_indent[_a = _1] >> folded_content(_a, _b)[_val = _1]
                 |   eps(_a != 0) >> folded_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
@@ -269,6 +279,25 @@ namespace yaml { namespace parser {
             eps[_val = 0] >> &(*lit(' ')[++_val])
 #ifdef BOOST_SPIRIT_DEBUG
             >> eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
+#endif
+            ;
+
+        scalar_auto_detect_indent =
+                eps[_val = 0]
+            >>  &(
+                    *(
+                        eps[_a = 0] >> *lit(' ')[++_a] >> eol[update_max(_val, _a)]
+#ifdef BOOST_SPIRIT_DEBUG
+                    >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
+#endif
+                    )
+                    >>  eps[_a = 0] >> *lit(' ')[++_a] >> eps(_val <= _a)[_val = _a] // TODO: Generate a specific error message here.
+#ifdef BOOST_SPIRIT_DEBUG
+                >>  eps[phx::ref(std::cerr) << "m=" << _a << " ----------------------------------------\n"]
+#endif
+                )
+#ifdef BOOST_SPIRIT_DEBUG
+            >>  eps[phx::ref(std::cerr) << "m_final=" << _val << " ----------------------------------------\n"]
 #endif
             ;
 
@@ -403,6 +432,7 @@ namespace yaml { namespace parser {
 
         BOOST_SPIRIT_DEBUG_NODES(
             (auto_detect_indent)
+            (scalar_auto_detect_indent)
 
             (block_header)
             (indentation_indicator)
@@ -413,7 +443,7 @@ namespace yaml { namespace parser {
             (trail_comments)
             (literal)
             (literal_text)
-            (literal_text)
+            (literal_next)
             (literal_content)
             (folded)
             (folded_text)
