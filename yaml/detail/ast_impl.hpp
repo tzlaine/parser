@@ -243,7 +243,8 @@ namespace yaml { namespace ast {
             {
                 if (explicit_markings) {
                     out_ << "{\n";
-                    current_indent_ += spaces;
+                    if (level_ == 0)
+                        current_indent_ += spaces;
                 }
 
                 current_indent_ += spaces;
@@ -284,7 +285,8 @@ namespace yaml { namespace ast {
                 current_indent_ -= spaces;
 
                 if (explicit_markings) {
-                    current_indent_ -= spaces;
+                    if (level_ == 0)
+                        current_indent_ -= spaces;
                     indent(current_indent_);
                     out_ << '}';
                 }
@@ -324,6 +326,8 @@ namespace yaml { namespace ast {
                 if (explicit_markings) {
                     out_ << "[\n";
                     current_indent_ += spaces;
+                    if (level_ == 0)
+                        current_indent_ += spaces;
                 }
 
                 bool first = true;
@@ -351,6 +355,8 @@ namespace yaml { namespace ast {
                 current_indent_ -= spaces;
 
                 if (explicit_markings) {
+                    if (level_ == 0)
+                        current_indent_ -= spaces;
                     indent(current_indent_);
                     out_ << ']';
                 }
