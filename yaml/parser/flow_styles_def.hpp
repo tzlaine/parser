@@ -147,7 +147,7 @@ namespace yaml { namespace parser {
 
         // [115]
         double_next_line = hold[
-                double_break(_r1)[_val == _1]
+                double_break(_r1)[_val += _1]
             >>  -hold[
                     ns_double_char[push_utf8(_val, _1)]
                 >>  double_in_line[_val += _1]
