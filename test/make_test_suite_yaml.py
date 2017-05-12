@@ -36,6 +36,9 @@ def write_section(contents, section_name, path):
     if section == '' and section_name != 'in-yaml':
         return False
 
+    if section != '' and section[-2:] == '\\\n':
+        section = section[:-2] + '\n'
+
     tmp_file = open('tmp', 'w')
     tmp_file.write(section)
     tmp_file.close()

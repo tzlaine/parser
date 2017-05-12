@@ -4,7 +4,7 @@ include(CTest)
 
 enable_testing()
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG_INTDIR})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -C ${CMAKE_CFG_INTDIR})
 
 set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
 set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
@@ -128,14 +128,6 @@ endif()
 include(test_files/index.cmake)
 set(invalid_yaml_test_suite_files
     2SXE # Has the pattern a: b: without a line break.
-
-    # Each has a bare "\" (not starting an escape sequence) outside of any
-    # single- or double-quoted string, not indented, in the middle of a block
-    # mapping.
-    NHX8 P94K 5GBF
-
-    # A bare "\" in the middle of a block scalar, without proper indentation.
-    G992 M9B4
 
     # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
     # indented.
