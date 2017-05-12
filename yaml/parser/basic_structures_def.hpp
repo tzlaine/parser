@@ -181,6 +181,7 @@ namespace yaml { namespace parser {
         l_empty =
                 (line_prefix(_r1, _r2) | indent_lt(_r1))
             >>  eol
+            >>  attr('\n')
             ;
 
         // 6.5 Line Folding
@@ -189,8 +190,10 @@ namespace yaml { namespace parser {
         b_l_folded =
                 eol
             >>  (eps(!_r3) | !(lit("...") | "---"))
-            >>  *l_empty(_r1, _r2)   // b-l-trimmed [71]
-            >>  attr(' ')
+            >>  (
+                    +l_empty(_r1, _r2)   // b-l-trimmed [71]
+                |    attr(" ")
+                )
             ;
 
         // [74]

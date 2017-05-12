@@ -28,9 +28,9 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, void(int)> indent_le; // indent < n spaces
         qi::rule<iterator_t> separate_in_line;
         qi::rule<iterator_t, void(int, context_t)> line_prefix;
-        qi::rule<iterator_t, void(int, context_t)> l_empty;
-        qi::rule<iterator_t, char(int, context_t, bool stop_at_document_delimiter)> b_l_folded;
-        qi::rule<iterator_t, char(int, bool stop_at_document_delimiter)> flow_folded;
+        qi::rule<iterator_t, char(int, context_t)> l_empty;
+        qi::rule<iterator_t, std::string(int, context_t, bool stop_at_document_delimiter)> b_l_folded;
+        qi::rule<iterator_t, std::string(int, bool stop_at_document_delimiter)> flow_folded;
         qi::rule<iterator_t> comment_text;
         qi::rule<iterator_t, void(eoi_state_t &)> s_b_comment;
         qi::rule<iterator_t, void(eoi_state_t &)> l_comment;

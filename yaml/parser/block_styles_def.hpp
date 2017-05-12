@@ -169,7 +169,7 @@ namespace yaml { namespace parser {
 
         // [168]
         keep_empty =
-                *l_empty(_r1, context_t::block_in)[_val += "\n"]
+                *l_empty(_r1, context_t::block_in)
             >>  -trail_comments(_r1)
             ;
 
@@ -194,7 +194,7 @@ namespace yaml { namespace parser {
 
         // [171]
         literal_text =
-                *l_empty(_r1, context_t::block_in)[_a += "\n"]
+                *l_empty(_r1, context_t::block_in)[_a += _1]
             >>  indent(_r1)
             >>  nb_char[_val += _a, push_utf8(_val, _1)]
             >>  *nb_char[push_utf8(_val, _1)]
@@ -241,8 +241,7 @@ namespace yaml { namespace parser {
 
         // [178]
         spaced =
-                eol
-            >>  (*l_empty(_r1, context_t::block_in))[_val += "\n"]
+            omit[eol >> *l_empty(_r1, context_t::block_in)][_val = "\n"]
             ;
 
         // [179]
@@ -253,7 +252,7 @@ namespace yaml { namespace parser {
 
         // [180]
         same_lines =
-                *l_empty(_r1, context_t::block_in)[_a += "\n"]
+                *l_empty(_r1, context_t::block_in)[_a += _1]
             >>  (folded_lines(_r1)[_val += _a, _val += _1] | spaced_lines(_r1)[_val += _a, _val += _1])
             ;
 
