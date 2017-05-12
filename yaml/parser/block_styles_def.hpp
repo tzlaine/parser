@@ -264,7 +264,7 @@ namespace yaml { namespace parser {
 
         // [178]
         spaced =
-            omit[eol >> *l_empty(_r1, context_t::block_in)][_val = "\n"]
+            eol[_val = "\n"] >> *l_empty(_r1, context_t::block_in)[_val += "\n"]
             ;
 
         // [179]
