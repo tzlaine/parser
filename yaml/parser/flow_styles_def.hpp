@@ -145,18 +145,18 @@ namespace yaml { namespace parser {
 
         // [114]
         double_in_line =
-            *hold[*blank[_val += _1] >> ns_double_char[push_utf8(_val, _1)]]
+            *hold[eps[_a = ""] >> *blank[_a += _1] >> ns_double_char[push_utf8(_a, _1)]][_val += _a]
             ;
 
         // [115]
-        double_next_line = hold[
+        double_next_line =
                 double_break(_r1)[_val += _1]
-            >>  -hold[
-                    ns_double_char[push_utf8(_val, _1)]
-                >>  double_in_line[_val += _1]
-                >>  (double_next_line(_r1)[_val += _1] | *blank[_val += _1])
-                ]
-            ]
+            >>  -(
+                    eps[_a = ""]
+                >>  ns_double_char[push_utf8(_a, _1)]
+                >>  double_in_line[_a += _1]
+                >>  (double_next_line(_r1)[_a += _1] | *blank)
+                )[_val += _a]
             ;
 
         // [116]

@@ -33,8 +33,8 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int, context_t)> double_text;
         qi::rule<iterator_t, std::string(int)> double_escaped;
         qi::rule<iterator_t, std::string(int)> double_break;
-        qi::rule<iterator_t, std::string()> double_in_line;
-        qi::rule<iterator_t, std::string(int)> double_next_line;
+        qi::rule<iterator_t, std::string(), qi::locals<std::string>> double_in_line;
+        qi::rule<iterator_t, std::string(int), qi::locals<std::string>> double_next_line;
         qi::rule<iterator_t, std::string(int)> double_multi_line;
 
         qi::rule<iterator_t, parsed_uchar_t()> nb_single_char;
