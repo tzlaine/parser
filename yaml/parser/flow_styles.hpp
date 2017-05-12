@@ -41,8 +41,8 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, parsed_uchar_t()> ns_single_char;
         qi::rule<iterator_t, std::string(int, context_t)> single_quoted;
         qi::rule<iterator_t, std::string(int, context_t)> single_text;
-        qi::rule<iterator_t, std::string()> single_in_line;
-        qi::rule<iterator_t, std::string(int)> single_next_line;
+        qi::rule<iterator_t, std::string(), qi::locals<std::string>> single_in_line;
+        qi::rule<iterator_t, std::string(int), qi::locals<std::string>> single_next_line;
         qi::rule<iterator_t, std::string(int)> single_multi_line;
 
         qi::rule<iterator_t, std::string(context_t)> plain_first;

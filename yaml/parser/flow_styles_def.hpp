@@ -145,7 +145,7 @@ namespace yaml { namespace parser {
 
         // [114]
         double_in_line =
-            *hold[eps[_a = ""] >> *blank[_a += _1] >> ns_double_char[push_utf8(_a, _1)]][_val += _a]
+            *(eps[_a = ""] >> *blank[_a += _1] >> ns_double_char[push_utf8(_a, _1)])[_val += _a]
             ;
 
         // [115]
@@ -155,8 +155,9 @@ namespace yaml { namespace parser {
                     eps[_a = ""]
                 >>  ns_double_char[push_utf8(_a, _1)]
                 >>  double_in_line[_a += _1]
-                >>  (double_next_line(_r1)[_a += _1] | *blank)
-                )[_val += _a]
+                >>  (double_next_line(_r1)[_a += _1] | *blank[_a += _1])
+                )
+                [_val += _a]
             ;
 
         // [116]
@@ -191,18 +192,19 @@ namespace yaml { namespace parser {
 
         // [123]
         single_in_line =
-            *hold[*blank[_val += _1] >> ns_single_char[push_utf8(_val, _1)]]
+            *(eps[_a = ""] >> *blank[_a += _1] >> ns_single_char[push_utf8(_a, _1)])[_val += _a]
             ;
 
         // [124]
-        single_next_line = hold[
-                flow_folded(_r1, false)[_val = _1]
-            >>  -hold[
-                    ns_single_char[push_utf8(_val, _1)]
-                >>  single_in_line[_val += _1]
-                >>  (single_next_line(_r1)[_val += _1] | *blank[_val += _1])
-                ]
-            ]
+        single_next_line =
+                flow_folded(_r1, false)[_val += _1]
+            >>  -(
+                    eps[_a = ""]
+                >>  ns_single_char[push_utf8(_a, _1)]
+                >>  single_in_line[_a += _1]
+                >>  (single_next_line(_r1)[_a += _1] | *blank[_a += _1])
+                )
+                [_val += _a]
             ;
 
         // [125]
@@ -218,7 +220,7 @@ namespace yaml { namespace parser {
         // [126]
         plain_first =
                 (ns_char - indicator)[push_utf8(_val, _1)]
-            |   hold[char_("?:-") >> plain_safe(_r1)[push_utf8(_val, _1)]]
+            |   (char_("?:-") >> plain_safe(_r1))[push_utf8(_val, _1, _2)]
             ;
 
         // [127]
