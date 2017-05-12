@@ -4,6 +4,7 @@ enable_testing()
 
 add_custom_target(libyaml_check COMMAND ${CMAKE_CTEST_COMMAND} -C ${CMAKE_CFG_INTDIR})
 
+include(${CMAKE_HOME_DIRECTORY}/test/test_files/local_index.cmake) 
 include(${CMAKE_HOME_DIRECTORY}/test/test_files/index.cmake)
 include(${CMAKE_HOME_DIRECTORY}/test/test_files/index_xfail.cmake)
 list(APPEND expected_parse_failures ${error_yml_file_index})

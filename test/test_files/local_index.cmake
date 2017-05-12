@@ -1,4 +1,4 @@
-set(test_files
+set(local_test_files
     anchors.yaml
     basic_yaml_block.yaml
     basic_yaml_block2.yaml

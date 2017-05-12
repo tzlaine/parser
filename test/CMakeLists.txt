@@ -155,7 +155,7 @@ foreach (yml_file_root ${expected_parse_failures})
 endforeach()
 
 include(test_files/local_index.cmake)
-foreach (test_file ${test_files})
+foreach (test_file ${local_test_files})
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
