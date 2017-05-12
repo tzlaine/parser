@@ -126,15 +126,8 @@ else ()
 endif()
 
 include(test_files/index.cmake)
-set(invalid_yaml_test_suite_files
-    2SXE # Has the pattern a: b: without a line break.
-
-    # flow_in_block uses flow(n+1,c), but "quotes" in "double\nquotes is not
-    # indented.
-    XW4D
-
-    ${error_yml_file_index}
-)
+include(test_files/index_xfail.cmake)
+list(APPEND expected_parse_failures ${error_yml_file_index})
 
 ##################################################
 # Parse-only tests
@@ -157,48 +150,11 @@ foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
     endif()
 endforeach()
 
-foreach (yml_file_root ${invalid_yaml_test_suite_files})
+foreach (yml_file_root ${expected_parse_failures})
     set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
 endforeach()
 
-set(test_files
-    anchors.yaml
-    basic_yaml_block.yaml
-    basic_yaml_block2.yaml
-    basic_yaml_block3.yaml
-    basic_yaml_flow.yaml
-    block_literals.yaml
-    block_literals2.yaml
-    data-types.yaml
-    invoice.yaml
-    relational.yaml
-    scalar.yaml
-    yaml_block_array1.yaml
-    yaml_block_array2.yaml
-    yaml_block_array3.yaml
-    yaml_block_array4.yaml
-    yaml_block_array5.yaml
-    yaml_block_array6.yaml
-    yaml_block_array7.yaml
-    yaml_block_map1.yaml
-    yaml_block_map10.yaml
-    yaml_block_map11.yaml
-    yaml_block_map12.yaml
-    yaml_block_map13.yaml
-    yaml_block_map2.yaml
-    yaml_block_map3.yaml
-    yaml_block_map4.yaml
-    yaml_block_map5.yaml
-    yaml_block_map6.yaml
-    yaml_block_map7.yaml
-    yaml_block_map8.yaml
-    yaml_block_map9.yaml
-    simple_flow_plain.yml
-    escaped_percent_27NA.yml
-
-    # Repeated contents of basic_yaml_block.yaml (contains >1 BOM).
-    basic_yaml_block_repeated.yaml
-)
+include(test_files/local_index.cmake)
 foreach (test_file ${test_files})
     add_test(
         parse_test_${test_file}
@@ -233,7 +189,7 @@ endforeach()
 ##################################################
 # Parse-and-compare tests
 ##################################################
-set(invalid_comparison_tests
+set(expected_comparison_failures
     parse_compare_test_2JQS_in_vs_json # YAML null vs. JSON "" mismatch
     parse_compare_test_4ABK_in_vs_out  # Borked yaml-out section
     parse_compare_test_4ABK_in_vs_json # YAML null vs. JSON "" mismatch
@@ -290,7 +246,7 @@ foreach (yml_file_root ${yml_file_index})
     endif()
 endforeach()
 
-foreach (yml_file_root ${invalid_yaml_test_suite_files})
+foreach (yml_file_root ${expected_parse_failures})
     if (DEFINED parse_compare_test_${yml_file_root}_in_vs_out_sentinal)
         set_tests_properties(
             parse_compare_test_${yml_file_root}_in_vs_out
@@ -307,6 +263,6 @@ foreach (yml_file_root ${invalid_yaml_test_suite_files})
     endif()
 endforeach()
 
-foreach (test ${invalid_comparison_tests})
+foreach (test ${expected_comparison_failures})
     set_tests_properties(${test} PROPERTIES WILL_FAIL true)
 endforeach()

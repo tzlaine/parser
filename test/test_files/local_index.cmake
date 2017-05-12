@@ -1,0 +1,38 @@
+set(test_files
+    anchors.yaml
+    basic_yaml_block.yaml
+    basic_yaml_block2.yaml
+    basic_yaml_block3.yaml
+    basic_yaml_flow.yaml
+    block_literals.yaml
+    block_literals2.yaml
+    data-types.yaml
+    invoice.yaml
+    relational.yaml
+    scalar.yaml
+    yaml_block_array1.yaml
+    yaml_block_array2.yaml
+    yaml_block_array3.yaml
+    yaml_block_array4.yaml
+    yaml_block_array5.yaml
+    yaml_block_array6.yaml
+    yaml_block_array7.yaml
+    yaml_block_map1.yaml
+    yaml_block_map10.yaml
+    yaml_block_map11.yaml
+    yaml_block_map12.yaml
+    yaml_block_map13.yaml
+    yaml_block_map2.yaml
+    yaml_block_map3.yaml
+    yaml_block_map4.yaml
+    yaml_block_map5.yaml
+    yaml_block_map6.yaml
+    yaml_block_map7.yaml
+    yaml_block_map8.yaml
+    yaml_block_map9.yaml
+    simple_flow_plain.yml
+    escaped_percent_27NA.yml
+
+    # Repeated contents of basic_yaml_block.yaml (contains >1 BOM).
+    basic_yaml_block_repeated.yaml
+)
