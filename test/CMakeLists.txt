@@ -244,6 +244,7 @@ set(invalid_comparison_tests
 
     # Contains "!!str: bar" as a map entry, but the ":" is a valid tag-char
     parse_compare_test_WZ62_in_vs_out
+    parse_compare_test_FH7J_in_vs_out
 
     # Badly broken test (libyaml-specific stuff, plus a literal with a
     # non-comment "# <comment>" pattern in it.
@@ -253,6 +254,9 @@ set(invalid_comparison_tests
     # containing a single null.
     parse_compare_test_AVM7_in_vs_json
 
+    # JSON output is missing one of the ": - ()" elements.
+    parse_compare_test_DBG4_in_vs_json
+
     # TODO: Address later.  This is due to the lack of typesafe parsing.  This
     # is the thing that requires the Nablialek trick.
     # null vs."null" mismatch
@@ -260,6 +264,7 @@ set(invalid_comparison_tests
     parse_compare_test_JTV5_in_vs_json
     parse_compare_test_5WE3_in_vs_json
     parse_compare_test_W42U_in_vs_json
+    parse_compare_test_NHX8_in_vs_json
 )
 
 foreach (yml_file_root ${yml_file_index})
