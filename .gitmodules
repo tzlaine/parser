@@ -4,3 +4,6 @@
 [submodule "libyaml"]
 	path = libyaml
 	url = https://github.com/yaml/libyaml.git
+[submodule "JSONTestSuite"]
+	path = JSONTestSuite
+	url = https://github.com/nst/JSONTestSuite.git
