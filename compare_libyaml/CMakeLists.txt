@@ -9,3 +9,5 @@ set_target_properties(libyaml PROPERTIES COMPILE_FLAGS "-DYAML_DECLARE_STATIC -D
 
 add_executable(run-parser ${dir}/tests/run-parser.c)
 target_link_libraries(run-parser libyaml)
+
+add_subdirectory(test)
