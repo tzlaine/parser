@@ -30,4 +30,8 @@ target_link_libraries(yaml INTERFACE boost)
 
 add_subdirectory(test)
 
-add_subdirectory(compare_libyaml)
+
+set(BUILD_COMPARE_LIBYAML false CACHE BOOL "Set to true to build correctness and perf tests for libyaml.") 
+if (BUILD_COMPARE_LIBYAML)
+    add_subdirectory(compare_libyaml)
+endif ()
