@@ -68,6 +68,7 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
+        qi::hold_type hold;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_2_type _2;
@@ -187,8 +188,17 @@ namespace yaml { namespace parser {
                 '|'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> scalar_auto_detect_indent[_a = _1] >> literal_content(_a, _b)[_val = _1]
-                |   eps(_a != 0) >> literal_content(_r1 + _a, _b)[_val = _1]
+                    eps(_a == 0)
+                >>  scalar_auto_detect_indent[_a = _1]
+                    // This parenthesized expression is a modified version of
+                    // folded_content that only expects the optional portion
+                    // if positive indentation is detected.
+                >>  (
+                        (eps(_r1 < _a) > literal_content_optional(_a, _b)[_val = _1] | eps)
+                    >>  chomped_empty(_a, _b, _val)
+                    )
+                |   eps(_a != 0)
+                >>  literal_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
 
@@ -205,9 +215,13 @@ namespace yaml { namespace parser {
             eol >> !(lit("...") | "---") >> literal_text(_r1)[_val += "\n", _val += _1]
             ;
 
+        literal_content_optional =
+            hold[literal_text(_r1) >> *literal_next(_r1) >> chomped_last(_r2)]
+            ;
+
         // [173]
         literal_content =
-                -(literal_text(_r1) >> *literal_next(_r1) >> chomped_last(_r2))
+                -literal_content_optional(_r1, _r2)
             >>  chomped_empty(_r1, _r2, _val)
             ;
 
@@ -218,8 +232,17 @@ namespace yaml { namespace parser {
                 '>'
             >>  block_header[_a = indentation(_1), _b = chomping(_1)]
             >>  (
-                    eps(_a == 0) >> scalar_auto_detect_indent[_a = _1] >> folded_content(_a, _b)[_val = _1]
-                |   eps(_a != 0) >> folded_content(_r1 + _a, _b)[_val = _1]
+                    eps(_a == 0)
+                >>  scalar_auto_detect_indent[_a = _1]
+                    // This parenthesized expression is a modified version of
+                    // folded_content that only expects the optional portion
+                    // if positive indentation is detected.
+                >>  (
+                        (eps(_r1 < _a) > folded_content_optional(_a, _b)[_val = _1] | eps)
+                    >>  chomped_empty(_a, _b, _val)
+                    )
+                |   eps(_a != 0)
+                >>  folded_content(_r1 + _a, _b)[_val = _1]
                 )
             ;
 
@@ -262,9 +285,13 @@ namespace yaml { namespace parser {
             >>  *(eol >> same_lines(_r1)[_val += "\n", _val += _1])
             ;
 
+        folded_content_optional =
+            hold[diff_lines(_r1) >> chomped_last(_r2)]
+            ;
+
         // [182]
         folded_content =
-                -(diff_lines(_r1) >> chomped_last(_r2))
+                -folded_content_optional(_r1, _r2)
             >>  chomped_empty(_r1, _r2, _val)
             ;
 
@@ -277,7 +304,7 @@ namespace yaml { namespace parser {
         if (verbose) {
             auto_detect_indent =
                     eps[_val = 0] >> &(*lit(' ')[++_val])
-                >> eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
+                >>  eps[phx::ref(std::cerr) << "m=" << _val << " ----------------------------------------\n"]
                 ;
         }
 

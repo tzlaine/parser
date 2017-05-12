@@ -45,6 +45,7 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t, std::string(int), qi::locals<std::string>> literal_text;
         qi::rule<iterator_t, std::string(int)> literal_next;
+        qi::rule<iterator_t, std::string(int, chomping_t)> literal_content_optional;
         qi::rule<iterator_t, std::string(int, chomping_t)> literal_content;
 
         qi::rule<
@@ -60,6 +61,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::string(int)> spaced_lines;
         qi::rule<iterator_t, std::string(int), qi::locals<std::string>> same_lines;
         qi::rule<iterator_t, std::string(int)> diff_lines;
+        qi::rule<iterator_t, std::string(int, chomping_t)> folded_content_optional;
         qi::rule<iterator_t, std::string(int, chomping_t)> folded_content;
 
         qi::rule<iterator_t, int()> auto_detect_indent;
