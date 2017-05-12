@@ -24,11 +24,17 @@ endif ()
 
 include(dependencies)
 
+find_package(PythonInterp)
+if (PYTHONINTERP_FOUND)
+    message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
+endif ()
+
 add_library(yaml INTERFACE)
 target_include_directories(yaml INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(yaml INTERFACE boost)
 
 add_subdirectory(test)
+add_subdirectory(perf)
 
 
 set(BUILD_COMPARE_LIBYAML false CACHE BOOL "Set to true to build correctness and perf tests for libyaml.") 

@@ -104,9 +104,7 @@ endif()
 ##################################################
 # Make test files from .tml files
 ##################################################
-find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
-    message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
     message("-- Running make_test_suite_yaml.py -y ${CMAKE_HOME_DIRECTORY}/yaml-test-suite -o ${CMAKE_CURRENT_SOURCE_DIR}/test_files ...")
     execute_process(
         COMMAND
