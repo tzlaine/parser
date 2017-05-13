@@ -15,14 +15,7 @@ void BM_create_parsers (benchmark::State & state)
     iterator_t last;
 
     while (state.KeepRunning()) {
-        stream_t parser(
-            first,
-            last,
-            "source file",
-            reporting_fn_t(),
-            reporting_fn_t(),
-            false
-        );
+        stream_t parser(false);
         if (&parser < (stream_t*)0x1000000)
             std::cout << "";
     }

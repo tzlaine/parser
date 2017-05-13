@@ -102,7 +102,7 @@ namespace yaml { namespace parser {
 
     YAML_HEADER_ONLY_INLINE
     basic_structures_t::basic_structures_t (
-        boost::phoenix::function<error_handler_t> const & error_handler,
+        boost::phoenix::function<error_handler_t> & error_handler,
         bool verbose
     )
         : characters_ (verbose)

@@ -16,14 +16,17 @@ namespace yaml { namespace parser {
 
     struct stream_t
     {
-        stream_t (
+        explicit stream_t (bool verbose);
+
+        void set_error_handler_params (
             iterator_t & first,
             iterator_t last,
             std::string const & source_file,
-            reporting_fn_t const & errors_callback,
-            reporting_fn_t const & warnings_callback,
-            bool verbose
+            reporting_fn_t const & errors,
+            reporting_fn_t const & warnings
         );
+ 
+        void reset_error_handler_params ();
 
         block_styles_t block_styles_;
 
@@ -38,7 +41,7 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t> end_of_input;
 
-        boost::phoenix::function<error_handler_t> const error_handler_;
+        boost::phoenix::function<error_handler_t> error_handler_;
     };
 
     YAML_HEADER_ONLY_INLINE

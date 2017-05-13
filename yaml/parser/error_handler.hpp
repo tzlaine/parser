@@ -27,25 +27,10 @@ namespace yaml { namespace parser {
         template <typename, typename, typename, typename>
         struct result { using type = void; };
 
-        error_handler_t (
-            iterator_t & first,
-            iterator_t last,
-            std::string const& source_file,
-            reporting_fn_t const & errors,
-            reporting_fn_t const & warnings
-        )
-            : first_ (first)
-            , last_ (last)
-            , current_ (first)
-            , source_file_ (source_file)
-            , error_fn_ (errors)
-            , warning_fn_ (warnings)
-        {}
-
         void report_error (std::string const & what) const
         {
             std::ostringstream oss;
-            format_error(first_, last_, current_, what, "", oss);
+            format_error(first_, last_, *current_, what, "", oss);
             if (error_fn_)
                 error_fn_(oss.str());
             else
@@ -55,7 +40,7 @@ namespace yaml { namespace parser {
         void report_preformatted_error (std::string const & msg) const
         {
             std::ostringstream oss;
-            format_error(first_, last_, current_, msg, oss);
+            format_error(first_, last_, *current_, msg, oss);
             if (error_fn_)
                 error_fn_(oss.str());
             else
@@ -161,7 +146,7 @@ namespace yaml { namespace parser {
 
         void format_warning (std::string const & msg, std::ostringstream & oss) const
         {
-            auto error_line_and_column = format_prefix(first_, last_, current_, false, oss);
+            auto error_line_and_column = format_prefix(first_, last_, *current_, false, oss);
 
             oss << msg << ":\n";
 
@@ -173,10 +158,9 @@ namespace yaml { namespace parser {
             oss << "^\n";
         }
 
-    private:
         iterator_t first_;
         iterator_t last_;
-        iterator_t & current_;
+        iterator_t * current_;
         std::string source_file_;
         std::function<void (std::string const &)> error_fn_;
         std::function<void (std::string const &)> warning_fn_;

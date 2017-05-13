@@ -17,7 +17,7 @@ namespace yaml { namespace parser {
     struct basic_structures_t
     {
         explicit basic_structures_t (
-            boost::phoenix::function<error_handler_t> const & error_handler,
+            boost::phoenix::function<error_handler_t> & error_handler,
             bool verbose
         );
 
@@ -57,7 +57,7 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t, void (eoi_state_t &)> one_time_eoi;
 
-        std::reference_wrapper<boost::phoenix::function<error_handler_t> const> error_handler_;
+        std::reference_wrapper<boost::phoenix::function<error_handler_t>> error_handler_;
     };
 
 } }

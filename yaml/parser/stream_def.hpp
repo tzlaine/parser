@@ -40,18 +40,9 @@ namespace yaml { namespace parser {
     }
 
     YAML_HEADER_ONLY_INLINE
-    stream_t::stream_t (
-        iterator_t & first,
-        iterator_t last,
-        std::string const & source_file,
-        reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback,
-        bool verbose
-    )
+    stream_t::stream_t (bool verbose)
         : block_styles_ (error_handler_, verbose)
-        , error_handler_ (
-            error_handler_t(first, last, source_file, errors_callback, warnings_callback)
-        )
+        , error_handler_ (error_handler_t())
     {
         qi::attr_type attr;
         qi::raw_type raw;
@@ -163,6 +154,30 @@ namespace yaml { namespace parser {
         qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
 
+    YAML_HEADER_ONLY_INLINE
+    void stream_t::set_error_handler_params (
+        iterator_t & first,
+        iterator_t last,
+        std::string const & source_file,
+        reporting_fn_t const & errors,
+        reporting_fn_t const & warnings
+    ) {
+        error_handler_.f.first_ = first;
+        error_handler_.f.last_ = last;
+        error_handler_.f.current_ = &first;
+        error_handler_.f.source_file_ = source_file;
+        error_handler_.f.error_fn_ = errors;
+        error_handler_.f.warning_fn_ = warnings;
+    }
+
+    YAML_HEADER_ONLY_INLINE
+    void stream_t::reset_error_handler_params ()
+    {
+        error_handler_.f.first_ = error_handler_.f.last_;
+        error_handler_.f.current_ = nullptr;
+        error_handler_.f.source_file_ = "";
+    }
+
     namespace detail {
 
         inline encoding_t read_bom_8 (char const * buf, int & size)
@@ -202,6 +217,14 @@ namespace yaml { namespace parser {
 
             return retval;
         }
+
+        struct scoped_reset_error_handler
+        {
+            ~scoped_reset_error_handler ()
+            { parser_.reset_error_handler_params(); }
+
+            stream_t & parser_;
+        };
 
     }
 
@@ -286,13 +309,13 @@ namespace yaml { namespace parser {
         verbose = false;
 #endif
 
-        stream_t parser(
+        stream_t parser(verbose);
+        parser.set_error_handler_params(
             first,
             last,
             source_file,
             errors_callback,
-            warnings_callback,
-            verbose
+            warnings_callback
         );
 
         std::vector<ast::value_t> documents;

@@ -17,7 +17,7 @@ namespace yaml { namespace parser {
     struct block_styles_t
     {
         explicit block_styles_t (
-            boost::phoenix::function<error_handler_t> const & error_handler,
+            boost::phoenix::function<error_handler_t> & error_handler,
             bool verbose
         );
 
