@@ -67,6 +67,30 @@ full_test = '''
 #include <iostream>
 
 #include <benchmark/benchmark.h>
+
+void BM_create_parsers (benchmark::State & state)
+{{
+    using namespace yaml::parser;
+
+    uchar_t const str[1] = {{0x0}};
+    iterator_t first(str, str);
+    iterator_t last;
+
+    while (state.KeepRunning()) {{
+        stream_t parser(
+            first,
+            last,
+            "source file",
+            reporting_fn_t(),
+            reporting_fn_t(),
+            false
+        );
+        if (&parser < (stream_t*)0x1000000)
+            std::cout << "";
+    }}
+}}
+BENCHMARK(BM_create_parsers);
+
 {}
 
 {}
