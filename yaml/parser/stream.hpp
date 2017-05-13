@@ -55,6 +55,25 @@ namespace yaml { namespace parser {
 
     YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
+        stream_t & parser,
+        char const * raw_first,
+        char const * raw_last,
+        std::string const & source_file = "",
+        reporting_fn_t const & errors_callback = reporting_fn_t(),
+        reporting_fn_t const & warnings_callback = reporting_fn_t()
+    );
+
+    YAML_HEADER_ONLY_INLINE
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
+        stream_t & parser,
+        std::istream & is,
+        std::string const & source_file = "",
+        reporting_fn_t const & errors_callback = reporting_fn_t(),
+        reporting_fn_t const & warnings_callback = reporting_fn_t()
+    );
+
+    YAML_HEADER_ONLY_INLINE
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
         std::string const & source_file = "",

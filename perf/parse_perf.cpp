@@ -6,21 +6,8 @@
 
 #include <benchmark/benchmark.h>
 
-void BM_create_parsers (benchmark::State & state)
-{
-    using namespace yaml::parser;
 
-    uchar_t const str[1] = {0x0};
-    iterator_t first(str, str);
-    iterator_t last;
-
-    while (state.KeepRunning()) {
-        stream_t parser(false);
-        if (&parser < (stream_t*)0x1000000)
-            std::cout << "";
-    }
-}
-BENCHMARK(BM_create_parsers);
+yaml::parser::stream_t g_parser(false);
 
 
 void BM_229Q_yml (benchmark::State & state)
@@ -43,9 +30,10 @@ void BM_229Q_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/229Q.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -68,9 +56,10 @@ void BM_27NA_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/27NA.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -95,9 +84,10 @@ void BM_2AUY_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/2AUY.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -120,9 +110,10 @@ void BM_2JQS_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/2JQS.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -150,9 +141,10 @@ void BM_2XXW_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/2XXW.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -181,9 +173,10 @@ e
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/35KP.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -207,9 +200,10 @@ void BM_3ALJ_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/3ALJ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -234,9 +228,10 @@ Reuse anchor: *anchor
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/3GZX.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -259,9 +254,10 @@ void BM_3MYT_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/3MYT.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -288,9 +284,10 @@ omitted value:,
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/4ABK.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -317,9 +314,10 @@ quoted: "So does this
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/4CQQ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -341,9 +339,10 @@ void BM_4GC6_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/4GC6.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -365,9 +364,10 @@ void BM_4UYU_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/4UYU.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -395,9 +395,10 @@ block: |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/4ZYM.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -419,9 +420,10 @@ void BM_54T7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/54T7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -454,9 +456,10 @@ description:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/565N.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -483,9 +486,10 @@ mapping: !!map
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/57H4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -512,9 +516,10 @@ folded: >
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5BVJ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -537,9 +542,10 @@ void BM_5C5M_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5C5M.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -568,9 +574,10 @@ Chomping: |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5GBF.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -593,9 +600,10 @@ void BM_5KJE_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5KJE.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -618,9 +626,10 @@ void BM_5NYZ_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5NYZ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -648,9 +657,10 @@ void BM_5TYM_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5TYM.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -676,9 +686,10 @@ void BM_5WE3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/5WE3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -700,9 +711,10 @@ void BM_65WH_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/65WH.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -727,9 +739,10 @@ void BM_6BCT_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6BCT.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -755,9 +768,10 @@ void BM_6CK3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6CK3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -783,9 +797,10 @@ void BM_6FWR_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6FWR.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -807,9 +822,10 @@ void BM_6H3V_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6H3V.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -842,9 +858,10 @@ Not indented:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6HB6.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -869,9 +886,10 @@ void BM_6JQW_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6JQW.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -896,9 +914,10 @@ void BM_6JWB_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6JWB.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -922,9 +941,10 @@ void BM_6LVF_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6LVF.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -948,9 +968,10 @@ void BM_6M2F_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6M2F.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -973,9 +994,10 @@ void BM_6SLA_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6SLA.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1004,9 +1026,10 @@ void BM_6VJK_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6VJK.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1034,9 +1057,10 @@ matches %: 20
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/6ZKB.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1063,9 +1087,10 @@ void BM_735Y_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/735Y.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1091,9 +1116,10 @@ g: h
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/74H7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1127,9 +1153,10 @@ application specific tag: !something |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/77H8.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1154,9 +1181,10 @@ void BM_7A4E_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/7A4E.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1185,9 +1213,10 @@ rbi:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/7BUB.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1210,9 +1239,10 @@ void BM_7FWL_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/7FWL.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1249,9 +1279,10 @@ void BM_7T8X_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/7T8X.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1275,9 +1306,10 @@ c:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/7W2P.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1300,9 +1332,10 @@ word2
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/82AN.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1326,9 +1359,10 @@ void BM_87E4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/87E4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1353,9 +1387,10 @@ void BM_8G76_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/8G76.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1377,9 +1412,10 @@ void BM_8MK2_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/8MK2.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1403,9 +1439,10 @@ void BM_8QBE_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/8QBE.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1434,9 +1471,10 @@ single: pair,
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/8UDB.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1461,9 +1499,10 @@ void BM_93JH_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/93JH.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1488,9 +1527,10 @@ void BM_96L6_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/96L6.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1512,9 +1552,10 @@ void BM_98YD_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/98YD.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1541,9 +1582,10 @@ h: i
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9FMG.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1566,9 +1608,10 @@ void BM_9J7A_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9J7A.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1591,9 +1634,10 @@ double: "text"
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9SHH.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1622,9 +1666,10 @@ void BM_9U5K_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9U5K.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1652,9 +1697,10 @@ void BM_9WXW_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9WXW.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1681,9 +1727,10 @@ e
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/9YRD.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1709,9 +1756,10 @@ void BM_A2M4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/A2M4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1738,9 +1786,10 @@ keep: |+
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/A6F9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1766,9 +1815,10 @@ d:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/A984.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1789,9 +1839,10 @@ void BM_AVM7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/AVM7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1816,9 +1867,10 @@ void BM_AZ63_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/AZ63.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1841,9 +1893,10 @@ void BM_AZW3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/AZW3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1868,9 +1921,10 @@ void BM_BEC7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/BEC7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1894,9 +1948,10 @@ void BM_BU8L_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/BU8L.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1922,9 +1977,10 @@ void BM_C2DT_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/C2DT.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1959,9 +2015,10 @@ void BM_C4HZ_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/C4HZ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -1985,9 +2042,10 @@ void BM_CC74_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/CC74.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2012,9 +2070,10 @@ void BM_CT4Q_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/CT4Q.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2037,9 +2096,10 @@ alias: *anchor
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/CUP7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2061,9 +2121,10 @@ void BM_D88J_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/D88J.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2085,9 +2146,10 @@ void BM_D9TU_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/D9TU.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2120,9 +2182,10 @@ void BM_DBG4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/DBG4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2148,9 +2211,10 @@ implicit: entry,
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/DFF7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2172,9 +2236,10 @@ void BM_DHP8_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/DHP8.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2204,9 +2269,10 @@ void BM_DWX9_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/DWX9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2229,9 +2295,10 @@ void BM_E76Z_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/E76Z.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2256,9 +2323,10 @@ void BM_EHF6_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/EHF6.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2283,9 +2351,10 @@ void BM_F2C7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/F2C7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2325,9 +2394,10 @@ keep: |+
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/F8F9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2353,9 +2423,10 @@ void BM_FH7J_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/FH7J.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2379,9 +2450,10 @@ void BM_FQ7F_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/FQ7F.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2407,9 +2479,10 @@ void BM_FRK4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/FRK4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2431,9 +2504,10 @@ void BM_FUP4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/FUP4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2461,9 +2535,10 @@ tie-fighter: '|\-*-/|'
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/G4RS.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2489,9 +2564,10 @@ void BM_G992_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/G992.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2515,9 +2591,10 @@ void BM_GH63_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/GH63.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2550,9 +2627,10 @@ text: |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/H2RW.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2580,9 +2658,10 @@ stats: |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/HMK4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2606,9 +2685,10 @@ void BM_HMQ5_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/HMQ5.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2633,9 +2713,10 @@ void BM_HS5T_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/HS5T.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2662,9 +2743,10 @@ block:	|
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/J3BT.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2688,9 +2770,10 @@ baz: jazz
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/J5UC.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2718,9 +2801,10 @@ void BM_J7PZ_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/J7PZ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2745,9 +2829,10 @@ void BM_J7VC_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/J7VC.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2776,9 +2861,10 @@ rbi:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/J9HZ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2809,9 +2895,10 @@ void BM_JHB9_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/JHB9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2835,9 +2922,10 @@ void BM_JQ4R_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/JQ4R.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2860,9 +2948,10 @@ Second occurrence: *anchor
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/JS2J.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2889,9 +2978,10 @@ void BM_JTV5_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/JTV5.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2915,9 +3005,10 @@ void BM_K4SU_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/K4SU.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2945,9 +3036,10 @@ void BM_K527_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/K527.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -2974,9 +3066,10 @@ keep: |+
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/K858.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3000,9 +3093,10 @@ baz: 2
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/KMK3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3026,9 +3120,10 @@ string"
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/KSS4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3052,9 +3147,10 @@ void BM_KZN9_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/KZN9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3079,9 +3175,10 @@ void BM_L94M_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/L94M.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3105,9 +3202,10 @@ void BM_L9U5_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/L9U5.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3133,9 +3231,10 @@ void BM_LE5A_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/LE5A.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3162,9 +3261,10 @@ void BM_LP6E_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/LP6E.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3188,9 +3288,10 @@ void BM_LQZ7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/LQZ7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3219,9 +3320,10 @@ void BM_M29M_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/M29M.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3248,9 +3350,10 @@ folded:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/M5C3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3280,9 +3383,10 @@ void BM_M5DY_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/M5DY.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3313,9 +3417,10 @@ document
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/M7A3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3341,9 +3446,10 @@ void BM_M9B4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/M9B4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3370,9 +3476,10 @@ void BM_MJS9_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/MJS9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3394,9 +3501,10 @@ void BM_MXS3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/MXS3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3422,9 +3530,10 @@ void BM_MYW6_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/MYW6.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3451,9 +3560,10 @@ void BM_MZX3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/MZX3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3478,9 +3588,10 @@ void BM_N782_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/N782.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3505,9 +3616,10 @@ void BM_NHX8_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/NHX8.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3533,9 +3645,10 @@ to a line feed, or 	\
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/NP9H.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3565,9 +3678,10 @@ void BM_P2AD_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/P2AD.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3591,9 +3705,10 @@ void BM_P76L_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/P76L.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3619,9 +3734,10 @@ void BM_P94K_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/P94K.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3650,9 +3766,10 @@ national:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/PBJ2.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3677,9 +3794,10 @@ void BM_PRH3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/PRH3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3710,9 +3828,10 @@ void BM_PW8X_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/PW8X.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3738,9 +3857,10 @@ void BM_Q88A_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/Q88A.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3767,9 +3887,10 @@ void BM_Q9WF_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/Q9WF.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3793,9 +3914,10 @@ foo: bar
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/QF4Y.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3827,9 +3949,10 @@ void BM_R4YG_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/R4YG.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3854,9 +3977,10 @@ bar:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/RLU9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3880,9 +4004,10 @@ void BM_RR7F_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/RR7F.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3908,9 +4033,10 @@ Document
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/RTP8.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3957,9 +4083,10 @@ Stack:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/RZT7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -3984,9 +4111,10 @@ void BM_S3PD_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/S3PD.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4011,9 +4139,10 @@ void BM_S4JQ_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/S4JQ.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4036,9 +4165,10 @@ void BM_S4T7_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/S4T7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4066,9 +4196,10 @@ mapping:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/S9E8.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4090,9 +4221,10 @@ void BM_SBG9_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/SBG9.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4116,9 +4248,10 @@ rbi: 147   # Runs Batted In
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/SYW4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4141,9 +4274,10 @@ void BM_TE2A_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/TE2A.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4171,9 +4305,10 @@ void BM_TL85_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/TL85.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4202,9 +4337,10 @@ void BM_TS54_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/TS54.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4228,9 +4364,10 @@ void BM_U3C3_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/U3C3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4268,9 +4405,10 @@ top7:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/U3XV.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4301,9 +4439,10 @@ action: grand slam
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/U9NS.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4326,9 +4465,10 @@ mapping: { sky: blue, sea: green }
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/UDR7.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4378,9 +4518,10 @@ comments:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/UGM3.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4408,9 +4549,10 @@ void BM_UT92_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/UT92.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4435,9 +4577,10 @@ void BM_V55R_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/V55R.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4461,9 +4604,10 @@ void BM_V9D5_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/V9D5.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4490,9 +4634,10 @@ void BM_W42U_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/W42U.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4521,9 +4666,10 @@ void BM_W4TN_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/W4TN.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4548,9 +4694,10 @@ void BM_WZ62_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/WZ62.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4572,9 +4719,10 @@ void BM_X38W_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/X38W.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4598,9 +4746,10 @@ void BM_YD5X_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/YD5X.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4624,9 +4773,10 @@ void BM_Z9M4_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/Z9M4.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4652,9 +4802,10 @@ Sammy Sosa: {
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/ZF4X.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4677,9 +4828,10 @@ c: &d d
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/ZH7C.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4721,9 +4873,10 @@ r: *R
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/anchors.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4753,9 +4906,10 @@ national:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/basic_yaml_block.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4780,9 +4934,10 @@ void BM_basic_yaml_block2_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/basic_yaml_block2.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4811,9 +4966,10 @@ y:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/basic_yaml_block3.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4839,9 +4995,10 @@ void BM_basic_yaml_flow_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/basic_yaml_flow.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4911,9 +5068,10 @@ void BM_block_literals_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/block_literals.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4940,9 +5098,10 @@ stats: |
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/block_literals2.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -4971,9 +5130,10 @@ h: Yes we have No bananas  # a string, "Yes" and "No" disambiguated by context.)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/data-types.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5030,9 +5190,10 @@ comments: >
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/invoice.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5086,9 +5247,10 @@ specialDelivery:  >
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/relational.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5167,9 +5329,10 @@ A numeric string: !!str 12345 # should be parsed as string
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/scalar.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5196,9 +5359,10 @@ void BM_yaml_block_array1_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array1.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5226,9 +5390,10 @@ void BM_yaml_block_array2_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array2.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5250,9 +5415,10 @@ void BM_yaml_block_array3_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array3.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5278,9 +5444,10 @@ void BM_yaml_block_array4_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array4.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5305,9 +5472,10 @@ void BM_yaml_block_array5_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array5.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5331,9 +5499,10 @@ void BM_yaml_block_array6_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array6.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5361,9 +5530,10 @@ void BM_yaml_block_array7_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_array7.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5386,9 +5556,10 @@ Lemmon : !!map {a:1, b:2, c:3})YAML_TEXT";
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map1.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5416,9 +5587,10 @@ y : 3
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map10.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5441,9 +5613,10 @@ z: zz)YAML_TEXT";
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map11.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5471,9 +5644,10 @@ national:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map12.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5498,9 +5672,10 @@ Foo : on the right # strict yaml 1.2 disallows "on" as a boolean value!)YAML_TEX
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map13.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5523,9 +5698,10 @@ void BM_yaml_block_map2_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map2.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5550,9 +5726,10 @@ void BM_yaml_block_map3_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map3.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5576,9 +5753,10 @@ key3: 2
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map4.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5601,9 +5779,10 @@ void BM_yaml_block_map5_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map5.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5627,9 +5806,10 @@ void BM_yaml_block_map6_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map6.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5651,9 +5831,10 @@ Orange :)YAML_TEXT";
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map7.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5675,9 +5856,10 @@ void BM_yaml_block_map8_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map8.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5699,9 +5881,10 @@ void BM_yaml_block_map9_yaml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/yaml_block_map9.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5725,9 +5908,10 @@ d: e
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/simple_flow_plain.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5751,9 +5935,10 @@ void BM_escaped_percent_27NA_yml (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/escaped_percent_27NA.yml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {
@@ -5803,9 +5988,10 @@ national:
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "/Users/tzlaine/yaml_spirit/test/test_files/basic_yaml_block_repeated.yaml",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }
     for (auto const & v : *result) {

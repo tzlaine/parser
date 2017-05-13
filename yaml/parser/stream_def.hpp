@@ -272,12 +272,12 @@ namespace yaml { namespace parser {
     // TODO: Change signature to return a vector and a bool.
     YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
+        stream_t & parser,
         char const * raw_first,
         char const * raw_last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback,
-        bool verbose
+        reporting_fn_t const & warnings_callback
     ) {
         boost::optional<std::vector<ast::value_t>> retval;
 
@@ -305,11 +305,6 @@ namespace yaml { namespace parser {
         iterator_t last;
         first.set_tabchars(1);
 
-#ifndef BOOST_SPIRIT_DEBUG
-        verbose = false;
-#endif
-
-        stream_t parser(verbose);
         parser.set_error_handler_params(
             first,
             last,
@@ -317,6 +312,7 @@ namespace yaml { namespace parser {
             errors_callback,
             warnings_callback
         );
+        detail::scoped_reset_error_handler reset{parser};
 
         std::vector<ast::value_t> documents;
         std::vector<ast::value_t> temp_documents;
@@ -378,11 +374,11 @@ namespace yaml { namespace parser {
 
     YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
+        stream_t & parser,
         std::istream & is,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback,
-        bool verbose
+        reporting_fn_t const & warnings_callback
     ) {
         std::string raw_contents;
         char buf[4096];
@@ -391,17 +387,57 @@ namespace yaml { namespace parser {
             raw_contents.append(buf, buf + is.gcount());
         }
 
-#ifndef BOOST_SPIRIT_DEBUG
-        verbose = false;
-#endif
-
         return parse_yaml(
+            parser,
             raw_contents.c_str(),
             raw_contents.c_str() + raw_contents.size(),
             source_file,
             errors_callback,
-            warnings_callback,
-            verbose
+            warnings_callback
+        );
+    }
+
+    YAML_HEADER_ONLY_INLINE
+    boost::optional<std::vector<ast::value_t>> parse_yaml (
+        char const * raw_first,
+        char const * raw_last,
+        std::string const & source_file,
+        reporting_fn_t const & errors_callback,
+        reporting_fn_t const & warnings_callback,
+        bool verbose
+    ) {
+#ifndef BOOST_SPIRIT_DEBUG
+        verbose = false;
+#endif
+        stream_t parser(verbose);
+        return parse_yaml(
+            parser,
+            raw_first,
+            raw_last,
+            source_file,
+            errors_callback,
+            warnings_callback
+        );
+    }
+
+    YAML_HEADER_ONLY_INLINE
+    boost::optional<std::vector<ast::value_t>> parse_yaml (
+        std::istream & is,
+        std::string const & source_file,
+        reporting_fn_t const & errors_callback,
+        reporting_fn_t const & warnings_callback,
+        bool verbose
+    ) {
+#ifndef BOOST_SPIRIT_DEBUG
+        verbose = false;
+#endif
+        stream_t parser(verbose);
+        return parse_yaml(
+            parser,
+            is,
+            source_file,
+            errors_callback,
+            warnings_callback
         );
     }
 

@@ -42,9 +42,10 @@ void {1} (benchmark::State & state)
     boost::optional<std::vector<value_t>> result;
     while (state.KeepRunning()) {{
         result = parse_yaml(
+            g_parser,
             contents, contents + strlen(contents),
             "{0}",
-            reporting_fn_t(), reporting_fn_t(), false
+            reporting_fn_t(), reporting_fn_t()
         );
     }}
     for (auto const & v : *result) {{
@@ -68,21 +69,8 @@ full_test = '''
 
 #include <benchmark/benchmark.h>
 
-void BM_create_parsers (benchmark::State & state)
-{{
-    using namespace yaml::parser;
 
-    uchar_t const str[1] = {{0x0}};
-    iterator_t first(str, str);
-    iterator_t last;
-
-    while (state.KeepRunning()) {{
-        stream_t parser(false);
-        if (&parser < (stream_t*)0x1000000)
-            std::cout << "";
-    }}
-}}
-BENCHMARK(BM_create_parsers);
+yaml::parser::stream_t g_parser(false);
 
 {}
 
