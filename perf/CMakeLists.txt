@@ -1,17 +1,5 @@
-add_definitions(${cxx_defs})
-
-# TODO: Add library to top-level CMakeLists.txt, and reuse it here and in test/.
-
 macro(add_perf_executable name)
-    add_executable(
-        ${name}
-        ${name}.cpp
-        ${CMAKE_SOURCE_DIR}/test/characters.cpp
-        ${CMAKE_SOURCE_DIR}/test/basic_structures.cpp
-        ${CMAKE_SOURCE_DIR}/test/flow_style.cpp
-        ${CMAKE_SOURCE_DIR}/test/block_style.cpp
-        ${CMAKE_SOURCE_DIR}/test/stream.cpp
-    )
+    add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} yaml benchmark ${link_flags})
     if (clang_on_linux)
         target_link_libraries(${name} c++)

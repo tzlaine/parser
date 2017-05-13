@@ -6,19 +6,7 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -C ${CMAKE_CFG_INTDIR})
 
-set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
-set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
-if (USE_ASAN AND USE_UBSAN)
-    message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
-elseif (USE_ASAN)
-    set(link_flags -fsanitize=address)
-elseif (USE_UBSAN)
-    set(link_flags -fsanitize=undefined)
-endif()
-
 set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DYAML_HEADER_ONLY=1.")
-
-add_definitions(${cxx_defs})
 
 
 ##################################################
@@ -37,33 +25,13 @@ endif ()
 endif ()
 
 ##################################################
-# Static test lib
-##################################################
-add_library(
-    yaml_test_lib
-    STATIC
-    characters.cpp
-    basic_structures.cpp
-    flow_style.cpp
-    block_style.cpp
-    stream.cpp
-)
-target_link_libraries(yaml_test_lib yaml gtest ${link_flags})
-if (USE_ASAN OR USE_UBSAN)
-    target_compile_options(yaml_test_lib PUBLIC ${link_flags})
-endif()
-if (clang_on_linux)
-    target_link_libraries(yaml_test_lib c++)
-endif ()
-
-##################################################
 # Parse-only test executable
 ##################################################
 add_executable(
     parse_test
     parse_yaml_test.cpp
 )
-target_link_libraries(parse_test yaml yaml_test_lib gtest ${link_flags})
+target_link_libraries(parse_test yaml gtest ${link_flags})
 if (clang_on_linux)
     target_link_libraries(parse_test c++)
 endif ()
@@ -75,7 +43,7 @@ add_executable(
     parse_compare_test
     parse_yaml_compare_test.cpp
 )
-target_link_libraries(parse_compare_test yaml yaml_test_lib gtest ${link_flags})
+target_link_libraries(parse_compare_test yaml gtest ${link_flags})
 if (clang_on_linux)
     target_link_libraries(parse_compare_test c++)
 endif ()

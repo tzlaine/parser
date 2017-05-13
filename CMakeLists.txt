@@ -29,9 +29,71 @@ if (PYTHONINTERP_FOUND)
     message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
 endif ()
 
-add_library(yaml INTERFACE)
-target_include_directories(yaml INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(yaml INTERFACE boost)
+
+##################################################
+# Sanitizers
+##################################################
+set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
+set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
+if (USE_ASAN AND USE_UBSAN)
+    message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
+elseif (USE_ASAN)
+    set(link_flags -fsanitize=address)
+elseif (USE_UBSAN)
+    set(link_flags -fsanitize=undefined)
+endif()
+
+
+# TODO: Turn this on if a static lib is desired; there's no need for it now.
+if (false)
+##################################################
+# Static lib
+##################################################
+add_library(
+    yaml-static
+    STATIC
+    src/characters.cpp
+    src/basic_structures.cpp
+    src/flow_style.cpp
+    src/block_style.cpp
+    src/stream.cpp
+)
+target_compile_options(yaml-static PUBLIC ${cxx_defs}) 
+target_include_directories(yaml-static PUBLIC ${CMAKE_SOURCE_DIR}) 
+target_link_libraries(yaml-static PUBLIC boost)
+target_link_libraries(yaml-static ${link_flags})
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(yaml-static PUBLIC ${link_flags})
+endif()
+if (clang_on_linux)
+    target_link_libraries(yaml-static c++)
+endif ()
+endif ()
+
+
+##################################################
+# Dynamic lib
+##################################################
+add_library(
+    yaml
+    SHARED
+    src/characters.cpp
+    src/basic_structures.cpp
+    src/flow_style.cpp
+    src/block_style.cpp
+    src/stream.cpp
+)
+target_compile_options(yaml PUBLIC ${cxx_defs}) 
+target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}) 
+target_link_libraries(yaml PUBLIC boost)
+target_link_libraries(yaml ${link_flags})
+if (USE_ASAN OR USE_UBSAN)
+    target_compile_options(yam PUBLIC ${link_flags})
+endif()
+if (clang_on_linux)
+    target_link_libraries(yaml c++)
+endif ()
+
 
 add_subdirectory(test)
 add_subdirectory(perf)
