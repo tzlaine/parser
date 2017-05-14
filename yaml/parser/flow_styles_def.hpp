@@ -62,12 +62,14 @@ namespace yaml { namespace parser {
     {
         qi::attr_type attr;
         qi::omit_type omit;
+        qi::raw_type raw;
         qi::hold_type hold;
         qi::unicode::char_type char_;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_2_type _2;
         qi::_a_type _a;
+        qi::_b_type _b;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
         qi::lit_type lit;
@@ -83,7 +85,9 @@ namespace yaml { namespace parser {
         phx::function<detail::alias> alias;
         phx::function<detail::handle_properties> handle_properties;
         phx::function<detail::push_utf8> push_utf8;
-        auto ins = phx::insert(_val, _1);
+        phx::function<detail::map_insert> map_insert;
+
+        auto ins = map_insert(_val, _1, _b, phx::cref(error_handler.f));
 
 #ifdef BOOST_SPIRIT_DEBUG
         phx::function<detail::print_indent> print_indent;
@@ -383,8 +387,8 @@ namespace yaml { namespace parser {
 
         // [150]
         flow_pair =
-                '?' >> separate(_r1, _r2) >> flow_map_explicit_entry(_r1, _r2)[ins]
-            |   flow_pair_entry(_r1, _r2)[ins]
+                '?' >> separate(_r1, _r2) >> raw[eps][_b = _1] >> flow_map_explicit_entry(_r1, _r2)[ins]
+            |   raw[eps][_b = _1] >> flow_pair_entry(_r1, _r2)[ins]
             ;
 
         // [151]

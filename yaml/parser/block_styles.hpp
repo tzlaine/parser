@@ -72,7 +72,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, ast::value_t(int n, context_t), qi::locals<int, eoi_state_t>> block_indented;
         qi::rule<iterator_t, ast::seq_t(int n)> compact_sequence;
 
-        qi::rule<iterator_t, ast::map_t(int), qi::locals<int>> block_mapping;
+        qi::rule<iterator_t, ast::map_t(int), qi::locals<int, iterator_range_t>> block_mapping;
         qi::rule<iterator_t, ast::map_element_t(int)> block_map_entry;
         qi::rule<iterator_t, ast::map_element_t(int)> block_map_explicit_entry;
         qi::rule<iterator_t, ast::value_t(int)> block_map_explicit_key;
@@ -80,7 +80,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, ast::map_element_t(int)> block_map_implicit_entry;
         qi::rule<iterator_t, ast::value_t()> block_map_implicit_key;
         qi::rule<iterator_t, ast::value_t(int), qi::locals<eoi_state_t>> block_map_implicit_value;
-        qi::rule<iterator_t, ast::map_t(int)> compact_mapping;
+        qi::rule<iterator_t, ast::map_t(int), qi::locals<iterator_range_t, iterator_range_t>> compact_mapping;
 
         qi::rule<iterator_t, ast::value_t(int, context_t)> block_node;
         qi::rule<iterator_t, ast::value_t(int), qi::locals<eoi_state_t>> flow_in_block;

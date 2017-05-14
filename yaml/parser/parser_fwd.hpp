@@ -258,6 +258,30 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
+        struct map_insert
+        {
+            template <typename, typename, typename>
+            struct result { using type = void; };
+
+            template <typename Map, typename T>
+            void operator() (
+                Map & map,
+                T const & x,
+                iterator_range_t range,
+                error_handler_t const & error_handler
+            ) const {
+                if (map.count(x.first)) {
+                    std::ostringstream oss;
+                    oss << "Ignoring map entry with duplicate key \"\n";
+                    ast::print_yaml<2, true, true, false>(oss, x.first);
+                    oss << "\":\n";
+                    error_handler.impl().report_warning_at(range.begin(), oss.str());
+                } else {
+                    map.insert(x);
+                }
+            }
+        };
+
         struct handle_properties
         {
             template <typename, typename, typename, typename>

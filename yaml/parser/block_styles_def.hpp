@@ -69,6 +69,7 @@ namespace yaml { namespace parser {
         qi::attr_type attr;
         qi::omit_type omit;
         qi::hold_type hold;
+        qi::raw_type raw;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_2_type _2;
@@ -94,8 +95,10 @@ namespace yaml { namespace parser {
         phx::function<detail::indentation> indentation;
         phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::update_max> update_max;
+        phx::function<detail::map_insert> map_insert;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
-        auto ins = phx::insert(_val, _1);
+
+        auto ins = map_insert(_val, _1, _b, phx::cref(error_handler.f));
         auto pb = phx::push_back(_val, _1);
 
 #ifdef BOOST_SPIRIT_DEBUG
@@ -364,7 +367,7 @@ namespace yaml { namespace parser {
         // [187]
         block_mapping =
                 auto_detect_indent[_a = _1] >> eps(_r1 < _a)
-            >>  +(indent(_a) >> block_map_entry(_a)[ins]) // TODO: Report duplicate keys when found.
+            >>  +(indent(_a) >> raw[eps][_b = _1] >> block_map_entry(_a)[ins])
             ;
 
         // [188]
@@ -410,7 +413,8 @@ namespace yaml { namespace parser {
 
         // [195]
         compact_mapping =
-            block_map_entry(_r1)[ins] % indent(_r1)
+                raw[eps][_b = _1]
+            >>  block_map_entry(_r1)[ins] % indent(_r1)
             ;
 
         // 8.2.3. Block Nodes
