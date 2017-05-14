@@ -121,9 +121,6 @@ namespace yaml { namespace parser {
         auto & implicit_yaml_key = flow_styles_.implicit_yaml_key;
         auto & implicit_json_key = flow_styles_.implicit_json_key;
 
-        // TODO: Add eps > eps after fully parsed seq/map entries (and in flow
-        // styles), for better error reporting.
-
         // 8.1 Block Scalar Styles
 
         // [162]

@@ -19,6 +19,30 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
+        struct reserved_directive_warning
+        {
+            template <typename>
+            struct result { using type = void; };
+
+            void operator() (
+                iterator_range_t const & range,
+                error_handler_t const & error_handler
+            ) const {
+                if (!error_handler.impl().warning_fn_)
+                    return;
+                using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
+                std::string const directive(
+                    to_string_iterator_t(range.begin()),
+                    to_string_iterator_t(range.end())
+                );
+                std::ostringstream oss;
+                oss << "All directives except %YAML and %TAG are "
+                    << "reserved for future use.  The directive '%"
+                    << directive << "' will be ignored.\n";
+                error_handler.impl().report_warning(oss.str());
+            }
+        };
+
         struct check_yaml_version
         {
             template <typename, typename, typename, typename, typename>
@@ -50,15 +74,15 @@ namespace yaml { namespace parser {
                 } else {
                     structures.first_yaml_directive_it_ = range.begin();
                     if (major != 1) {
-                        std::stringstream oss;
+                        std::ostringstream oss;
                         oss << "The current document has a %YAML "
                             << major << '.' << minor
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so cannot continue.\n";
                         error_handler.impl().report_preformatted_error(oss.str());
                         pass = false;
-                    } else if (minor != 2) {
-                        std::stringstream oss;
+                    } else if (minor != 2 && error_handler.impl().warning_fn_) {
+                        std::ostringstream oss;
                         oss << "The current document has a %YAML "
                             << major << '.' << minor
                             << " directive.  This parser recognizes "
@@ -228,6 +252,7 @@ namespace yaml { namespace parser {
         auto & tag_char = characters_.tag_char;
         auto & uri_char = characters_.uri_char;
 
+        function<detail::reserved_directive_warning> reserved_directive_warning;
         function<detail::check_yaml_version> check_yaml_version;
         function<detail::record_tag_handle> record_tag_handle;
         function<detail::prefix> prefix;
@@ -349,9 +374,8 @@ namespace yaml { namespace parser {
 
         // [83]
         reserved_directive =
-                +ns_char
-            >>  *(+blank >> +ns_char)
-            // TODO: Issue warning (See 6.8).
+            raw[+ns_char >> *(+blank >> +ns_char)]
+            [reserved_directive_warning(_1, phx::cref(error_handler_.f))]
             ;
 
         // [86]

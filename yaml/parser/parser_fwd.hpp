@@ -180,8 +180,8 @@ namespace yaml { namespace parser {
             template <typename, typename>
             struct result { using type = void; };
 
-            template <typename Range, typename Pass>
-            void operator() (Range const & range, Pass & pass) const
+            template <typename Pass>
+            void operator() (iterator_range_t const & range, Pass & pass) const
             {
                 int const column = range.begin().get_position().column;
                 if (column != 1)
