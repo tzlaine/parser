@@ -11,7 +11,6 @@
 
 #include <yaml/ast.hpp>
 
-#include <boost/spirit/include/qi.hpp>  // boost::spirit::to_utf8
 #include <boost/functional/hash.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/regex/pending/unicode_iterator.hpp>
@@ -145,26 +144,36 @@ namespace yaml { namespace ast {
                 iter_t first = utf.begin();
                 iter_t last = utf.end();
 
+                char utf8[5];
+
                 while (first != last) {
-                    uchar_t c = *first;
+                    uchar_t const c[2] = {*first, 0};
                     ++first;
-                    switch (c) {
-                        case 0:       out_ << "\\0"; break;
-                        case 0x7:     out_ << "\\a"; break;
-                        case 0x8:     out_ << "\\b"; break;
-                        case 0x9:     out_ << "\\t"; break;
-                        case 0xA:     out_ << "\\n"; break;
-                        case 0xB:     out_ << "\\v"; break;
-                        case 0xC:     out_ << "\\f"; break;
-                        case 0xD:     out_ << "\\r"; break;
-                        case 0x1B:    out_ << "\\e"; break;
-                        case '"':     out_ << "\\\""; break;
-                        case '\\':    out_ << "\\\\"; break;
-                        case 0xA0:    out_ << "\\_"; break;
-                        case 0x85:    out_ << "\\N"; break;
-                        case 0x2028:  out_ << "\\L"; break;
-                        case 0x2029:  out_ << "\\P"; break;
-                        default:      out_ << boost::spirit::to_utf8(c);
+                    switch (c[0]) {
+                    case 0:       out_ << "\\0"; break;
+                    case 0x7:     out_ << "\\a"; break;
+                    case 0x8:     out_ << "\\b"; break;
+                    case 0x9:     out_ << "\\t"; break;
+                    case 0xA:     out_ << "\\n"; break;
+                    case 0xB:     out_ << "\\v"; break;
+                    case 0xC:     out_ << "\\f"; break;
+                    case 0xD:     out_ << "\\r"; break;
+                    case 0x1B:    out_ << "\\e"; break;
+                    case '"':     out_ << "\\\""; break;
+                    case '\\':    out_ << "\\\\"; break;
+                    case 0xA0:    out_ << "\\_"; break;
+                    case 0x85:    out_ << "\\N"; break;
+                    case 0x2028:  out_ << "\\L"; break;
+                    case 0x2029:  out_ << "\\P"; break;
+
+                    default: {
+                        using utf8_iter_t = boost::u32_to_u8_iterator<uchar_t const *>;
+                        utf8_iter_t first(c);
+                        utf8_iter_t last(c + 1);
+                        auto it = std::copy(first, last, utf8);
+                        *it = 0;
+                        out_ << utf8;
+                    }
                     }
                 }
 
