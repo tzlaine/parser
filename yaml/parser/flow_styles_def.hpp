@@ -395,12 +395,12 @@ namespace yaml { namespace parser {
             ;
 
         // [154]
-        implicit_yaml_key =
+        implicit_yaml_key = // TODO: Limit to 1024 characters.
             flow_yaml_node(0, _r1) >> -separate_in_line
             ;
 
         // [155]
-        implicit_json_key =
+        implicit_json_key = // TODO: Limit to 1024 characters.
             flow_json_node(0, _r1) >> -separate_in_line
             ;
 
