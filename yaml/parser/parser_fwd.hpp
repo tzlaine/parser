@@ -65,6 +65,16 @@ namespace yaml { namespace parser {
     using iterator_range_t = boost::iterator_range<iterator_t>;
 
 
+    inline std::string range_to_string (iterator_range_t range)
+    {
+        using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
+        return std::string(
+            to_string_iterator_t(range.begin()),
+            to_string_iterator_t(range.end())
+        );
+    }
+
+
     // Parser enums.
     enum class context_t {
         block_in, block_out,
@@ -148,9 +158,38 @@ namespace yaml { namespace parser {
     { return os << b.indentation_ << ',' << b.chomping_; }
 #endif
 
+    struct parser_properties_t
+    {
+        parser_properties_t () {}
+        parser_properties_t (std::string const & tag, iterator_range_t anchor)
+            : tag_ (tag), anchor_ (anchor)
+        {}
+
+        std::string tag_;
+        iterator_range_t anchor_;
+    };
+#ifdef BOOST_SPIRIT_DEBUG
+    inline std::ostream& operator<<(std::ostream & out, parser_properties_t const & p)
+    { return out << p.tag_ << ',' << range_to_string(p.anchor_); }
+#endif
+
+    struct anchor_t
+    {
+        ast::alias_t alias_;
+        iterator_t position_;
+    };
 
     // Functions used in the parsers.
     namespace detail {
+
+        struct to_str
+        {
+            template <typename>
+            struct result { using type = std::string; };
+
+            std::string operator() (iterator_range_t range) const
+            { return range_to_string(range); }
+        };
 
         struct push_utf8
         {
@@ -189,32 +228,6 @@ namespace yaml { namespace parser {
             }
         };
 
-        struct handle_properties
-        {
-            template <typename, typename, typename>
-            struct result { using type = ast::value_t; };
-
-            template <typename T>
-            ast::value_t operator() (
-                ast::properties_t const & properties,
-                T const & x,
-                qi::symbols<char, ast::alias_t> & anchors
-            ) const {
-                if (properties.anchor_ != "") {
-                    std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
-                    // TODO: Emit a warning when an anchor is redefined.
-                    anchors.remove(properties.anchor_);
-                    anchors.add(
-                        properties.anchor_,
-                        ast::alias_t(properties.anchor_, anchor_ptr)
-                    );
-                }
-                if (properties)
-                    return ast::value_t(ast::properties_node_t(properties, ast::value_t(x)));
-                return ast::value_t(x);
-            }
-        };
-
 #ifdef BOOST_SPIRIT_DEBUG
         struct print_indent
         {
@@ -234,6 +247,66 @@ namespace yaml { namespace parser {
 #else
 #define YAML_PARSER_PRINT_INDENT
 #endif
+
+    }
+
+} }
+
+#include <yaml/parser/error_handler.hpp>
+
+namespace yaml { namespace parser {
+
+    namespace detail {
+
+        struct handle_properties
+        {
+            template <typename, typename, typename, typename>
+            struct result { using type = ast::value_t; };
+
+            template <typename T>
+            ast::value_t operator() (
+                parser_properties_t const & parser_properties,
+                T const & x,
+                qi::symbols<char, anchor_t> & anchors,
+                error_handler_t const & error_handler
+            ) const {
+                ast::properties_t properties;
+                properties.tag_ = parser_properties.tag_;
+
+                if (!parser_properties.anchor_.empty()) {
+                    properties.anchor_ = range_to_string(parser_properties.anchor_);
+
+                    anchor_t anchor;
+                    std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
+                    anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
+
+                    auto existing_anchor = anchors.find(properties.anchor_);
+                    if (existing_anchor) {
+                        std::ostringstream oss;
+                        oss << "Redefining anchor " << properties.anchor_ << ":\n";
+                        error_handler.impl().report_warning_at(
+                            parser_properties.anchor_.begin(),
+                            oss.str()
+                        );
+                        error_handler.impl().report_warning_at(
+                            existing_anchor->position_,
+                            "The previous one was was here:\n"
+                        );
+                    }
+
+                    anchors.remove(properties.anchor_);
+                    anchors.add(
+                        properties.anchor_,
+                        anchor
+                    );
+                }
+
+                if (properties)
+                    return ast::value_t(ast::properties_node_t(properties, ast::value_t(x)));
+
+                return ast::value_t(x);
+            }
+        };
 
     }
 

@@ -9,7 +9,6 @@
 #define YAML_PARSER_CHARACTERS_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
-#include <yaml/parser/error_handler.hpp>
 
 
 namespace yaml { namespace parser {

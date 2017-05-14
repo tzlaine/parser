@@ -30,16 +30,12 @@ namespace yaml { namespace parser {
             ) const {
                 if (!error_handler.impl().warning_fn_)
                     return;
-                using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
-                std::string const directive(
-                    to_string_iterator_t(range.begin()),
-                    to_string_iterator_t(range.end())
-                );
+                std::string const directive = range_to_string(range);
                 std::ostringstream oss;
                 oss << "All directives except %YAML and %TAG are "
                     << "reserved for future use.  The directive '%"
                     << directive << "' will be ignored.\n";
-                error_handler.impl().report_warning(oss.str());
+                error_handler.impl().report_warning_at(range.begin(), oss.str());
             }
         };
 
@@ -59,13 +55,13 @@ namespace yaml { namespace parser {
                 error_handler_t const & error_handler = structures.error_handler_.f;
                 if (structures.yaml_directive_seen_) {
                     scoped_multipart_error_t multipart(error_handler.impl());
-                    error_handler.impl().report_preformatted_error_at(
+                    error_handler.impl().report_error_at(
                         range.begin(),
                         "The current document has more than one %YAML "
                         "directive.  Only one is allowed.\n",
                         multipart
                     );
-                    error_handler.impl().report_preformatted_error_at(
+                    error_handler.impl().report_error_at(
                         structures.first_yaml_directive_it_,
                         "The first one was was here:\n",
                         multipart
@@ -74,12 +70,13 @@ namespace yaml { namespace parser {
                 } else {
                     structures.first_yaml_directive_it_ = range.begin();
                     if (major != 1) {
+                        scoped_multipart_error_t multipart(error_handler.impl());
                         std::ostringstream oss;
                         oss << "The current document has a %YAML "
                             << major << '.' << minor
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so cannot continue.\n";
-                        error_handler.impl().report_preformatted_error(oss.str());
+                        error_handler.impl().report_error_at(range.begin(), oss.str(), multipart);
                         pass = false;
                     } else if (minor != 2 && error_handler.impl().warning_fn_) {
                         std::ostringstream oss;
@@ -88,7 +85,7 @@ namespace yaml { namespace parser {
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so might not work.  "
                                "Trying anyway...\n";
-                        error_handler.impl().report_warning(oss.str());
+                        error_handler.impl().report_warning_at(range.begin(), oss.str());
                     }
                 }
                 structures.yaml_directive_seen_ = true;
@@ -108,11 +105,7 @@ namespace yaml { namespace parser {
                 error_handler_t const & error_handler,
                 Pass & pass
             ) const {
-                using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
-                std::string const handle(
-                    to_string_iterator_t(handle_range.begin()),
-                    to_string_iterator_t(handle_range.end())
-                );
+                std::string const handle = range_to_string(handle_range);
 
                 auto existing_tag = tags.find(handle);
                 if (existing_tag && existing_tag->default_) {
@@ -126,12 +119,12 @@ namespace yaml { namespace parser {
                     oss << "The current document has more than one %TAG "
                         << "directive using the handle " << handle << ".  "
                         << "Only one is allowed.\n";
-                    error_handler.impl().report_preformatted_error_at(
+                    error_handler.impl().report_error_at(
                         handle_range.begin(),
                         oss.str(),
                         multipart
                     );
-                    error_handler.impl().report_preformatted_error_at(
+                    error_handler.impl().report_error_at(
                         existing_tag->position_,
                         "The first one was was here:\n",
                         multipart
@@ -141,10 +134,7 @@ namespace yaml { namespace parser {
                     tags.add(
                         handle,
                         basic_structures_t::tag_t{
-                            std::string(
-                                to_string_iterator_t(prefix_range.begin()),
-                                to_string_iterator_t(prefix_range.end())
-                            ),
+                            range_to_string(prefix_range),
                             handle_range.begin(),
                             false
                         }
@@ -192,20 +182,6 @@ namespace yaml { namespace parser {
                 bool const retval = state == eoi_state_t::not_at_end;
                 state = eoi_state_t::at_end;
                 return retval;
-            }
-        };
-
-        struct to_str
-        {
-            template <typename>
-            struct result { using type = std::string; };
-
-            std::string operator() (iterator_range_t range) const
-            {
-                using iterator_t = iterator_range_t::iterator;
-                boost::u32_to_u8_iterator<iterator_t> first(range.begin());
-                boost::u32_to_u8_iterator<iterator_t> last(range.end());
-                return std::string(first, last);
             }
         };
 
@@ -417,7 +393,7 @@ namespace yaml { namespace parser {
                 tag_property[_a = _1] >> -(separate(_r1, _r2) >> anchor_property[_b = *_1])
             |   anchor_property[_b = _1] >> -(separate(_r1, _r2) >> tag_property[_a = *_1])
             )
-            [_val = construct<ast::properties_t>(_a, to_str(_b))]
+            [_val = construct<parser_properties_t>(_a, _b)]
             ;
 
         // [97]

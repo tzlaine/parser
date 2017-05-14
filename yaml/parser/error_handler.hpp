@@ -40,17 +40,7 @@ namespace yaml { namespace parser {
         template <typename, typename, typename, typename>
         struct result { using type = void; };
 
-        void report_error (std::string const & what) const
-        {
-            std::ostringstream oss;
-            format_error(first_, last_, *current_, what, "", oss);
-            if (error_fn_)
-                error_fn_(oss.str());
-            else
-                throw parse_error(oss.str());
-        }
-
-        void report_preformatted_error (std::string const & msg) const
+        void report_error (std::string const & msg) const
         {
             std::ostringstream oss;
             format_error(first_, last_, *current_, msg, oss);
@@ -60,7 +50,7 @@ namespace yaml { namespace parser {
                 throw parse_error(oss.str());
         }
 
-        void report_preformatted_error_at (
+        void report_error_at (
             iterator_t at,
             std::string const & msg,
             scoped_multipart_error_t & multipart
@@ -68,10 +58,10 @@ namespace yaml { namespace parser {
             format_error(first_, last_, at, msg, multipart.oss_);
         }
 
-        void report_warning (std::string const & what) const
+        void report_warning_at (iterator_t at, std::string const & msg) const
         {
             std::ostringstream oss;
-            format_warning(what, oss);
+            format_warning(at, msg, oss);
             if (warning_fn_)
                 warning_fn_(oss.str());
         }
@@ -84,7 +74,10 @@ namespace yaml { namespace parser {
         ) const {
             std::ostringstream oss;
             format_error(first, last, err_pos, what, what.tag, oss);
-            report_error(oss.str());
+            if (error_fn_)
+                error_fn_(oss.str());
+            else
+                throw parse_error(oss.str());
         }
 
         std::pair<std::string, int> format_prefix (
@@ -165,9 +158,9 @@ namespace yaml { namespace parser {
             oss << "^\n";
         }
 
-        void format_warning (std::string const & msg, std::ostringstream & oss) const
+        void format_warning (iterator_t at, std::string const & msg, std::ostringstream & oss) const
         {
-            auto error_line_and_column = format_prefix(first_, last_, *current_, false, oss);
+            auto error_line_and_column = format_prefix(first_, last_, at, false, oss);
 
             oss << msg << ":\n";
 

@@ -89,13 +89,13 @@ namespace yaml { namespace parser {
         qi::rule<
             iterator_t,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t>
+            qi::locals<parser_properties_t>
         > block_scalar;
 
         qi::rule<
             iterator_t,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t, eoi_state_t>
+            qi::locals<parser_properties_t, eoi_state_t>
         > block_collection;
     };
 

@@ -358,7 +358,7 @@ namespace yaml { namespace parser {
             auto const encoding_ok = detail::check_encoding(
                 encoding,
                 [&parser](std::string const & msg) {
-                    parser.error_handler_.f.impl().report_preformatted_error(msg);
+                    parser.error_handler_.f.impl().report_error(msg);
                 }
             );
 
@@ -384,8 +384,11 @@ namespace yaml { namespace parser {
         if (success) {
             success = qi::parse(first, last, parser.end_of_input);
 
-            if (!success)
-                parser.error_handler_.f.impl().report_error("end of input");
+            if (!success) {
+                parser.error_handler_.f.impl().report_error(
+                    "Expected end of input, next map element, or next seq element here:\n"
+                );
+            }
         }
 
         if (success)

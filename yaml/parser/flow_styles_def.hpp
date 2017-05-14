@@ -21,6 +21,15 @@ namespace yaml { namespace parser {
 
     namespace detail {
 
+        struct alias
+        {
+            template <typename>
+            struct result { using type = ast::alias_t; };
+
+            ast::alias_t operator() (anchor_t const & a) const
+            { return a.alias_; }
+        };
+
         struct in_flow
         {
             template <typename, typename>
@@ -71,6 +80,7 @@ namespace yaml { namespace parser {
         using phx::function;
         using phx::construct;
 
+        phx::function<detail::alias> alias;
         phx::function<detail::handle_properties> handle_properties;
         phx::function<detail::push_utf8> push_utf8;
         auto ins = phx::insert(_val, _1);
@@ -97,7 +107,7 @@ namespace yaml { namespace parser {
         // [104]
         alias_node =
                 '*'
-            >   anchors
+            >   anchors[_val = alias(_1)]
             ;
 
         // 7.3 Flow Scalar Styles
@@ -433,14 +443,14 @@ namespace yaml { namespace parser {
             |   flow_yaml_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_yaml_content(_r1, _r2) | attr(ast::value_t()))
-                [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
             ;
 
         // [160]
         flow_json_node =
                 -(omit[properties(_r1, _r2)[_a = _1]] >> separate(_r1, _r2))
             >>  flow_json_content(_r1, _r2)
-                [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
             ;
 
         // [161]
@@ -449,7 +459,7 @@ namespace yaml { namespace parser {
             |   flow_content(_r1, _r2)[_val = _1]
             |   omit[properties(_r1, _r2)[_a = _1]]
             >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
-                [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
             ;
 
         if (verbose) {
@@ -458,7 +468,7 @@ namespace yaml { namespace parser {
                 |   flow_content(_r1, _r2)[_val = _1]
                 |   omit[properties(_r1, _r2)[_a = _1]]
                 >>  (separate(_r1, _r2) >> flow_content(_r1, _r2) | attr(ast::value_t()))
-                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                    [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
             );
         }
 

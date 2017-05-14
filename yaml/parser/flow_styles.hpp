@@ -23,7 +23,7 @@ namespace yaml { namespace parser {
 
         basic_structures_t basic_structures_;
 
-        qi::symbols<char, ast::alias_t> anchors;
+        qi::symbols<char, anchor_t> anchors;
 
         qi::rule<iterator_t, ast::alias_t()> alias_node;
 
@@ -83,19 +83,19 @@ namespace yaml { namespace parser {
         qi::rule<
             iterator_t,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t>
+            qi::locals<parser_properties_t>
         > flow_yaml_node;
 
         qi::rule<
             iterator_t,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t>
+            qi::locals<parser_properties_t>
         > flow_json_node;
 
         qi::rule<
             iterator_t,
             ast::value_t(int, context_t),
-            qi::locals<ast::properties_t>
+            qi::locals<parser_properties_t>
         > flow_node;
     };
 

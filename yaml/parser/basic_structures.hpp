@@ -47,7 +47,7 @@ namespace yaml { namespace parser {
 
         qi::rule<
             iterator_t,
-            ast::properties_t(int, context_t),
+            parser_properties_t(int, context_t),
             qi::locals<std::string, iterator_range_t>
         > properties;
 

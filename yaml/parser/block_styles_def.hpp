@@ -444,7 +444,7 @@ namespace yaml { namespace parser {
                 separate(_r1 + 1, _r2)
             >>  -omit[properties(_r1 + 1, _r2)[_a = _1] >> separate(_r1 + 1, _r2)]
             >>  (literal(_r1) | folded(_r1))
-                [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
             ;
 
         // [200]
@@ -458,9 +458,9 @@ namespace yaml { namespace parser {
             >>  s_l_comments(_b = eoi_state_t::not_at_end)
             >>  (
                     block_sequence(seq_spaces(_r1, _r2))
-                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                    [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
                 |   block_mapping(_r1)
-                    [_val = handle_properties(_a, _1, phx::ref(anchors))]
+                    [_val = handle_properties(_a, _1, phx::ref(anchors), phx::cref(error_handler.f))]
                 )
             ;
 
