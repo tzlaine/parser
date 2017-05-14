@@ -32,7 +32,7 @@ namespace yaml { namespace ast {
     };
 
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream& operator<<(std::ostream& out, null_t)
+    inline std::ostream & operator<<(std::ostream & out, null_t)
     { return out << "<null>"; }
 #endif
 
@@ -56,7 +56,7 @@ namespace yaml { namespace ast {
         string_t anchor_;
     };
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream& operator<<(std::ostream& out, properties_t p)
+    inline std::ostream & operator<<(std::ostream & out, properties_t const & p)
     { return out << p.tag_ << ',' << p.anchor_; }
 #endif
 
@@ -78,26 +78,26 @@ namespace yaml { namespace ast {
         >
     {
         value_t(char const* val) : base_type(string_t(val)) {}
-        value_t(string_t const& val) : base_type(val) {}
+        value_t(string_t const & val) : base_type(val) {}
         value_t(double_t val) : base_type(val) {}
         value_t(int_t val) : base_type(val) {}
         value_t(bool_t val) : base_type(val) {}
         value_t(null_t val = null_t()) : base_type(val) {}
-        value_t(map_t const& val) : base_type(val) {}
-        value_t(seq_t const& val) : base_type(val) {}
-        value_t(alias_t const& val) : base_type(val) {}
-        value_t(properties_node_t const& val) : base_type(val) {}
+        value_t(map_t const & val) : base_type(val) {}
+        value_t(seq_t const & val) : base_type(val) {}
+        value_t(alias_t const & val) : base_type(val) {}
+        value_t(properties_node_t const & val) : base_type(val) {}
 
-        value_t(value_t const& rhs) : base_type(rhs.get()) {}
+        value_t(value_t const & rhs) : base_type(rhs.get()) {}
     };
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<< (std::ostream & os, value_t const & v)
     { return os << "<value>"; }
 #endif
 
-    bool operator==(value_t const& a, value_t const& b);
-    bool operator!=(value_t const& a, value_t const& b);
-    bool operator<(value_t const& a, value_t const& b);
+    bool operator==(value_t const & a, value_t const & b);
+    bool operator!=(value_t const & a, value_t const & b);
+    bool operator<(value_t const & a, value_t const & b);
 
     struct map_t
     {
