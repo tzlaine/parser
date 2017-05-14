@@ -40,24 +40,35 @@ namespace yaml { namespace parser {
 
         qi::rule<iterator_t, qi::locals<eoi_state_t>> directive;
         qi::rule<iterator_t> reserved_directive;
-        qi::rule<iterator_t, qi::locals<unsigned int>> yaml_directive;
-        qi::rule<iterator_t> tag_directive;
+        qi::rule<iterator_t, qi::locals<iterator_range_t, unsigned int>> yaml_directive;
+        qi::rule<iterator_t, qi::locals<iterator_range_t>> tag_directive;
         qi::rule<iterator_t> tag_handle;
         qi::rule<iterator_t> tag_prefix;
 
         qi::rule<
             iterator_t,
             ast::properties_t(int, context_t),
-            qi::locals<iterator_range_t, iterator_range_t>
+            qi::locals<std::string, iterator_range_t>
         > properties;
 
-        qi::rule<iterator_t, iterator_range_t()> tag_property;
+        qi::rule<iterator_t, std::string()> tag_property;
         qi::rule<iterator_t, iterator_range_t()> anchor_property;
         qi::rule<iterator_t, iterator_range_t()> anchor_name;
 
         qi::rule<iterator_t, void (eoi_state_t &)> one_time_eoi;
 
-        std::reference_wrapper<boost::phoenix::function<error_handler_t>> error_handler_;
+        struct tag_t
+        {
+            std::string prefix_;
+            iterator_t position_;
+            bool default_;
+        };
+        qi::symbols<char, tag_t> tags;
+
+        boost::phoenix::function<error_handler_t> error_handler_;
+
+        bool yaml_directive_seen_;
+        iterator_t first_yaml_directive_it_;
     };
 
 } }

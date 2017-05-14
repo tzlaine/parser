@@ -22,7 +22,20 @@
 
 namespace yaml { namespace parser {
 
-    struct error_handler_t
+    struct error_handler_impl_t;
+
+    struct scoped_multipart_error_t
+    {
+        scoped_multipart_error_t (error_handler_impl_t & error_handler)
+            : error_handler_ (error_handler)
+        {}
+        ~scoped_multipart_error_t ();
+
+        error_handler_impl_t & error_handler_;
+        std::ostringstream oss_;
+    };
+
+    struct error_handler_impl_t
     {
         template <typename, typename, typename, typename>
         struct result { using type = void; };
@@ -45,6 +58,14 @@ namespace yaml { namespace parser {
                 error_fn_(oss.str());
             else
                 throw parse_error(oss.str());
+        }
+
+        void report_preformatted_error_at (
+            iterator_t at,
+            std::string const & msg,
+            scoped_multipart_error_t & multipart
+        ) const {
+            format_error(first_, last_, at, msg, multipart.oss_);
         }
 
         void report_warning (std::string const & what) const
@@ -165,6 +186,38 @@ namespace yaml { namespace parser {
         std::function<void (std::string const &)> error_fn_;
         std::function<void (std::string const &)> warning_fn_;
     };
+
+    struct error_handler_t
+    {
+        void operator() (
+            iterator_t first,
+            iterator_t last,
+            iterator_t err_pos,
+            boost::spirit::info const & what
+        ) const {
+            (*impl_)(first, last, err_pos, what);
+        }
+
+        error_handler_impl_t & impl () const
+        { return *impl_; }
+
+        boost::shared_ptr<error_handler_impl_t> impl_;
+    };
+
+    inline error_handler_t make_error_handler ()
+    {
+        error_handler_t retval;
+        retval.impl_ = boost::shared_ptr<error_handler_impl_t>(new error_handler_impl_t);
+        return retval;
+    }
+
+    inline scoped_multipart_error_t::~scoped_multipart_error_t ()
+    {
+        if (error_handler_.error_fn_)
+            error_handler_.error_fn_(oss_.str());
+        else
+            throw parse_error(oss_.str());
+    }
 
 } }
 

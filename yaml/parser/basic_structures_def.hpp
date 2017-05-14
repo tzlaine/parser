@@ -21,34 +21,121 @@ namespace yaml { namespace parser {
 
         struct check_yaml_version
         {
-            template <typename, typename>
+            template <typename, typename, typename, typename, typename>
             struct result { using type = void; };
 
             template <typename Pass>
             void operator() (
+                iterator_range_t const & range,
                 unsigned int major,
                 unsigned int minor,
+                basic_structures_t & structures,
+                Pass & pass
+            ) const {
+                error_handler_t const & error_handler = structures.error_handler_.f;
+                if (structures.yaml_directive_seen_) {
+                    scoped_multipart_error_t multipart(error_handler.impl());
+                    error_handler.impl().report_preformatted_error_at(
+                        range.begin(),
+                        "The current document has more than one %YAML "
+                        "directive.  Only one is allowed.\n",
+                        multipart
+                    );
+                    error_handler.impl().report_preformatted_error_at(
+                        structures.first_yaml_directive_it_,
+                        "The first one was was here:\n",
+                        multipart
+                    );
+                    pass = false;
+                } else {
+                    structures.first_yaml_directive_it_ = range.begin();
+                    if (major != 1) {
+                        std::stringstream oss;
+                        oss << "The current document has a %YAML "
+                            << major << '.' << minor
+                            << " directive.  This parser recognizes "
+                               "YAML 1.2, and so cannot continue.\n";
+                        error_handler.impl().report_preformatted_error(oss.str());
+                        pass = false;
+                    } else if (minor != 2) {
+                        std::stringstream oss;
+                        oss << "The current document has a %YAML "
+                            << major << '.' << minor
+                            << " directive.  This parser recognizes "
+                               "YAML 1.2, and so might not work.  "
+                               "Trying anyway...\n";
+                        error_handler.impl().report_warning(oss.str());
+                    }
+                }
+                structures.yaml_directive_seen_ = true;
+            }
+        };
+
+        struct record_tag_handle
+        {
+            template <typename, typename, typename, typename, typename>
+            struct result { using type = void; };
+
+            template <typename Pass>
+            void operator() (
+                iterator_range_t const & handle_range,
+                iterator_range_t const & prefix_range,
+                qi::symbols<char, basic_structures_t::tag_t> & tags,
                 error_handler_t const & error_handler,
                 Pass & pass
             ) const {
-                if (major != 1) {
-                    std::stringstream oss;
-                    oss << "The current document has a %YAML "
-                        << major << '.' << minor
-                        << " directive.  This parser recognizes "
-                           "YAML 1.2, and so cannot continue.\n";
-                    error_handler.report_preformatted_error(oss.str());
+                using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
+                std::string const handle(
+                    to_string_iterator_t(handle_range.begin()),
+                    to_string_iterator_t(handle_range.end())
+                );
+
+                auto existing_tag = tags.find(handle);
+                if (existing_tag && existing_tag->default_) {
+                    tags.remove(handle);
+                    existing_tag = nullptr;
+                }
+
+                if (existing_tag) {
+                    scoped_multipart_error_t multipart(error_handler.impl());
+                    std::ostringstream oss;
+                    oss << "The current document has more than one %TAG "
+                        << "directive using the handle " << handle << ".  "
+                        << "Only one is allowed.\n";
+                    error_handler.impl().report_preformatted_error_at(
+                        handle_range.begin(),
+                        oss.str(),
+                        multipart
+                    );
+                    error_handler.impl().report_preformatted_error_at(
+                        existing_tag->position_,
+                        "The first one was was here:\n",
+                        multipart
+                    );
                     pass = false;
-                } else if (minor != 2) {
-                    std::stringstream oss;
-                    oss << "The current document has a %YAML "
-                        << major << '.' << minor
-                        << " directive.  This parser recognizes "
-                           "YAML 1.2, and so might not work.  "
-                           "Trying anyway...\n";
-                    error_handler.report_warning(oss.str());
+                } else {
+                    tags.add(
+                        handle,
+                        basic_structures_t::tag_t{
+                            std::string(
+                                to_string_iterator_t(prefix_range.begin()),
+                                to_string_iterator_t(prefix_range.end())
+                            ),
+                            handle_range.begin(),
+                            false
+                        }
+                    );
                 }
             }
+        };
+
+        struct prefix
+        {
+            template <typename>
+            struct result { using type = std::string const &; };
+
+            std::string const & operator() (basic_structures_t::tag_t const & tag) const
+            { return tag.prefix_; }
         };
 
         // HACK!  This is a dirty, dirty hack that bears explaining.  Many
@@ -107,12 +194,15 @@ namespace yaml { namespace parser {
     )
         : characters_ (verbose)
         , error_handler_ (error_handler)
+        , yaml_directive_seen_ (false)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
         qi::unicode::char_type char_;
+        qi::unicode::string_type string;
         qi::_val_type _val;
         qi::_1_type _1;
+        qi::_2_type _2;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
         qi::_r3_type _r3;
@@ -139,9 +229,13 @@ namespace yaml { namespace parser {
         auto & uri_char = characters_.uri_char;
 
         function<detail::check_yaml_version> check_yaml_version;
+        function<detail::record_tag_handle> record_tag_handle;
+        function<detail::prefix> prefix;
         function<detail::check_start_of_line> check_start_of_line;
         function<detail::first_time_eoi> first_time_eoi;
         function<detail::to_str> to_str;
+
+        tags.name("a tag prefix defined in a TAG directive, \"!!\", or \"!\"");
 
         // 6.1. Indentation Spaces
 
@@ -257,30 +351,34 @@ namespace yaml { namespace parser {
         reserved_directive =
                 +ns_char
             >>  *(+blank >> +ns_char)
+            // TODO: Issue warning (See 6.8).
             ;
 
         // [86]
         yaml_directive =
-                "YAML"
+                raw["YAML"][_a = _1]
             >>  +blank
-            >>  uint_[_a = _1]
+            >>  uint_[_b = _1]
             >>  '.'
-            >>  uint_[check_yaml_version(_a, _1, phx::cref(error_handler_.get().f), _pass)]
+            >>  uint_[check_yaml_version(_a, _b, _1, phx::ref(*this), _pass)]
             ;
 
         // [88]
         tag_directive =
-            "TAG" >> +blank >> tag_handle >> +blank >> tag_prefix
-            // TODO [add tag to tag symbol table]
+                "TAG"
+            >>  +blank
+            >>  raw[tag_handle][_a = _1]
+            >>  +blank
+            >>  raw[tag_prefix][record_tag_handle(_a, _1, phx::ref(tags), phx::cref(error_handler_.f), _pass)]
             ;
 
         // [89]
         tag_handle =
                 // "alnum..." below is  word_char [38]
-                '!' >> +(alnum | char_("-")) >> '!' // named_tag_handle [92] (must match existing TAG-defined prefix)
+                '!' >> +(alnum | char_("-")) >> '!' // named_tag_handle [92]
             |   "!!"                                // secondary_tag_handle [91]
             |   '!'                                 // primary_tag_handle [90]
-            ; // TODO: Check that nonempty handle matches existing TAG prefix (or better yet, use a symbol table)
+            ;
 
         // [93]
         tag_prefix =
@@ -291,21 +389,18 @@ namespace yaml { namespace parser {
         // 6.9 Node Properties
 
         // [96]
-        // TODO: Defer construction of an ast::properties_t until we know
-        // we'll keep it.
         properties = (
                 tag_property[_a = _1] >> -(separate(_r1, _r2) >> anchor_property[_b = *_1])
             |   anchor_property[_b = _1] >> -(separate(_r1, _r2) >> tag_property[_a = *_1])
             )
-            [_val = construct<ast::properties_t>(to_str(_a), to_str(_b))]
+            [_val = construct<ast::properties_t>(_a, to_str(_b))]
             ;
 
         // [97]
-        tag_property = raw[
-                lit('!') >> "<" > +uri_char > ">"   // verbatim_tag [98]
-            |   tag_handle >> +tag_char             // shorthand_tag [99]
-            |   '!'                                 // non_specific_tag [100]
-            ]
+        tag_property =
+                raw["!<" > +uri_char > '>'][_val = to_str(_1)]            // verbatim_tag [98]
+            |   (tags >> raw[+tag_char])[_val = prefix(_1) + to_str(_2)]  // shorthand_tag [99]
+            |   lit('!')[_val = "!"]                                      // non_specific_tag [100]
             ;
 
         // [22]

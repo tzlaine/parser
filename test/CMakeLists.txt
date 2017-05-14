@@ -125,7 +125,6 @@ foreach (test_file ${local_test_files})
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
-        --gtest_catch_exceptions=1
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
     # TODO: Turn this on after the parse tests pass.
@@ -133,20 +132,15 @@ foreach (test_file ${local_test_files})
         add_test(
             parse_test_round_trip_${test_file}
             ${CMAKE_CURRENT_BINARY_DIR}/parse_round_trip_test
-            --gtest_catch_exceptions=1
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
         )
     endif()
 endforeach()
 
-set(invalid_test_files
-    # TODO
-)
-foreach (test_file ${invalid_test_files})
+foreach (test_file ${error_local_test_files})
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
-        --gtest_catch_exceptions=1
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
     set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)

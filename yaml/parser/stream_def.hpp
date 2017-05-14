@@ -37,12 +37,32 @@ namespace yaml { namespace parser {
             return true;
         }
 
+        struct clear_document_state
+        {
+            template <typename>
+            struct result { using type = void; };
+
+            void operator() (stream_t & stream) const
+            {
+                stream.block_styles_.flow_styles_.anchors.clear();
+
+                auto & tags = stream.block_styles_.flow_styles_.basic_structures_.tags;
+                tags.clear();
+                tags.add("!!", basic_structures_t::tag_t{"tag:yaml.org,2002:", iterator_t(), true});
+                tags.add("!", basic_structures_t::tag_t{"!", iterator_t(), true});
+
+                stream.block_styles_.flow_styles_.basic_structures_.yaml_directive_seen_ = false;
+            }
+        };
+
+        
+
     }
 
     YAML_HEADER_ONLY_INLINE
     stream_t::stream_t (bool verbose)
-        : block_styles_ (error_handler_, verbose)
-        , error_handler_ (error_handler_t())
+        : error_handler_ (make_error_handler())
+        , block_styles_ (error_handler_, verbose)
     {
         qi::attr_type attr;
         qi::raw_type raw;
@@ -64,6 +84,7 @@ namespace yaml { namespace parser {
         using phx::function;
 
         function<detail::check_start_of_line> check_start_of_line;
+        function<detail::clear_document_state> clear_document_state;
 
         auto pb = phx::push_back(_val, _1);
 
@@ -122,11 +143,12 @@ namespace yaml { namespace parser {
 
         // [211]
         yaml_stream =
-                *document_prefix
-            >>  -any_document[pb]
+                eps[clear_document_state(phx::ref(*this))]
+            >>  *document_prefix
+            >>  -any_document[pb, clear_document_state(phx::ref(*this))]
             >>  *(
-                    +(document_suffix >> !bom) >> *document_prefix >> any_document[pb]
-                |   *document_prefix >> explicit_document[pb]
+                    +(document_suffix >> !bom) >> *document_prefix >> any_document[pb, clear_document_state(phx::ref(*this))]
+                |   *document_prefix >> explicit_document[pb, clear_document_state(phx::ref(*this))]
                 )
             >>  *(document_suffix >> !bom) >> *document_prefix
             ;
@@ -162,20 +184,20 @@ namespace yaml { namespace parser {
         reporting_fn_t const & errors,
         reporting_fn_t const & warnings
     ) {
-        error_handler_.f.first_ = first;
-        error_handler_.f.last_ = last;
-        error_handler_.f.current_ = &first;
-        error_handler_.f.source_file_ = source_file;
-        error_handler_.f.error_fn_ = errors;
-        error_handler_.f.warning_fn_ = warnings;
+        error_handler_.f.impl().first_ = first;
+        error_handler_.f.impl().last_ = last;
+        error_handler_.f.impl().current_ = &first;
+        error_handler_.f.impl().source_file_ = source_file;
+        error_handler_.f.impl().error_fn_ = errors;
+        error_handler_.f.impl().warning_fn_ = warnings;
     }
 
     YAML_HEADER_ONLY_INLINE
     void stream_t::reset_error_handler_params ()
     {
-        error_handler_.f.first_ = error_handler_.f.last_;
-        error_handler_.f.current_ = nullptr;
-        error_handler_.f.source_file_ = "";
+        error_handler_.f.impl().first_ = error_handler_.f.impl().last_;
+        error_handler_.f.impl().current_ = nullptr;
+        error_handler_.f.impl().source_file_ = "";
     }
 
     namespace detail {
@@ -336,7 +358,7 @@ namespace yaml { namespace parser {
             auto const encoding_ok = detail::check_encoding(
                 encoding,
                 [&parser](std::string const & msg) {
-                    parser.error_handler_.f.report_preformatted_error(msg);
+                    parser.error_handler_.f.impl().report_preformatted_error(msg);
                 }
             );
 
@@ -363,7 +385,7 @@ namespace yaml { namespace parser {
             success = qi::parse(first, last, parser.end_of_input);
 
             if (!success)
-                parser.error_handler_.f.report_error("end of input");
+                parser.error_handler_.f.impl().report_error("end of input");
         }
 
         if (success)

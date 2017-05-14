@@ -36,3 +36,8 @@ set(local_test_files
     # Repeated contents of basic_yaml_block.yaml (contains >1 BOM).
     basic_yaml_block_repeated.yaml
 )
+
+set(error_local_test_files
+    repeated_yaml_directive.yaml
+    repeated_tag_directive.yaml
+)

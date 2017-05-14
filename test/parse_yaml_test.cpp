@@ -31,9 +31,20 @@ TEST(parse, test_parse_yaml)
     using yaml::parser::parse_yaml;
     using yaml::ast::print_yaml;
 
+    std::vector<std::string> errors;
+    auto report_error = [&errors](std::string const & error) {
+        errors.push_back(error);
+    };
+
     boost::optional<std::vector<value_t>> result =
-        parse_yaml(in, filename, reporting_fn_t(), reporting_fn_t(), verbose);
+        parse_yaml(in, filename, report_error, reporting_fn_t(), verbose);
+
+    for (auto const & error : errors) {
+        std::cout << error;
+    }
+
     ASSERT_TRUE(result) << "failed initial parse of " << filename;
+    ASSERT_TRUE(errors.empty()) << "initial parse of " << filename << " produced error messages";
 
     for (auto const & doc : *result) {
         std::cout << "---\n";

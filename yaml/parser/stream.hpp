@@ -28,6 +28,8 @@ namespace yaml { namespace parser {
  
         void reset_error_handler_params ();
 
+        boost::phoenix::function<error_handler_t> error_handler_;
+
         block_styles_t block_styles_;
 
         qi::rule<iterator_t, qi::locals<eoi_state_t>> document_prefix;
@@ -40,8 +42,6 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, std::vector<ast::value_t>()> yaml_stream;
 
         qi::rule<iterator_t> end_of_input;
-
-        boost::phoenix::function<error_handler_t> error_handler_;
     };
 
     YAML_HEADER_ONLY_INLINE
