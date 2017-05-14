@@ -270,7 +270,7 @@ namespace yaml { namespace parser {
                 iterator_range_t range,
                 error_handler_t const & error_handler
             ) const {
-                if (map.count(x.first)) {
+                if (map.count(x.first) && error_handler.impl().warning_fn_) {
                     std::ostringstream oss;
                     oss << "Ignoring map entry with duplicate key \"\n";
                     ast::print_yaml<2, true, true, false>(oss, x.first);
@@ -305,7 +305,7 @@ namespace yaml { namespace parser {
                     anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
 
                     auto existing_anchor = anchors.find(properties.anchor_);
-                    if (existing_anchor) {
+                    if (existing_anchor && error_handler.impl().warning_fn_) {
                         std::ostringstream oss;
                         oss << "Redefining anchor " << properties.anchor_ << ":\n";
                         error_handler.impl().report_warning_at(
