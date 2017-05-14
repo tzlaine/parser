@@ -122,6 +122,33 @@ void BM_2JQS_yml (benchmark::State & state)
     }
 }
 
+void BM_2SXE_yml (benchmark::State & state)
+{
+    using yaml::ast::value_t;
+    using yaml::parser::reporting_fn_t;
+    using yaml::parser::parse_yaml;
+    using yaml::ast::print_yaml;
+
+    char const * contents = R"YAML_TEXT(&a: key: &a value
+foo:
+  *a:
+)YAML_TEXT";
+
+    boost::optional<std::vector<value_t>> result;
+    while (state.KeepRunning()) {
+        result = parse_yaml(
+            g_parser,
+            contents, contents + strlen(contents),
+            "/Users/tzlaine/yaml_spirit/test/test_files/2SXE.yml",
+            reporting_fn_t(), reporting_fn_t()
+        );
+    }
+    for (auto const & v : *result) {
+        (void)v;
+        std::cout << "";
+    }
+}
+
 void BM_2XXW_yml (benchmark::State & state)
 {
     using yaml::ast::value_t;
@@ -6005,6 +6032,7 @@ BENCHMARK(BM_229Q_yml);
 BENCHMARK(BM_27NA_yml);
 BENCHMARK(BM_2AUY_yml);
 BENCHMARK(BM_2JQS_yml);
+BENCHMARK(BM_2SXE_yml);
 BENCHMARK(BM_2XXW_yml);
 BENCHMARK(BM_35KP_yml);
 BENCHMARK(BM_3ALJ_yml);
