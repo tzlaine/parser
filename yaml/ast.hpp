@@ -102,6 +102,8 @@ namespace yaml { namespace ast {
     struct map_t
     {
         using vector_t = boost::container::stable_vector<map_element_t>;
+        using key_type = map_element_t::first_type;
+        using mapped_type = map_element_t::second_type;
         using value_type = vector_t::value_type;
         using size_type = vector_t::size_type;
         using iterator = vector_t::iterator;
@@ -124,6 +126,9 @@ namespace yaml { namespace ast {
 
         size_type size () const
         { return elements_.size(); }
+
+        inline const_iterator find (key_type const & k) const;
+        inline size_type count (key_type const & k) const;
 
         iterator begin ()
         { return elements_.begin(); }

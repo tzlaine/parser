@@ -526,6 +526,24 @@ namespace yaml { namespace ast {
         return *this;
     }
 
+    inline map_t::const_iterator map_t::find (key_type const & k) const
+    {
+        auto const index_it = index_->map_.find(k);
+        if (index_it == index_->map_.end())
+            return elements_.end();
+        else
+            return index_it->second;
+    }
+
+    inline map_t::size_type map_t::count (key_type const & k) const
+    {
+        auto const index_it = index_->map_.find(k);
+        if (index_it == index_->map_.end())
+            return 0u;
+        else
+            return 1u;
+    }
+
     inline std::pair<map_t::iterator, bool> map_t::insert (map_element_t const & e)
     {
         auto const index_it = index_->map_.find(e.first);
