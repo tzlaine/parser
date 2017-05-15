@@ -40,4 +40,5 @@ set(local_test_files
 set(error_local_test_files
     repeated_yaml_directive.yaml
     repeated_tag_directive.yaml
+    improper_scalar_indentation.yaml
 )

@@ -57,6 +57,36 @@ namespace yaml { namespace parser {
             { max_indent = (std::max)(max_indent, this_line_indent); }
         };
 
+        struct check_scalar_indentation
+        {
+            template <typename, typename, typename, typename, typename>
+            struct result { using type = void; };
+
+            template <typename Pass>
+            void operator() (
+                iterator_range_t range,
+                int & max_indent,
+                int this_line_indent,
+                error_handler_t const & error_handler,
+                Pass & pass
+            ) const {
+                if (max_indent <= this_line_indent) {
+                    max_indent = this_line_indent;
+                } else {
+                    scoped_multipart_error_t multipart(error_handler.impl());
+                    std::ostringstream oss;
+                    oss << "The first non-space character of a block-scalar "
+                        << "(text beginning with '|' or '>') must be at least "
+                        << "as indented as all its leading empty lines.  "
+                        << "This line is indented " << this_line_indent
+                        << " spaces, but a previous line was indented "
+                        << max_indent << " spaces:\n";
+                    error_handler.impl().report_error_at(range.begin(), oss.str(), multipart);
+                    pass = false;
+                }
+            }
+        };
+
     }
 
     YAML_HEADER_ONLY_INLINE
@@ -70,6 +100,7 @@ namespace yaml { namespace parser {
         qi::omit_type omit;
         qi::hold_type hold;
         qi::raw_type raw;
+        qi::_pass_type _pass;
         qi::_val_type _val;
         qi::_1_type _1;
         qi::_2_type _2;
@@ -96,6 +127,7 @@ namespace yaml { namespace parser {
         phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::update_max> update_max;
         phx::function<detail::map_insert> map_insert;
+        phx::function<detail::check_scalar_indentation> check_scalar_indentation;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
 
         auto ins = map_insert(_val, _1, _b, phx::cref(error_handler.f));
@@ -312,8 +344,9 @@ namespace yaml { namespace parser {
                 eps[_val = 0]
             >>  &(
                     *(eps[_a = 0] >> *lit(' ')[++_a] >> eol[update_max(_val, _a)])
-                >>  eps[_a = 0] >> *lit(' ')[++_a] >> eps(_val <= _a)[_val = _a] // TODO: Generate a specific error message here.
-                )
+                >>  eps[_a = 0] >> *lit(' ')[++_a]
+                >>  raw[eps][check_scalar_indentation(_1, _val, _a, phx::cref(error_handler.f), _pass)]
+            )
             ;
 
 
