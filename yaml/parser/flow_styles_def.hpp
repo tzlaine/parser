@@ -69,7 +69,6 @@ namespace yaml { namespace parser {
         qi::_1_type _1;
         qi::_2_type _2;
         qi::_a_type _a;
-        qi::_b_type _b;
         qi::_r1_type _r1;
         qi::_r2_type _r2;
         qi::lit_type lit;
@@ -87,7 +86,8 @@ namespace yaml { namespace parser {
         phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::map_insert> map_insert;
 
-        auto ins = map_insert(_val, _1, _b, phx::cref(error_handler.f));
+        auto ins = map_insert(_val, _1, _a, phx::cref(error_handler.f));
+        auto unchecked_ins = phx::insert(_val, _1);
 
 #ifdef BOOST_SPIRIT_DEBUG
         phx::function<detail::print_indent> print_indent;
@@ -320,7 +320,7 @@ namespace yaml { namespace parser {
 
         // [141]
         flow_map_entries =
-                flow_map_entry(_r1, _r2) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
+                (raw[eps][_a = _1] >> flow_map_entry(_r1, _r2)[ins]) % (-separate(_r1, _r2) >> ',' >> -separate(_r1, _r2))
             >>  -(-separate(_r1, _r2) >> ',')
             ;
 
@@ -387,8 +387,8 @@ namespace yaml { namespace parser {
 
         // [150]
         flow_pair =
-                '?' >> separate(_r1, _r2) >> raw[eps][_b = _1] >> flow_map_explicit_entry(_r1, _r2)[ins]
-            |   raw[eps][_b = _1] >> flow_pair_entry(_r1, _r2)[ins]
+                '?' >> separate(_r1, _r2) >> flow_map_explicit_entry(_r1, _r2)[unchecked_ins]
+            |   flow_pair_entry(_r1, _r2)[unchecked_ins]
             ;
 
         // [151]

@@ -272,9 +272,9 @@ namespace yaml { namespace parser {
             ) const {
                 if (map.count(x.first) && error_handler.impl().warning_fn_) {
                     std::ostringstream oss;
-                    oss << "Ignoring map entry with duplicate key \"\n";
+                    oss << "Ignoring map entry with duplicate key '";
                     ast::print_yaml<2, true, true, false>(oss, x.first);
-                    oss << "\":\n";
+                    oss << "'";
                     error_handler.impl().report_warning_at(range.begin(), oss.str());
                 } else {
                     map.insert(x);
@@ -308,14 +308,14 @@ namespace yaml { namespace parser {
                     auto existing_anchor = anchors.find(properties.anchor_);
                     if (existing_anchor && error_handler.impl().warning_fn_) {
                         std::ostringstream oss;
-                        oss << "Redefining anchor " << properties.anchor_ << ":\n";
+                        oss << "Redefining anchor " << properties.anchor_;
                         error_handler.impl().report_warning_at(
                             parser_properties.anchor_.begin(),
                             oss.str()
                         );
                         error_handler.impl().report_warning_at(
                             existing_anchor->position_,
-                            "The previous one was was here:\n"
+                            "The previous one was was here"
                         );
                     }
 

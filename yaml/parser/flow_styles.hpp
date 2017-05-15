@@ -59,7 +59,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, ast::value_t(int, context_t)> flow_seq_entry;
 
         qi::rule<iterator_t, ast::map_t(int, context_t)> flow_mapping;
-        qi::rule<iterator_t, ast::map_t(int, context_t)> flow_map_entries;
+        qi::rule<iterator_t, ast::map_t(int, context_t), qi::locals<iterator_range_t>> flow_map_entries;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_map_entry;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_map_explicit_entry;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_map_implicit_entry;
@@ -69,7 +69,7 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, ast::value_t(int, context_t)> flow_map_separate_value;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_map_json_key_entry;
         qi::rule<iterator_t, ast::value_t(int, context_t)> flow_map_adjacent_value;
-        qi::rule<iterator_t, ast::map_t(int, context_t), qi::locals<iterator_range_t, iterator_range_t>> flow_pair;
+        qi::rule<iterator_t, ast::map_t(int, context_t)> flow_pair;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_pair_entry;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_pair_yaml_key_entry;
         qi::rule<iterator_t, ast::map_element_t(int, context_t)> flow_pair_json_key_entry;

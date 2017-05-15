@@ -226,3 +226,20 @@ endforeach()
 foreach (test ${expected_comparison_failures})
     set_tests_properties(${test} PROPERTIES WILL_FAIL true)
 endforeach()
+
+##################################################
+# Warnings test
+##################################################
+add_executable(
+    warnings_test_bin
+    warnings_test.cpp
+)
+target_link_libraries(warnings_test_bin yaml gtest ${link_flags})
+if (clang_on_linux)
+    target_link_libraries(warnings_test_bin c++)
+endif ()
+add_test(
+    warnings_test
+    ${CMAKE_CURRENT_BINARY_DIR}/warnings_test_bin
+    --gtest_catch_exceptions=1
+)

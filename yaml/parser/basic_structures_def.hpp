@@ -34,7 +34,7 @@ namespace yaml { namespace parser {
                 std::ostringstream oss;
                 oss << "All directives except %YAML and %TAG are "
                     << "reserved for future use.  The directive '%"
-                    << directive << "' will be ignored.\n";
+                    << directive << "' will be ignored";
                 error_handler.impl().report_warning_at(range.begin(), oss.str());
             }
         };
@@ -58,12 +58,13 @@ namespace yaml { namespace parser {
                     error_handler.impl().report_error_at(
                         range.begin(),
                         "The current document has more than one %YAML "
-                        "directive.  Only one is allowed.\n",
+                        "directive.  Only one is allowed.  The latest "
+                        "one is here",
                         multipart
                     );
                     error_handler.impl().report_error_at(
                         structures.first_yaml_directive_it_,
-                        "The first one was was here:\n",
+                        "The first one was was here",
                         multipart
                     );
                     pass = false;
@@ -75,7 +76,7 @@ namespace yaml { namespace parser {
                         oss << "The current document has a %YAML "
                             << major << '.' << minor
                             << " directive.  This parser recognizes "
-                               "YAML 1.2, and so cannot continue.\n";
+                               "YAML 1.2, and so cannot continue";
                         error_handler.impl().report_error_at(range.begin(), oss.str(), multipart);
                         pass = false;
                     } else if (minor != 2 && error_handler.impl().warning_fn_) {
@@ -84,7 +85,7 @@ namespace yaml { namespace parser {
                             << major << '.' << minor
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so might not work.  "
-                               "Trying anyway...\n";
+                               "Trying anyway...";
                         error_handler.impl().report_warning_at(range.begin(), oss.str());
                     }
                 }
@@ -118,7 +119,7 @@ namespace yaml { namespace parser {
                     std::ostringstream oss;
                     oss << "The current document has more than one %TAG "
                         << "directive using the handle " << handle << ".  "
-                        << "Only one is allowed.\n";
+                        << "Only one is allowed.  The latest one is here";
                     error_handler.impl().report_error_at(
                         handle_range.begin(),
                         oss.str(),
@@ -126,7 +127,7 @@ namespace yaml { namespace parser {
                     );
                     error_handler.impl().report_error_at(
                         existing_tag->position_,
-                        "The first one was was here:\n",
+                        "The first one was was here",
                         multipart
                     );
                     pass = false;
