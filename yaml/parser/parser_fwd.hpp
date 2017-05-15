@@ -303,6 +303,7 @@ namespace yaml { namespace parser {
                     anchor_t anchor;
                     std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
                     anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
+                    anchor.position_ = parser_properties.anchor_.begin();
 
                     auto existing_anchor = anchors.find(properties.anchor_);
                     if (existing_anchor && error_handler.impl().warning_fn_) {
