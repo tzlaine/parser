@@ -87,13 +87,29 @@ if (PYTHONINTERP_FOUND)
     else ()
          message("     *** Failed with result=\"${result}\" ***!")
     endif()
+
+    message("-- Running make_test_suite_json.py -y ${CMAKE_HOME_DIRECTORY}/JSONTestSuite -o ${CMAKE_CURRENT_SOURCE_DIR}/test_files ...")
+    execute_process(
+        COMMAND
+            ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/make_test_suite_json.py
+            -y ${CMAKE_HOME_DIRECTORY}/JSONTestSuite
+            -o ${CMAKE_CURRENT_SOURCE_DIR}/test_files
+        RESULT_VARIABLE
+            result
+    )
+    if (result STREQUAL "" OR result EQUAL 0)
+         message("     ... Success!")
+    else ()
+         message("     *** Failed with result=\"${result}\" ***!")
+    endif()
 else ()
-    message("-- Python not found.  Yaml test inputs will not be rebuilt.")
+    message("-- Python not found.  YAML and JSON test inputs will not be rebuilt.")
 endif()
 
-include(test_files/index.cmake)
+include(test_files/index.cmake) 
 include(test_files/index_xfail.cmake)
 list(APPEND expected_parse_failures ${error_yml_file_index})
+include(test_files/json_index.cmake)
 
 ##################################################
 # Parse-only tests
@@ -142,6 +158,27 @@ foreach (test_file ${error_local_test_files})
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
+    )
+    set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
+endforeach()
+
+foreach (test_file ${json_file_index})
+    if (NOT ${test_file} STREQUAL i_structure_500_nested_arrays.json) # TODO: This file seems to hang the parser
+    add_test(
+        parse_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        --gtest_catch_exceptions=1
+        ${CMAKE_SOURCE_DIR}/JSONTestSuite/test_parsing/${test_file}
+    )
+    endif ()
+endforeach()
+
+foreach (test_file ${error_json_file_index})
+    add_test(
+        parse_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        --gtest_catch_exceptions=1
+        ${CMAKE_SOURCE_DIR}/JSONTestSuite/test_parsing/${test_file}
     )
     set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
 endforeach()
