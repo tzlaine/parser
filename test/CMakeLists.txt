@@ -209,6 +209,14 @@ set(expected_json_parse_failures
     i_string_truncated-utf-8.json
     i_string_utf16BE_no_BOM.json
     i_string_utf16LE_no_BOM.json
+
+    # Invalid UTF-8 sequences. (See http://unicode.org/faq/utf_bom.html#utf8-4)
+    y_string_accepted_surrogate_pair.json
+    y_string_accepted_surrogate_pairs.json
+    y_string_last_surrogates_1_and_2.json
+    y_string_surrogates_U+1D11E_MUSICAL_SYMBOL_G_CLEF.json
+    y_string_unicode_U+10FFFE_nonchar.json
+    y_string_unicode_U+1FFFE_nonchar.json
 )
 
 foreach (yml_file_root ${expected_json_parse_failures})
