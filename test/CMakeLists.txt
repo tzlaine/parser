@@ -183,6 +183,38 @@ foreach (test_file ${error_json_file_index})
     set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
 endforeach()
 
+set(expected_json_parse_failures
+    # These fail, and all have the "i_" prefix, indicating that they need not
+    # be parsed correctly to be JSON-conformant.
+    i_object_key_lone_2nd_surrogate.json
+    i_string_1st_surrogate_but_2nd_missing.json
+    i_string_1st_valid_surrogate_2nd_invalid.json
+    i_string_UTF-16LE_with_BOM.json
+    i_string_UTF-8_invalid_sequence.json
+    i_string_UTF8_surrogate_U+D800.json
+    i_string_incomplete_surrogate_and_escape_valid.json
+    i_string_incomplete_surrogate_pair.json
+    i_string_incomplete_surrogates_escape_valid.json
+    i_string_invalid_lonely_surrogate.json
+    i_string_invalid_surrogate.json
+    i_string_invalid_utf-8.json
+    i_string_inverted_surrogates_U+1D11E.json
+    i_string_iso_latin_1.json
+    i_string_lone_second_surrogate.json
+    i_string_lone_utf8_continuation_byte.json
+    i_string_not_in_unicode_range.json
+    i_string_overlong_sequence_2_bytes.json
+    i_string_overlong_sequence_6_bytes.json
+    i_string_overlong_sequence_6_bytes_null.json
+    i_string_truncated-utf-8.json
+    i_string_utf16BE_no_BOM.json
+    i_string_utf16LE_no_BOM.json
+)
+
+foreach (yml_file_root ${expected_json_parse_failures})
+    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
+endforeach()
+
 ##################################################
 # Parse-and-compare tests
 ##################################################
