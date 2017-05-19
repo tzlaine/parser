@@ -163,7 +163,8 @@ foreach (test_file ${error_local_test_files})
 endforeach()
 
 foreach (test_file ${json_file_index})
-    if (NOT ${test_file} STREQUAL i_structure_500_nested_arrays.json) # TODO: This file seems to hang the parser
+    # TODO: This file seems to hang the parser.  Update: it's a perf issue!
+    if (NOT ${test_file} STREQUAL i_structure_500_nested_arrays.json)
     add_test(
         parse_test_${test_file}
         ${CMAKE_CURRENT_BINARY_DIR}/parse_test
@@ -221,6 +222,105 @@ set(expected_json_parse_failures
 
 foreach (yml_file_root ${expected_json_parse_failures})
     set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
+endforeach()
+
+set(expected_json_parse_non_failures
+    # Parsed just fine as YAML, since it is a superset of JSON.
+    n_array_1_true_without_comma.json
+    n_array_colon_instead_of_comma.json
+    n_array_extra_comma.json
+    n_array_items_separated_by_semicolon.json
+    n_array_number_and_comma.json
+    n_incomplete_false.json
+    n_incomplete_null.json
+    n_incomplete_true.json
+    n_number_++.json
+    n_number_+1.json
+    n_number_+Inf.json
+    n_number_-01.json
+    n_number_-1.0..json
+    n_number_-2..json
+    n_number_-NaN.json
+    n_number_.-1.json
+    n_number_.2e-3.json
+    n_number_0.1.2.json
+    n_number_0.3e+.json
+    n_number_0.3e.json
+    n_number_0.e1.json
+    n_number_0_capital_E+.json
+    n_number_0_capital_E.json
+    n_number_0e+.json
+    n_number_0e.json
+    n_number_1.0e+.json
+    n_number_1.0e-.json
+    n_number_1.0e.json
+    n_number_1_000.json
+    n_number_1eE2.json
+    n_number_2.e+3.json
+    n_number_2.e-3.json
+    n_number_2.e3.json
+    n_number_9.e+.json
+    n_number_Inf.json
+    n_number_NaN.json
+    n_number_U+FF11_fullwidth_digit_one.json
+    n_number_expression.json
+    n_number_hex_1_digit.json
+    n_number_hex_2_digits.json
+    n_number_infinity.json
+    n_number_invalid+-.json
+    n_number_invalid-negative-real.json
+    n_number_minus_infinity.json
+    n_number_minus_sign_with_trailing_garbage.json
+    n_number_neg_int_starting_with_zero.json
+    n_number_neg_real_without_int_part.json
+    n_number_neg_with_garbage_at_end.json
+    n_number_real_garbage_after_e.json
+    n_number_real_without_fractional_part.json
+    n_number_starting_with_dot.json
+    n_number_with_alpha.json
+    n_number_with_alpha_char.json
+    n_number_with_leading_zero.json
+    n_object_bad_value.json
+    n_object_comma_instead_of_colon.json
+    n_object_double_colon.json
+    n_object_emoji.json
+    n_object_key_with_single_quotes.json
+    n_object_non_string_key_but_huge_number_instead.json
+    n_object_single_quote.json
+    n_object_trailing_comma.json
+    n_object_unquoted_key.json
+    n_object_with_single_string.json
+    n_single_space.json
+    n_string_accentuated_char_no_quotes.json
+    n_string_escape_x.json
+    n_string_escaped_ctrl_char_tab.json
+    n_string_invalid_backslash_esc.json
+    n_string_leading_uescaped_thinspace.json
+    n_string_no_quotes_with_bad_escape.json
+    n_string_single_quote.json
+    n_string_single_string_no_double_quotes.json
+    n_string_unescaped_newline.json
+    n_string_unescaped_tab.json
+    n_structure_U+2060_word_joined.json
+    n_structure_UTF8_BOM_no_data.json
+    n_structure_angle_bracket_..json
+    n_structure_angle_bracket_null.json
+    n_structure_ascii-unicode-identifier.json
+    n_structure_capitalized_True.json
+    n_structure_close_unopened_array.json
+    n_structure_no_data.json
+    n_structure_number_with_trailing_garbage.json
+    n_structure_object_with_comment.json
+    n_structure_uescaped_LF_before_string.json
+    n_structure_unicode-identifier.json
+    n_structure_whitespace_U+2060_word_joiner.json
+    n_structure_whitespace_formfeed.json
+    n_object_missing_key.json
+    n_object_non_string_key.json
+)
+
+foreach (yml_file_root ${expected_json_parse_non_failures})
+    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL false)
 endforeach()
 
 ##################################################
