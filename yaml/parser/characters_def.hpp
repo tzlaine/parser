@@ -7,8 +7,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_CHARACTERS_DEF_HPP
-#define YAML_PARSER_CHARACTERS_DEF_HPP
+#ifndef BOOST_YAML_PARSER_CHARACTERS_DEF_HPP
+#define BOOST_YAML_PARSER_CHARACTERS_DEF_HPP
 
 #include <yaml/parser/characters.hpp>
 
@@ -18,7 +18,7 @@
 #include <boost/phoenix/object/construct.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -55,7 +55,7 @@ namespace yaml { namespace parser {
 
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     characters_t::characters_t (bool verbose)
     {
         qi::unicode::char_type char_;
@@ -157,6 +157,6 @@ namespace yaml { namespace parser {
         }
     }
 
-} }
+}}}
 
 #endif

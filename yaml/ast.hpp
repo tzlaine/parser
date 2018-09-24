@@ -6,8 +6,8 @@
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
-#ifndef YAML_AST_VALUE_HPP
-#define YAML_AST_VALUE_HPP
+#ifndef BOOST_YAML_AST_VALUE_HPP
+#define BOOST_YAML_AST_VALUE_HPP
 
 #include <boost/container/stable_vector.hpp>
 #include <boost/spirit/include/support_extended_variant.hpp>
@@ -17,7 +17,7 @@
 #include <unordered_map>
 
 
-namespace yaml { namespace ast {
+namespace boost { namespace yaml { namespace ast {
 
     using string_t = std::string;
     using double_t = double;
@@ -173,7 +173,7 @@ namespace yaml { namespace ast {
 
     // ---------------------------------------------------
 
-} }
+}}}
 
 #include <yaml/detail/ast_impl.hpp>
 

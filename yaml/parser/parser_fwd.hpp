@@ -5,8 +5,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_PARSER_FWD_HPP
-#define YAML_PARSER_PARSER_FWD_HPP
+#ifndef BOOST_YAML_PARSER_PARSER_FWD_HPP
+#define BOOST_YAML_PARSER_PARSER_FWD_HPP
 
 #include <yaml/config.hpp>
 #include <yaml/ast.hpp>
@@ -16,7 +16,7 @@
 #include <boost/spirit/include/classic_position_iterator.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
@@ -243,98 +243,96 @@ namespace yaml { namespace parser {
 #endif
 
 #ifdef BOOST_SPIRIT_DEBUG
-#define YAML_PARSER_PRINT_INDENT eps(print_indent(_r1)) >>
+#define BOOST_YAML_PARSER_PRINT_INDENT eps(print_indent(_r1)) >>
 #else
-#define YAML_PARSER_PRINT_INDENT
+#define BOOST_YAML_PARSER_PRINT_INDENT
 #endif
 
     }
 
-} }
+}}}
 
 #include <yaml/parser/error_handler.hpp>
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser { namespace detail {
 
-    namespace detail {
-
-        struct map_insert
+    struct map_insert
+    {
+        template<typename, typename, typename>
+        struct result
         {
-            template <typename, typename, typename>
-            struct result { using type = void; };
+            using type = void;
+        };
 
-            template <typename Map, typename T>
-            void operator() (
-                Map & map,
-                T const & x,
-                iterator_range_t range,
-                error_handler_t const & error_handler
-            ) const {
-                if (map.count(x.first) && error_handler.impl().warning_fn_) {
+        template<typename Map, typename T>
+        void operator()(
+            Map & map,
+            T const & x,
+            iterator_range_t range,
+            error_handler_t const & error_handler) const
+        {
+            if (map.count(x.first) && error_handler.impl().warning_fn_) {
+                std::ostringstream oss;
+                oss << "Ignoring map entry with duplicate key '";
+                ast::print_yaml<2, true, true, false>(oss, x.first);
+                oss << "'";
+                error_handler.impl().report_warning_at(
+                    range.begin(), oss.str());
+            } else {
+                map.insert(x);
+            }
+        }
+    };
+
+    struct handle_properties
+    {
+        template<typename, typename, typename, typename>
+        struct result
+        {
+            using type = ast::value_t;
+        };
+
+        template<typename T>
+        ast::value_t operator()(
+            parser_properties_t const & parser_properties,
+            T const & x,
+            qi::symbols<char, anchor_t> & anchors,
+            error_handler_t const & error_handler) const
+        {
+            ast::properties_t properties;
+            properties.tag_ = parser_properties.tag_;
+
+            if (!parser_properties.anchor_.empty()) {
+                properties.anchor_ = range_to_string(parser_properties.anchor_);
+
+                anchor_t anchor;
+                std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
+                anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
+                anchor.position_ = parser_properties.anchor_.begin();
+
+                auto existing_anchor = anchors.find(properties.anchor_);
+                if (existing_anchor && error_handler.impl().warning_fn_) {
                     std::ostringstream oss;
-                    oss << "Ignoring map entry with duplicate key '";
-                    ast::print_yaml<2, true, true, false>(oss, x.first);
-                    oss << "'";
-                    error_handler.impl().report_warning_at(range.begin(), oss.str());
-                } else {
-                    map.insert(x);
-                }
-            }
-        };
-
-        struct handle_properties
-        {
-            template <typename, typename, typename, typename>
-            struct result { using type = ast::value_t; };
-
-            template <typename T>
-            ast::value_t operator() (
-                parser_properties_t const & parser_properties,
-                T const & x,
-                qi::symbols<char, anchor_t> & anchors,
-                error_handler_t const & error_handler
-            ) const {
-                ast::properties_t properties;
-                properties.tag_ = parser_properties.tag_;
-
-                if (!parser_properties.anchor_.empty()) {
-                    properties.anchor_ = range_to_string(parser_properties.anchor_);
-
-                    anchor_t anchor;
-                    std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
-                    anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
-                    anchor.position_ = parser_properties.anchor_.begin();
-
-                    auto existing_anchor = anchors.find(properties.anchor_);
-                    if (existing_anchor && error_handler.impl().warning_fn_) {
-                        std::ostringstream oss;
-                        oss << "Redefining anchor " << properties.anchor_;
-                        error_handler.impl().report_warning_at(
-                            parser_properties.anchor_.begin(),
-                            oss.str()
-                        );
-                        error_handler.impl().report_warning_at(
-                            existing_anchor->position_,
-                            "The previous one was was here"
-                        );
-                    }
-
-                    anchors.remove(properties.anchor_);
-                    anchors.add(
-                        properties.anchor_,
-                        anchor
-                    );
+                    oss << "Redefining anchor " << properties.anchor_;
+                    error_handler.impl().report_warning_at(
+                        parser_properties.anchor_.begin(), oss.str());
+                    error_handler.impl().report_warning_at(
+                        existing_anchor->position_,
+                        "The previous one was was here");
                 }
 
-                if (properties)
-                    return ast::value_t(ast::properties_node_t(properties, ast::value_t(x)));
-
-                return ast::value_t(x);
+                anchors.remove(properties.anchor_);
+                anchors.add(properties.anchor_, anchor);
             }
-        };
 
-    }
+            if (properties)
+                return ast::value_t(
+                    ast::properties_node_t(properties, ast::value_t(x)));
 
-} }
+            return ast::value_t(x);
+        }
+    };
+
+}}}}
 
 #endif

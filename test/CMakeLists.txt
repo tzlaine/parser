@@ -6,7 +6,7 @@ enable_testing()
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -C ${CMAKE_CFG_INTDIR})
 
-set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DYAML_HEADER_ONLY=1.")
+set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DBOOST_YAML_HEADER_ONLY=1.")
 
 
 ##################################################
@@ -18,7 +18,7 @@ add_executable(
     parse_yaml_test.cpp
 )
 target_link_libraries(header_only_parse_test yaml gtest ${link_flags})
-target_compile_definitions(header_only_parse_test PRIVATE -DYAML_HEADER_ONLY=1)
+target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)
 if (clang_on_linux)
     target_link_libraries(header_only_parse_test c++)
 endif ()

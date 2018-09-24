@@ -28,10 +28,10 @@ TEST(parse, test_parse_yaml)
     std::ifstream & in_1 = *in_1_ptr;
     std::ifstream & in_2 = *in_2_ptr;
 
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     boost::optional<std::vector<value_t>> result_1 =
         parse_yaml(in_1, filename_1, reporting_fn_t(), reporting_fn_t(), verbose);

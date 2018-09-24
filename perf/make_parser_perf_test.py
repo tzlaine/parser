@@ -32,10 +32,10 @@ test_function_names = ''
 function_form = '''
 void {1} (benchmark::State & state)
 {{
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({2})YAML_TEXT";
 
@@ -70,7 +70,7 @@ full_test = '''
 #include <benchmark/benchmark.h>
 
 
-yaml::parser::stream_t g_parser(false);
+boost::yaml::parser::stream_t g_parser(false);
 
 {}
 

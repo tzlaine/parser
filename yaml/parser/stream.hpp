@@ -5,14 +5,14 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_STREAM_HPP
-#define YAML_PARSER_STREAM_HPP
+#ifndef BOOST_YAML_PARSER_STREAM_HPP
+#define BOOST_YAML_PARSER_STREAM_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/block_styles.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     struct stream_t
     {
@@ -44,16 +44,16 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t> end_of_input;
     };
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (std::istream & is);
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (char const *& first, char const * last);
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (iterator_t & first, iterator_t last);
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         stream_t & parser,
         char const * raw_first,
@@ -63,7 +63,7 @@ namespace yaml { namespace parser {
         reporting_fn_t const & warnings_callback = reporting_fn_t()
     );
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         stream_t & parser,
         std::istream & is,
@@ -72,7 +72,7 @@ namespace yaml { namespace parser {
         reporting_fn_t const & warnings_callback = reporting_fn_t()
     );
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
@@ -82,7 +82,7 @@ namespace yaml { namespace parser {
         bool verbose = false
     );
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
         std::istream & is,
         std::string const & source_file = "",
@@ -91,9 +91,9 @@ namespace yaml { namespace parser {
         bool verbose = false
     );
 
-} }
+}}}
 
-#if YAML_HEADER_ONLY
+#if BOOST_YAML_HEADER_ONLY
 #include <yaml/parser/stream_def.hpp>
 #endif
 

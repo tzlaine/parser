@@ -5,14 +5,14 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_BASIC_STRUCTURES_HPP
-#define YAML_PARSER_BASIC_STRUCTURES_HPP
+#ifndef BOOST_YAML_PARSER_BASIC_STRUCTURES_HPP
+#define BOOST_YAML_PARSER_BASIC_STRUCTURES_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/characters.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     struct basic_structures_t
     {
@@ -71,9 +71,9 @@ namespace yaml { namespace parser {
         iterator_t first_yaml_directive_it_;
     };
 
-} }
+}}}
 
-#if YAML_HEADER_ONLY
+#if BOOST_YAML_HEADER_ONLY
 #include <yaml/parser/basic_structures_def.hpp>
 #endif
 

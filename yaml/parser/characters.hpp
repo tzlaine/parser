@@ -5,13 +5,13 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_CHARACTERS_HPP
-#define YAML_PARSER_CHARACTERS_HPP
+#ifndef BOOST_YAML_PARSER_CHARACTERS_HPP
+#define BOOST_YAML_PARSER_CHARACTERS_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     struct characters_t
     {
@@ -27,9 +27,9 @@ namespace yaml { namespace parser {
         qi::rule<iterator_t, parsed_uchar_t()> esc_char;
     };
 
-} }
+}}}
 
-#if YAML_HEADER_ONLY
+#if BOOST_YAML_HEADER_ONLY
 #include <yaml/parser/characters_def.hpp>
 #endif
 

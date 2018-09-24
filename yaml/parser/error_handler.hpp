@@ -7,8 +7,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_ERROR_HANDLER_HPP
-#define YAML_PARSER_ERROR_HANDLER_HPP
+#ifndef BOOST_YAML_PARSER_ERROR_HANDLER_HPP
+#define BOOST_YAML_PARSER_ERROR_HANDLER_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
 
@@ -20,7 +20,7 @@
 #include <sstream>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     struct error_handler_impl_t;
 
@@ -212,6 +212,6 @@ namespace yaml { namespace parser {
             throw parse_error(oss_.str());
     }
 
-} }
+}}}
 
 #endif

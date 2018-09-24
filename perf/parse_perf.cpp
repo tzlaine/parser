@@ -7,15 +7,15 @@
 #include <benchmark/benchmark.h>
 
 
-yaml::parser::stream_t g_parser(false);
+boost::yaml::parser::stream_t g_parser(false);
 
 
 void BM_229Q_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(-
   name: Mark McGwire
@@ -44,10 +44,10 @@ void BM_229Q_yml (benchmark::State & state)
 
 void BM_27NA_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%YAML 1.2
 --- text
@@ -70,10 +70,10 @@ void BM_27NA_yml (benchmark::State & state)
 
 void BM_2AUY_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT( - !!str a
  - b
@@ -98,10 +98,10 @@ void BM_2AUY_yml (benchmark::State & state)
 
 void BM_2JQS_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(: a
 : b
@@ -124,10 +124,10 @@ void BM_2JQS_yml (benchmark::State & state)
 
 void BM_2SXE_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(&a: key: &a value
 foo:
@@ -151,10 +151,10 @@ foo:
 
 void BM_2XXW_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Sets are represented as a
 # Mapping where each key is
@@ -182,10 +182,10 @@ void BM_2XXW_yml (benchmark::State & state)
 
 void BM_35KP_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(--- !!map
 ? a
@@ -214,10 +214,10 @@ e
 
 void BM_3ALJ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- - s1_i1
   - s1_i2
@@ -241,10 +241,10 @@ void BM_3ALJ_yml (benchmark::State & state)
 
 void BM_3GZX_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(First occurrence: &anchor Foo
 Second occurrence: *anchor
@@ -269,10 +269,10 @@ Reuse anchor: *anchor
 
 void BM_3MYT_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(k:#foo
  &a !t s
@@ -295,10 +295,10 @@ void BM_3MYT_yml (benchmark::State & state)
 
 void BM_4ABK_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({
 unquoted : "separate",
@@ -325,10 +325,10 @@ omitted value:,
 
 void BM_4CQQ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(plain:
   This unquoted scalar
@@ -355,10 +355,10 @@ quoted: "So does this
 
 void BM_4GC6_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT('here''s to "quotes"'
 )YAML_TEXT";
@@ -380,10 +380,10 @@ void BM_4GC6_yml (benchmark::State & state)
 
 void BM_4UYU_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT("foo: bar\": baz"
 )YAML_TEXT";
@@ -405,10 +405,10 @@ void BM_4UYU_yml (benchmark::State & state)
 
 void BM_4ZYM_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(plain: text
   lines
@@ -436,10 +436,10 @@ block: |
 
 void BM_54T7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({foo: you, bar: far}
 )YAML_TEXT";
@@ -461,10 +461,10 @@ void BM_54T7_yml (benchmark::State & state)
 
 void BM_565N_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(canonical: !!binary "\
  R0lGODlhDAAMAIQAAP//9/X17unp5WZmZgAAAOfn515eXvPz7Y6OjuDg4J+fn5\
@@ -497,10 +497,10 @@ description:
 
 void BM_57H4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(sequence: !!seq
 - entry
@@ -527,10 +527,10 @@ mapping: !!map
 
 void BM_5BVJ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(literal: |
   some
@@ -557,10 +557,10 @@ folded: >
 
 void BM_5C5M_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- { one : two , three: four , }
 - {five: six,seven : eight}
@@ -583,10 +583,10 @@ void BM_5C5M_yml (benchmark::State & state)
 
 void BM_5GBF_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Folding:
   "Empty line
@@ -615,10 +615,10 @@ Chomping: |
 
 void BM_5KJE_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- [ one, two, ]
 - [three ,four]
@@ -641,10 +641,10 @@ void BM_5KJE_yml (benchmark::State & state)
 
 void BM_5NYZ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key:    # Comment
   value
@@ -667,10 +667,10 @@ void BM_5NYZ_yml (benchmark::State & state)
 
 void BM_5TYM_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !m! !my-
 --- # Bulb here
@@ -698,10 +698,10 @@ void BM_5TYM_yml (benchmark::State & state)
 
 void BM_5WE3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? explicit key # Empty value
 ? |
@@ -727,10 +727,10 @@ void BM_5WE3_yml (benchmark::State & state)
 
 void BM_65WH_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- foo
 )YAML_TEXT";
@@ -752,10 +752,10 @@ void BM_65WH_yml (benchmark::State & state)
 
 void BM_6BCT_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# XXX Why are tabs allowed as indentation after dash?
 - foo:	 bar
@@ -780,10 +780,10 @@ void BM_6BCT_yml (benchmark::State & state)
 
 void BM_6CK3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !e! tag:example.com,2000:app/
 ---
@@ -809,10 +809,10 @@ void BM_6CK3_yml (benchmark::State & state)
 
 void BM_6FWR_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(|+
  ab
@@ -838,10 +838,10 @@ void BM_6FWR_yml (benchmark::State & state)
 
 void BM_6H3V_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT('foo: bar\': baz'
 )YAML_TEXT";
@@ -863,10 +863,10 @@ void BM_6H3V_yml (benchmark::State & state)
 
 void BM_6HB6_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(  # Leading comment line spaces are
    # neither content nor indentation.
@@ -899,10 +899,10 @@ Not indented:
 
 void BM_6JQW_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# ASCII Art
 --- |
@@ -927,10 +927,10 @@ void BM_6JQW_yml (benchmark::State & state)
 
 void BM_6JWB_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo: !!seq
   - !!str a
@@ -955,10 +955,10 @@ void BM_6JWB_yml (benchmark::State & state)
 
 void BM_6LVF_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%FOO  bar baz # Should be ignored
               # with a warning.
@@ -982,10 +982,10 @@ void BM_6LVF_yml (benchmark::State & state)
 
 void BM_6M2F_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? &a a
 : &b b
@@ -1009,10 +1009,10 @@ void BM_6M2F_yml (benchmark::State & state)
 
 void BM_6SLA_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT("foo\nbar:baz\tx \\$%^&*()x": 23
 'x\ny:z\tx $%^&*()x': 24
@@ -1035,10 +1035,10 @@ void BM_6SLA_yml (benchmark::State & state)
 
 void BM_6VJK_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>
  Sammy Sosa completed another
@@ -1067,10 +1067,10 @@ void BM_6VJK_yml (benchmark::State & state)
 
 void BM_6ZKB_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Document
 ---
@@ -1098,10 +1098,10 @@ matches %: 20
 
 void BM_735Y_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(-
   "flow in block"
@@ -1128,10 +1128,10 @@ void BM_735Y_yml (benchmark::State & state)
 
 void BM_74H7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(!!str a: b
 c: !!int 42
@@ -1157,10 +1157,10 @@ g: h
 
 void BM_77H8_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 not-date: !!str 2002-04-28
@@ -1194,10 +1194,10 @@ application specific tag: !something |
 
 void BM_7A4E_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(" 1st non-empty
 
@@ -1222,10 +1222,10 @@ void BM_7A4E_yml (benchmark::State & state)
 
 void BM_7BUB_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 hr:
@@ -1254,10 +1254,10 @@ rbi:
 
 void BM_7FWL_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(!<tag:yaml.org,2002:str> foo :
   !<!bar> baz
@@ -1280,10 +1280,10 @@ void BM_7FWL_yml (benchmark::State & state)
 
 void BM_7T8X_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>
 
@@ -1320,10 +1320,10 @@ void BM_7T8X_yml (benchmark::State & state)
 
 void BM_7W2P_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? a
 ? b
@@ -1347,10 +1347,10 @@ c:
 
 void BM_82AN_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---word1
 word2
@@ -1373,10 +1373,10 @@ word2
 
 void BM_87E4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT('implicit block key' : [
   'implicit flow key' : value,
@@ -1400,10 +1400,10 @@ void BM_87E4_yml (benchmark::State & state)
 
 void BM_8G76_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(  # Comment
    
@@ -1428,10 +1428,10 @@ void BM_8G76_yml (benchmark::State & state)
 
 void BM_8MK2_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(! a
 )YAML_TEXT";
@@ -1453,10 +1453,10 @@ void BM_8MK2_yml (benchmark::State & state)
 
 void BM_8QBE_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key:
  - item1
@@ -1480,10 +1480,10 @@ void BM_8QBE_yml (benchmark::State & state)
 
 void BM_8UDB_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([
 "double
@@ -1512,10 +1512,10 @@ single: pair,
 
 void BM_93JH_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT( - key: value
    key2: value2
@@ -1540,10 +1540,10 @@ void BM_93JH_yml (benchmark::State & state)
 
 void BM_96L6_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(--- >
   Mark McGwire's
@@ -1568,10 +1568,10 @@ void BM_96L6_yml (benchmark::State & state)
 
 void BM_98YD_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Comment only.
 )YAML_TEXT";
@@ -1593,10 +1593,10 @@ void BM_98YD_yml (benchmark::State & state)
 
 void BM_9FMG_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a:
   b:
@@ -1623,10 +1623,10 @@ h: i
 
 void BM_9J7A_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo:
   bar: baz
@@ -1649,10 +1649,10 @@ void BM_9J7A_yml (benchmark::State & state)
 
 void BM_9SHH_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(single: 'text'
 double: "text"
@@ -1675,10 +1675,10 @@ double: "text"
 
 void BM_9U5K_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 # Products purchased
@@ -1707,10 +1707,10 @@ void BM_9U5K_yml (benchmark::State & state)
 
 void BM_9WXW_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Private
 !foo "bar"
@@ -1738,10 +1738,10 @@ void BM_9WXW_yml (benchmark::State & state)
 
 void BM_9YRD_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a
 b  
@@ -1768,10 +1768,10 @@ e
 
 void BM_A2M4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# XXX Why are tabs allowed as indentation after dash?
 ? a
@@ -1797,10 +1797,10 @@ void BM_A2M4_yml (benchmark::State & state)
 
 void BM_A6F9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(strip: |-
   text
@@ -1827,10 +1827,10 @@ keep: |+
 
 void BM_A984_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: b
  c
@@ -1856,10 +1856,10 @@ d:
 
 void BM_AVM7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT()YAML_TEXT";
 
@@ -1880,10 +1880,10 @@ void BM_AVM7_yml (benchmark::State & state)
 
 void BM_AZ63_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(1:
 - 2
@@ -1908,10 +1908,10 @@ void BM_AZ63_yml (benchmark::State & state)
 
 void BM_AZW3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- bla"keks: foo
 - bla]keks: foo
@@ -1934,10 +1934,10 @@ void BM_AZW3_yml (benchmark::State & state)
 
 void BM_BEC7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%YAML 1.3 # Attempt parsing
           # with a warning
@@ -1962,10 +1962,10 @@ void BM_BEC7_yml (benchmark::State & state)
 
 void BM_BU8L_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key: &anchor
  !tag
@@ -1989,10 +1989,10 @@ void BM_BU8L_yml (benchmark::State & state)
 
 void BM_C2DT_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({
 "adjacent":value,
@@ -2018,10 +2018,10 @@ void BM_C2DT_yml (benchmark::State & state)
 
 void BM_C4HZ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG ! tag:clarkevans.com,2002:
 --- !shape
@@ -2056,10 +2056,10 @@ void BM_C4HZ_yml (benchmark::State & state)
 
 void BM_CC74_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !e! tag:example.com,2000:app/
 ---
@@ -2083,10 +2083,10 @@ void BM_CC74_yml (benchmark::State & state)
 
 void BM_CT4Q_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([
 ? foo
@@ -2111,10 +2111,10 @@ void BM_CT4Q_yml (benchmark::State & state)
 
 void BM_CUP7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(anchored: !local &anchor value
 alias: *anchor
@@ -2137,10 +2137,10 @@ alias: *anchor
 
 void BM_D88J_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: [b, c]
 )YAML_TEXT";
@@ -2162,10 +2162,10 @@ void BM_D88J_yml (benchmark::State & state)
 
 void BM_D9TU_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo: bar
 )YAML_TEXT";
@@ -2187,10 +2187,10 @@ void BM_D9TU_yml (benchmark::State & state)
 
 void BM_DBG4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Outside flow collection:
 - ::vector
@@ -2223,10 +2223,10 @@ void BM_DBG4_yml (benchmark::State & state)
 
 void BM_DFF7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({
 ? explicit: entry,
@@ -2252,10 +2252,10 @@ implicit: entry,
 
 void BM_DHP8_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([foo, bar, 42]
 )YAML_TEXT";
@@ -2277,10 +2277,10 @@ void BM_DHP8_yml (benchmark::State & state)
 
 void BM_DWX9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(|
  
@@ -2310,10 +2310,10 @@ void BM_DWX9_yml (benchmark::State & state)
 
 void BM_E76Z_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(&a a: &b b
 *a : *b
@@ -2336,10 +2336,10 @@ void BM_E76Z_yml (benchmark::State & state)
 
 void BM_EHF6_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(!!map {
   k: !!seq
@@ -2364,10 +2364,10 @@ void BM_EHF6_yml (benchmark::State & state)
 
 void BM_F2C7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT( - &a !!str a
  - !!int 2
@@ -2392,10 +2392,10 @@ void BM_F2C7_yml (benchmark::State & state)
 
 void BM_F8F9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT( # Strip
   # Comments:
@@ -2435,10 +2435,10 @@ keep: |+
 
 void BM_FH7J_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- !!str
 -
@@ -2464,10 +2464,10 @@ void BM_FH7J_yml (benchmark::State & state)
 
 void BM_FQ7F_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- Mark McGwire
 - Sammy Sosa
@@ -2491,10 +2491,10 @@ void BM_FQ7F_yml (benchmark::State & state)
 
 void BM_FRK4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# XXX Why is ? supported in flow?
 {
@@ -2520,10 +2520,10 @@ void BM_FRK4_yml (benchmark::State & state)
 
 void BM_FUP4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([a, [b, c]]
 )YAML_TEXT";
@@ -2545,10 +2545,10 @@ void BM_FUP4_yml (benchmark::State & state)
 
 void BM_G4RS_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(unicode: "Sosa did fine.\u263A"
 control: "\b1998\t1999\t2000\n"
@@ -2576,10 +2576,10 @@ tie-fighter: '|\-*-/|'
 
 void BM_G992_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>
  folded
@@ -2605,10 +2605,10 @@ void BM_G992_yml (benchmark::State & state)
 
 void BM_GH63_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? a
 : 13
@@ -2632,10 +2632,10 @@ void BM_GH63_yml (benchmark::State & state)
 
 void BM_H2RW_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo: 1
 
@@ -2668,10 +2668,10 @@ text: |
 
 void BM_HMK4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(name: Mark McGwire
 accomplishment: >
@@ -2699,10 +2699,10 @@ stats: |
 
 void BM_HMQ5_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(!!str &a1 "foo":
   !!str bar
@@ -2726,10 +2726,10 @@ void BM_HMQ5_yml (benchmark::State & state)
 
 void BM_HS5T_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(1st non-empty
 
@@ -2754,10 +2754,10 @@ void BM_HS5T_yml (benchmark::State & state)
 
 void BM_J3BT_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Tabs and spaces
 quoted: "Quoted 	"
@@ -2784,10 +2784,10 @@ block:	|
 
 void BM_J5UC_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo: blue
 bar: arrr
@@ -2811,10 +2811,10 @@ baz: jazz
 
 void BM_J7PZ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Ordered maps are represented as
 # A sequence of mappings, with
@@ -2842,10 +2842,10 @@ void BM_J7PZ_yml (benchmark::State & state)
 
 void BM_J7VC_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(1: 2
 
@@ -2870,10 +2870,10 @@ void BM_J7VC_yml (benchmark::State & state)
 
 void BM_J9HZ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 hr: # 1998 hr ranking
@@ -2902,10 +2902,10 @@ rbi:
 
 void BM_JHB9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Ranking of 1998 home runs
 ---
@@ -2936,10 +2936,10 @@ void BM_JHB9_yml (benchmark::State & state)
 
 void BM_JQ4R_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(block sequence:
   - one
@@ -2963,10 +2963,10 @@ void BM_JQ4R_yml (benchmark::State & state)
 
 void BM_JS2J_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(First occurrence: &anchor Value
 Second occurrence: *anchor
@@ -2989,10 +2989,10 @@ Second occurrence: *anchor
 
 void BM_JTV5_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? a
   true
@@ -3019,10 +3019,10 @@ void BM_JTV5_yml (benchmark::State & state)
 
 void BM_K4SU_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- foo
 - bar
@@ -3046,10 +3046,10 @@ void BM_K4SU_yml (benchmark::State & state)
 
 void BM_K527_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>-
   trimmed
@@ -3077,10 +3077,10 @@ void BM_K527_yml (benchmark::State & state)
 
 void BM_K858_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(strip: >-
 
@@ -3107,10 +3107,10 @@ keep: |+
 
 void BM_KMK3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo:
   bar: 1
@@ -3134,10 +3134,10 @@ baz: 2
 
 void BM_KSS4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(--- "quoted
 string"
@@ -3161,10 +3161,10 @@ string"
 
 void BM_KZN9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- [ YAML : separate ]
 - [ : empty key entry ]
@@ -3188,10 +3188,10 @@ void BM_KZN9_yml (benchmark::State & state)
 
 void BM_L94M_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? !!str a
 : !!int 47
@@ -3216,10 +3216,10 @@ void BM_L94M_yml (benchmark::State & state)
 
 void BM_L9U5_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(implicit block key : [
   implicit flow key : value,
@@ -3243,10 +3243,10 @@ void BM_L9U5_yml (benchmark::State & state)
 
 void BM_LE5A_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- !!str "a"
 - 'b'
@@ -3272,10 +3272,10 @@ void BM_LE5A_yml (benchmark::State & state)
 
 void BM_LP6E_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- [a, b , c ]
 - { "a"  : b
@@ -3302,10 +3302,10 @@ void BM_LP6E_yml (benchmark::State & state)
 
 void BM_LQZ7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT("implicit block key" : [
   "implicit flow key" : value,
@@ -3329,10 +3329,10 @@ void BM_LQZ7_yml (benchmark::State & state)
 
 void BM_M29M_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: |
  ab
@@ -3361,10 +3361,10 @@ void BM_M29M_yml (benchmark::State & state)
 
 void BM_M5C3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(literal: |2
   value
@@ -3391,10 +3391,10 @@ folded:
 
 void BM_M5DY_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? - Detroit Tigers
   - Chicago cubs
@@ -3424,10 +3424,10 @@ void BM_M5DY_yml (benchmark::State & state)
 
 void BM_M7A3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Bare
 document
@@ -3458,10 +3458,10 @@ document
 
 void BM_M9B4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(|
  literal
@@ -3487,10 +3487,10 @@ void BM_M9B4_yml (benchmark::State & state)
 
 void BM_MJS9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>
   foo 
@@ -3517,10 +3517,10 @@ void BM_MJS9_yml (benchmark::State & state)
 
 void BM_MXS3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- {a: b}
 )YAML_TEXT";
@@ -3542,10 +3542,10 @@ void BM_MXS3_yml (benchmark::State & state)
 
 void BM_MYW6_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(|-
  ab
@@ -3571,10 +3571,10 @@ void BM_MYW6_yml (benchmark::State & state)
 
 void BM_MZX3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- plain
 - "double quoted"
@@ -3601,10 +3601,10 @@ void BM_MZX3_yml (benchmark::State & state)
 
 void BM_N782_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([
 --- ,
@@ -3629,10 +3629,10 @@ void BM_N782_yml (benchmark::State & state)
 
 void BM_NHX8_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(:
 
@@ -3657,10 +3657,10 @@ void BM_NHX8_yml (benchmark::State & state)
 
 void BM_NP9H_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT("folded 
 to a space,	
@@ -3686,10 +3686,10 @@ to a line feed, or 	\
 
 void BM_P2AD_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- | # Empty header↓
  literal
@@ -3719,10 +3719,10 @@ void BM_P2AD_yml (benchmark::State & state)
 
 void BM_P76L_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !! tag:example.com,2000:app/
 ---
@@ -3746,10 +3746,10 @@ void BM_P76L_yml (benchmark::State & state)
 
 void BM_P94K_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key:    # Comment
         # lines
@@ -3775,10 +3775,10 @@ void BM_P94K_yml (benchmark::State & state)
 
 void BM_PBJ2_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(american:
   - Boston Red Sox
@@ -3807,10 +3807,10 @@ national:
 
 void BM_PRH3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(' 1st non-empty
 
@@ -3835,10 +3835,10 @@ void BM_PRH3_yml (benchmark::State & state)
 
 void BM_PW8X_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- &a
 - a
@@ -3869,10 +3869,10 @@ void BM_PW8X_yml (benchmark::State & state)
 
 void BM_Q88A_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- [ a, b ]
 - { a: b }
@@ -3898,10 +3898,10 @@ void BM_Q88A_yml (benchmark::State & state)
 
 void BM_Q9WF_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({ first: Sammy, last: Sosa }:
 # Statistics:
@@ -3928,10 +3928,10 @@ void BM_Q9WF_yml (benchmark::State & state)
 
 void BM_QF4Y_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT([
 foo: bar
@@ -3955,10 +3955,10 @@ foo: bar
 
 void BM_R4YG_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- |
  detected
@@ -3990,10 +3990,10 @@ void BM_R4YG_yml (benchmark::State & state)
 
 void BM_RLU9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(foo:
 - 42
@@ -4018,10 +4018,10 @@ bar:
 
 void BM_RR7F_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: 4.2
 ? 23
@@ -4045,10 +4045,10 @@ void BM_RR7F_yml (benchmark::State & state)
 
 void BM_RTP8_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%YAML 1.2
 ---
@@ -4074,10 +4074,10 @@ Document
 
 void BM_RZT7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 Time: 2001-11-23 15:01:42 -5
@@ -4124,10 +4124,10 @@ Stack:
 
 void BM_S3PD_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(plain key: in-line value
 : # Both empty
@@ -4152,10 +4152,10 @@ void BM_S3PD_yml (benchmark::State & state)
 
 void BM_S4JQ_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# Assuming conventional resolution:
 - "12"
@@ -4180,10 +4180,10 @@ void BM_S4JQ_yml (benchmark::State & state)
 
 void BM_S4T7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(aaa: bbb
 ...
@@ -4206,10 +4206,10 @@ void BM_S4T7_yml (benchmark::State & state)
 
 void BM_S9E8_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(sequence:
 - one
@@ -4237,10 +4237,10 @@ mapping:
 
 void BM_SBG9_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({a: [b, c], [d, e]: f}
 )YAML_TEXT";
@@ -4262,10 +4262,10 @@ void BM_SBG9_yml (benchmark::State & state)
 
 void BM_SYW4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(hr:  65    # Home runs
 avg: 0.278 # Batting average
@@ -4289,10 +4289,10 @@ rbi: 147   # Runs Batted In
 
 void BM_TE2A_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(block mapping:
  key: value
@@ -4315,10 +4315,10 @@ void BM_TE2A_yml (benchmark::State & state)
 
 void BM_TL85_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT("
   foo 
@@ -4346,10 +4346,10 @@ void BM_TL85_yml (benchmark::State & state)
 
 void BM_TS54_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(>
  ab
@@ -4378,10 +4378,10 @@ void BM_TS54_yml (benchmark::State & state)
 
 void BM_U3C3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !yaml! tag:yaml.org,2002:
 ---
@@ -4405,10 +4405,10 @@ void BM_U3C3_yml (benchmark::State & state)
 
 void BM_U3XV_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 top1: &node1
@@ -4446,10 +4446,10 @@ top7:
 
 void BM_U9NS_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 time: 20:03:20
@@ -4480,10 +4480,10 @@ action: grand slam
 
 void BM_UDR7_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(sequence: [ one, two, ]
 mapping: { sky: blue, sea: green }
@@ -4506,10 +4506,10 @@ mapping: { sky: blue, sea: green }
 
 void BM_UGM3_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(--- !<tag:clarkevans.com,2002:invoice>
 invoice: 34843
@@ -4559,10 +4559,10 @@ comments:
 
 void BM_UT92_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 { matches
@@ -4590,10 +4590,10 @@ void BM_UT92_yml (benchmark::State & state)
 
 void BM_V55R_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- &a a
 - &b b
@@ -4618,10 +4618,10 @@ void BM_V55R_yml (benchmark::State & state)
 
 void BM_V9D5_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- sun: yellow
 - ? earth: blue
@@ -4645,10 +4645,10 @@ void BM_V9D5_yml (benchmark::State & state)
 
 void BM_W42U_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- # Empty
 - |
@@ -4675,10 +4675,10 @@ void BM_W42U_yml (benchmark::State & state)
 
 void BM_W4TN_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%YAML 1.2
 --- |
@@ -4707,10 +4707,10 @@ void BM_W4TN_yml (benchmark::State & state)
 
 void BM_WZ62_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({
   foo : !!str,
@@ -4735,10 +4735,10 @@ void BM_WZ62_yml (benchmark::State & state)
 
 void BM_X38W_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT({ &a [a, &b b]: *b, *a : [c, *b, d]}
 )YAML_TEXT";
@@ -4760,10 +4760,10 @@ void BM_X38W_yml (benchmark::State & state)
 
 void BM_YD5X_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- [name        , hr, avg  ]
 - [Mark McGwire, 65, 0.278]
@@ -4787,10 +4787,10 @@ void BM_YD5X_yml (benchmark::State & state)
 
 void BM_Z9M4_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(%TAG !e! tag:example.com,2000:app/
 ---
@@ -4814,10 +4814,10 @@ void BM_Z9M4_yml (benchmark::State & state)
 
 void BM_ZF4X_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Mark McGwire: {hr: 65, avg: 0.278}
 Sammy Sosa: {
@@ -4843,10 +4843,10 @@ Sammy Sosa: {
 
 void BM_ZH7C_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(&a a: b
 c: &d d
@@ -4869,10 +4869,10 @@ c: &d d
 
 void BM_anchors_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: &A "Hello, World"
 b: *A
@@ -4914,10 +4914,10 @@ r: *R
 
 void BM_basic_yaml_block_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿american:
   - Boston Red Sox
@@ -4947,10 +4947,10 @@ national:
 
 void BM_basic_yaml_block2_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿x:
   - a
@@ -4975,10 +4975,10 @@ void BM_basic_yaml_block2_yaml (benchmark::State & state)
 
 void BM_basic_yaml_block3_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿x:
   - a
@@ -5007,10 +5007,10 @@ y:
 
 void BM_basic_yaml_flow_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿
 # Now we have comments
@@ -5036,10 +5036,10 @@ void BM_basic_yaml_flow_yaml (benchmark::State & state)
 
 void BM_block_literals_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(# ASCII Art
 - |           # Literal Style
@@ -5109,10 +5109,10 @@ void BM_block_literals_yaml (benchmark::State & state)
 
 void BM_block_literals2_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(accomplishment: >
   Mark set a major league
@@ -5139,10 +5139,10 @@ stats: |
 
 void BM_data_types_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 a: 123                     # an integer
@@ -5171,10 +5171,10 @@ h: Yes we have No bananas  # a string, "Yes" and "No" disambiguated by context.)
 
 void BM_invoice_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(
 # Below is an example of an invoice expressed via YAML(tm).
@@ -5231,10 +5231,10 @@ comments: >
 
 void BM_relational_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(---
 receipt:     Oz-Ware Purchase Invoice
@@ -5288,10 +5288,10 @@ specialDelivery:  >
 
 void BM_scalar_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(unicode: "Sosa did fine.\u263A"
 control: "\b1998\t1999\t2000\n"
@@ -5370,10 +5370,10 @@ A numeric string: !!str 12345 # should be parsed as string
 
 void BM_yaml_block_array1_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿- A
 - B
@@ -5400,10 +5400,10 @@ void BM_yaml_block_array1_yaml (benchmark::State & state)
 
 void BM_yaml_block_array2_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿- A
 - B
@@ -5431,10 +5431,10 @@ void BM_yaml_block_array2_yaml (benchmark::State & state)
 
 void BM_yaml_block_array3_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(-
 - B)YAML_TEXT";
@@ -5456,10 +5456,10 @@ void BM_yaml_block_array3_yaml (benchmark::State & state)
 
 void BM_yaml_block_array4_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(- A
 -
@@ -5485,10 +5485,10 @@ void BM_yaml_block_array4_yaml (benchmark::State & state)
 
 void BM_yaml_block_array5_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿- - x
   - y
@@ -5513,10 +5513,10 @@ void BM_yaml_block_array5_yaml (benchmark::State & state)
 
 void BM_yaml_block_array6_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿- - x
   - y
@@ -5540,10 +5540,10 @@ void BM_yaml_block_array6_yaml (benchmark::State & state)
 
 void BM_yaml_block_array7_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(-
   name: Mark McG
@@ -5571,10 +5571,10 @@ void BM_yaml_block_array7_yaml (benchmark::State & state)
 
 void BM_yaml_block_map1_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Apple : 6
 Orange : [1, 2, 3]
@@ -5597,10 +5597,10 @@ Lemmon : !!map {a:1, b:2, c:3})YAML_TEXT";
 
 void BM_yaml_block_map10_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(x :
   2
@@ -5628,10 +5628,10 @@ y : 3
 
 void BM_yaml_block_map11_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(null:
 x: xx
@@ -5654,10 +5654,10 @@ z: zz)YAML_TEXT";
 
 void BM_yaml_block_map12_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(american:
   - Boston Red Sox
@@ -5685,10 +5685,10 @@ national:
 
 void BM_yaml_block_map13_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Gorp : true
        is not relative
@@ -5713,10 +5713,10 @@ Foo : on the right # strict yaml 1.2 disallows "on" as a boolean value!)YAML_TEX
 
 void BM_yaml_block_map2_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Apple :
   x : 2
@@ -5739,10 +5739,10 @@ void BM_yaml_block_map2_yaml (benchmark::State & state)
 
 void BM_yaml_block_map3_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key0:
   key1: 1
@@ -5767,10 +5767,10 @@ void BM_yaml_block_map3_yaml (benchmark::State & state)
 
 void BM_yaml_block_map4_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(key1: 1
 key2:
@@ -5794,10 +5794,10 @@ key3: 2
 
 void BM_yaml_block_map5_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(z :
   x : 2
@@ -5820,10 +5820,10 @@ void BM_yaml_block_map5_yaml (benchmark::State & state)
 
 void BM_yaml_block_map6_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(the key value:
   key1: value
@@ -5847,10 +5847,10 @@ void BM_yaml_block_map6_yaml (benchmark::State & state)
 
 void BM_yaml_block_map7_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(Apple : 6
 Orange :)YAML_TEXT";
@@ -5872,10 +5872,10 @@ Orange :)YAML_TEXT";
 
 void BM_yaml_block_map8_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(? z
 : 4)YAML_TEXT";
@@ -5897,10 +5897,10 @@ void BM_yaml_block_map8_yaml (benchmark::State & state)
 
 void BM_yaml_block_map9_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿- a: 1
   b: 2)YAML_TEXT";
@@ -5922,10 +5922,10 @@ void BM_yaml_block_map9_yaml (benchmark::State & state)
 
 void BM_simple_flow_plain_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(a: b
  c
@@ -5949,10 +5949,10 @@ d: e
 
 void BM_escaped_percent_27NA_yml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(\%YAML 1.2
 --- text
@@ -5976,10 +5976,10 @@ void BM_escaped_percent_27NA_yml (benchmark::State & state)
 
 void BM_basic_yaml_block_repeated_yaml (benchmark::State & state)
 {
-    using yaml::ast::value_t;
-    using yaml::parser::reporting_fn_t;
-    using yaml::parser::parse_yaml;
-    using yaml::ast::print_yaml;
+    using boost::yaml::ast::value_t;
+    using boost::yaml::parser::reporting_fn_t;
+    using boost::yaml::parser::parse_yaml;
+    using boost::yaml::ast::print_yaml;
 
     char const * contents = R"YAML_TEXT(﻿american:
   - Boston Red Sox

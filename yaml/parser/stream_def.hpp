@@ -5,8 +5,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_STREAM_DEF_HPP
-#define YAML_PARSER_STREAM_DEF_HPP
+#ifndef BOOST_YAML_PARSER_STREAM_DEF_HPP
+#define BOOST_YAML_PARSER_STREAM_DEF_HPP
 
 #include <yaml/parser/stream.hpp>
 
@@ -17,7 +17,7 @@
 #include <boost/regex/pending/unicode_iterator.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -59,7 +59,7 @@ namespace yaml { namespace parser {
 
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     stream_t::stream_t (bool verbose)
         : error_handler_ (make_error_handler())
         , block_styles_ (error_handler_, verbose)
@@ -176,7 +176,7 @@ namespace yaml { namespace parser {
         qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     void stream_t::set_error_handler_params (
         iterator_t & first,
         iterator_t last,
@@ -192,7 +192,7 @@ namespace yaml { namespace parser {
         error_handler_.f.impl().warning_fn_ = warnings;
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     void stream_t::reset_error_handler_params ()
     {
         error_handler_.f.impl().first_ = error_handler_.f.impl().last_;
@@ -250,7 +250,7 @@ namespace yaml { namespace parser {
 
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (std::istream & is)
     {
         int size = 0;
@@ -274,7 +274,7 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (char const *& first, char const * last)
     {
         int size = std::min<int>(last - first, 4);
@@ -283,7 +283,7 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     encoding_t read_bom (iterator_t & first, iterator_t last)
     {
         if (first != last && *first == 0xfeff)
@@ -292,7 +292,7 @@ namespace yaml { namespace parser {
     }
 
     // TODO: Change signature to return a vector and a bool.
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
         stream_t & parser,
         char const * raw_first,
@@ -397,7 +397,7 @@ namespace yaml { namespace parser {
         return retval;
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
         stream_t & parser,
         std::istream & is,
@@ -422,7 +422,7 @@ namespace yaml { namespace parser {
         );
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
         char const * raw_first,
         char const * raw_last,
@@ -445,7 +445,7 @@ namespace yaml { namespace parser {
         );
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml (
         std::istream & is,
         std::string const & source_file,
@@ -466,6 +466,6 @@ namespace yaml { namespace parser {
         );
     }
 
-} }
+}}}
 
 #endif

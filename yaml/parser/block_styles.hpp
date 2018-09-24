@@ -5,14 +5,14 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_BLOCK_STYLES_HPP
-#define YAML_PARSER_BLOCK_STYLES_HPP
+#ifndef BOOST_YAML_PARSER_BLOCK_STYLES_HPP
+#define BOOST_YAML_PARSER_BLOCK_STYLES_HPP
 
 #include <yaml/parser/parser_fwd.hpp>
 #include <yaml/parser/flow_styles.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     struct block_styles_t
     {
@@ -99,9 +99,9 @@ namespace yaml { namespace parser {
         > block_collection;
     };
 
-} }
+}}}
 
-#if YAML_HEADER_ONLY
+#if BOOST_YAML_HEADER_ONLY
 #include <yaml/parser/block_styles_def.hpp>
 #endif
 

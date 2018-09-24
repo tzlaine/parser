@@ -5,8 +5,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_FLOW_STYLES_DEF_HPP
-#define YAML_PARSER_FLOW_STYLES_DEF_HPP
+#ifndef BOOST_YAML_PARSER_FLOW_STYLES_DEF_HPP
+#define BOOST_YAML_PARSER_FLOW_STYLES_DEF_HPP
 
 #include <yaml/parser/flow_styles.hpp>
 
@@ -17,7 +17,7 @@
 #include <boost/phoenix/object/construct.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -53,7 +53,7 @@ namespace yaml { namespace parser {
 
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     flow_styles_t::flow_styles_t (
         boost::phoenix::function<error_handler_t> & error_handler,
         bool verbose
@@ -277,7 +277,7 @@ namespace yaml { namespace parser {
 
         if (verbose) {
             plain_next_line =
-                YAML_PARSER_PRINT_INDENT
+                BOOST_YAML_PARSER_PRINT_INDENT
                 hold[flow_folded(_r1, true) >> plain_char(_r2) >> plain_in_line(_r2)]
                 ;
         }
@@ -467,7 +467,7 @@ namespace yaml { namespace parser {
             ;
 
         if (verbose) {
-            flow_node = YAML_PARSER_PRINT_INDENT (
+            flow_node = BOOST_YAML_PARSER_PRINT_INDENT (
                     as<ast::value_t>{}[alias_node][_val = _1]
                 |   flow_content(_r1, _r2)[_val = _1]
                 |   omit[properties(_r1, _r2)[_a = _1]]
@@ -532,6 +532,6 @@ namespace yaml { namespace parser {
         }
     }
 
-} }
+}}}
 
 #endif

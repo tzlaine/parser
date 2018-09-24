@@ -5,21 +5,21 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_CONFIG_HPP
-#define YAML_CONFIG_HPP
+#ifndef BOOST_YAML_CONFIG_HPP
+#define BOOST_YAML_CONFIG_HPP
 
 
-#ifndef YAML_HEADER_ONLY
-#define YAML_HEADER_ONLY 0
+#ifndef BOOST_YAML_HEADER_ONLY
+#define BOOST_YAML_HEADER_ONLY 0
 #endif
 
-#if YAML_HEADER_ONLY
-#define YAML_HEADER_ONLY_INLINE inline
+#if BOOST_YAML_HEADER_ONLY
+#define BOOST_YAML_HEADER_ONLY_INLINE inline
 #else
-#define YAML_HEADER_ONLY_INLINE
+#define BOOST_YAML_HEADER_ONLY_INLINE
 #endif
 
-#ifndef YAML_NO_SPIRIT_DEBUGGING
+#ifndef BOOST_YAML_NO_SPIRIT_DEBUGGING
 #define BOOST_SPIRIT_DEBUG
 #endif
 

@@ -6,8 +6,8 @@
  *   Distributed under the Boost Software License, Version 1.0. (See accompanying
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
-#ifndef AST_VALUE_IMPL_HPP
-#define AST_VALUE_IMPL_HPP
+#ifndef BOOST_AST_VALUE_IMPL_HPP
+#define BOOST_AST_VALUE_IMPL_HPP
 
 #include <yaml/ast.hpp>
 
@@ -19,7 +19,7 @@
 #include <map>
 
 
-namespace yaml { namespace ast {
+namespace boost { namespace yaml { namespace ast {
 
     namespace detail {
 
@@ -571,6 +571,6 @@ namespace yaml { namespace ast {
         return out;
     }
 
-} }
+}}}
 
 #endif

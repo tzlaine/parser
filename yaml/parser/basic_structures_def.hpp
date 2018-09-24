@@ -5,8 +5,8 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#ifndef YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
-#define YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
+#ifndef BOOST_YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
+#define BOOST_YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
 
 #include <yaml/parser/basic_structures.hpp>
 
@@ -15,7 +15,7 @@
 #include <boost/phoenix/object/construct.hpp>
 
 
-namespace yaml { namespace parser {
+namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
@@ -188,7 +188,7 @@ namespace yaml { namespace parser {
 
     }
 
-    YAML_HEADER_ONLY_INLINE
+    BOOST_YAML_HEADER_ONLY_INLINE
     basic_structures_t::basic_structures_t (
         boost::phoenix::function<error_handler_t> & error_handler,
         bool verbose
@@ -454,6 +454,6 @@ namespace yaml { namespace parser {
         }
     }
 
-} }
+}}}
 
 #endif
