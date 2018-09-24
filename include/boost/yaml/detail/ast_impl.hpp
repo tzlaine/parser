@@ -3,8 +3,9 @@
  *   consultomd.com
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 #ifndef BOOST_AST_VALUE_IMPL_HPP
 #define BOOST_AST_VALUE_IMPL_HPP
@@ -27,36 +28,38 @@ namespace boost { namespace yaml { namespace ast {
         {
             using result_type = int;
 
-            template <typename T>
-            int operator() (T const & val) const
+            template<typename T>
+            int operator()(T const & val) const
             {
                 return 0;
             }
 
-            int operator() (properties_node_t const & pn) const
+            int operator()(properties_node_t const & pn) const
             {
                 return boost::apply_visitor(*this, pn.second.get());
             }
 
-            int operator() (alias_t const & alias) const
+            int operator()(alias_t const & alias) const
             {
-                BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
-                                            // fired, then you are trying to traverse an
-                                            // unlinked yaml object.
+                BOOST_ASSERT(
+                    alias.second); // This alias is unlinked! If this assertion
+                                   // fired, then you are trying to traverse an
+                                   // unlinked yaml object.
                 return boost::apply_visitor(*this, alias.second->get());
             }
 
-            int operator() (map_t const & obj) const
+            int operator()(map_t const & obj) const
             {
                 int max_depth = 0;
                 for (map_element_t const & val : obj) {
-                    int element_depth = boost::apply_visitor(*this, val.second.get());
+                    int element_depth =
+                        boost::apply_visitor(*this, val.second.get());
                     max_depth = (std::max)(max_depth, element_depth);
                 }
                 return max_depth + 1;
             }
 
-            int operator() (seq_t const & arr) const
+            int operator()(seq_t const & arr) const
             {
                 int max_depth = 0;
                 for (value_t const & val : arr) {
@@ -67,30 +70,29 @@ namespace boost { namespace yaml { namespace ast {
             }
         };
 
-        inline int depth (value_t const & val)
+        inline int depth(value_t const & val)
         {
             depth_f f;
             return boost::apply_visitor(f, val.get());
         }
 
-        inline int depth (seq_t const & arr)
+        inline int depth(seq_t const & arr)
         {
             depth_f f;
             return f(arr);
         }
 
-        inline int depth (map_t const & obj)
+        inline int depth(map_t const & obj)
         {
             depth_f f;
             return f(obj);
         }
 
-        template <
+        template<
             int Spaces,
             bool ExpandAliases,
             bool InlineCollections,
-            bool ExplicitMapEntriesAndTags
-        >
+            bool ExplicitMapEntriesAndTags>
         struct yaml_printer
         {
             static_assert(Spaces >= 2, "Spaces must be >= 2");
@@ -108,14 +110,14 @@ namespace boost { namespace yaml { namespace ast {
             mutable bool is_key_;
             mutable int level_;
 
-            yaml_printer (std::ostream & out)
-                : out_ (out)
-                , current_indent_ (-spaces)
-                , is_key_ (false)
-                , level_ (-1)
+            yaml_printer(std::ostream & out) :
+                out_(out),
+                current_indent_(-spaces),
+                is_key_(false),
+                level_(-1)
             {}
 
-            void operator() (null_t) const
+            void operator()(null_t) const
             {
                 if (explicit_markings)
                     out_ << "!!null ";
@@ -123,7 +125,7 @@ namespace boost { namespace yaml { namespace ast {
                 out_ << "null";
             }
 
-            void operator() (bool b) const
+            void operator()(bool b) const
             {
                 if (explicit_markings)
                     out_ << "!!bool ";
@@ -131,7 +133,7 @@ namespace boost { namespace yaml { namespace ast {
                 out_ << (b ? "true" : "false");
             }
 
-            void operator() (std::string const & utf) const
+            void operator()(std::string const & utf) const
             {
                 if (explicit_markings)
                     out_ << "!!str ";
@@ -140,7 +142,8 @@ namespace boost { namespace yaml { namespace ast {
                     out_ << '"';
 
                 using uchar_t = ::boost::uint32_t;
-                using iter_t = boost::u8_to_u32_iterator<std::string::const_iterator>;
+                using iter_t =
+                    boost::u8_to_u32_iterator<std::string::const_iterator>;
                 iter_t first = utf.begin();
                 iter_t last = utf.end();
 
@@ -150,24 +153,25 @@ namespace boost { namespace yaml { namespace ast {
                     uchar_t const c[2] = {*first, 0};
                     ++first;
                     switch (c[0]) {
-                    case 0:       out_ << "\\0"; break;
-                    case 0x7:     out_ << "\\a"; break;
-                    case 0x8:     out_ << "\\b"; break;
-                    case 0x9:     out_ << "\\t"; break;
-                    case 0xA:     out_ << "\\n"; break;
-                    case 0xB:     out_ << "\\v"; break;
-                    case 0xC:     out_ << "\\f"; break;
-                    case 0xD:     out_ << "\\r"; break;
-                    case 0x1B:    out_ << "\\e"; break;
-                    case '"':     out_ << "\\\""; break;
-                    case '\\':    out_ << "\\\\"; break;
-                    case 0xA0:    out_ << "\\_"; break;
-                    case 0x85:    out_ << "\\N"; break;
-                    case 0x2028:  out_ << "\\L"; break;
-                    case 0x2029:  out_ << "\\P"; break;
+                    case 0: out_ << "\\0"; break;
+                    case 0x7: out_ << "\\a"; break;
+                    case 0x8: out_ << "\\b"; break;
+                    case 0x9: out_ << "\\t"; break;
+                    case 0xA: out_ << "\\n"; break;
+                    case 0xB: out_ << "\\v"; break;
+                    case 0xC: out_ << "\\f"; break;
+                    case 0xD: out_ << "\\r"; break;
+                    case 0x1B: out_ << "\\e"; break;
+                    case '"': out_ << "\\\""; break;
+                    case '\\': out_ << "\\\\"; break;
+                    case 0xA0: out_ << "\\_"; break;
+                    case 0x85: out_ << "\\N"; break;
+                    case 0x2028: out_ << "\\L"; break;
+                    case 0x2029: out_ << "\\P"; break;
 
                     default: {
-                        using utf8_iter_t = boost::u32_to_u8_iterator<uchar_t const *>;
+                        using utf8_iter_t =
+                            boost::u32_to_u8_iterator<uchar_t const *>;
                         utf8_iter_t first(c);
                         utf8_iter_t last(c + 1);
                         auto it = std::copy(first, last, utf8);
@@ -181,7 +185,7 @@ namespace boost { namespace yaml { namespace ast {
                     out_ << "\"";
             }
 
-            void operator() (double d) const
+            void operator()(double d) const
             {
                 if (explicit_markings)
                     out_ << "!!float ";
@@ -197,7 +201,7 @@ namespace boost { namespace yaml { namespace ast {
                 }
             }
 
-            void operator() (int i) const
+            void operator()(int i) const
             {
                 if (explicit_markings)
                     out_ << "!!int ";
@@ -205,26 +209,27 @@ namespace boost { namespace yaml { namespace ast {
                 out_ << i;
             }
 
-            void operator() (properties_node_t const & pn) const
+            void operator()(properties_node_t const & pn) const
             {
                 if (pn.first.anchor_ != "" && !expand_aliases)
                     out_ << '&' << pn.first.anchor_ << ' ';
                 boost::apply_visitor(*this, pn.second.get());
             }
 
-            void operator() (alias_t const & alias) const
+            void operator()(alias_t const & alias) const
             {
                 if (!expand_aliases) {
                     out_ << '*' << alias.first << ' ';
                 } else {
-                    BOOST_ASSERT(alias.second); // This alias is unlinked! If this assertion
-                                                // fired, then you are trying to traverse an
+                    BOOST_ASSERT(alias.second); // This alias is unlinked! If
+                                                // this assertion fired, then
+                                                // you are trying to traverse an
                                                 // unlinked yaml object.
                     boost::apply_visitor(*this, alias.second->get());
                 }
             }
 
-            void print_json_map (map_t const & map) const
+            void print_json_map(map_t const & map) const
             {
                 out_ << '{';
                 bool first = true;
@@ -244,11 +249,14 @@ namespace boost { namespace yaml { namespace ast {
                 out_ << '}';
             }
 
-            template <typename T>
-            bool dont_print_inline (T const & val) const
-            { return !inline_collections || level_ <= primary_level || depth(val) > 1; }
+            template<typename T>
+            bool dont_print_inline(T const & val) const
+            {
+                return !inline_collections || level_ <= primary_level ||
+                       depth(val) > 1;
+            }
 
-            void print_yaml_map (map_t const & map) const
+            void print_yaml_map(map_t const & map) const
             {
                 if (explicit_markings) {
                     out_ << "{\n";
@@ -301,7 +309,7 @@ namespace boost { namespace yaml { namespace ast {
                 }
             }
 
-            void operator() (map_t const & map) const
+            void operator()(map_t const & map) const
             {
                 if (explicit_markings)
                     out_ << "!!map ";
@@ -314,7 +322,7 @@ namespace boost { namespace yaml { namespace ast {
                 --level_;
             }
 
-            void print_json_seq (seq_t const & seq) const
+            void print_json_seq(seq_t const & seq) const
             {
                 out_ << '[';
                 bool first = true;
@@ -330,7 +338,7 @@ namespace boost { namespace yaml { namespace ast {
                 out_ << ']';
             }
 
-            void print_yaml_seq (seq_t const & seq) const
+            void print_yaml_seq(seq_t const & seq) const
             {
                 if (explicit_markings) {
                     out_ << "[\n";
@@ -371,7 +379,7 @@ namespace boost { namespace yaml { namespace ast {
                 }
             }
 
-            void operator() (seq_t const & seq) const
+            void operator()(seq_t const & seq) const
             {
                 if (explicit_markings)
                     out_ << "!!seq ";
@@ -384,7 +392,7 @@ namespace boost { namespace yaml { namespace ast {
                 --level_;
             }
 
-            void indent (int indent_spaces) const
+            void indent(int indent_spaces) const
             {
                 for (int i = 0; i < indent_spaces; ++i) {
                     out_ << ' ';
@@ -396,29 +404,42 @@ namespace boost { namespace yaml { namespace ast {
         {
             using result_type = bool;
 
-            template <typename A, typename B>
-            bool operator() (A const & a, B const & b) const
-            { return false; }
+            template<typename A, typename B>
+            bool operator()(A const & a, B const & b) const
+            {
+                return false;
+            }
 
-            template <typename T>
-            bool operator() (T const & a, T const & b) const
-            { return a == b; }
+            template<typename T>
+            bool operator()(T const & a, T const & b) const
+            {
+                return a == b;
+            }
 
-            bool operator() (properties_node_t const & a, properties_node_t const & b) const
-            { return a.second == b.second; }
+            bool operator()(
+                properties_node_t const & a, properties_node_t const & b) const
+            {
+                return a.second == b.second;
+            }
 
-            template <typename T>
-            bool operator() (properties_node_t const & a, T const & b) const
-            { return a.second == b; }
+            template<typename T>
+            bool operator()(properties_node_t const & a, T const & b) const
+            {
+                return a.second == b;
+            }
 
-            template <typename T>
-            bool operator() (T const & a, properties_node_t const & b) const
-            { return a == b.second; }
+            template<typename T>
+            bool operator()(T const & a, properties_node_t const & b) const
+            {
+                return a == b.second;
+            }
 
-            bool operator() (alias_t const & a, alias_t const & b) const
-            { return *a.second == *b.second; }
+            bool operator()(alias_t const & a, alias_t const & b) const
+            {
+                return *a.second == *b.second;
+            }
 
-            bool operator() (map_t const & a, map_t const & b)
+            bool operator()(map_t const & a, map_t const & b)
             {
                 if (a.size() != b.size())
                     return false;
@@ -430,7 +451,7 @@ namespace boost { namespace yaml { namespace ast {
                 return true;
             }
 
-            bool operator() (seq_t const & a, seq_t const & b)
+            bool operator()(seq_t const & a, seq_t const & b)
             {
                 if (a.size() != b.size())
                     return false;
@@ -443,11 +464,10 @@ namespace boost { namespace yaml { namespace ast {
             }
         };
 
-        struct spirit_variant_hasher
-            : boost::static_visitor<std::size_t>
+        struct spirit_variant_hasher : boost::static_visitor<std::size_t>
         {
-            template <typename T>
-            std::size_t operator() (T const & val) const
+            template<typename T>
+            std::size_t operator()(T const & val) const
             {
                 boost::hash<T> hasher;
                 return hasher(val);
@@ -480,7 +500,7 @@ namespace boost { namespace yaml { namespace ast {
         };
     }
 
-    inline std::size_t hash_value (properties_t const & p)
+    inline std::size_t hash_value(properties_t const & p)
     {
         boost::hash<std::string> hasher;
         std::size_t seed = hasher(p.tag_);
@@ -488,45 +508,45 @@ namespace boost { namespace yaml { namespace ast {
         return seed;
     }
 
-    inline std::size_t hash_value (value_t const & val)
+    inline std::size_t hash_value(value_t const & val)
     {
-        std::size_t seed = boost::apply_visitor(detail::spirit_variant_hasher(), val);
+        std::size_t seed =
+            boost::apply_visitor(detail::spirit_variant_hasher(), val);
         boost::hash_combine(seed, val.get().which());
         return seed;
     }
 
-    inline bool operator== (value_t const & a, value_t const & b)
+    inline bool operator==(value_t const & a, value_t const & b)
     {
         return boost::apply_visitor(detail::value_equal(), a.get(), b.get());
     }
 
-    inline bool operator!= (value_t const & a, value_t const & b)
+    inline bool operator!=(value_t const & a, value_t const & b)
     {
         return !(a == b);
     }
 
     struct map_t::index_t
     {
-        std::unordered_map<value_t, element_iterator_t, boost::hash<value_t>> map_;
+        std::unordered_map<value_t, element_iterator_t, boost::hash<value_t>>
+            map_;
     };
 
-    inline map_t::map_t ()
-        : index_ (new index_t)
+    inline map_t::map_t() : index_(new index_t) {}
+
+    inline map_t::map_t(map_t const & o) :
+        elements_(o.elements_),
+        index_(o.index_ ? new index_t(*o.index_.get()) : nullptr)
     {}
 
-    inline map_t::map_t (map_t const & o)
-        : elements_ (o.elements_)
-        , index_ (o.index_ ? new index_t(*o.index_.get()) : nullptr)
-    {}
-
-    inline map_t & map_t::operator= (map_t const & rhs)
+    inline map_t & map_t::operator=(map_t const & rhs)
     {
         map_t tmp(rhs);
         *this = std::move(tmp);
         return *this;
     }
 
-    inline map_t::const_iterator map_t::find (key_type const & k) const
+    inline map_t::const_iterator map_t::find(key_type const & k) const
     {
         auto const index_it = index_->map_.find(k);
         if (index_it == index_->map_.end())
@@ -535,7 +555,7 @@ namespace boost { namespace yaml { namespace ast {
             return index_it->second;
     }
 
-    inline map_t::size_type map_t::count (key_type const & k) const
+    inline map_t::size_type map_t::count(key_type const & k) const
     {
         auto const index_it = index_->map_.find(k);
         if (index_it == index_->map_.end())
@@ -544,7 +564,8 @@ namespace boost { namespace yaml { namespace ast {
             return 1u;
     }
 
-    inline std::pair<map_t::iterator, bool> map_t::insert (map_element_t const & e)
+    inline std::pair<map_t::iterator, bool>
+    map_t::insert(map_element_t const & e)
     {
         auto const index_it = index_->map_.find(e.first);
         if (index_it == index_->map_.end()) {
@@ -556,17 +577,27 @@ namespace boost { namespace yaml { namespace ast {
         }
     }
 
-    inline map_t::iterator map_t::insert (const_iterator at, map_element_t const & e)
+    inline map_t::iterator
+    map_t::insert(const_iterator at, map_element_t const & e)
     {
         iterator const it = elements_.insert(at, e);
         index_->map_[e.first] = it;
         return it;
     }
 
-    template <int Spaces, bool ExpandAliases, bool InlineCollections, bool ExplicitMapEntriesAndTags>
+    template<
+        int Spaces,
+        bool ExpandAliases,
+        bool InlineCollections,
+        bool ExplicitMapEntriesAndTags>
     inline std::ostream & print_yaml(std::ostream & out, value_t const & val)
     {
-        detail::yaml_printer<Spaces, ExpandAliases, InlineCollections, ExplicitMapEntriesAndTags> f(out);
+        detail::yaml_printer<
+            Spaces,
+            ExpandAliases,
+            InlineCollections,
+            ExplicitMapEntriesAndTags>
+            f(out);
         boost::apply_visitor(f, val.get());
         return out;
     }

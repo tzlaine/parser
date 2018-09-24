@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_STREAM_DEF_HPP
@@ -14,6 +15,7 @@
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
+
 #include <boost/regex/pending/unicode_iterator.hpp>
 
 
@@ -21,16 +23,14 @@ namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
-        template <typename ErrorFn>
-        bool check_encoding (encoding_t encoding, ErrorFn const & error_fn)
+        template<typename ErrorFn>
+        bool check_encoding(encoding_t encoding, ErrorFn const & error_fn)
         {
             if (encoding != encoding_t::utf8) {
                 std::stringstream oss;
-                oss << "BOM for encoding "
-                    << encoding
+                oss << "BOM for encoding " << encoding
                     << " was encountered in the stream, but only "
-                    << encoding_t::utf8
-                    << " encoding is supported.\n";
+                    << encoding_t::utf8 << " encoding is supported.\n";
                 error_fn(oss.str());
                 return false;
             }
@@ -39,30 +39,36 @@ namespace boost { namespace yaml { namespace parser {
 
         struct clear_document_state
         {
-            template <typename>
-            struct result { using type = void; };
+            template<typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            void operator() (stream_t & stream) const
+            void operator()(stream_t & stream) const
             {
                 stream.block_styles_.flow_styles_.anchors.clear();
 
-                auto & tags = stream.block_styles_.flow_styles_.basic_structures_.tags;
+                auto & tags =
+                    stream.block_styles_.flow_styles_.basic_structures_.tags;
                 tags.clear();
-                tags.add("!!", basic_structures_t::tag_t{"tag:yaml.org,2002:", iterator_t(), true});
-                tags.add("!", basic_structures_t::tag_t{"!", iterator_t(), true});
+                tags.add(
+                    "!!",
+                    basic_structures_t::tag_t{
+                        "tag:yaml.org,2002:", iterator_t(), true});
+                tags.add(
+                    "!", basic_structures_t::tag_t{"!", iterator_t(), true});
 
-                stream.block_styles_.flow_styles_.basic_structures_.yaml_directive_seen_ = false;
+                stream.block_styles_.flow_styles_.basic_structures_
+                    .yaml_directive_seen_ = false;
             }
         };
-
-        
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    stream_t::stream_t (bool verbose)
-        : error_handler_ (make_error_handler())
-        , block_styles_ (error_handler_, verbose)
+    stream_t::stream_t(bool verbose) :
+        error_handler_(make_error_handler()),
+        block_styles_(error_handler_, verbose)
     {
         qi::attr_type attr;
         qi::raw_type raw;
@@ -88,14 +94,19 @@ namespace boost { namespace yaml { namespace parser {
 
         auto pb = phx::push_back(_val, _1);
 
-        auto & bom = block_styles_.flow_styles_.basic_structures_.characters_.bom;
+        auto & bom =
+            block_styles_.flow_styles_.basic_structures_.characters_.bom;
 
-        auto & directive = block_styles_.flow_styles_.basic_structures_.directive;
-        auto & l_comment = block_styles_.flow_styles_.basic_structures_.l_comment;
-        auto & s_l_comments = block_styles_.flow_styles_.basic_structures_.s_l_comments;
+        auto & directive =
+            block_styles_.flow_styles_.basic_structures_.directive;
+        auto & l_comment =
+            block_styles_.flow_styles_.basic_structures_.l_comment;
+        auto & s_l_comments =
+            block_styles_.flow_styles_.basic_structures_.s_l_comments;
 
         auto & block_node = block_styles_.block_node;
 
+        // clang-format off
 
         // [202]
         document_prefix =
@@ -159,31 +170,25 @@ namespace boost { namespace yaml { namespace parser {
             >>  *blank >> -('#' >> *(char_ - eoi)) >> eoi
             ;
 
+        // clang-format on
+
         if (verbose) {
-            BOOST_SPIRIT_DEBUG_NODES(
-                (document_prefix)
-                (document_suffix)
-                (forbidden)
-                (bare_document)
-                (explicit_document)
-                (directive_document)
-                (any_document)
-                (yaml_stream)
-                (end_of_input)
-            );
+            BOOST_SPIRIT_DEBUG_NODES((document_prefix)(document_suffix)(
+                forbidden)(bare_document)(explicit_document)(
+                directive_document)(any_document)(yaml_stream)(end_of_input));
         }
 
         qi::on_error<qi::fail>(yaml_stream, error_handler_(_1, _2, _3, _4));
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    void stream_t::set_error_handler_params (
+    void stream_t::set_error_handler_params(
         iterator_t & first,
         iterator_t last,
         std::string const & source_file,
         reporting_fn_t const & errors,
-        reporting_fn_t const & warnings
-    ) {
+        reporting_fn_t const & warnings)
+    {
         error_handler_.f.impl().first_ = first;
         error_handler_.f.impl().last_ = last;
         error_handler_.f.impl().current_ = &first;
@@ -193,7 +198,7 @@ namespace boost { namespace yaml { namespace parser {
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    void stream_t::reset_error_handler_params ()
+    void stream_t::reset_error_handler_params()
     {
         error_handler_.f.impl().first_ = error_handler_.f.impl().last_;
         error_handler_.f.impl().current_ = nullptr;
@@ -202,20 +207,28 @@ namespace boost { namespace yaml { namespace parser {
 
     namespace detail {
 
-        inline encoding_t read_bom_8 (char const * buf, int & size)
+        inline encoding_t read_bom_8(char const * buf, int & size)
         {
             auto retval = encoding_t::utf8;
 
-            /*   */if (size == 4 && buf[0] == '\x00' && buf[1] == '\x00' && buf[2] == '\xfe' && buf[3] == '\xff') {
+            /*   */
+            if (size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
+                buf[2] == '\xfe' && buf[3] == '\xff') {
                 size = 4;
                 retval = encoding_t::utf32_be;
-            } else if (size == 4 && buf[0] == '\x00' && buf[1] == '\x00' && buf[2] == '\x00' /* anything */) {
+            } else if (
+                size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
+                buf[2] == '\x00' /* anything */) {
                 size = 4;
                 retval = encoding_t::utf32_be;
-            } else if (size == 4 && buf[0] == '\xff' && buf[1] == '\xfe' && buf[2] == '\x00' && buf[3] == '\x00') {
+            } else if (
+                size == 4 && buf[0] == '\xff' && buf[1] == '\xfe' &&
+                buf[2] == '\x00' && buf[3] == '\x00') {
                 size = 4;
                 retval = encoding_t::utf32_le;
-            } else if (size == 4 &&   /* anything */    buf[1] == '\x00' && buf[2] == '\x00' && buf[3] == '\x00') {
+            } else if (
+                size == 4 && /* anything */ buf[1] == '\x00' &&
+                buf[2] == '\x00' && buf[3] == '\x00') {
                 size = 4;
                 retval = encoding_t::utf32_le;
             } else if (size >= 2 && buf[0] == '\xfe' && buf[1] == '\xff') {
@@ -227,10 +240,12 @@ namespace boost { namespace yaml { namespace parser {
             } else if (size >= 2 && buf[0] == '\xff' && buf[1] == '\xfe') {
                 size = 2;
                 retval = encoding_t::utf16_le;
-            } else if (size >= 2 &&   /* anything */    buf[1] == '\x00') {
+            } else if (size >= 2 && /* anything */ buf[1] == '\x00') {
                 size = 2;
                 retval = encoding_t::utf16_le;
-            } else if (size >= 3 && buf[0] == '\xef' && buf[1] == '\xbb' && buf[2] == '\xbf') {
+            } else if (
+                size >= 3 && buf[0] == '\xef' && buf[1] == '\xbb' &&
+                buf[2] == '\xbf') {
                 size = 3;
                 retval = encoding_t::utf8;
             } else {
@@ -242,16 +257,17 @@ namespace boost { namespace yaml { namespace parser {
 
         struct scoped_reset_error_handler
         {
-            ~scoped_reset_error_handler ()
-            { parser_.reset_error_handler_params(); }
+            ~scoped_reset_error_handler()
+            {
+                parser_.reset_error_handler_params();
+            }
 
             stream_t & parser_;
         };
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (std::istream & is)
+    encoding_t read_bom(std::istream & is)
     {
         int size = 0;
         char buf[4];
@@ -261,7 +277,7 @@ namespace boost { namespace yaml { namespace parser {
             c = is.get();
             ++size;
         }
-        for (int i = size; i --> 0;) {
+        for (int i = size; i-- > 0;) {
             is.putback(buf[i]);
         }
 
@@ -275,7 +291,7 @@ namespace boost { namespace yaml { namespace parser {
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (char const *& first, char const * last)
+    encoding_t read_bom(char const *& first, char const * last)
     {
         int size = std::min<int>(last - first, 4);
         auto const retval = detail::read_bom_8(first, size);
@@ -284,7 +300,7 @@ namespace boost { namespace yaml { namespace parser {
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (iterator_t & first, iterator_t last)
+    encoding_t read_bom(iterator_t & first, iterator_t last)
     {
         if (first != last && *first == 0xfeff)
             ++first;
@@ -293,47 +309,38 @@ namespace boost { namespace yaml { namespace parser {
 
     // TODO: Change signature to return a vector and a bool.
     BOOST_YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml (
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         stream_t & parser,
         char const * raw_first,
         char const * raw_last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
-    ) {
+        reporting_fn_t const & warnings_callback)
+    {
         boost::optional<std::vector<ast::value_t>> retval;
 
         using raw_char_iterator_t = boost::u8_to_u32_iterator<char const *>;
 
         auto const first_encoding = read_bom(raw_first, raw_last);
         auto const encoding_ok = detail::check_encoding(
-            first_encoding,
-            [&errors_callback](std::string const & msg) {
+            first_encoding, [&errors_callback](std::string const & msg) {
                 if (errors_callback)
                     errors_callback(msg);
                 else
                     throw parse_error(msg);
-            }
-        );
+            });
         if (!encoding_ok)
             return retval;
 
-        ustring_t contents{
-            raw_char_iterator_t(raw_first),
-            raw_char_iterator_t(raw_last)
-        };
+        ustring_t contents{raw_char_iterator_t(raw_first),
+                           raw_char_iterator_t(raw_last)};
 
         iterator_t first(&*contents.begin(), &*contents.end());
         iterator_t last;
         first.set_tabchars(1);
 
         parser.set_error_handler_params(
-            first,
-            last,
-            source_file,
-            errors_callback,
-            warnings_callback
-        );
+            first, last, source_file, errors_callback, warnings_callback);
         detail::scoped_reset_error_handler reset{parser};
 
         std::vector<ast::value_t> documents;
@@ -341,26 +348,25 @@ namespace boost { namespace yaml { namespace parser {
         bool success = true;
         do {
             auto initial = first;
-            success = qi::parse(first, last, parser.yaml_stream, temp_documents);
+            success =
+                qi::parse(first, last, parser.yaml_stream, temp_documents);
 
             if (!success || first == initial)
                 break;
 
             std::move(
-                temp_documents.begin(), temp_documents.end(),
-                std::back_inserter(documents)
-            );
+                temp_documents.begin(),
+                temp_documents.end(),
+                std::back_inserter(documents));
             temp_documents.clear();
 
             bool doc_boundary = qi::parse(first, last, +parser.document_suffix);
 
             auto const encoding = read_bom(first, last);
             auto const encoding_ok = detail::check_encoding(
-                encoding,
-                [&parser](std::string const & msg) {
+                encoding, [&parser](std::string const & msg) {
                     parser.error_handler_.f.impl().report_error(msg);
-                }
-            );
+                });
 
             if (!encoding_ok) {
                 success = false;
@@ -386,8 +392,8 @@ namespace boost { namespace yaml { namespace parser {
 
             if (!success) {
                 parser.error_handler_.f.impl().report_error(
-                    "Expected end of input, next map element, or next seq element here:\n"
-                );
+                    "Expected end of input, next map element, or next seq "
+                    "element here:\n");
             }
         }
 
@@ -398,13 +404,13 @@ namespace boost { namespace yaml { namespace parser {
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml (
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         stream_t & parser,
         std::istream & is,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
-        reporting_fn_t const & warnings_callback
-    ) {
+        reporting_fn_t const & warnings_callback)
+    {
         std::string raw_contents;
         char buf[4096];
         while (is) {
@@ -418,19 +424,18 @@ namespace boost { namespace yaml { namespace parser {
             raw_contents.c_str() + raw_contents.size(),
             source_file,
             errors_callback,
-            warnings_callback
-        );
+            warnings_callback);
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml (
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         char const * raw_first,
         char const * raw_last,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback,
-        bool verbose
-    ) {
+        bool verbose)
+    {
 #ifndef BOOST_SPIRIT_DEBUG
         verbose = false;
 #endif
@@ -441,29 +446,23 @@ namespace boost { namespace yaml { namespace parser {
             raw_last,
             source_file,
             errors_callback,
-            warnings_callback
-        );
+            warnings_callback);
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    boost::optional<std::vector<ast::value_t>> parse_yaml (
+    boost::optional<std::vector<ast::value_t>> parse_yaml(
         std::istream & is,
         std::string const & source_file,
         reporting_fn_t const & errors_callback,
         reporting_fn_t const & warnings_callback,
-        bool verbose
-    ) {
+        bool verbose)
+    {
 #ifndef BOOST_SPIRIT_DEBUG
         verbose = false;
 #endif
         stream_t parser(verbose);
         return parse_yaml(
-            parser,
-            is,
-            source_file,
-            errors_callback,
-            warnings_callback
-        );
+            parser, is, source_file, errors_callback, warnings_callback);
     }
 
 }}}

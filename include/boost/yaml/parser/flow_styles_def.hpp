@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_FLOW_STYLES_DEF_HPP
@@ -23,42 +24,46 @@ namespace boost { namespace yaml { namespace parser {
 
         struct alias
         {
-            template <typename>
-            struct result { using type = ast::alias_t; };
+            template<typename>
+            struct result
+            {
+                using type = ast::alias_t;
+            };
 
-            ast::alias_t operator() (anchor_t const & a) const
-            { return a.alias_; }
+            ast::alias_t operator()(anchor_t const & a) const
+            {
+                return a.alias_;
+            }
         };
 
         struct in_flow
         {
-            template <typename, typename>
-            struct result { using type = context_t; };
+            template<typename, typename>
+            struct result
+            {
+                using type = context_t;
+            };
 
-            context_t operator() (context_t c) const
+            context_t operator()(context_t c) const
             {
                 switch (c) {
                 case context_t::flow_out:
-                case context_t::flow_in:
-                    return context_t::flow_in;
+                case context_t::flow_in: return context_t::flow_in;
                 case context_t::block_key:
-                case context_t::flow_key:
-                    return context_t::flow_key;
+                case context_t::flow_key: return context_t::flow_key;
                 default:
                     BOOST_ASSERT(!"Invalid input passed to in_flow()");
                     return context_t::block_out;
                 }
             }
         };
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    flow_styles_t::flow_styles_t (
+    flow_styles_t::flow_styles_t(
         boost::phoenix::function<error_handler_t> & error_handler,
-        bool verbose
-    )
-        : basic_structures_ (error_handler, verbose)
+        bool verbose) :
+        basic_structures_(error_handler, verbose)
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -105,6 +110,8 @@ namespace boost { namespace yaml { namespace parser {
         auto & properties = basic_structures_.properties;
 
         anchors.name("anchor");
+
+        // clang-format off
 
         // 7.1 Alias Nodes
 
@@ -476,59 +483,26 @@ namespace boost { namespace yaml { namespace parser {
             );
         }
 
+        // clang-format on
+
         if (verbose) {
-            BOOST_SPIRIT_DEBUG_NODES(
-                (alias_node)
-                (nb_double_char)
-                (ns_double_char)
-                (double_quoted)
-                (double_text)
-                (double_escaped)
-                (double_break)
-                (double_in_line)
-                (double_next_line)
-                (double_multi_line)
-                (nb_single_char)
-                (ns_single_char)
-                (single_quoted)
-                (single_text)
-                (single_in_line)
-                (single_next_line)
-                (single_multi_line)
-                (plain_first)
-                (plain_safe)
-                (plain_char)
-                (plain)
-                (plain_in_line)
-                (plain_one_line)
-                (plain_next_line)
-                (plain_multi_line)
-                (flow_sequence)
-                (flow_seq_entries)
-                (flow_seq_entry)
-                (flow_mapping)
-                (flow_map_entries)
-                (flow_map_entry)
-                (flow_map_explicit_entry)
-                (flow_map_implicit_entry)
-                (flow_map_yaml_key_entry)
-                (flow_map_empty_key_entry)
-                (flow_map_separate_value)
-                (flow_map_json_key_entry)
-                (flow_map_adjacent_value)
-                (flow_pair)
-                (flow_pair_entry)
-                (flow_pair_yaml_key_entry)
-                (flow_pair_json_key_entry)
-                (implicit_yaml_key)
-                (implicit_json_key)
-                (flow_yaml_content)
-                (flow_json_content)
-                (flow_content)
-                (flow_yaml_node)
-                (flow_json_node)
-                (flow_node)
-            );
+            BOOST_SPIRIT_DEBUG_NODES((alias_node)(nb_double_char)(
+                ns_double_char)(double_quoted)(double_text)(double_escaped)(
+                double_break)(double_in_line)(double_next_line)(
+                double_multi_line)(nb_single_char)(ns_single_char)(
+                single_quoted)(single_text)(single_in_line)(single_next_line)(
+                single_multi_line)(plain_first)(plain_safe)(plain_char)(plain)(
+                plain_in_line)(plain_one_line)(plain_next_line)(
+                plain_multi_line)(flow_sequence)(flow_seq_entries)(
+                flow_seq_entry)(flow_mapping)(flow_map_entries)(flow_map_entry)(
+                flow_map_explicit_entry)(flow_map_implicit_entry)(
+                flow_map_yaml_key_entry)(flow_map_empty_key_entry)(
+                flow_map_separate_value)(flow_map_json_key_entry)(
+                flow_map_adjacent_value)(flow_pair)(flow_pair_entry)(
+                flow_pair_yaml_key_entry)(flow_pair_json_key_entry)(
+                implicit_yaml_key)(implicit_json_key)(flow_yaml_content)(
+                flow_json_content)(flow_content)(flow_yaml_node)(
+                flow_json_node)(flow_node));
         }
     }
 

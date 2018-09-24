@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
@@ -21,38 +22,46 @@ namespace boost { namespace yaml { namespace parser {
 
         struct reserved_directive_warning
         {
-            template <typename>
-            struct result { using type = void; };
+            template<typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            void operator() (
+            void operator()(
                 iterator_range_t const & range,
-                error_handler_t const & error_handler
-            ) const {
+                error_handler_t const & error_handler) const
+            {
                 if (!error_handler.impl().warning_fn_)
                     return;
                 std::string const directive = range_to_string(range);
                 std::ostringstream oss;
                 oss << "All directives except %YAML and %TAG are "
-                    << "reserved for future use.  The directive '%"
-                    << directive << "' will be ignored";
-                error_handler.impl().report_warning_at(range.begin(), oss.str());
+                    << "reserved for future use.  The directive '%" << directive
+                    << "' will be ignored";
+                error_handler.impl().report_warning_at(
+                    range.begin(), oss.str());
             }
         };
 
         struct check_yaml_version
         {
-            template <typename, typename, typename, typename, typename>
-            struct result { using type = void; };
+            template<typename, typename, typename, typename, typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            template <typename Pass>
-            void operator() (
+            template<typename Pass>
+            void operator()(
                 iterator_range_t const & range,
                 unsigned int major,
                 unsigned int minor,
                 basic_structures_t & structures,
-                Pass & pass
-            ) const {
-                error_handler_t const & error_handler = structures.error_handler_.f;
+                Pass & pass) const
+            {
+                error_handler_t const & error_handler =
+                    structures.error_handler_.f;
                 if (structures.yaml_directive_seen_) {
                     scoped_multipart_error_t multipart(error_handler.impl());
                     error_handler.impl().report_error_at(
@@ -60,33 +69,34 @@ namespace boost { namespace yaml { namespace parser {
                         "The current document has more than one %YAML "
                         "directive.  Only one is allowed.  The latest "
                         "one is here",
-                        multipart
-                    );
+                        multipart);
                     error_handler.impl().report_error_at(
                         structures.first_yaml_directive_it_,
                         "The first one was was here",
-                        multipart
-                    );
+                        multipart);
                     pass = false;
                 } else {
                     structures.first_yaml_directive_it_ = range.begin();
                     if (major != 1) {
-                        scoped_multipart_error_t multipart(error_handler.impl());
+                        scoped_multipart_error_t multipart(
+                            error_handler.impl());
                         std::ostringstream oss;
-                        oss << "The current document has a %YAML "
-                            << major << '.' << minor
+                        oss << "The current document has a %YAML " << major
+                            << '.' << minor
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so cannot continue";
-                        error_handler.impl().report_error_at(range.begin(), oss.str(), multipart);
+                        error_handler.impl().report_error_at(
+                            range.begin(), oss.str(), multipart);
                         pass = false;
                     } else if (minor != 2 && error_handler.impl().warning_fn_) {
                         std::ostringstream oss;
-                        oss << "The current document has a %YAML "
-                            << major << '.' << minor
+                        oss << "The current document has a %YAML " << major
+                            << '.' << minor
                             << " directive.  This parser recognizes "
                                "YAML 1.2, and so might not work.  "
                                "Trying anyway...";
-                        error_handler.impl().report_warning_at(range.begin(), oss.str());
+                        error_handler.impl().report_warning_at(
+                            range.begin(), oss.str());
                     }
                 }
                 structures.yaml_directive_seen_ = true;
@@ -95,17 +105,20 @@ namespace boost { namespace yaml { namespace parser {
 
         struct record_tag_handle
         {
-            template <typename, typename, typename, typename, typename>
-            struct result { using type = void; };
+            template<typename, typename, typename, typename, typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            template <typename Pass>
-            void operator() (
+            template<typename Pass>
+            void operator()(
                 iterator_range_t const & handle_range,
                 iterator_range_t const & prefix_range,
                 qi::symbols<char, basic_structures_t::tag_t> & tags,
                 error_handler_t const & error_handler,
-                Pass & pass
-            ) const {
+                Pass & pass) const
+            {
                 std::string const handle = range_to_string(handle_range);
 
                 auto existing_tag = tags.find(handle);
@@ -121,36 +134,35 @@ namespace boost { namespace yaml { namespace parser {
                         << "directive using the handle " << handle << ".  "
                         << "Only one is allowed.  The latest one is here";
                     error_handler.impl().report_error_at(
-                        handle_range.begin(),
-                        oss.str(),
-                        multipart
-                    );
+                        handle_range.begin(), oss.str(), multipart);
                     error_handler.impl().report_error_at(
                         existing_tag->position_,
                         "The first one was was here",
-                        multipart
-                    );
+                        multipart);
                     pass = false;
                 } else {
                     tags.add(
                         handle,
-                        basic_structures_t::tag_t{
-                            range_to_string(prefix_range),
-                            handle_range.begin(),
-                            false
-                        }
-                    );
+                        basic_structures_t::tag_t{range_to_string(prefix_range),
+                                                  handle_range.begin(),
+                                                  false});
                 }
             }
         };
 
         struct prefix
         {
-            template <typename>
-            struct result { using type = std::string const &; };
+            template<typename>
+            struct result
+            {
+                using type = std::string const &;
+            };
 
-            std::string const & operator() (basic_structures_t::tag_t const & tag) const
-            { return tag.prefix_; }
+            std::string const &
+            operator()(basic_structures_t::tag_t const & tag) const
+            {
+                return tag.prefix_;
+            }
         };
 
         // HACK!  This is a dirty, dirty hack that bears explaining.  Many
@@ -175,27 +187,28 @@ namespace boost { namespace yaml { namespace parser {
         // changes.  Subsequent eoi detections will fail.
         struct first_time_eoi
         {
-            template <typename>
-            struct result { using type = bool; };
+            template<typename>
+            struct result
+            {
+                using type = bool;
+            };
 
-            bool operator() (eoi_state_t & state) const
+            bool operator()(eoi_state_t & state) const
             {
                 bool const retval = state == eoi_state_t::not_at_end;
                 state = eoi_state_t::at_end;
                 return retval;
             }
         };
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    basic_structures_t::basic_structures_t (
+    basic_structures_t::basic_structures_t(
         boost::phoenix::function<error_handler_t> & error_handler,
-        bool verbose
-    )
-        : characters_ (verbose)
-        , error_handler_ (error_handler)
-        , yaml_directive_seen_ (false)
+        bool verbose) :
+        characters_(verbose),
+        error_handler_(error_handler),
+        yaml_directive_seen_(false)
     {
         qi::attr_type attr;
         qi::uint_type uint_;
@@ -238,6 +251,8 @@ namespace boost { namespace yaml { namespace parser {
         function<detail::to_str> to_str;
 
         tags.name("a tag prefix defined in a TAG directive, \"!!\", or \"!\"");
+
+        // clang-format off
 
         // 6.1. Indentation Spaces
 
@@ -424,33 +439,16 @@ namespace boost { namespace yaml { namespace parser {
             eoi >> eps(first_time_eoi(_r1))
             ;
 
+        // clang-format on
+
         if (verbose) {
             BOOST_SPIRIT_DEBUG_NODES(
-                (indent)
-                (indent_lt)
-                (indent_le)
-                (separate_in_line)
-                (line_prefix)
-                (l_empty)
-                (b_l_folded)
-                (flow_folded)
-                (comment_text)
-                (s_b_comment)
-                (l_comment)
-                (s_l_comments)
-                (separate)
-                (separate_lines)
-                (directive)
-                (reserved_directive)
-                (yaml_directive)
-                (tag_directive)
-                (tag_handle)
-                (tag_prefix)
-                (properties)
-                (tag_property)
-                (anchor_property)
-                (anchor_name)
-            );
+                (indent)(indent_lt)(indent_le)(separate_in_line)(line_prefix)(
+                    l_empty)(b_l_folded)(flow_folded)(comment_text)(
+                    s_b_comment)(l_comment)(s_l_comments)(separate)(
+                    separate_lines)(directive)(reserved_directive)(
+                    yaml_directive)(tag_directive)(tag_handle)(tag_prefix)(
+                    properties)(tag_property)(anchor_property)(anchor_name));
         }
     }
 

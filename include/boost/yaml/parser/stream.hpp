@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_STREAM_HPP
@@ -16,17 +17,16 @@ namespace boost { namespace yaml { namespace parser {
 
     struct stream_t
     {
-        explicit stream_t (bool verbose);
+        explicit stream_t(bool verbose);
 
-        void set_error_handler_params (
+        void set_error_handler_params(
             iterator_t & first,
             iterator_t last,
             std::string const & source_file,
             reporting_fn_t const & errors,
-            reporting_fn_t const & warnings
-        );
- 
-        void reset_error_handler_params ();
+            reporting_fn_t const & warnings);
+
+        void reset_error_handler_params();
 
         boost::phoenix::function<error_handler_t> error_handler_;
 
@@ -36,7 +36,8 @@ namespace boost { namespace yaml { namespace parser {
         qi::rule<iterator_t, qi::locals<eoi_state_t>> document_suffix;
         qi::rule<iterator_t> forbidden;
         qi::rule<iterator_t, ast::value_t()> bare_document;
-        qi::rule<iterator_t, ast::value_t(), qi::locals<eoi_state_t>> explicit_document;
+        qi::rule<iterator_t, ast::value_t(), qi::locals<eoi_state_t>>
+            explicit_document;
         qi::rule<iterator_t, ast::value_t()> directive_document;
         qi::rule<iterator_t, ast::value_t()> any_document;
         qi::rule<iterator_t, std::vector<ast::value_t>()> yaml_stream;
@@ -45,13 +46,13 @@ namespace boost { namespace yaml { namespace parser {
     };
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (std::istream & is);
+    encoding_t read_bom(std::istream & is);
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (char const *& first, char const * last);
+    encoding_t read_bom(char const *& first, char const * last);
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    encoding_t read_bom (iterator_t & first, iterator_t last);
+    encoding_t read_bom(iterator_t & first, iterator_t last);
 
     BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
@@ -60,8 +61,7 @@ namespace boost { namespace yaml { namespace parser {
         char const * raw_last,
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
-        reporting_fn_t const & warnings_callback = reporting_fn_t()
-    );
+        reporting_fn_t const & warnings_callback = reporting_fn_t());
 
     BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
@@ -69,8 +69,7 @@ namespace boost { namespace yaml { namespace parser {
         std::istream & is,
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
-        reporting_fn_t const & warnings_callback = reporting_fn_t()
-    );
+        reporting_fn_t const & warnings_callback = reporting_fn_t());
 
     BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
@@ -79,8 +78,7 @@ namespace boost { namespace yaml { namespace parser {
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
         reporting_fn_t const & warnings_callback = reporting_fn_t(),
-        bool verbose = false
-    );
+        bool verbose = false);
 
     BOOST_YAML_HEADER_ONLY_INLINE
     boost::optional<std::vector<ast::value_t>> parse_yaml(
@@ -88,8 +86,7 @@ namespace boost { namespace yaml { namespace parser {
         std::string const & source_file = "",
         reporting_fn_t const & errors_callback = reporting_fn_t(),
         reporting_fn_t const & warnings_callback = reporting_fn_t(),
-        bool verbose = false
-    );
+        bool verbose = false);
 
 }}}
 

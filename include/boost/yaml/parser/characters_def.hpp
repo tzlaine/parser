@@ -3,8 +3,9 @@
  *   Copyright (c) 2010 Joel de Guzman
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_CHARACTERS_DEF_HPP
@@ -24,39 +25,40 @@ namespace boost { namespace yaml { namespace parser {
 
         struct push_esc
         {
-            template <typename, typename>
-            struct result { using type = void; };
-
-            void operator() (parsed_uchar_t & to, uchar_t from) const
+            template<typename, typename>
+            struct result
             {
-                switch (from)
-                {
-                    case ' ':  to.value_ = ' ';     break;
-                    case '\t': to.value_ = '\t';    break;
-                    case '0':  to.value_ = '\0';    break;
-                    case 'a':  to.value_ = 0x7;     break;
-                    case 'b':  to.value_ = 0x8;     break;
-                    case 't':  to.value_ = '\t';    break;
-                    case 'n':  to.value_ = 0xa;     break;
-                    case 'v':  to.value_ = '\v';    break;
-                    case 'f':  to.value_ = '\f';    break;
-                    case 'r':  to.value_ = '\r';    break;
-                    case 'e':  to.value_ = 0x1b;    break;
-                    case '"':  to.value_ = '"';     break;
-                    case '/':  to.value_ = '/';     break;
-                    case '\\': to.value_ = '\\';    break;
-                    case '_':  to.value_ = 0xa0;    break;
-                    case 'N':  to.value_ = 0x85;    break;
-                    case 'L':  to.value_ = 0x2028;  break;
-                    case 'P':  to.value_ = 0x2029;  break;
+                using type = void;
+            };
+
+            void operator()(parsed_uchar_t & to, uchar_t from) const
+            {
+                switch (from) {
+                case ' ': to.value_ = ' '; break;
+                case '\t': to.value_ = '\t'; break;
+                case '0': to.value_ = '\0'; break;
+                case 'a': to.value_ = 0x7; break;
+                case 'b': to.value_ = 0x8; break;
+                case 't': to.value_ = '\t'; break;
+                case 'n': to.value_ = 0xa; break;
+                case 'v': to.value_ = '\v'; break;
+                case 'f': to.value_ = '\f'; break;
+                case 'r': to.value_ = '\r'; break;
+                case 'e': to.value_ = 0x1b; break;
+                case '"': to.value_ = '"'; break;
+                case '/': to.value_ = '/'; break;
+                case '\\': to.value_ = '\\'; break;
+                case '_': to.value_ = 0xa0; break;
+                case 'N': to.value_ = 0x85; break;
+                case 'L': to.value_ = 0x2028; break;
+                case 'P': to.value_ = 0x2029; break;
                 }
             }
         };
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    characters_t::characters_t (bool verbose)
+    characters_t::characters_t(bool verbose)
     {
         qi::unicode::char_type char_;
         qi::_val_type _val;
@@ -77,6 +79,8 @@ namespace boost { namespace yaml { namespace parser {
         uint_parser<uchar_t, 16, 4, 4> hex4;
         uint_parser<uchar_t, 16, 8, 8> hex8;
         function<detail::push_esc> push_esc;
+
+        // clang-format off
 
         // 5.2. Character Encodings
 
@@ -141,19 +145,13 @@ namespace boost { namespace yaml { namespace parser {
                 )
             ;
 
+        // clang-format on
+
         // TODO: Separate out the naming of these things from debugging
         // them; give them user-friendly names.
         if (verbose) {
-            BOOST_SPIRIT_DEBUG_NODES(
-                (printable)
-                (nb_json)
-                (bom)
-                (nb_char)
-                (ns_char)
-                (uri_char)
-                (tag_char)
-                (esc_char)
-            );
+            BOOST_SPIRIT_DEBUG_NODES((printable)(nb_json)(bom)(nb_char)(
+                ns_char)(uri_char)(tag_char)(esc_char));
         }
     }
 

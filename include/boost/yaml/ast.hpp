@@ -3,8 +3,9 @@
  *   consultomd.com
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 #ifndef BOOST_YAML_AST_VALUE_HPP
 #define BOOST_YAML_AST_VALUE_HPP
@@ -33,7 +34,9 @@ namespace boost { namespace yaml { namespace ast {
 
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<<(std::ostream & out, null_t)
-    { return out << "<null>"; }
+    {
+        return out << "<null>";
+    }
 #endif
 
     struct value_t;
@@ -44,40 +47,40 @@ namespace boost { namespace yaml { namespace ast {
 
     struct properties_t
     {
-        properties_t () {}
-        properties_t (string_t tag, string_t anchor)
-            : tag_ (std::move(tag)), anchor_ (std::move(anchor))
+        properties_t() {}
+        properties_t(string_t tag, string_t anchor) :
+            tag_(std::move(tag)),
+            anchor_(std::move(anchor))
         {}
 
-        explicit operator bool () const
-        { return tag_ != "" || anchor_ != ""; }
+        explicit operator bool() const { return tag_ != "" || anchor_ != ""; }
 
         string_t tag_;
         string_t anchor_;
     };
 #ifdef BOOST_SPIRIT_DEBUG
     inline std::ostream & operator<<(std::ostream & out, properties_t const & p)
-    { return out << p.tag_ << ',' << p.anchor_; }
+    {
+        return out << p.tag_ << ',' << p.anchor_;
+    }
 #endif
 
     using properties_node_t = std::pair<properties_t, value_t>;
 
     struct map_t;
 
-    struct value_t
-        : boost::spirit::extended_variant<
-          null_t,
-          bool_t,
-          string_t,
-          double_t,
-          int_t,
-          boost::recursive_wrapper<map_t>,
-          seq_t,
-          alias_t,
-          boost::recursive_wrapper<properties_node_t>
-        >
+    struct value_t : boost::spirit::extended_variant<
+                         null_t,
+                         bool_t,
+                         string_t,
+                         double_t,
+                         int_t,
+                         boost::recursive_wrapper<map_t>,
+                         seq_t,
+                         alias_t,
+                         boost::recursive_wrapper<properties_node_t>>
     {
-        value_t(char const* val) : base_type(string_t(val)) {}
+        value_t(char const * val) : base_type(string_t(val)) {}
         value_t(string_t const & val) : base_type(val) {}
         value_t(double_t val) : base_type(val) {}
         value_t(int_t val) : base_type(val) {}
@@ -91,8 +94,10 @@ namespace boost { namespace yaml { namespace ast {
         value_t(value_t const & rhs) : base_type(rhs.get()) {}
     };
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, value_t const & v)
-    { return os << "<value>"; }
+    inline std::ostream & operator<<(std::ostream & os, value_t const & v)
+    {
+        return os << "<value>";
+    }
 #endif
 
     bool operator==(value_t const & a, value_t const & b);
@@ -109,44 +114,45 @@ namespace boost { namespace yaml { namespace ast {
         using iterator = vector_t::iterator;
         using const_iterator = vector_t::const_iterator;
 
-        inline map_t ();
-        inline map_t (map_t const & o);
-        inline map_t & operator= (map_t const & rhs);
-        map_t (map_t && o) = default;
-        map_t & operator= (map_t && rhs) = default;
+        inline map_t();
+        inline map_t(map_t const & o);
+        inline map_t & operator=(map_t const & rhs);
+        map_t(map_t && o) = default;
+        map_t & operator=(map_t && rhs) = default;
 
-        const_iterator begin () const
-        { return elements_.begin(); }
-        const_iterator end () const
-        { return elements_.end(); }
-        const_iterator cbegin () const
-        { return elements_.begin(); }
-        const_iterator cend () const
-        { return elements_.end(); }
+        const_iterator begin() const { return elements_.begin(); }
+        const_iterator end() const { return elements_.end(); }
+        const_iterator cbegin() const { return elements_.begin(); }
+        const_iterator cend() const { return elements_.end(); }
 
-        size_type size () const
-        { return elements_.size(); }
+        size_type size() const { return elements_.size(); }
 
-        inline const_iterator find (key_type const & k) const;
-        inline size_type count (key_type const & k) const;
+        inline const_iterator find(key_type const & k) const;
+        inline size_type count(key_type const & k) const;
 
-        iterator begin ()
-        { return elements_.begin(); }
-        iterator end ()
-        { return elements_.end(); }
+        iterator begin() { return elements_.begin(); }
+        iterator end() { return elements_.end(); }
 
-        inline std::pair<iterator, bool> insert (map_element_t const & e);
-        inline iterator insert (const_iterator at, map_element_t const & e);
+        inline std::pair<iterator, bool> insert(map_element_t const & e);
+        inline iterator insert(const_iterator at, map_element_t const & e);
 
-        friend bool operator== (map_t const & a, map_t const & b)
-        { return a.elements_ == b.elements_; }
-        friend bool operator!= (map_t const & a, map_t const & b)
-        { return a.elements_ != b.elements_; }
-        friend bool operator< (map_t const & a, map_t const & b)
-        { return a.elements_ < b.elements_; }
+        friend bool operator==(map_t const & a, map_t const & b)
+        {
+            return a.elements_ == b.elements_;
+        }
+        friend bool operator!=(map_t const & a, map_t const & b)
+        {
+            return a.elements_ != b.elements_;
+        }
+        friend bool operator<(map_t const & a, map_t const & b)
+        {
+            return a.elements_ < b.elements_;
+        }
 #ifdef BOOST_SPIRIT_DEBUG
-        friend std::ostream & operator<< (std::ostream & os, map_t const & o)
-        { return os << "{ " << o.elements_.size() << " elements }"; }
+        friend std::ostream & operator<<(std::ostream & os, map_t const & o)
+        {
+            return os << "{ " << o.elements_.size() << " elements }";
+        }
 #endif
 
     private:
@@ -159,13 +165,20 @@ namespace boost { namespace yaml { namespace ast {
         std::unique_ptr<index_t> index_;
     };
 
-    template <int Spaces, bool ExpandAliases, bool InlineCollections, bool ExplicitMapEntriesAndTags>
+    template<
+        int Spaces,
+        bool ExpandAliases,
+        bool InlineCollections,
+        bool ExplicitMapEntriesAndTags>
     std::ostream & print_yaml(std::ostream & out, value_t const & val);
 
     inline std::ostream & print_yaml(std::ostream & out, value_t const & val)
-    { return print_yaml<2, false, true, false>(out, val); }
+    {
+        return print_yaml<2, false, true, false>(out, val);
+    }
 
-    inline std::ostream & print_yaml_canonical(std::ostream & out, value_t const & val)
+    inline std::ostream &
+    print_yaml_canonical(std::ostream & out, value_t const & val)
     {
         out << "%YAML 1.2\n---\n";
         return print_yaml<2, true, false, true>(out, val);

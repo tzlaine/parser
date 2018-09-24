@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_PARSER_FWD_HPP
@@ -23,34 +24,30 @@ namespace boost { namespace yaml { namespace parser {
 
 
     // Error reporting.
-    using reporting_fn_t = std::function<void (std::string const &)>;
+    using reporting_fn_t = std::function<void(std::string const &)>;
 
-    struct parse_error
-        : std::exception
+    struct parse_error : std::exception
     {
-        parse_error (std::string const & msg)
-            : msg_ (msg)
-        {}
+        parse_error(std::string const & msg) : msg_(msg) {}
 
-        virtual char const * what () const noexcept
-        { return msg_.c_str(); }
+        virtual char const * what() const noexcept { return msg_.c_str(); }
 
         std::string msg_;
     };
 
 
     // Characters and iterators.
-    using uchar_t = boost::uint32_t; // Unicode code point
+    using uchar_t = boost::uint32_t;              // Unicode code point
     using ustring_t = std::basic_string<uchar_t>; // UCS-4 Unicode string
 
     // Prevents the direct use of a uchar_t as a char without UTF32-to-UTF8
     // transcoding.
     struct parsed_uchar_t
     {
-        parsed_uchar_t (uchar_t c = 0) : value_ (c) {}
+        parsed_uchar_t(uchar_t c = 0) : value_(c) {}
         uchar_t value_;
 
-        friend std::ostream & operator<< (std::ostream & os, parsed_uchar_t c)
+        friend std::ostream & operator<<(std::ostream & os, parsed_uchar_t c)
         {
             std::string utf8;
             using insert_iterator_t = std::back_insert_iterator<std::string>;
@@ -61,48 +58,51 @@ namespace boost { namespace yaml { namespace parser {
         }
     };
 
-    using iterator_t = boost::spirit::classic::position_iterator<uchar_t const *>;
+    using iterator_t =
+        boost::spirit::classic::position_iterator<uchar_t const *>;
     using iterator_range_t = boost::iterator_range<iterator_t>;
 
 
-    inline std::string range_to_string (iterator_range_t range)
+    inline std::string range_to_string(iterator_range_t range)
     {
         using to_string_iterator_t = boost::u32_to_u8_iterator<iterator_t>;
         return std::string(
             to_string_iterator_t(range.begin()),
-            to_string_iterator_t(range.end())
-        );
+            to_string_iterator_t(range.end()));
     }
 
 
     // Parser enums.
     enum class context_t {
-        block_in, block_out,
-        flow_in, flow_out,
-        block_key, flow_key
+        block_in,
+        block_out,
+        flow_in,
+        flow_out,
+        block_key,
+        flow_key
     };
 
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, context_t c)
+    inline std::ostream & operator<<(std::ostream & os, context_t c)
     {
         switch (c) {
-#define CASE(x) case context_t::x: return os << #x
-        CASE(block_in); CASE(block_out);
-        CASE(flow_in); CASE(flow_out);
-        CASE(block_key); CASE(flow_key);
+#define CASE(x)                                                                \
+case context_t::x: return os << #x
+            CASE(block_in);
+            CASE(block_out);
+            CASE(flow_in);
+            CASE(flow_out);
+            CASE(block_key);
+            CASE(flow_key);
 #undef CASE
         }
         return os;
     }
 #endif
 
-    enum class encoding_t {
-        utf32_be, utf32_le,
-        utf16_be, utf16_le,
-        utf8
-    };
+    enum class encoding_t { utf32_be, utf32_le, utf16_be, utf16_le, utf8 };
 
-    inline std::ostream & operator<< (std::ostream & os, encoding_t c)
+    inline std::ostream & operator<<(std::ostream & os, encoding_t c)
     {
         switch (c) {
         case encoding_t::utf32_be: return os << "UTF-32 big-endian";
@@ -114,12 +114,10 @@ namespace boost { namespace yaml { namespace parser {
         return os;
     }
 
-    enum class chomping_t {
-        strip, clip, keep
-    };
+    enum class chomping_t { strip, clip, keep };
 
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, chomping_t c)
+    inline std::ostream & operator<<(std::ostream & os, chomping_t c)
     {
         switch (c) {
         case chomping_t::strip: return os << "strip";
@@ -130,23 +128,21 @@ namespace boost { namespace yaml { namespace parser {
     }
 #endif
 
-    enum class eoi_state_t
-    {
-        not_at_end, at_end
-    };
+    enum class eoi_state_t { not_at_end, at_end };
 
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, eoi_state_t s)
-    { return os << (s == eoi_state_t::not_at_end ? "not_at_end" : "at_end"); }
+    inline std::ostream & operator<<(std::ostream & os, eoi_state_t s)
+    {
+        return os << (s == eoi_state_t::not_at_end ? "not_at_end" : "at_end");
+    }
 #endif
 
     struct block_header_t
     {
-        block_header_t ()
-            : indentation_ (0), chomping_ (chomping_t::clip)
-        {}
-        block_header_t (int indentation, chomping_t chomping)
-            : indentation_ (indentation), chomping_ (chomping)
+        block_header_t() : indentation_(0), chomping_(chomping_t::clip) {}
+        block_header_t(int indentation, chomping_t chomping) :
+            indentation_(indentation),
+            chomping_(chomping)
         {}
 
         int indentation_;
@@ -154,23 +150,29 @@ namespace boost { namespace yaml { namespace parser {
     };
 
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream & operator<< (std::ostream & os, block_header_t b)
-    { return os << b.indentation_ << ',' << b.chomping_; }
+    inline std::ostream & operator<<(std::ostream & os, block_header_t b)
+    {
+        return os << b.indentation_ << ',' << b.chomping_;
+    }
 #endif
 
     struct parser_properties_t
     {
-        parser_properties_t () {}
-        parser_properties_t (std::string const & tag, iterator_range_t anchor)
-            : tag_ (tag), anchor_ (anchor)
+        parser_properties_t() {}
+        parser_properties_t(std::string const & tag, iterator_range_t anchor) :
+            tag_(tag),
+            anchor_(anchor)
         {}
 
         std::string tag_;
         iterator_range_t anchor_;
     };
 #ifdef BOOST_SPIRIT_DEBUG
-    inline std::ostream& operator<<(std::ostream & out, parser_properties_t const & p)
-    { return out << p.tag_ << ',' << range_to_string(p.anchor_); }
+    inline std::ostream &
+    operator<<(std::ostream & out, parser_properties_t const & p)
+    {
+        return out << p.tag_ << ',' << range_to_string(p.anchor_);
+    }
 #endif
 
     struct anchor_t
@@ -184,29 +186,42 @@ namespace boost { namespace yaml { namespace parser {
 
         struct to_str
         {
-            template <typename>
-            struct result { using type = std::string; };
+            template<typename>
+            struct result
+            {
+                using type = std::string;
+            };
 
-            std::string operator() (iterator_range_t range) const
-            { return range_to_string(range); }
+            std::string operator()(iterator_range_t range) const
+            {
+                return range_to_string(range);
+            }
         };
 
         struct push_utf8
         {
-            template <typename, typename, typename = void>
-            struct result { using type = void; };
-
-            void operator() (std::string & utf8, parsed_uchar_t code_point) const
+            template<typename, typename, typename = void>
+            struct result
             {
-                using insert_iterator_t = std::back_insert_iterator<std::string>;
+                using type = void;
+            };
+
+            void operator()(std::string & utf8, parsed_uchar_t code_point) const
+            {
+                using insert_iterator_t =
+                    std::back_insert_iterator<std::string>;
                 insert_iterator_t out_it(utf8);
                 boost::utf8_output_iterator<insert_iterator_t> utf8_it(out_it);
                 *utf8_it++ = code_point.value_;
             }
 
-            void operator() (std::string & utf8, parsed_uchar_t code_point_1, parsed_uchar_t code_point_2) const
+            void operator()(
+                std::string & utf8,
+                parsed_uchar_t code_point_1,
+                parsed_uchar_t code_point_2) const
             {
-                using insert_iterator_t = std::back_insert_iterator<std::string>;
+                using insert_iterator_t =
+                    std::back_insert_iterator<std::string>;
                 insert_iterator_t out_it(utf8);
                 boost::utf8_output_iterator<insert_iterator_t> utf8_it(out_it);
                 *utf8_it++ = code_point_1.value_;
@@ -216,11 +231,14 @@ namespace boost { namespace yaml { namespace parser {
 
         struct check_start_of_line
         {
-            template <typename, typename>
-            struct result { using type = void; };
+            template<typename, typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            template <typename Pass>
-            void operator() (iterator_range_t const & range, Pass & pass) const
+            template<typename Pass>
+            void operator()(iterator_range_t const & range, Pass & pass) const
             {
                 int const column = range.begin().get_position().column;
                 if (column != 1)
@@ -231,12 +249,17 @@ namespace boost { namespace yaml { namespace parser {
 #ifdef BOOST_SPIRIT_DEBUG
         struct print_indent
         {
-            template <typename>
-            struct result { using type = bool; };
-
-            bool operator() (int n) const
+            template<typename>
+            struct result
             {
-                std::cerr << n << " ======================================== " << n << "\n";
+                using type = bool;
+            };
+
+            bool operator()(int n) const
+            {
+                std::cerr << n
+                          << " ======================================== " << n
+                          << "\n";
                 return true;
             }
         };
@@ -247,7 +270,6 @@ namespace boost { namespace yaml { namespace parser {
 #else
 #define BOOST_YAML_PARSER_PRINT_INDENT
 #endif
-
     }
 
 }}}

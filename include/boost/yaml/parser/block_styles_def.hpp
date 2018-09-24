@@ -1,8 +1,9 @@
 /**
  *   Copyright (C) 2017 Zach Laine
  *
- *   Distributed under the Boost Software License, Version 1.0. (See accompanying
- *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ *   Distributed under the Boost Software License, Version 1.0. (See
+ *   accompanying file LICENSE_1_0.txt or copy at
+ *   http://www.boost.org/LICENSE_1_0.txt)
  */
 
 #ifndef BOOST_YAML_PARSER_BLOCK_STYLES_DEF_HPP
@@ -23,53 +24,76 @@ namespace boost { namespace yaml { namespace parser {
 
         struct chomping
         {
-            template <typename>
-            struct result { using type = chomping_t; };
+            template<typename>
+            struct result
+            {
+                using type = chomping_t;
+            };
 
-            chomping_t operator() (block_header_t block_header) const
-            { return block_header.chomping_; }
+            chomping_t operator()(block_header_t block_header) const
+            {
+                return block_header.chomping_;
+            }
         };
 
         struct indentation
         {
-            template <typename>
-            struct result { using type = int; };
+            template<typename>
+            struct result
+            {
+                using type = int;
+            };
 
-            int operator() (block_header_t block_header) const
-            { return block_header.indentation_; }
+            int operator()(block_header_t block_header) const
+            {
+                return block_header.indentation_;
+            }
         };
 
         struct seq_spaces
         {
-            template <typename, typename>
-            struct result { using type = int; };
+            template<typename, typename>
+            struct result
+            {
+                using type = int;
+            };
 
-            int operator() (int n, context_t c) const
-            { return c == context_t::block_out ? n - 1 : n; }
+            int operator()(int n, context_t c) const
+            {
+                return c == context_t::block_out ? n - 1 : n;
+            }
         };
 
         struct update_max
         {
-            template <typename, typename>
-            struct result { using type = void; };
+            template<typename, typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            void operator() (int & max_indent, int this_line_indent) const
-            { max_indent = (std::max)(max_indent, this_line_indent); }
+            void operator()(int & max_indent, int this_line_indent) const
+            {
+                max_indent = (std::max)(max_indent, this_line_indent);
+            }
         };
 
         struct check_scalar_indentation
         {
-            template <typename, typename, typename, typename, typename>
-            struct result { using type = void; };
+            template<typename, typename, typename, typename, typename>
+            struct result
+            {
+                using type = void;
+            };
 
-            template <typename Pass>
-            void operator() (
+            template<typename Pass>
+            void operator()(
                 iterator_range_t range,
                 int & max_indent,
                 int this_line_indent,
                 error_handler_t const & error_handler,
-                Pass & pass
-            ) const {
+                Pass & pass) const
+            {
                 if (max_indent <= this_line_indent) {
                     max_indent = this_line_indent;
                 } else {
@@ -81,20 +105,19 @@ namespace boost { namespace yaml { namespace parser {
                         << "This line is indented " << this_line_indent
                         << " spaces, but a previous line was indented "
                         << max_indent << " spaces:\n";
-                    error_handler.impl().report_error_at(range.begin(), oss.str(), multipart);
+                    error_handler.impl().report_error_at(
+                        range.begin(), oss.str(), multipart);
                     pass = false;
                 }
             }
         };
-
     }
 
     BOOST_YAML_HEADER_ONLY_INLINE
-    block_styles_t::block_styles_t (
+    block_styles_t::block_styles_t(
         boost::phoenix::function<error_handler_t> & error_handler,
-        bool verbose
-    )
-        : flow_styles_ (error_handler, verbose)
+        bool verbose) :
+        flow_styles_(error_handler, verbose)
     {
         qi::attr_type attr;
         qi::omit_type omit;
@@ -127,7 +150,8 @@ namespace boost { namespace yaml { namespace parser {
         phx::function<detail::push_utf8> push_utf8;
         phx::function<detail::update_max> update_max;
         phx::function<detail::map_insert> map_insert;
-        phx::function<detail::check_scalar_indentation> check_scalar_indentation;
+        phx::function<detail::check_scalar_indentation>
+            check_scalar_indentation;
         phx::function<detail::seq_spaces> seq_spaces; // [201]
 
         auto ins = map_insert(_val, _1, _b, phx::cref(error_handler.f));
@@ -155,6 +179,8 @@ namespace boost { namespace yaml { namespace parser {
         auto & flow_node = flow_styles_.flow_node;
         auto & implicit_yaml_key = flow_styles_.implicit_yaml_key;
         auto & implicit_json_key = flow_styles_.implicit_json_key;
+
+        // clang-format off
 
         // 8.1 Block Scalar Styles
 
@@ -501,50 +527,24 @@ namespace boost { namespace yaml { namespace parser {
                 )
             ;
 
+        // clang-format on
+
         if (verbose) {
             BOOST_SPIRIT_DEBUG_NODES(
-                (auto_detect_indent)
-                (scalar_auto_detect_indent)
+                (auto_detect_indent)(scalar_auto_detect_indent)
 
-                (block_header)
-                (indentation_indicator)
-                (chomping_indicator)
-                (chomped_empty)
-                (strip_empty)
-                (keep_empty)
-                (trail_comments)
-                (literal)
-                (literal_text)
-                (literal_next)
-                (literal_content)
-                (folded)
-                (folded_text)
-                (folded_lines)
-                (spaced_text)
-                (spaced)
-                (spaced_lines)
-                (same_lines)
-                (diff_lines)
-                (folded_content)
-                (block_sequence)
-                (block_seq_entry)
-                (block_indented)
-                (compact_sequence)
-                (block_mapping)
-                (block_map_entry)
-                (block_map_explicit_entry)
-                (block_map_explicit_key)
-                (block_map_explicit_value)
-                (block_map_implicit_entry)
-                (block_map_implicit_key)
-                (block_map_implicit_value)
-                (compact_mapping)
-                (block_node)
-                (flow_in_block)
-                (block_in_block)
-                (block_scalar)
-                (block_collection)
-            );
+                    (block_header)(indentation_indicator)(chomping_indicator)(
+                        chomped_empty)(strip_empty)(keep_empty)(trail_comments)(
+                        literal)(literal_text)(literal_next)(literal_content)(
+                        folded)(folded_text)(folded_lines)(spaced_text)(spaced)(
+                        spaced_lines)(same_lines)(diff_lines)(folded_content)(
+                        block_sequence)(block_seq_entry)(block_indented)(
+                        compact_sequence)(block_mapping)(block_map_entry)(
+                        block_map_explicit_entry)(block_map_explicit_key)(
+                        block_map_explicit_value)(block_map_implicit_entry)(
+                        block_map_implicit_key)(block_map_implicit_value)(
+                        compact_mapping)(block_node)(flow_in_block)(
+                        block_in_block)(block_scalar)(block_collection));
         }
     }
 
