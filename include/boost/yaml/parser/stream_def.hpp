@@ -16,7 +16,7 @@
 #include <boost/spirit/include/phoenix_container.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 
-#include <boost/regex/pending/unicode_iterator.hpp>
+#include <boost/text/utf8.hpp>
 
 
 namespace boost { namespace yaml { namespace parser {
@@ -319,7 +319,8 @@ namespace boost { namespace yaml { namespace parser {
     {
         boost::optional<std::vector<ast::value_t>> retval;
 
-        using raw_char_iterator_t = boost::u8_to_u32_iterator<char const *>;
+        using utf32_iterator_t =
+            boost::text::utf8::to_utf32_iterator<char const *>;
 
         auto const first_encoding = read_bom(raw_first, raw_last);
         auto const encoding_ok = detail::check_encoding(
@@ -332,8 +333,8 @@ namespace boost { namespace yaml { namespace parser {
         if (!encoding_ok)
             return retval;
 
-        ustring_t contents{raw_char_iterator_t(raw_first),
-                           raw_char_iterator_t(raw_last)};
+        ustring_t contents{utf32_iterator_t(raw_first, raw_first, raw_last),
+                           utf32_iterator_t(raw_first, raw_first, raw_last)};
 
         iterator_t first(&*contents.begin(), &*contents.end());
         iterator_t last;

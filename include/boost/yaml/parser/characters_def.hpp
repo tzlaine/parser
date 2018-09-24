@@ -15,7 +15,6 @@
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/regex/pending/unicode_iterator.hpp>
 #include <boost/phoenix/object/construct.hpp>
 
 

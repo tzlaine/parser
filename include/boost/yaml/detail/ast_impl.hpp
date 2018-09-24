@@ -14,7 +14,7 @@
 
 #include <boost/functional/hash.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/regex/pending/unicode_iterator.hpp>
+#include <boost/text/utf8.hpp>
 
 #include <algorithm>
 #include <map>
@@ -142,14 +142,14 @@ namespace boost { namespace yaml { namespace ast {
                     out_ << '"';
 
                 using uchar_t = ::boost::uint32_t;
-                using iter_t =
-                    boost::u8_to_u32_iterator<std::string::const_iterator>;
-                iter_t first = utf.begin();
-                iter_t last = utf.end();
-
-                char utf8[5];
+                using iter_t = text::utf8::
+                    to_utf32_iterator<char const *, text::utf8::null_sentinel>;
+                iter_t first(
+                    utf.c_str(), utf.c_str(), text::utf8::null_sentinel{});
+                text::utf8::null_sentinel last;
 
                 while (first != last) {
+                    char const * cp_first = first.base();
                     uchar_t const c[2] = {*first, 0};
                     ++first;
                     switch (c[0]) {
@@ -169,15 +169,9 @@ namespace boost { namespace yaml { namespace ast {
                     case 0x2028: out_ << "\\L"; break;
                     case 0x2029: out_ << "\\P"; break;
 
-                    default: {
-                        using utf8_iter_t =
-                            boost::u32_to_u8_iterator<uchar_t const *>;
-                        utf8_iter_t first(c);
-                        utf8_iter_t last(c + 1);
-                        auto it = std::copy(first, last, utf8);
-                        *it = 0;
-                        out_ << utf8;
-                    }
+                    default:
+                        out_.write(cp_first, first.base() - cp_first);
+                        break;
                     }
                 }
 

@@ -187,37 +187,9 @@ endforeach()
 set(expected_json_parse_failures
     # These fail, and all have the "i_" prefix, indicating that they need not
     # be parsed correctly to be JSON-conformant.
-    i_object_key_lone_2nd_surrogate.json
-    i_string_1st_surrogate_but_2nd_missing.json
-    i_string_1st_valid_surrogate_2nd_invalid.json
     i_string_UTF-16LE_with_BOM.json
-    i_string_UTF-8_invalid_sequence.json
-    i_string_UTF8_surrogate_U+D800.json
-    i_string_incomplete_surrogate_and_escape_valid.json
-    i_string_incomplete_surrogate_pair.json
-    i_string_incomplete_surrogates_escape_valid.json
-    i_string_invalid_lonely_surrogate.json
-    i_string_invalid_surrogate.json
-    i_string_invalid_utf-8.json
-    i_string_inverted_surrogates_U+1D11E.json
-    i_string_iso_latin_1.json
-    i_string_lone_second_surrogate.json
-    i_string_lone_utf8_continuation_byte.json
-    i_string_not_in_unicode_range.json
-    i_string_overlong_sequence_2_bytes.json
-    i_string_overlong_sequence_6_bytes.json
-    i_string_overlong_sequence_6_bytes_null.json
-    i_string_truncated-utf-8.json
     i_string_utf16BE_no_BOM.json
     i_string_utf16LE_no_BOM.json
-
-    # Invalid UTF-8 sequences. (See http://unicode.org/faq/utf_bom.html#utf8-4)
-    y_string_accepted_surrogate_pair.json
-    y_string_accepted_surrogate_pairs.json
-    y_string_last_surrogates_1_and_2.json
-    y_string_surrogates_U+1D11E_MUSICAL_SYMBOL_G_CLEF.json
-    y_string_unicode_U+10FFFE_nonchar.json
-    y_string_unicode_U+1FFFE_nonchar.json
 )
 
 foreach (yml_file_root ${expected_json_parse_failures})
@@ -327,37 +299,6 @@ endforeach()
 # Parse-and-compare tests
 ##################################################
 set(expected_comparison_failures
-    parse_compare_test_2JQS_in_vs_json # YAML null vs. JSON "" mismatch
-    parse_compare_test_4ABK_in_vs_out  # Borked yaml-out section
-    parse_compare_test_4ABK_in_vs_json # YAML null vs. JSON "" mismatch
-    parse_compare_test_C2DT_in_vs_json # YAML null vs. JSON "" mismatch
-    parse_compare_test_DFF7_in_vs_json # YAML null vs. JSON "" mismatch
-    parse_compare_test_FRK4_in_vs_json # YAML null vs. JSON "" mismatch
-    parse_compare_test_S3PD_in_vs_json # YAML null vs. JSON "" mismatch
-
-    # Contains "!!str: bar" as a map entry, but the ":" is a valid tag-char
-    parse_compare_test_WZ62_in_vs_out
-    parse_compare_test_FH7J_in_vs_out
-
-    # Badly broken test (libyaml-specific stuff, plus a literal with a
-    # non-comment "# <comment>" pattern in it.
-    parse_compare_test_M7A3_in_vs_out
-
-    # YAML version is empty (-- no documents), and the JSON version is a doc
-    # containing a single null.
-    parse_compare_test_AVM7_in_vs_json
-
-    # JSON output is missing one of the ": - ()" elements.
-    parse_compare_test_DBG4_in_vs_json
-
-    # TODO: Address later.  This is due to the lack of typesafe parsing.  This
-    # is the thing that requires the Nablialek trick.
-    # null vs."null" mismatch
-    parse_compare_test_7W2P_in_vs_json
-    parse_compare_test_JTV5_in_vs_json
-    parse_compare_test_5WE3_in_vs_json
-    parse_compare_test_W42U_in_vs_json
-    parse_compare_test_NHX8_in_vs_json
 )
 
 foreach (yml_file_root ${yml_file_index})
