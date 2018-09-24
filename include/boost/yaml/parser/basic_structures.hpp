@@ -8,8 +8,8 @@
 #ifndef BOOST_YAML_PARSER_BASIC_STRUCTURES_HPP
 #define BOOST_YAML_PARSER_BASIC_STRUCTURES_HPP
 
-#include <yaml/parser/parser_fwd.hpp>
-#include <yaml/parser/characters.hpp>
+#include <boost/yaml/parser/parser_fwd.hpp>
+#include <boost/yaml/parser/characters.hpp>
 
 
 namespace boost { namespace yaml { namespace parser {
@@ -74,7 +74,7 @@ namespace boost { namespace yaml { namespace parser {
 }}}
 
 #if BOOST_YAML_HEADER_ONLY
-#include <yaml/parser/basic_structures_def.hpp>
+#include <boost/yaml/parser/basic_structures_def.hpp>
 #endif
 
 #endif

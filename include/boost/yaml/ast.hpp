@@ -175,6 +175,6 @@ namespace boost { namespace yaml { namespace ast {
 
 }}}
 
-#include <yaml/detail/ast_impl.hpp>
+#include <boost/yaml/detail/ast_impl.hpp>
 
 #endif

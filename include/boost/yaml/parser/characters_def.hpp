@@ -10,7 +10,7 @@
 #ifndef BOOST_YAML_PARSER_CHARACTERS_DEF_HPP
 #define BOOST_YAML_PARSER_CHARACTERS_DEF_HPP
 
-#include <yaml/parser/characters.hpp>
+#include <boost/yaml/parser/characters.hpp>
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>

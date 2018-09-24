@@ -8,7 +8,7 @@
 #ifndef BOOST_YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
 #define BOOST_YAML_PARSER_BASIC_STRUCTURES_DEF_HPP
 
-#include <yaml/parser/basic_structures.hpp>
+#include <boost/yaml/parser/basic_structures.hpp>
 
 #include <boost/spirit/include/phoenix_core.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>

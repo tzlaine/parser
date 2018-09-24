@@ -8,7 +8,7 @@
 #ifndef BOOST_YAML_PARSER_FLOW_STYLES_DEF_HPP
 #define BOOST_YAML_PARSER_FLOW_STYLES_DEF_HPP
 
-#include <yaml/parser/flow_styles.hpp>
+#include <boost/yaml/parser/flow_styles.hpp>
 
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>

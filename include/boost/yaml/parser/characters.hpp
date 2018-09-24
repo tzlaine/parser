@@ -8,7 +8,7 @@
 #ifndef BOOST_YAML_PARSER_CHARACTERS_HPP
 #define BOOST_YAML_PARSER_CHARACTERS_HPP
 
-#include <yaml/parser/parser_fwd.hpp>
+#include <boost/yaml/parser/parser_fwd.hpp>
 
 
 namespace boost { namespace yaml { namespace parser {
@@ -30,7 +30,7 @@ namespace boost { namespace yaml { namespace parser {
 }}}
 
 #if BOOST_YAML_HEADER_ONLY
-#include <yaml/parser/characters_def.hpp>
+#include <boost/yaml/parser/characters_def.hpp>
 #endif
 
 #endif

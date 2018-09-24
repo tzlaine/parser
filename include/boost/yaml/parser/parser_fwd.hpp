@@ -8,8 +8,8 @@
 #ifndef BOOST_YAML_PARSER_PARSER_FWD_HPP
 #define BOOST_YAML_PARSER_PARSER_FWD_HPP
 
-#include <yaml/config.hpp>
-#include <yaml/ast.hpp>
+#include <boost/yaml/config.hpp>
+#include <boost/yaml/ast.hpp>
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_copy.hpp>
@@ -252,7 +252,7 @@ namespace boost { namespace yaml { namespace parser {
 
 }}}
 
-#include <yaml/parser/error_handler.hpp>
+#include <boost/yaml/parser/error_handler.hpp>
 
 namespace boost { namespace yaml { namespace parser { namespace detail {
 

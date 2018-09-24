@@ -10,7 +10,7 @@
 #ifndef BOOST_YAML_PARSER_ERROR_HANDLER_HPP
 #define BOOST_YAML_PARSER_ERROR_HANDLER_HPP
 
-#include <yaml/parser/parser_fwd.hpp>
+#include <boost/yaml/parser/parser_fwd.hpp>
 
 #include <boost/spirit/home/support/info.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>

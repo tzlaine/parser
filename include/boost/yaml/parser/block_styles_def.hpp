@@ -8,7 +8,7 @@
 #ifndef BOOST_YAML_PARSER_BLOCK_STYLES_DEF_HPP
 #define BOOST_YAML_PARSER_BLOCK_STYLES_DEF_HPP
 
-#include <yaml/parser/block_styles.hpp>
+#include <boost/yaml/parser/block_styles.hpp>
 
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>

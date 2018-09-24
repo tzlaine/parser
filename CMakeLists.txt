@@ -58,8 +58,8 @@ add_library(
     src/block_style.cpp
     src/stream.cpp
 )
-target_compile_options(yaml-static PUBLIC ${cxx_defs}) 
-target_include_directories(yaml-static PUBLIC ${CMAKE_SOURCE_DIR}) 
+target_compile_options(yaml-static PUBLIC ${cxx_defs})
+target_include_directories(yaml-static PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml-static PUBLIC boost)
 target_link_libraries(yaml-static ${link_flags})
 if (USE_ASAN OR USE_UBSAN)
@@ -83,8 +83,8 @@ add_library(
     src/block_style.cpp
     src/stream.cpp
 )
-target_compile_options(yaml PUBLIC ${cxx_defs}) 
-target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}) 
+target_compile_options(yaml PUBLIC ${cxx_defs})
+target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml PUBLIC boost)
 target_link_libraries(yaml ${link_flags})
 if (USE_ASAN OR USE_UBSAN)

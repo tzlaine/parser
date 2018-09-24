@@ -8,8 +8,8 @@
 #ifndef BOOST_YAML_PARSER_FLOW_STYLES_HPP
 #define BOOST_YAML_PARSER_FLOW_STYLES_HPP
 
-#include <yaml/parser/parser_fwd.hpp>
-#include <yaml/parser/basic_structures.hpp>
+#include <boost/yaml/parser/parser_fwd.hpp>
+#include <boost/yaml/parser/basic_structures.hpp>
 
 
 namespace boost { namespace yaml { namespace parser {
@@ -102,7 +102,7 @@ namespace boost { namespace yaml { namespace parser {
 }}}
 
 #if BOOST_YAML_HEADER_ONLY
-#include <yaml/parser/flow_styles_def.hpp>
+#include <boost/yaml/parser/flow_styles_def.hpp>
 #endif
 
 #endif

@@ -5,4 +5,4 @@
  *   file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  */
 
-#include <yaml/parser/block_styles_def.hpp>
+#include <boost/yaml/parser/block_styles_def.hpp>

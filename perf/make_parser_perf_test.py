@@ -62,7 +62,7 @@ for test in tests:
     test_function_names += 'BENCHMARK({});\n'.format(test_name)
 
 full_test = '''
-#include <yaml/parser/stream.hpp>
+#include <boost/yaml/parser/stream.hpp>
 
 #include <chrono>
 #include <iostream>

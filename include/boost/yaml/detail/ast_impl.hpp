@@ -9,7 +9,7 @@
 #ifndef BOOST_AST_VALUE_IMPL_HPP
 #define BOOST_AST_VALUE_IMPL_HPP
 
-#include <yaml/ast.hpp>
+#include <boost/yaml/ast.hpp>
 
 #include <boost/functional/hash.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
