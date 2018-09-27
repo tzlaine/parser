@@ -5,10 +5,8 @@ set(cxx_defs)
 set(std_flag)
 set(clang_on_linux false)
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    set(std_flag -std=c++11)
     add_definitions(-g -Wall)
     set(cxx_defs
-        ${std_flag}
         -stdlib=libc++
         -Wno-parentheses
         -ftemplate-depth-300
@@ -17,9 +15,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
         set(clang_on_linux true)
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    set(std_flag -std=c++11)
     add_definitions(-g -Wall) 
-    set(cxx_defs ${std_flag} -ftemplate-depth-300 -Wno-parentheses) 
+    set(cxx_defs -ftemplate-depth-300 -Wno-parentheses) 
 endif ()
 
 include(dependencies)
@@ -57,7 +54,9 @@ add_library(
     src/flow_style.cpp
     src/block_style.cpp
     src/stream.cpp
+    src/json.cpp 
 )
+target_compile_features(yaml-static PUBLIC cxx_generic_lambdas)
 target_compile_options(yaml-static PUBLIC ${cxx_defs})
 target_include_directories(yaml-static PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml-static PUBLIC boost)
@@ -82,7 +81,9 @@ add_library(
     src/flow_style.cpp
     src/block_style.cpp
     src/stream.cpp
+    src/json.cpp 
 )
+target_compile_features(yaml PUBLIC cxx_generic_lambdas)
 target_compile_options(yaml PUBLIC ${cxx_defs})
 target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml PUBLIC boost)

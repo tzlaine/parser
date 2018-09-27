@@ -17,7 +17,7 @@ add_executable(
     header_only_parse_test
     parse_yaml_test.cpp
 )
-target_link_libraries(header_only_parse_test yaml gtest ${link_flags})
+target_link_libraries(header_only_parse_test yaml gtest ${link_flags})  
 target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)  
 if (clang_on_linux)
     target_link_libraries(header_only_parse_test c++)
@@ -43,9 +43,7 @@ add_executable(
     json_parser
     json_parser.cpp
 )
-target_compile_features(json_parser PRIVATE cxx_generic_lambdas)
-target_include_directories(json_parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(json_parser PUBLIC boost)
+target_link_libraries(json_parser yaml ${link_flags})
 if (clang_on_linux)
     target_link_libraries(json_parser c++)
 endif ()
