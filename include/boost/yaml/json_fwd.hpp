@@ -1,3 +1,6 @@
+#ifndef BOOST_YAML_JSON_FWD_HPP
+#define BOOST_YAML_JSON_FWD_HPP
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -21,3 +24,5 @@ namespace boost { namespace json {
     using object = std::unordered_map<std::string, value>;
 
 }}
+
+#endif
