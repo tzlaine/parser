@@ -1,3 +1,5 @@
+#include <boost/yaml/json_fwd.hpp>
+
 #include <boost/optional.hpp>
 #include <boost/text/algorithm.hpp>
 #include <boost/text/utility.hpp>
@@ -6,19 +8,9 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 
 namespace boost { namespace json {
-
-    struct value;
-
-    enum class value_kind { object, array, number, string, boolean, null };
-
-    struct null_t
-    {};
 
     namespace detail {
 
@@ -54,14 +46,6 @@ namespace boost { namespace json {
             return (std::max)(sizeof(std::vector<int>), sizeof(std::string));
         }
     }
-
-    template<typename T>
-    T const & get(value const & v) noexcept;
-    template<typename T>
-    T & get(value & v) noexcept;
-
-    using array = std::vector<value>;
-    using object = std::unordered_map<std::string, value>;
 
     // TODO: operator==().
     struct value
