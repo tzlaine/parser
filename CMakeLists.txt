@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(cxx_defs)
-set(std_flag) 
+set(std_flag)
 set(clang_on_linux false)
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     set(std_flag -std=c++11)

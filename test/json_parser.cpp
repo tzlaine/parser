@@ -65,6 +65,7 @@ namespace boost { namespace json {
     using array = std::vector<value>;
     using object = std::unordered_map<std::string, value>;
 
+    // TODO: operator==().
     struct value
     {
         value();
