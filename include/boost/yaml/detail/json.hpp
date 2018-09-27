@@ -29,6 +29,8 @@ namespace boost { namespace json { namespace detail {
 
         virtual value_kind kind() const noexcept = 0;
 
+        virtual bool equal_impl(value const & rhs) const noexcept = 0;
+
         virtual std::ostream & to_json(std::ostream & os) const noexcept = 0;
     };
 
@@ -154,6 +156,8 @@ namespace boost { namespace json { namespace detail {
             return value_kind::object;
         }
 
+        virtual bool equal_impl(value const & rhs) const noexcept override;
+
         virtual std::ostream & to_json(std::ostream & os) const
             noexcept override;
 
@@ -178,6 +182,8 @@ namespace boost { namespace json { namespace detail {
             return value_kind::array;
         }
 
+        virtual bool equal_impl(value const & rhs) const noexcept override;
+
         virtual std::ostream & to_json(std::ostream & os) const
             noexcept override;
 
@@ -199,6 +205,8 @@ namespace boost { namespace json { namespace detail {
         {
             return value_kind::number;
         }
+
+        virtual bool equal_impl(value const & rhs) const noexcept override;
 
         virtual std::ostream & to_json(std::ostream & os) const
             noexcept override
@@ -224,6 +232,8 @@ namespace boost { namespace json { namespace detail {
         {
             return value_kind::string;
         }
+
+        virtual bool equal_impl(value const & rhs) const noexcept override;
 
         template<typename CPSubRange>
         static std::ostream &
@@ -301,6 +311,8 @@ namespace boost { namespace json { namespace detail {
             return value_kind::boolean;
         }
 
+        virtual bool equal_impl(value const & rhs) const noexcept override;
+
         virtual std::ostream & to_json(std::ostream & os) const
             noexcept override
         {
@@ -325,6 +337,11 @@ namespace boost { namespace json { namespace detail {
         virtual value_kind kind() const noexcept override
         {
             return value_kind::null;
+        }
+
+        virtual bool equal_impl(value const &) const noexcept override
+        {
+            return true;
         }
 
         virtual std::ostream & to_json(std::ostream & os) const

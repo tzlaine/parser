@@ -12,7 +12,6 @@
 
 namespace boost { namespace json {
 
-    // TODO: operator==().
     struct value
     {
         value();
@@ -109,6 +108,18 @@ namespace boost { namespace json {
         bool is_null() const noexcept
         {
             return ptr_->kind() == value_kind::null;
+        }
+
+        bool operator==(value const & rhs) const noexcept
+        {
+            if (rhs.kind() != kind())
+                return false;
+            return ptr_->equal_impl(rhs);
+        }
+
+        bool operator!=(value const & rhs) const noexcept
+        {
+            return !(*this == rhs);
         }
 
         template<typename T>
@@ -289,6 +300,31 @@ namespace boost { namespace json {
     boost::optional<value> parse(boost::string_view const & str);
 
     namespace detail {
+
+        inline bool value_impl<object>::equal_impl(value const & rhs) const noexcept
+        {
+            return value_ == get<object>(rhs);
+        }
+
+        inline bool value_impl<array>::equal_impl(value const & rhs) const noexcept
+        {
+            return value_ == get<array>(rhs);
+        }
+
+        inline bool value_impl<double>::equal_impl(value const & rhs) const noexcept
+        {
+            return value_ == get<double>(rhs);
+        }
+
+        inline bool value_impl<std::string>::equal_impl(value const & rhs) const noexcept
+        {
+            return value_ == get<std::string>(rhs);
+        }
+
+        inline bool value_impl<bool>::equal_impl(value const & rhs) const noexcept
+        {
+            return value_ == get<bool>(rhs);
+        }
 
         inline std::ostream &
         value_impl<object>::to_json(std::ostream & os) const noexcept
