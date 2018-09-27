@@ -334,7 +334,7 @@ namespace boost { namespace yaml { namespace parser {
             return retval;
 
         ustring_t contents{utf32_iterator_t(raw_first, raw_first, raw_last),
-                           utf32_iterator_t(raw_first, raw_first, raw_last)};
+                           utf32_iterator_t(raw_first, raw_last, raw_last)};
 
         iterator_t first(&*contents.begin(), &*contents.end());
         iterator_t last;

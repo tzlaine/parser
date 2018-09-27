@@ -199,8 +199,10 @@ endforeach()
 set(expected_json_parse_non_failures
     # Parsed just fine as YAML, since it is a superset of JSON.
     n_array_1_true_without_comma.json
+    n_array_a_invalid_utf8.json 
     n_array_colon_instead_of_comma.json
     n_array_extra_comma.json
+    n_array_invalid_utf8.json
     n_array_items_separated_by_semicolon.json
     n_array_number_and_comma.json
     n_incomplete_false.json
@@ -241,12 +243,16 @@ set(expected_json_parse_non_failures
     n_number_infinity.json
     n_number_invalid+-.json
     n_number_invalid-negative-real.json
+    n_number_invalid-utf-8-in-bigger-int.json
+    n_number_invalid-utf-8-in-exponent.json
+    n_number_invalid-utf-8-in-int.json
     n_number_minus_infinity.json
     n_number_minus_sign_with_trailing_garbage.json
     n_number_neg_int_starting_with_zero.json
     n_number_neg_real_without_int_part.json
     n_number_neg_with_garbage_at_end.json
     n_number_real_garbage_after_e.json
+    n_number_real_with_invalid_utf8_after_e.json
     n_number_real_without_fractional_part.json
     n_number_starting_with_dot.json
     n_number_with_alpha.json
@@ -258,6 +264,8 @@ set(expected_json_parse_non_failures
     n_object_emoji.json
     n_object_key_with_single_quotes.json
     n_object_non_string_key_but_huge_number_instead.json
+    n_object_pi_in_key_and_trailing_comma.json
+    n_object_repeated_null_null.json
     n_object_single_quote.json
     n_object_trailing_comma.json
     n_object_unquoted_key.json
@@ -280,9 +288,12 @@ set(expected_json_parse_non_failures
     n_structure_ascii-unicode-identifier.json
     n_structure_capitalized_True.json
     n_structure_close_unopened_array.json
+    n_structure_incomplete_UTF8_BOM.json
+    n_structure_lone-invalid-utf-8.json
     n_structure_no_data.json
     n_structure_number_with_trailing_garbage.json
     n_structure_object_with_comment.json
+    n_structure_single_eacute.json
     n_structure_uescaped_LF_before_string.json
     n_structure_unicode-identifier.json
     n_structure_whitespace_U+2060_word_joiner.json
@@ -299,6 +310,37 @@ endforeach()
 # Parse-and-compare tests
 ##################################################
 set(expected_comparison_failures
+    parse_compare_test_2JQS_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_4ABK_in_vs_out  # Borked yaml-out section
+    parse_compare_test_4ABK_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_C2DT_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_DFF7_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_FRK4_in_vs_json # YAML null vs. JSON "" mismatch
+    parse_compare_test_S3PD_in_vs_json # YAML null vs. JSON "" mismatch
+
+    # Contains "!!str: bar" as a map entry, but the ":" is a valid tag-char
+    parse_compare_test_WZ62_in_vs_out
+    parse_compare_test_FH7J_in_vs_out
+
+    # Badly broken test (libyaml-specific stuff, plus a literal with a
+    # non-comment "# <comment>" pattern in it.
+    parse_compare_test_M7A3_in_vs_out
+
+    # YAML version is empty (-- no documents), and the JSON version is a doc
+    # containing a single null.
+    parse_compare_test_AVM7_in_vs_json
+
+    # JSON output is missing one of the ": - ()" elements.
+    parse_compare_test_DBG4_in_vs_json
+
+    # TODO: Address later.  This is due to the lack of typesafe parsing.  This
+    # is the thing that requires the Nablialek trick.
+    # null vs."null" mismatch
+    parse_compare_test_7W2P_in_vs_json
+    parse_compare_test_JTV5_in_vs_json
+    parse_compare_test_5WE3_in_vs_json
+    parse_compare_test_W42U_in_vs_json
+    parse_compare_test_NHX8_in_vs_json
 )
 
 foreach (yml_file_root ${yml_file_index})
