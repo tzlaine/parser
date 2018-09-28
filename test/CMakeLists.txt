@@ -28,12 +28,21 @@ endif ()
 # Parse-only test executable
 ##################################################
 add_executable(
-    parse_test
+    parse_yaml_test
     parse_yaml_test.cpp
 )
-target_link_libraries(parse_test yaml gtest ${link_flags})
+target_link_libraries(parse_yaml_test yaml gtest ${link_flags})
 if (clang_on_linux)
-    target_link_libraries(parse_test c++)
+    target_link_libraries(parse_yaml_test c++)
+endif ()
+
+add_executable(
+    parse_json_test
+    parse_json_test.cpp
+)
+target_link_libraries(parse_json_test yaml gtest ${link_flags})
+if (clang_on_linux)
+    target_link_libraries(parse_json_test c++)
 endif ()
 
 
@@ -130,15 +139,15 @@ include(test_files/json_index.cmake)
 ##################################################
 foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
     add_test(
-        parse_test_${yml_file_root}
-        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        parse_yaml_test_${yml_file_root}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_yaml_test
         --gtest_catch_exceptions=1
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
     )
     # TODO: Turn this on after the parse tests pass.
     if (false)
         add_test(
-            parse_test_round_trip_${yml_file_root}
+            parse_yaml_test_round_trip_${yml_file_root}
             ${CMAKE_CURRENT_BINARY_DIR}/parse_round_trip_test
             --gtest_catch_exceptions=1
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${yml_file_root}.yml
@@ -147,20 +156,20 @@ foreach (yml_file_root ${yml_file_index} ${error_yml_file_index})
 endforeach()
 
 foreach (yml_file_root ${expected_parse_failures})
-    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
+    set_tests_properties(parse_yaml_test_${yml_file_root} PROPERTIES WILL_FAIL true)
 endforeach()
 
 include(test_files/local_index.cmake)
 foreach (test_file ${local_test_files})
     add_test(
-        parse_test_${test_file}
-        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        parse_yaml_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_yaml_test
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
     # TODO: Turn this on after the parse tests pass.
     if (false)
         add_test(
-            parse_test_round_trip_${test_file}
+            parse_yaml_test_round_trip_${test_file}
             ${CMAKE_CURRENT_BINARY_DIR}/parse_round_trip_test
             ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
         )
@@ -169,33 +178,30 @@ endforeach()
 
 foreach (test_file ${error_local_test_files})
     add_test(
-        parse_test_${test_file}
-        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        parse_yaml_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_yaml_test
         ${CMAKE_CURRENT_SOURCE_DIR}/test_files/${test_file}
     )
-    set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
+    set_tests_properties(parse_yaml_test_${test_file} PROPERTIES WILL_FAIL true)
 endforeach()
 
 foreach (test_file ${json_file_index})
-    # TODO: This file seems to hang the parser.  Update: it's a perf issue!
-    if (NOT ${test_file} STREQUAL i_structure_500_nested_arrays.json)
     add_test(
-        parse_test_${test_file}
-        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
+        parse_json_test_${test_file}
+        ${CMAKE_CURRENT_BINARY_DIR}/parse_json_test
         --gtest_catch_exceptions=1
         ${CMAKE_SOURCE_DIR}/JSONTestSuite/test_parsing/${test_file}
     )
-    endif ()
 endforeach()
 
 foreach (test_file ${error_json_file_index})
-    add_test(
-        parse_test_${test_file}
-        ${CMAKE_CURRENT_BINARY_DIR}/parse_test
-        --gtest_catch_exceptions=1
-        ${CMAKE_SOURCE_DIR}/JSONTestSuite/test_parsing/${test_file}
-    )
-    set_tests_properties(parse_test_${test_file} PROPERTIES WILL_FAIL true)
+   add_test(
+       parse_json_test_${test_file}
+       ${CMAKE_CURRENT_BINARY_DIR}/parse_json_test
+       --gtest_catch_exceptions=1
+       ${CMAKE_SOURCE_DIR}/JSONTestSuite/test_parsing/${test_file}
+   )
+   set_tests_properties(parse_json_test_${test_file} PROPERTIES WILL_FAIL true)
 endforeach()
 
 set(expected_json_parse_failures
@@ -204,120 +210,17 @@ set(expected_json_parse_failures
     i_string_UTF-16LE_with_BOM.json
     i_string_utf16BE_no_BOM.json
     i_string_utf16LE_no_BOM.json
+    i_structure_UTF-8_BOM_empty_object.json
 )
 
 foreach (yml_file_root ${expected_json_parse_failures})
-    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL true)
+    set_tests_properties(parse_json_test_${yml_file_root} PROPERTIES WILL_FAIL true)
 endforeach()
 
-set(expected_json_parse_non_failures
-    # Parsed just fine as YAML, since it is a superset of JSON.
-    n_array_1_true_without_comma.json
-    n_array_a_invalid_utf8.json 
-    n_array_colon_instead_of_comma.json
-    n_array_extra_comma.json
-    n_array_invalid_utf8.json
-    n_array_items_separated_by_semicolon.json
-    n_array_number_and_comma.json
-    n_incomplete_false.json
-    n_incomplete_null.json
-    n_incomplete_true.json
-    n_number_++.json
-    n_number_+1.json
-    n_number_+Inf.json
-    n_number_-01.json
-    n_number_-1.0..json
-    n_number_-2..json
-    n_number_-NaN.json
-    n_number_.-1.json
-    n_number_.2e-3.json
-    n_number_0.1.2.json
-    n_number_0.3e+.json
-    n_number_0.3e.json
-    n_number_0.e1.json
-    n_number_0_capital_E+.json
-    n_number_0_capital_E.json
-    n_number_0e+.json
-    n_number_0e.json
-    n_number_1.0e+.json
-    n_number_1.0e-.json
-    n_number_1.0e.json
-    n_number_1_000.json
-    n_number_1eE2.json
-    n_number_2.e+3.json
-    n_number_2.e-3.json
-    n_number_2.e3.json
-    n_number_9.e+.json
-    n_number_Inf.json
-    n_number_NaN.json
-    n_number_U+FF11_fullwidth_digit_one.json
-    n_number_expression.json
-    n_number_hex_1_digit.json
-    n_number_hex_2_digits.json
-    n_number_infinity.json
-    n_number_invalid+-.json
-    n_number_invalid-negative-real.json
-    n_number_invalid-utf-8-in-bigger-int.json
-    n_number_invalid-utf-8-in-exponent.json
-    n_number_invalid-utf-8-in-int.json
-    n_number_minus_infinity.json
-    n_number_minus_sign_with_trailing_garbage.json
-    n_number_neg_int_starting_with_zero.json
-    n_number_neg_real_without_int_part.json
-    n_number_neg_with_garbage_at_end.json
-    n_number_real_garbage_after_e.json
-    n_number_real_with_invalid_utf8_after_e.json
-    n_number_real_without_fractional_part.json
-    n_number_starting_with_dot.json
-    n_number_with_alpha.json
-    n_number_with_alpha_char.json
-    n_number_with_leading_zero.json
-    n_object_bad_value.json
-    n_object_comma_instead_of_colon.json
-    n_object_double_colon.json
-    n_object_emoji.json
-    n_object_key_with_single_quotes.json
-    n_object_non_string_key_but_huge_number_instead.json
-    n_object_pi_in_key_and_trailing_comma.json
-    n_object_repeated_null_null.json
-    n_object_single_quote.json
-    n_object_trailing_comma.json
-    n_object_unquoted_key.json
-    n_object_with_single_string.json
-    n_single_space.json
-    n_string_accentuated_char_no_quotes.json
-    n_string_escape_x.json
-    n_string_escaped_ctrl_char_tab.json
-    n_string_invalid_backslash_esc.json
-    n_string_leading_uescaped_thinspace.json
-    n_string_no_quotes_with_bad_escape.json
-    n_string_single_quote.json
-    n_string_single_string_no_double_quotes.json
-    n_string_unescaped_newline.json
-    n_string_unescaped_tab.json
-    n_structure_U+2060_word_joined.json
-    n_structure_UTF8_BOM_no_data.json
-    n_structure_angle_bracket_..json
-    n_structure_angle_bracket_null.json
-    n_structure_ascii-unicode-identifier.json
-    n_structure_capitalized_True.json
-    n_structure_close_unopened_array.json
-    n_structure_incomplete_UTF8_BOM.json
-    n_structure_lone-invalid-utf-8.json
-    n_structure_no_data.json
-    n_structure_number_with_trailing_garbage.json
-    n_structure_object_with_comment.json
-    n_structure_single_eacute.json
-    n_structure_uescaped_LF_before_string.json
-    n_structure_unicode-identifier.json
-    n_structure_whitespace_U+2060_word_joiner.json
-    n_structure_whitespace_formfeed.json
-    n_object_missing_key.json
-    n_object_non_string_key.json
-)
+set(expected_json_parse_non_failures)
 
 foreach (yml_file_root ${expected_json_parse_non_failures})
-    set_tests_properties(parse_test_${yml_file_root} PROPERTIES WILL_FAIL false)
+    set_tests_properties(parse_json_test_${yml_file_root} PROPERTIES WILL_FAIL false)
 endforeach()
 
 ##################################################

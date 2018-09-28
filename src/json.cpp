@@ -1,6 +1,7 @@
 #include <boost/yaml/json.hpp>
 #include <boost/yaml/parser/x3_error_reporting.hpp>
 
+#include <boost/container/small_vector.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/home/x3/char/unicode.hpp>
 
@@ -67,7 +68,7 @@ namespace boost { namespace json {
     x3::rule<class escape_double_seq, uint32_t> const escape_double_seq =
         "\\uXXXX hexidecimal escape sequence";
     x3::rule<class single_escaped_char, uint32_t> const single_escaped_char =
-        "\", \\, /, b, f, n, r, or t";
+        "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 
     auto const hex_digit_def = x3::ascii::xdigit;
     BOOST_SPIRIT_DEFINE(hex_digit);
@@ -89,14 +90,21 @@ namespace boost { namespace json {
         x3::lit('r') >> x3::attr(0x000du) | x3::lit('t') >> x3::attr(0x0009u);
     BOOST_SPIRIT_DEFINE(single_escaped_char);
 
+    auto check_cp_value = [](auto & ctx) {
+        uint32_t const cp = _attr(ctx);
+        std::cout << "cp=0x" << std::hex << std::setw(4) << cp << std::dec
+                  << "\n";
+    };
+
     auto const string_char_def = escape_double_seq | escape_seq |
                                  x3::lit('\\') > single_escaped_char |
-                                 (x3::unicode::char_ -
-                                  x3::unicode::char_(0x0000u, 0x001fu));
+                                 (x3::unicode::char_[check_cp_value] -
+                                  x3::unicode::char_(0x0000u, 0x001fu)[check_cp_value]);
     BOOST_SPIRIT_DEFINE(string_char);
 
     x3::rule<class null, value> const null = "null";
     x3::rule<class string, std::string> const string = "string";
+    x3::rule<class number, double> const number = "number";
     x3::rule<class object_element, std::pair<std::string, value>> const
         object_element = "object_element";
     x3::rule<class object_tag, value> const object_p = "object";
@@ -112,6 +120,31 @@ namespace boost { namespace json {
         x3::lit('"') >> x3::lexeme[*(string_char[append_utf8] - '"')] > '"';
     BOOST_SPIRIT_DEFINE(string);
 
+    auto parse_double = [](auto & ctx) {
+        auto const cp_range = _attr(ctx);
+        auto cp_first = cp_range.begin();
+        auto const cp_last = cp_range.end();
+
+        double result;
+        if (x3::parse(cp_first, cp_last, x3::double_, result)) {
+            _val(ctx) = result;
+        } else {
+            container::small_vector<char, 128> chars(cp_first, cp_last);
+            auto const chars_first = &*chars.begin();
+            auto chars_last = chars_first + chars.size();
+            _val(ctx) = std::strtod(chars_first, &chars_last);
+        }
+    };
+
+    auto const number_def = x3::raw
+        [x3::lexeme
+             [-x3::char_('-') >>
+              (x3::char_('1', '9') >> *x3::ascii::digit | x3::char_('0')) >>
+              -(x3::char_('.') >> +x3::ascii::digit) >>
+              -(x3::char_("eE") >> -x3::char_("+-") >> +x3::ascii::digit)]]
+        [parse_double];
+    BOOST_SPIRIT_DEFINE(number);
+
     auto const object_element_def = string > ':' > value_p;
     BOOST_SPIRIT_DEFINE(object_element);
 
@@ -124,7 +157,7 @@ namespace boost { namespace json {
     BOOST_SPIRIT_DEFINE(array_p);
 
     auto const value_p_def =
-        x3::double_ | x3::bool_ | null | string | array_p | object_p;
+        number | x3::bool_ | null | string | array_p | object_p;
     BOOST_SPIRIT_DEFINE(value_p);
 
     struct value_parser_struct : yaml::x3_error_handler_base

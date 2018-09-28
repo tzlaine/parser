@@ -41,8 +41,8 @@ namespace boost { namespace yaml {
         using iterator = Iter;
 
         static_assert(
-            std::is_integral<decltype(*std::declval<iterator>())>::value);
-        static_assert(sizeof(decltype(*std::declval<iterator>())) == 4);
+            std::is_integral<decltype(*std::declval<iterator>())>::value, "");
+        static_assert(sizeof(decltype(*std::declval<iterator>())) == 4, "");
 
         x3_error_handler(
             iterator first,
