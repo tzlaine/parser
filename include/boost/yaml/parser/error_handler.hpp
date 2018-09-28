@@ -30,7 +30,7 @@ namespace boost { namespace yaml { namespace parser {
         scoped_multipart_error_t(error_handler_impl_t & error_handler) :
             error_handler_(error_handler)
         {}
-        ~scoped_multipart_error_t();
+        ~scoped_multipart_error_t() noexcept(false);
 
         error_handler_impl_t & error_handler_;
         std::ostringstream oss_;
@@ -217,7 +217,7 @@ namespace boost { namespace yaml { namespace parser {
         return retval;
     }
 
-    inline scoped_multipart_error_t::~scoped_multipart_error_t()
+    inline scoped_multipart_error_t::~scoped_multipart_error_t() noexcept(false)
     {
         if (error_handler_.error_fn_)
             error_handler_.error_fn_(oss_.str());
