@@ -1,15 +1,13 @@
-#define BOOST_SPIRIT_X3_NO_FILESYSTEM // TODO
 #include <boost/yaml/json.hpp>
+#include <boost/yaml/parser/x3_error_reporting.hpp>
 
 #include <boost/fusion/include/std_pair.hpp>
-#include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/char/unicode.hpp>
-#include <boost/spirit/home/x3/support/utility/error_reporting.hpp>
 
 
 namespace boost { namespace json {
 
-    namespace x3 = boost::spirit::x3;
+    namespace x3 = spirit::x3;
 
     x3::rule<class ws, std::string> const ws = "whitespace";
     auto const ws_def = x3::lit('\x09') | '\x0a' | '\x0d' | '\x20';
@@ -129,23 +127,7 @@ namespace boost { namespace json {
         x3::double_ | x3::bool_ | null | string | array_p | object_p;
     BOOST_SPIRIT_DEFINE(value_p);
 
-    struct error_handler_base
-    {
-        template<typename Iterator, typename Exception, typename Context>
-        x3::error_handler_result on_error(
-            Iterator & first,
-            Iterator const & last,
-            Exception const & e,
-            Context const & ctx)
-        {
-            auto & error_handler = x3::get<x3::error_handler_tag>(ctx).get();
-            std::string message = "Error! Expecting: " + e.which() + " here:";
-            error_handler(e.where(), message);
-            return x3::error_handler_result::fail;
-        }
-    };
-
-    struct value_parser_struct : error_handler_base
+    struct value_parser_struct : yaml::x3_error_handler_base
     {};
 
     boost::optional<value> parse(boost::string_view const & str)
@@ -155,12 +137,12 @@ namespace boost { namespace json {
         auto first = range.begin();
         auto const last = range.end();
 
-        // TODO: Emit the error via a callback instead of jsut dumping it to
+        // TODO: Emit the error via a callback instead of just dumping it to
         // the console.
-        x3::error_handler<iter_t> error_handler{first, last, std::cout};
+        yaml::x3_error_handler<iter_t> error_handler{first, last, std::cout};
         uint32_t first_surrogate = 0;
 
-        auto parser = x3::with<x3::error_handler_tag>(
+        auto parser = x3::with<yaml::error_handler_tag>(
             std::ref(error_handler))[x3::with<first_surrogate_tag>(
             std::ref(first_surrogate))[value_p]];
 
