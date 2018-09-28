@@ -303,7 +303,9 @@ namespace boost { namespace json {
         return static_cast<detail::value_impl<null_t> *>(v.ptr_.get())->value_;
     }
 
-    boost::optional<value> parse(boost::string_view const & str);
+    boost::optional<value> parse(
+        boost::string_view const & str,
+        std::function<void(std::string const &)> parse_error);
 
     namespace detail {
 

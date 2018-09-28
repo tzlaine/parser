@@ -130,16 +130,16 @@ namespace boost { namespace json {
     struct value_parser_struct : yaml::x3_error_handler_base
     {};
 
-    boost::optional<value> parse(boost::string_view const & str)
+    boost::optional<value> parse(
+        boost::string_view const & str,
+        std::function<void(std::string const &)> parse_error)
     {
         auto const range = boost::text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
         auto const last = range.end();
 
-        // TODO: Emit the error via a callback instead of just dumping it to
-        // the console.
-        yaml::x3_error_handler<iter_t> error_handler{first, last, std::cout};
+        yaml::x3_error_handler<iter_t> error_handler{first, last, parse_error};
         uint32_t first_surrogate = 0;
 
         auto parser = x3::with<yaml::error_handler_tag>(

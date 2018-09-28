@@ -9,7 +9,8 @@ int main()
             break;
 
         boost::optional<boost::json::value> value;
-        if ((value = boost::json::parse(str))) {
+        if ((value = boost::json::parse(
+                 str, [](std::string const & msg) { std::cout << msg; }))) {
             std::cout << "Parsed value:\n";
             std::cout << *value << std::endl;
         }
