@@ -136,6 +136,12 @@ namespace boost { namespace json {
         std::unique_ptr<detail::value_impl_base> ptr_;
     };
 
+}}
+
+#include <boost/yaml/detail/json_impl.hpp>
+
+namespace boost { namespace json {
+
     inline value::value() { *this = null_t{}; }
 
     template<typename JSONObject>
