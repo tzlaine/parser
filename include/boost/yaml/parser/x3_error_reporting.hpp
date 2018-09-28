@@ -29,24 +29,24 @@ namespace boost { namespace yaml {
         {
             namespace x3 = spirit::x3;
             auto & error_handler = x3::get<error_handler_tag>(ctx).get();
-            std::string message = "Error! Expecting: " + e.which() + " here:";
+            std::string message = "error: Expected " + e.which() + " here:";
             error_handler(e.where(), message);
             return x3::error_handler_result::fail;
         }
     };
 
-    template<typename Iterator>
+    template<typename Iter>
     struct x3_error_handler
     {
-        using iterator_type = Iterator;
+        using iterator = Iter;
 
         static_assert(
-            std::is_integral<decltype(*std::declval<iterator_type>())>::value);
-        static_assert(sizeof(decltype(*std::declval<iterator_type>())) == 4);
+            std::is_integral<decltype(*std::declval<iterator>())>::value);
+        static_assert(sizeof(decltype(*std::declval<iterator>())) == 4);
 
         x3_error_handler(
-            Iterator first,
-            Iterator last,
+            iterator first,
+            iterator last,
             std::function<void(std::string const &)> error_fn,
             std::string file = "") :
             error_fn_(std::move(error_fn)),
@@ -55,124 +55,115 @@ namespace boost { namespace yaml {
             last_(last)
         {}
 
-        using result_type = void;
-
-        void operator()(Iterator err_pos, std::string const & error_message);
+        void operator()(iterator err_pos, std::string const & error_message);
         void operator()(
-            Iterator err_first,
-            Iterator err_last,
+            iterator err_first,
+            iterator err_last,
             std::string const & error_message);
 
     private:
         void print_file_line(std::size_t line);
-        void print_line(Iterator line_start, Iterator last);
-        void print_indicator(Iterator & line_start, Iterator last, char ind);
-        void skip_whitespace(Iterator & err_pos, Iterator last);
-        void skip_non_whitespace(Iterator & err_pos, Iterator last);
-        Iterator get_line_start(Iterator first, Iterator pos);
-        std::size_t position(Iterator i);
+        void print_line(iterator first, iterator last);
+        void print_indicator(iterator & first, iterator last, char ind);
+        void skip_whitespace(iterator & first, iterator last);
+        void skip_non_whitespace(iterator & first, iterator last);
+        iterator get_line_start(iterator first, iterator last);
+        std::size_t position(iterator it);
         void emit();
 
         std::stringstream stream_;
         std::function<void(std::string const &)> error_fn_;
         std::string file_;
-        Iterator first_;
-        Iterator last_;
+        iterator first_;
+        iterator last_;
     };
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::print_file_line(std::size_t line)
+    template<typename Iter>
+    void x3_error_handler<Iter>::print_file_line(std::size_t line)
     {
-        if (file_ != "") {
-            stream_ << "In file " << file_ << ", ";
-        } else {
-            stream_ << "In ";
-        }
-
-        stream_ << "line " << line << ':' << std::endl;
+        if (file_.empty())
+            stream_ << "Line ";
+        else
+            stream_ << file_ << ':';
+        stream_ << line << ": ";
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::print_line(Iterator start, Iterator last)
+    template<typename Iter>
+    void x3_error_handler<Iter>::print_line(iterator first, iterator last)
     {
-        auto end = start;
-        while (end != last) {
-            auto c = *end;
-            if (c == '\r' || c == '\n')
-                break;
-            else
-                ++end;
-        }
+        auto const end = std::find_if(
+            first, last, [](uint32_t cp) { return cp == '\r' || cp == '\n'; });
         std::string line(
-            text::utf8::make_from_utf32_iterator(start, start, last),
-            text::utf8::make_from_utf32_iterator(start, last, last));
+            text::utf8::make_from_utf32_iterator(first, first, last),
+            text::utf8::make_from_utf32_iterator(first, end, last));
         stream_ << line << std::endl;
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::print_indicator(
-        Iterator & start, Iterator last, char ind)
+    template<typename Iter>
+    void x3_error_handler<Iter>::print_indicator(
+        iterator & first, iterator last, char ind)
     {
-        for (; start != last; ++start) {
-            auto c = *start;
-            if (c == '\r' || c == '\n')
+        for (; first != last; ++first) {
+            auto const cp = *first;
+            if (cp == '\r' || cp == '\n')
                 break;
-            else if (c == '\t')
-                for (int i = 0; i < 4; ++i)
+
+            if (cp == '\t') {
+                for (int i = 0; i < 4; ++i) {
                     stream_ << ind;
-            else
+                }
+            } else {
                 stream_ << ind;
+            }
         }
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::skip_whitespace(
-        Iterator & err_pos, Iterator last)
+    template<typename Iter>
+    void
+    x3_error_handler<Iter>::skip_whitespace(iterator & first, iterator last)
     {
-        // make sure err_pos does not point to white space
-        while (err_pos != last) {
-            char c = *err_pos;
-            if (std::isspace(c))
-                ++err_pos;
+        while (first != last) {
+            auto const cp = *first;
+            if (cp < 256 && std::isspace(cp))
+                ++first;
             else
                 break;
         }
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::skip_non_whitespace(
-        Iterator & err_pos, Iterator last)
+    template<typename Iter>
+    void
+    x3_error_handler<Iter>::skip_non_whitespace(iterator & first, iterator last)
     {
-        // make sure err_pos does not point to white space
-        while (err_pos != last) {
-            char c = *err_pos;
-            if (std::isspace(c))
+        while (first != last) {
+            auto const cp = *first;
+            if (cp < 256 && std::isspace(cp))
                 break;
-            else
-                ++err_pos;
+            ++first;
         }
     }
 
-    template<class Iterator>
-    inline Iterator
-    x3_error_handler<Iterator>::get_line_start(Iterator first, Iterator pos)
+    template<class Iter>
+    inline Iter
+    x3_error_handler<Iter>::get_line_start(iterator first, iterator last)
     {
-        Iterator latest = first;
-        for (Iterator i = first; i != pos; ++i)
-            if (*i == '\r' || *i == '\n')
-                latest = i;
+        auto latest = first;
+        for (auto it = first; it != last; ++it){
+            if (*it == '\r' || *it == '\n')
+                latest = it;
+        }
         return latest;
     }
 
-    template<typename Iterator>
-    std::size_t x3_error_handler<Iterator>::position(Iterator i)
+    template<typename Iter>
+    std::size_t x3_error_handler<Iter>::position(iterator it)
     {
-        std::size_t line{1};
-        typename std::iterator_traits<Iterator>::value_type prev{0};
+        std::size_t line = 1;
+        uint32_t prev = 0;
 
-        for (Iterator pos = first_; pos != i; ++pos) {
-            auto c = *pos;
-            switch (c) {
+        for (iterator pos = first_; pos != it; ++pos) {
+            auto const cp = *pos;
+            switch (cp) {
             case '\n':
                 if (prev != '\r')
                     ++line;
@@ -180,59 +171,57 @@ namespace boost { namespace yaml {
             case '\r': ++line; break;
             default: break;
             }
-            prev = c;
+            prev = cp;
         }
 
         return line;
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::emit()
+    template<typename Iter>
+    void x3_error_handler<Iter>::emit()
     {
         if (error_fn_)
             error_fn_(stream_.str());
         stream_.clear();
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::
-    operator()(Iterator err_pos, std::string const & error_message)
+    template<typename Iter>
+    void x3_error_handler<Iter>::
+    operator()(iterator it, std::string const & error_message)
     {
-        Iterator first = first_;
-        Iterator last = last_;
+        iterator first = first_;
+        iterator last = last_;
 
-        // make sure err_pos does not point to white space
-        skip_whitespace(err_pos, last);
+        skip_whitespace(it, last);
 
-        print_file_line(position(err_pos));
+        print_file_line(position(it));
         stream_ << error_message << std::endl;
 
-        Iterator start = get_line_start(first, err_pos);
+        iterator start = get_line_start(first, it);
         if (start != first)
             ++start;
         print_line(start, last);
-        print_indicator(start, err_pos, '_');
+        print_indicator(start, it, '_');
         stream_ << "^_" << std::endl;
 
         emit();
     }
 
-    template<typename Iterator>
-    void x3_error_handler<Iterator>::operator()(
-        Iterator err_first,
-        Iterator err_last,
+    template<typename Iter>
+    void x3_error_handler<Iter>::operator()(
+        iterator err_first,
+        iterator err_last,
         std::string const & error_message)
     {
-        Iterator first = first_;
-        Iterator last = last_;
+        iterator first = first_;
+        iterator last = last_;
 
-        // make sure err_pos does not point to white space
         skip_whitespace(err_first, last);
 
         print_file_line(position(err_first));
         stream_ << error_message << std::endl;
 
-        Iterator start = get_line_start(first, err_first);
+        iterator start = get_line_start(first, err_first);
         if (start != first)
             ++start;
         print_line(start, last);
