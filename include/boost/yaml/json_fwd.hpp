@@ -20,6 +20,8 @@ namespace boost { namespace json {
     template<typename T>
     T & get(value & v) noexcept;
 
+    // TODO: Stream inerters for these two as well.
+
     using array = std::vector<value>;
     using object = std::unordered_map<std::string, value>;
 
