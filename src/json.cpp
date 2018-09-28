@@ -1,3 +1,4 @@
+//#define BOOST_SPIRIT_X3_DEBUG // Define this to turn on a verbose trace of the parse.
 #include <boost/yaml/json.hpp>
 #include <boost/yaml/parser/x3_error_reporting.hpp>
 
@@ -5,6 +6,26 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/spirit/home/x3/char/unicode.hpp>
 
+
+#ifdef BOOST_SPIRIT_X3_DEBUG
+namespace boost { namespace spirit { namespace x3 { namespace detail {
+
+    // Used in simple_trace to print a single character of the parsed stream;
+    // specialized here for code points.
+    template<>
+    inline void token_printer<uint32_t>(std::ostream & os, uint32_t cp)
+    {
+        uint32_t cps[1] = {cp};
+        char cus[5] = {0};
+        std::copy(
+            text::utf8::make_from_utf32_iterator(cps, cps, cps + 1),
+            text::utf8::make_from_utf32_iterator(cps, cps + 1, cps + 1),
+            cus);
+        os << cus;
+    }
+
+}}}}
+#endif
 
 namespace boost { namespace json {
 
