@@ -92,7 +92,8 @@ namespace boost { namespace yaml {
                 break;
 
             if (cp == '\t') {
-                for (int i = 0; i < 4; ++i) {
+                int const tab_width = 8;
+                for (int i = 0; i < tab_width; ++i) {
                     stream_ << ind;
                 }
             } else {

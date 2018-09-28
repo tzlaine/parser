@@ -15,13 +15,18 @@ namespace boost { namespace spirit { namespace x3 { namespace detail {
     template<>
     inline void token_printer<uint32_t>(std::ostream & os, uint32_t cp)
     {
-        uint32_t cps[1] = {cp};
-        char cus[5] = {0};
-        std::copy(
-            text::utf8::make_from_utf32_iterator(cps, cps, cps + 1),
-            text::utf8::make_from_utf32_iterator(cps, cps + 1, cps + 1),
-            cus);
-        os << cus;
+        if (cp < 0x0020) {
+            os << "\\u" << std::hex << std::setw(4) << std::setfill('0') << cp
+               << std::dec;
+        } else {
+            uint32_t cps[1] = {cp};
+            char cus[5] = {0};
+            std::copy(
+                text::utf8::make_from_utf32_iterator(cps, cps, cps + 1),
+                text::utf8::make_from_utf32_iterator(cps, cps + 1, cps + 1),
+                cus);
+            os << cus;
+        }
     }
 
 }}}}
@@ -159,7 +164,7 @@ namespace boost { namespace json {
     BOOST_SPIRIT_DEFINE(null);
 
     auto const string_def =
-        x3::lit('"') >> x3::lexeme[*(string_char[append_utf8] - '"')] > '"';
+        x3::lexeme[x3::lit('"') >> *(string_char[append_utf8] - '"') > '"'];
     BOOST_SPIRIT_DEFINE(string);
 
     auto parse_double = [](auto & ctx) {
