@@ -305,7 +305,8 @@ namespace boost { namespace json {
 
     boost::optional<value> parse(
         boost::string_view const & str,
-        std::function<void(std::string const &)> parse_error);
+        std::function<void(std::string const &)> parse_error,
+        int max_recursive_count = 512);
 
     namespace detail {
 

@@ -21,21 +21,41 @@ namespace boost { namespace json {
         str.insert(str.end(), r.begin(), r.end());
     };
 
-    auto object_init = [](auto & ctx) { _val(ctx) = object(); };
+    struct recursive_open_count_tag;
+    struct max_recursive_open_count_tag;
+
+    auto object_init = [](auto & ctx) {
+        int & recursive_open_count =
+            x3::get<recursive_open_count_tag>(ctx).get();
+        int const max_recursive_open_count =
+            x3::get<max_recursive_open_count_tag>(ctx);
+        if (max_recursive_open_count < ++recursive_open_count)
+            _pass(ctx) = false;
+        else
+            _val(ctx) = object();
+    };
     auto object_insert = [](auto & ctx) {
         value & v = _val(ctx);
         get<object>(v).insert(std::make_pair(
             std::move(boost::fusion::at_c<0>(_attr(ctx))),
             std::move(boost::fusion::at_c<1>(_attr(ctx)))));
     };
-    auto array_init = [](auto & ctx) { _val(ctx) = array(); };
+    auto array_init = [](auto & ctx) {
+        int & recursive_open_count =
+            x3::get<recursive_open_count_tag>(ctx).get();
+        int const max_recursive_open_count =
+            x3::get<max_recursive_open_count_tag>(ctx);
+        if (max_recursive_open_count < ++recursive_open_count)
+            _pass(ctx) = false;
+        else
+            _val(ctx) = array();
+    };
     auto array_append = [](auto & ctx) {
         value & v = _val(ctx);
         get<array>(v).push_back(std::move(_attr(ctx)));
     };
 
-    struct first_surrogate_tag
-    {};
+    struct first_surrogate_tag;
 
     auto first_hex_escape = [](auto & ctx) {
         uint32_t const cu = _attr(ctx);
@@ -92,6 +112,7 @@ namespace boost { namespace json {
 
     auto check_cp_value = [](auto & ctx) {
         uint32_t const cp = _attr(ctx);
+        // TODO: Get rid of this entirely, of course.
         std::cout << "cp=0x" << std::hex << std::setw(4) << cp << std::dec
                   << "\n";
     };
@@ -160,12 +181,40 @@ namespace boost { namespace json {
         number | x3::bool_ | null | string | array_p | object_p;
     BOOST_SPIRIT_DEFINE(value_p);
 
-    struct value_parser_struct : yaml::x3_error_handler_base
+    struct x3_error_handler_base
+    {
+        template<typename Iterator, typename Exception, typename Context>
+        spirit::x3::error_handler_result on_error(
+            Iterator & first,
+            Iterator const & last,
+            Exception const & e,
+            Context const & ctx)
+        {
+            namespace x3 = spirit::x3;
+            auto & error_handler = x3::get<yaml::error_handler_tag>(ctx).get();
+
+            int const recursive_open_count =
+                x3::get<recursive_open_count_tag>(ctx).get();
+            int const max_recursive_open_count =
+                x3::get<max_recursive_open_count_tag>(ctx);
+
+            if (max_recursive_open_count < recursive_open_count) {
+                return x3::error_handler_result::rethrow;
+            } else {
+                std::string message = "error: Expected " + e.which() + " here:";
+                error_handler(e.where(), message);
+                return x3::error_handler_result::fail;
+            }
+        }
+    };
+
+    struct value_parser_struct : x3_error_handler_base
     {};
 
     boost::optional<value> parse(
         boost::string_view const & str,
-        std::function<void(std::string const &)> parse_error)
+        std::function<void(std::string const &)> parse_error,
+        int max_recursive_count)
     {
         auto const range = boost::text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
@@ -174,13 +223,35 @@ namespace boost { namespace json {
 
         yaml::x3_error_handler<iter_t> error_handler{first, last, parse_error};
         uint32_t first_surrogate = 0;
+        int recursive_open_count = 0;
 
-        auto parser = x3::with<yaml::error_handler_tag>(
-            std::ref(error_handler))[x3::with<first_surrogate_tag>(
-            std::ref(first_surrogate))[value_p]];
+        if (max_recursive_count < 0)
+            max_recursive_count = INT_MAX;
+
+        // clang-format off
+        auto parser = x3::with<yaml::error_handler_tag>(std::ref(error_handler))[
+            x3::with<first_surrogate_tag>(std::ref(first_surrogate))[
+                x3::with<recursive_open_count_tag>(std::ref(recursive_open_count))[
+                    x3::with<max_recursive_open_count_tag>(max_recursive_count)[
+                        value_p
+                    ]
+                ]
+            ]
+        ];
+        // clang-format on
 
         value v;
-        bool const result = x3::phrase_parse(first, last, parser, ws, v);
+        bool result = false;
+        try {
+            result = x3::phrase_parse(first, last, parser, ws, v);
+        } catch (x3::expectation_failure<iter_t> const & e) {
+            std::string message = "error: Exceeded maximum number (" +
+                                  std::to_string(max_recursive_count) +
+                                  ") of open arrays and/or objects " +
+                                  e.which() + " here:";
+            error_handler(e.where(), message);
+            return {};
+        }
 
         if (!result || first != last)
             return {};

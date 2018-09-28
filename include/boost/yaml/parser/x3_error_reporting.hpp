@@ -18,23 +18,6 @@ namespace boost { namespace yaml {
     // tag used to get our error handler from the context
     struct error_handler_tag;
 
-    struct x3_error_handler_base
-    {
-        template<typename Iterator, typename Exception, typename Context>
-        spirit::x3::error_handler_result on_error(
-            Iterator & first,
-            Iterator const & last,
-            Exception const & e,
-            Context const & ctx)
-        {
-            namespace x3 = spirit::x3;
-            auto & error_handler = x3::get<error_handler_tag>(ctx).get();
-            std::string message = "error: Expected " + e.which() + " here:";
-            error_handler(e.where(), message);
-            return x3::error_handler_result::fail;
-        }
-    };
-
     template<typename Iter>
     struct x3_error_handler
     {
