@@ -9,10 +9,9 @@
 #define BOOST_YAML_PARSER_X3_ERROR_REPORTING_HPP
 
 #include <boost/spirit/home/x3.hpp>
-#include <boost/spirit/home/x3/support/ast/position_tagged.hpp>
+
 #include <sstream>
 
-// Clang-style error handling utilities
 
 namespace boost { namespace yaml {
 
@@ -50,9 +49,10 @@ namespace boost { namespace yaml {
             Iterator last,
             std::function<void(std::string const &)> error_fn,
             std::string file = "") :
-            error_fn_(error_fn),
-            file_(file),
-            pos_cache_(first, last)
+            error_fn_(std::move(error_fn)),
+            file_(std::move(file)),
+            first_(first),
+            last_(last)
         {}
 
         using result_type = void;
@@ -62,31 +62,6 @@ namespace boost { namespace yaml {
             Iterator err_first,
             Iterator err_last,
             std::string const & error_message);
-        void
-        operator()(spirit::x3::position_tagged pos, std::string const & message)
-        {
-            auto where = pos_cache_.position_of(pos);
-            (*this)(where.begin(), where.end(), message);
-            emit();
-        }
-
-        template<typename AST>
-        void tag(AST & ast, Iterator first, Iterator last)
-        {
-            return pos_cache_.annotate(ast, first, last);
-        }
-
-        boost::iterator_range<Iterator>
-        position_of(spirit::x3::position_tagged pos) const
-        {
-            return pos_cache_.position_of(pos);
-        }
-
-        spirit::x3::position_cache<std::vector<Iterator>> const &
-        get_position_cache() const
-        {
-            return pos_cache_;
-        }
 
     private:
         void print_file_line(std::size_t line);
@@ -101,7 +76,8 @@ namespace boost { namespace yaml {
         std::stringstream stream_;
         std::function<void(std::string const &)> error_fn_;
         std::string file_;
-        spirit::x3::position_cache<std::vector<Iterator>> pos_cache_;
+        Iterator first_;
+        Iterator last_;
     };
 
     template<typename Iterator>
@@ -117,8 +93,7 @@ namespace boost { namespace yaml {
     }
 
     template<typename Iterator>
-    void
-    x3_error_handler<Iterator>::print_line(Iterator start, Iterator last)
+    void x3_error_handler<Iterator>::print_line(Iterator start, Iterator last)
     {
         auto end = start;
         while (end != last) {
@@ -195,7 +170,7 @@ namespace boost { namespace yaml {
         std::size_t line{1};
         typename std::iterator_traits<Iterator>::value_type prev{0};
 
-        for (Iterator pos = pos_cache_.first(); pos != i; ++pos) {
+        for (Iterator pos = first_; pos != i; ++pos) {
             auto c = *pos;
             switch (c) {
             case '\n':
@@ -223,8 +198,8 @@ namespace boost { namespace yaml {
     void x3_error_handler<Iterator>::
     operator()(Iterator err_pos, std::string const & error_message)
     {
-        Iterator first = pos_cache_.first();
-        Iterator last = pos_cache_.last();
+        Iterator first = first_;
+        Iterator last = last_;
 
         // make sure err_pos does not point to white space
         skip_whitespace(err_pos, last);
@@ -248,8 +223,8 @@ namespace boost { namespace yaml {
         Iterator err_last,
         std::string const & error_message)
     {
-        Iterator first = pos_cache_.first();
-        Iterator last = pos_cache_.last();
+        Iterator first = first_;
+        Iterator last = last_;
 
         // make sure err_pos does not point to white space
         skip_whitespace(err_first, last);
