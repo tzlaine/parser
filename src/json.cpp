@@ -1,4 +1,6 @@
-//#define BOOST_SPIRIT_X3_DEBUG // Define this to turn on a verbose trace of the parse.
+// Define this to turn on a verbose trace of the parse.
+//#define BOOST_SPIRIT_X3_DEBUG
+
 #include <boost/yaml/json.hpp>
 #include <boost/yaml/parser/x3_error_reporting.hpp>
 
@@ -122,31 +124,27 @@ namespace boost { namespace json {
     auto const four_hex_digits_def = &x3::repeat(4)[hex_digit];
     BOOST_SPIRIT_DEFINE(four_hex_digits);
 
-    auto const escape_seq_def = (x3::lit("\\u") > four_hex_digits) >> x3::hex;
+    auto const escape_seq_def = ("\\u" > four_hex_digits) >> x3::hex;
     BOOST_SPIRIT_DEFINE(escape_seq);
 
     auto const escape_double_seq_def =
         escape_seq[first_hex_escape] >> escape_seq[second_hex_escape];
     BOOST_SPIRIT_DEFINE(escape_double_seq);
 
-    auto const single_escaped_char_def =
-        x3::lit('"') >> x3::attr(0x0022u) | x3::lit('\\') >> x3::attr(0x005cu) |
-        x3::lit('/') >> x3::attr(0x002fu) | x3::lit('b') >> x3::attr(0x0008u) |
-        x3::lit('f') >> x3::attr(0x000cu) | x3::lit('n') >> x3::attr(0x000au) |
-        x3::lit('r') >> x3::attr(0x000du) | x3::lit('t') >> x3::attr(0x0009u);
+    auto const single_escaped_char_def = '"' >> x3::attr(0x0022u) |
+                                         '\\' >> x3::attr(0x005cu) |
+                                         '/' >> x3::attr(0x002fu) |
+                                         'b' >> x3::attr(0x0008u) |
+                                         'f' >> x3::attr(0x000cu) |
+                                         'n' >> x3::attr(0x000au) |
+                                         'r' >> x3::attr(0x000du) |
+                                         't' >> x3::attr(0x0009u);
     BOOST_SPIRIT_DEFINE(single_escaped_char);
-
-    auto check_cp_value = [](auto & ctx) {
-        uint32_t const cp = _attr(ctx);
-        // TODO: Get rid of this entirely, of course.
-        std::cout << "cp=0x" << std::hex << std::setw(4) << cp << std::dec
-                  << "\n";
-    };
 
     auto const string_char_def = escape_double_seq | escape_seq |
                                  x3::lit('\\') > single_escaped_char |
-                                 (x3::unicode::char_[check_cp_value] -
-                                  x3::unicode::char_(0x0000u, 0x001fu)[check_cp_value]);
+                                 (x3::unicode::char_ -
+                                  x3::unicode::char_(0x0000u, 0x001fu));
     BOOST_SPIRIT_DEFINE(string_char);
 
     x3::rule<class null, value> const null = "null";
@@ -160,11 +158,11 @@ namespace boost { namespace json {
     struct value_parser_struct;
     x3::rule<value_parser_struct, value> const value_p = "value";
 
-    auto const null_def = x3::lit("null") >> x3::attr(value());
+    auto const null_def = "null" >> x3::attr(value());
     BOOST_SPIRIT_DEFINE(null);
 
     auto const string_def =
-        x3::lexeme[x3::lit('"') >> *(string_char[append_utf8] - '"') > '"'];
+        x3::lexeme['"' >> *(string_char[append_utf8] - '"') > '"'];
     BOOST_SPIRIT_DEFINE(string);
 
     auto parse_double = [](auto & ctx) {
