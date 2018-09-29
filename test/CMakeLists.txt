@@ -19,9 +19,6 @@ add_executable(
 )
 target_link_libraries(header_only_parse_test yaml gtest ${link_flags})  
 target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)  
-if (clang_on_linux)
-    target_link_libraries(header_only_parse_test c++)
-endif ()
 endif ()
 
 ##################################################
@@ -32,18 +29,12 @@ add_executable(
     parse_yaml_test.cpp
 )
 target_link_libraries(parse_yaml_test yaml gtest ${link_flags})
-if (clang_on_linux)
-    target_link_libraries(parse_yaml_test c++)
-endif ()
 
 add_executable(
     parse_json_test
     parse_json_test.cpp
 )
 target_link_libraries(parse_json_test yaml gtest ${link_flags})
-if (clang_on_linux)
-    target_link_libraries(parse_json_test c++)
-endif ()
 
 
 
@@ -53,9 +44,6 @@ add_executable(
     json_parser.cpp
 )
 target_link_libraries(json_parser yaml ${link_flags})
-if (clang_on_linux)
-    target_link_libraries(json_parser c++)
-endif ()
 
 
 
@@ -67,9 +55,6 @@ add_executable(
     parse_yaml_compare_test.cpp
 )
 target_link_libraries(parse_compare_test yaml gtest ${link_flags})
-if (clang_on_linux)
-    target_link_libraries(parse_compare_test c++)
-endif ()
 
 ##################################################
 # Parse-write-read round-trip test executable
@@ -86,10 +71,6 @@ add_executable(
     parse_yaml_round_trip_test.cpp
 )
 target_link_libraries(parse_round_trip_test yaml gtest ${link_flags})
-
-if (clang_on_linux)
-    target_link_libraries(parse_round_trip_test c++)
-endif ()
 endif()
 
 ##################################################
@@ -312,9 +293,6 @@ add_executable(
     warnings_test.cpp
 )
 target_link_libraries(warnings_test_bin yaml gtest ${link_flags})
-if (clang_on_linux)
-    target_link_libraries(warnings_test_bin c++)
-endif ()
 add_test(
     warnings_test
     ${CMAKE_CURRENT_BINARY_DIR}/warnings_test_bin

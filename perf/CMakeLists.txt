@@ -1,9 +1,6 @@
 macro(add_perf_executable name)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} yaml benchmark ${link_flags})
-    if (clang_on_linux)
-        target_link_libraries(${name} c++)
-    endif ()
 endmacro()
 
 

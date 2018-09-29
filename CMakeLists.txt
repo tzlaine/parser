@@ -65,7 +65,7 @@ if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml-static PUBLIC ${link_flags})
 endif()
 if (clang_on_linux)
-    target_link_libraries(yaml-static c++)
+    target_compile_options(yaml PUBLIC -stdlib=libstdc++)
 endif ()
 endif ()
 
@@ -92,7 +92,7 @@ if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yam PUBLIC ${link_flags})
 endif()
 if (clang_on_linux)
-    target_link_libraries(yaml c++)
+    target_compile_options(yaml PUBLIC -stdlib=libstdc++)
 endif ()
 
 
