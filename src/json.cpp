@@ -235,6 +235,8 @@ namespace boost { namespace json {
     struct value_parser_struct : x3_error_handler_base
     {};
 
+    // TODO: This needs to change; it cannot parse a rope; there should also
+    // be interfaces that accept CPIters and CPRanges.
     boost::optional<value> parse(
         boost::string_view const & str,
         std::function<void(std::string const &)> parse_error,
