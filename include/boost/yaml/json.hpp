@@ -136,6 +136,14 @@ namespace boost { namespace json {
         std::unique_ptr<detail::value_impl_base> ptr_;
     };
 
+    namespace detail {
+        inline std::size_t
+        hash_combine_(std::size_t seed, std::size_t value) noexcept
+        {
+            return seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+    }
+
 }}
 
 #include <boost/yaml/detail/json_impl.hpp>
@@ -369,5 +377,83 @@ namespace boost { namespace json {
     }
 
 }}
+
+namespace std {
+    template<>
+    struct hash<boost::json::value>
+    {
+        using argument_type = boost::json::value;
+        using result_type = size_t;
+        result_type operator()(argument_type const & v) const noexcept;
+    };
+
+    template<>
+    struct hash<boost::json::object>
+    {
+        using argument_type = boost::json::object;
+        using result_type = size_t;
+        result_type operator()(argument_type const & v) const noexcept;
+    };
+
+    template<>
+    struct hash<boost::json::array>
+    {
+        using argument_type = boost::json::array;
+        using result_type = size_t;
+        result_type operator()(argument_type const & v) const noexcept;
+    };
+
+    inline size_t hash<boost::json::value>::
+    operator()(argument_type const & v) const noexcept
+    {
+        result_type const kind_hash = std::hash<size_t>{}(size_t(v.kind()));
+        switch (v.kind()) {
+        case boost::json::value_kind::object:
+            return std::hash<boost::json::object>{}(
+                boost::json::get<boost::json::object>(v));
+        case boost::json::value_kind::array:
+            return std::hash<boost::json::array>{}(
+                boost::json::get<boost::json::array>(v));
+        case boost::json::value_kind::number:
+            return boost::json::detail::hash_combine_(
+                kind_hash, std::hash<double>{}(boost::json::get<double>(v)));
+        case boost::json::value_kind::string:
+            return boost::json::detail::hash_combine_(
+                kind_hash, std::hash<string>{}(boost::json::get<string>(v)));
+        case boost::json::value_kind::boolean:
+            return boost::json::detail::hash_combine_(
+                kind_hash, std::hash<bool>{}(boost::json::get<bool>(v)));
+        case boost::json::value_kind::null: return kind_hash;
+        }
+        assert(!"Unreachable");
+        return 0;
+    }
+
+    inline size_t hash<boost::json::object>::
+    operator()(argument_type const & o) const noexcept
+    {
+        result_type retval =
+            std::hash<size_t>{}(size_t(boost::json::value_kind::object));
+        for (auto const & pair : o) {
+            retval = boost::json::detail::hash_combine_(
+                retval, std::hash<string>{}(pair.first));
+            retval = boost::json::detail::hash_combine_(
+                retval, std::hash<boost::json::value>{}(pair.second));
+        }
+        return retval;
+    }
+
+    inline size_t hash<boost::json::array>::
+    operator()(argument_type const & o) const noexcept
+    {
+        result_type retval =
+            std::hash<size_t>{}(size_t(boost::json::value_kind::array));
+        for (auto const & value : o) {
+            retval = boost::json::detail::hash_combine_(
+                retval, std::hash<boost::json::value>{}(value));
+        }
+        return retval;
+    }
+}
 
 #endif
