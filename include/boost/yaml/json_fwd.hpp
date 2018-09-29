@@ -13,7 +13,11 @@ namespace boost { namespace json {
     enum class value_kind { object, array, number, string, boolean, null };
 
     struct null_t
-    {};
+    {
+        bool operator==(null_t) const noexcept { return true; }
+        bool operator!=(null_t) const noexcept { return false; }
+        bool operator<(null_t) const noexcept { return false; }
+    };
 
     template<typename T>
     T const & get(value const & v) noexcept;
