@@ -27,11 +27,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   target_link_libraries(benchmark Shlwapi)
 endif()
 
-# We also need extra libs using Clang with libc++ on Linux
-if(clang_on_linux)
-  target_link_libraries(benchmark c++)
-endif()
-
 # Expose public API
 target_include_directories(benchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
 

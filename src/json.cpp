@@ -165,6 +165,7 @@ namespace boost { namespace json {
         x3::lexeme['"' >> *(string_char[append_utf8] - '"') > '"'];
     BOOST_SPIRIT_DEFINE(string);
 
+    // TODO: Test very long strings of digits before and after the 'e/E+/-'.
     auto parse_double = [](auto & ctx) {
         auto const cp_range = _attr(ctx);
         auto cp_first = cp_range.begin();

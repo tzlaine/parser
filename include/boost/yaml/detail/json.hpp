@@ -2,6 +2,7 @@
 #define BOOST_YAML_DETAIL_JSON_HPP
 
 #include <boost/yaml/json_fwd.hpp>
+#include <boost/yaml/detail/common.hpp>
 
 #include <boost/text/algorithm.hpp>
 #include <boost/text/utility.hpp>
@@ -11,15 +12,6 @@
 
 
 namespace boost { namespace json { namespace detail {
-
-    template<typename T>
-    struct is_object;
-
-    template<typename T>
-    struct is_array;
-
-    template<typename T>
-    struct is_string;
 
     struct value_impl_base
     {
@@ -46,75 +38,8 @@ namespace boost { namespace json { namespace detail {
         return (std::max)(sizeof(std::vector<int>), sizeof(std::string));
     }
 
-    template<typename...>
-    struct void_
-    {
-        using type = void;
-    };
-
-    template<typename... T>
-    using void_t = typename void_<T...>::type;
-
     template<typename T>
-    using remove_cv_ref_t =
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-
-    struct nonesuch
-    {};
-
-    template<
-        typename Default,
-        typename AlwaysVoid,
-        template<typename...> class Template,
-        typename... Args>
-    struct detector
-    {
-        using value_t = std::false_type;
-        using type = Default;
-    };
-
-    template<
-        typename Default,
-        template<typename...> class Template,
-        typename... Args>
-    struct detector<Default, void_t<Template<Args...>>, Template, Args...>
-    {
-        using value_t = std::true_type;
-        using type = Template<Args...>;
-    };
-
-    template<template<typename...> class Template, typename... Args>
-    using is_detected =
-        typename detector<nonesuch, void, Template, Args...>::value_t;
-
-    template<template<typename...> class Template, typename... Args>
-    using detected_t =
-        typename detector<nonesuch, void, Template, Args...>::type;
-
-    template<
-        typename Default,
-        template<typename...> class Template,
-        typename... Args>
-    using detected_or =
-        typename detector<Default, void, Template, Args...>::type;
-
-
-
-    template<typename T>
-    using has_begin = decltype(*std::begin(std::declval<T>()));
-    template<typename T>
-    using has_end = decltype(*std::end(std::declval<T>()));
-
-
-    template<typename T, typename U, typename V = U>
-    using is_range_of = std::integral_constant<
-        bool,
-        ((std::is_same<remove_cv_ref_t<detected_t<has_begin, T>>, U>::value ||
-          std::is_same<remove_cv_ref_t<detected_t<has_begin, T>>, V>::value) &&
-         is_detected<has_end, T>::value)>;
-
-    template<typename T>
-    struct is_object : is_range_of<
+    struct is_object : yaml::detail::is_range_of<
                            T,
                            std::pair<std::string, value>,
                            std::pair<std::string const, value>>
@@ -122,21 +47,17 @@ namespace boost { namespace json { namespace detail {
     };
 
     template<typename T>
-    struct is_array : is_range_of<T, value>
+    struct is_array : yaml::detail::is_range_of<T, value>
     {
     };
-
-    template<typename T, typename BeginValueType>
-    using is_range_of_char = std::integral_constant<
-        bool,
-        (std::is_convertible<BeginValueType, const char>::value &&
-         sizeof(BeginValueType) == 1 && is_detected<has_end, T>::value)>;
 
     template<typename T>
-    struct is_string
-        : is_range_of_char<T, remove_cv_ref_t<detected_t<has_begin, T>>>
-    {
-    };
+    using is_string = yaml::detail::is_string<T>;
+
+    template<typename T>
+    struct get_impl;
+
+    using yaml::detail::hash_combine_;
 
 }}}
 

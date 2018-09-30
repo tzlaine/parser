@@ -122,11 +122,6 @@ namespace boost { namespace json {
             return !(*this == rhs);
         }
 
-        template<typename T>
-        friend T const & get(value const & v) noexcept;
-        template<typename T>
-        friend T & get(value & v) noexcept;
-
         friend std::ostream & operator<<(std::ostream & os, value const & value)
         {
             return value.ptr_->to_json(os);
@@ -134,15 +129,10 @@ namespace boost { namespace json {
 
     private:
         std::unique_ptr<detail::value_impl_base> ptr_;
-    };
 
-    namespace detail {
-        inline std::size_t
-        hash_combine_(std::size_t seed, std::size_t value) noexcept
-        {
-            return seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-    }
+        template<typename T>
+        friend struct detail::get_impl;
+    };
 
 }}
 
@@ -170,12 +160,6 @@ namespace boost { namespace json {
 
     inline value::value(double d) : ptr_(new detail::value_impl<double>(d)) {}
 
-    inline value::value(std::string && s) :
-        ptr_(new detail::value_impl<std::string>{std::move(s)})
-    {}
-
-    inline value::value(char const * c_str) : value(std::string(c_str)) {}
-
     template<typename String>
     value::value(
         String const & str,
@@ -184,25 +168,38 @@ namespace boost { namespace json {
         value(std::string(std::begin(str), std::end(str)))
     {}
 
+    inline value::value(std::string && s) :
+        ptr_(new detail::value_impl<std::string>{std::move(s)})
+    {}
+
+    inline value::value(char const * c_str) : value(std::string(c_str)) {}
+
     inline value::value(bool b) : ptr_(new detail::value_impl<bool>(b)) {}
 
     inline value::value(null_t) : ptr_(new detail::value_impl<null_t>) {}
 
     template<typename JSONObject>
     typename std::enable_if<detail::is_object<JSONObject>::value, value &>::type
-    value::operator=(JSONObject const & object)
+    value::operator=(JSONObject const & o)
     {
-        return *this = value(object);
+        return *this = value(o);
     }
 
     template<typename JSONArray>
     typename std::enable_if<detail::is_array<JSONArray>::value, value &>::type
-    value::operator=(JSONArray const & object)
+    value::operator=(JSONArray const & a)
     {
-        return *this = value(object);
+        return *this = value(a);
     }
 
     inline value & value::operator=(double d) { return *this = value(d); }
+
+    template<typename String>
+    typename std::enable_if<detail::is_string<String>::value, value &>::type
+    value::operator=(String const & str)
+    {
+        return *this = value(std::string(std::begin(str), std::end(str)));
+    }
 
     inline value & value::operator=(std::string && s)
     {
@@ -214,102 +211,9 @@ namespace boost { namespace json {
         return *this = value(std::string(c_str));
     }
 
-    template<typename String>
-    typename std::enable_if<detail::is_string<String>::value, value &>::type
-    value::operator=(String const & str)
-    {
-        return *this = value(std::string(std::begin(str), std::end(str)));
-    }
-
     inline value & value::operator=(bool b) { return *this = value(b); }
 
     inline value & value::operator=(null_t) { return *this = value(null_t{}); }
-
-    template<>
-    inline object const & get<object>(value const & v) noexcept
-    {
-        assert(v.is_object());
-        return static_cast<detail::value_impl<object> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline array const & get<array>(value const & v) noexcept
-    {
-        assert(v.is_array());
-        return static_cast<detail::value_impl<array> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline double const & get<double>(value const & v) noexcept
-    {
-        assert(v.is_number());
-        return static_cast<detail::value_impl<double> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline std::string const & get<std::string>(value const & v) noexcept
-    {
-        assert(v.is_string());
-        return static_cast<detail::value_impl<std::string> *>(v.ptr_.get())
-            ->value_;
-    }
-
-    template<>
-    inline bool const & get<bool>(value const & v) noexcept
-    {
-        assert(v.is_boolean());
-        return static_cast<detail::value_impl<bool> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline null_t const & get<null_t>(value const & v) noexcept
-    {
-        assert(v.is_null());
-        return static_cast<detail::value_impl<null_t> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline object & get<object>(value & v) noexcept
-    {
-        assert(v.is_object());
-        return static_cast<detail::value_impl<object> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline array & get<array>(value & v) noexcept
-    {
-        assert(v.is_array());
-        return static_cast<detail::value_impl<array> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline double & get<double>(value & v) noexcept
-    {
-        assert(v.is_number());
-        return static_cast<detail::value_impl<double> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline std::string & get<std::string>(value & v) noexcept
-    {
-        assert(v.is_string());
-        return static_cast<detail::value_impl<std::string> *>(v.ptr_.get())
-            ->value_;
-    }
-
-    template<>
-    inline bool & get<bool>(value & v) noexcept
-    {
-        assert(v.is_boolean());
-        return static_cast<detail::value_impl<bool> *>(v.ptr_.get())->value_;
-    }
-
-    template<>
-    inline null_t & get<null_t>(value & v) noexcept
-    {
-        assert(v.is_null());
-        return static_cast<detail::value_impl<null_t> *>(v.ptr_.get())->value_;
-    }
 
     boost::optional<value> parse(
         boost::string_view const & str,
@@ -317,31 +221,6 @@ namespace boost { namespace json {
         int max_recursive_count = 512);
 
     namespace detail {
-
-        inline bool value_impl<object>::equal_impl(value const & rhs) const noexcept
-        {
-            return value_ == get<object>(rhs);
-        }
-
-        inline bool value_impl<array>::equal_impl(value const & rhs) const noexcept
-        {
-            return value_ == get<array>(rhs);
-        }
-
-        inline bool value_impl<double>::equal_impl(value const & rhs) const noexcept
-        {
-            return value_ == get<double>(rhs);
-        }
-
-        inline bool value_impl<std::string>::equal_impl(value const & rhs) const noexcept
-        {
-            return value_ == get<std::string>(rhs);
-        }
-
-        inline bool value_impl<bool>::equal_impl(value const & rhs) const noexcept
-        {
-            return value_ == get<bool>(rhs);
-        }
 
         inline std::ostream &
         value_impl<object>::to_json(std::ostream & os) const noexcept
@@ -359,8 +238,8 @@ namespace boost { namespace json {
             return os;
         }
 
-        std::ostream & value_impl<array>::to_json(std::ostream & os) const
-            noexcept
+        inline std::ostream &
+        value_impl<array>::to_json(std::ostream & os) const noexcept
         {
             // TODO: Indentation.
             os << '[';
@@ -374,85 +253,176 @@ namespace boost { namespace json {
             os << ']';
             return os;
         }
+
+        template<>
+        struct get_impl<object>
+        {
+            static object const & call(value const & v) noexcept
+            {
+                assert(v.is_object());
+                return static_cast<value_impl<object> *>(v.ptr_.get())->value_;
+            }
+            static object & call(value & v) noexcept
+            {
+                assert(v.is_object());
+                return static_cast<value_impl<object> *>(v.ptr_.get())->value_;
+            }
+        };
+
+        template<>
+        struct get_impl<array>
+        {
+            static array const & call(value const & v) noexcept
+            {
+                assert(v.is_array());
+                return static_cast<value_impl<array> *>(v.ptr_.get())->value_;
+            }
+            static array & call(value & v) noexcept
+            {
+                assert(v.is_array());
+                return static_cast<value_impl<array> *>(v.ptr_.get())->value_;
+            }
+        };
+
+        template<>
+        struct get_impl<double>
+        {
+            static double const & call(value const & v) noexcept
+            {
+                assert(v.is_number());
+                return static_cast<value_impl<double> *>(v.ptr_.get())->value_;
+            }
+            static double & call(value & v) noexcept
+            {
+                assert(v.is_number());
+                return static_cast<value_impl<double> *>(v.ptr_.get())->value_;
+            }
+        };
+
+        template<>
+        struct get_impl<std::string>
+        {
+            static std::string const & call(value const & v) noexcept
+            {
+                assert(v.is_string());
+                return static_cast<value_impl<std::string> *>(v.ptr_.get())
+                    ->value_;
+            }
+            static std::string & call(value & v) noexcept
+            {
+                assert(v.is_string());
+                return static_cast<value_impl<std::string> *>(v.ptr_.get())
+                    ->value_;
+            }
+        };
+
+        template<>
+        struct get_impl<bool>
+        {
+            static bool const & call(value const & v) noexcept
+            {
+                assert(v.is_boolean());
+                return static_cast<value_impl<bool> *>(v.ptr_.get())->value_;
+            }
+            static bool & call(value & v) noexcept
+            {
+                assert(v.is_boolean());
+                return static_cast<value_impl<bool> *>(v.ptr_.get())->value_;
+            }
+        };
+
+        template<>
+        struct get_impl<null_t>
+        {
+            static null_t const & call(value const & v) noexcept
+            {
+                assert(v.is_null());
+                return static_cast<value_impl<null_t> *>(v.ptr_.get())->value_;
+            }
+            static null_t & call(value & v) noexcept
+            {
+                assert(v.is_null());
+                return static_cast<value_impl<null_t> *>(v.ptr_.get())->value_;
+            }
+        };
+    }
+
+    template<typename T>
+    T const & get(value const & v) noexcept
+    {
+        return detail::get_impl<T>::call(v);
+    }
+
+    template<typename T>
+    T & get(value & v) noexcept
+    {
+        return detail::get_impl<T>::call(v);
+    }
+
+    inline std::size_t hash_append(std::size_t seed, value const & v)
+    {
+        using detail::hash_combine_;
+
+        std::size_t const kind_hash = std::hash<size_t>{}(size_t(v.kind()));
+        switch (v.kind()) {
+        case value_kind::object: return hash_append(kind_hash, get<object>(v));
+        case value_kind::array: return hash_append(kind_hash, get<array>(v));
+        case value_kind::number:
+            return hash_combine_(
+                kind_hash, std::hash<double>{}(get<double>(v)));
+        case value_kind::string:
+            return hash_combine_(
+                kind_hash, std::hash<std::string>{}(get<std::string>(v)));
+        case value_kind::boolean:
+            return hash_combine_(kind_hash, std::hash<bool>{}(get<bool>(v)));
+        case value_kind::null: return kind_hash;
+        }
+
+        assert(!"Unreachable");
+        return 0;
+    }
+
+    inline std::size_t hash_append(std::size_t seed, object const & o)
+    {
+        using detail::hash_combine_;
+        std::size_t retval = std::hash<size_t>{}(size_t(value_kind::object));
+        for (auto const & pair : o) {
+            retval =
+                hash_combine_(retval, std::hash<std::string>{}(pair.first));
+            retval = hash_append(retval, pair.second);
+        }
+        return retval;
+    }
+
+    inline std::size_t hash_append(std::size_t seed, array const & a)
+    {
+        std::size_t retval =
+            std::hash<size_t>{}(std::size_t(value_kind::array));
+        for (auto const & value : a) {
+            retval = hash_append(retval, value);
+        }
+        return retval;
     }
 
 }}
 
 namespace std {
-    template<>
-    struct hash<boost::json::value>
+    size_t hash<boost::json::value>::operator()(argument_type const & v) const
+        noexcept
     {
-        using argument_type = boost::json::value;
-        using result_type = size_t;
-        result_type operator()(argument_type const & v) const noexcept;
-    };
-
-    template<>
-    struct hash<boost::json::object>
-    {
-        using argument_type = boost::json::object;
-        using result_type = size_t;
-        result_type operator()(argument_type const & v) const noexcept;
-    };
-
-    template<>
-    struct hash<boost::json::array>
-    {
-        using argument_type = boost::json::array;
-        using result_type = size_t;
-        result_type operator()(argument_type const & v) const noexcept;
-    };
-
-    inline size_t hash<boost::json::value>::
-    operator()(argument_type const & v) const noexcept
-    {
-        result_type const kind_hash = std::hash<size_t>{}(size_t(v.kind()));
-        switch (v.kind()) {
-        case boost::json::value_kind::object:
-            return std::hash<boost::json::object>{}(
-                boost::json::get<boost::json::object>(v));
-        case boost::json::value_kind::array:
-            return std::hash<boost::json::array>{}(
-                boost::json::get<boost::json::array>(v));
-        case boost::json::value_kind::number:
-            return boost::json::detail::hash_combine_(
-                kind_hash, std::hash<double>{}(boost::json::get<double>(v)));
-        case boost::json::value_kind::string:
-            return boost::json::detail::hash_combine_(
-                kind_hash, std::hash<string>{}(boost::json::get<string>(v)));
-        case boost::json::value_kind::boolean:
-            return boost::json::detail::hash_combine_(
-                kind_hash, std::hash<bool>{}(boost::json::get<bool>(v)));
-        case boost::json::value_kind::null: return kind_hash;
-        }
-        assert(!"Unreachable");
-        return 0;
+        return boost::json::hash_append(0, v);
     }
 
-    inline size_t hash<boost::json::object>::
-    operator()(argument_type const & o) const noexcept
+    size_t hash<boost::json::object>::operator()(argument_type const & o) const
+        noexcept
     {
-        result_type retval =
-            std::hash<size_t>{}(size_t(boost::json::value_kind::object));
-        for (auto const & pair : o) {
-            retval = boost::json::detail::hash_combine_(
-                retval, std::hash<string>{}(pair.first));
-            retval = boost::json::detail::hash_combine_(
-                retval, std::hash<boost::json::value>{}(pair.second));
-        }
-        return retval;
+        return boost::json::hash_append(0, o);
     }
 
-    inline size_t hash<boost::json::array>::
-    operator()(argument_type const & o) const noexcept
+    size_t hash<boost::json::array>::operator()(argument_type const & a) const
+        noexcept
     {
-        result_type retval =
-            std::hash<size_t>{}(size_t(boost::json::value_kind::array));
-        for (auto const & value : o) {
-            retval = boost::json::detail::hash_combine_(
-                retval, std::hash<boost::json::value>{}(value));
-        }
-        return retval;
+        return boost::json::hash_append(0, a);
     }
 }
 

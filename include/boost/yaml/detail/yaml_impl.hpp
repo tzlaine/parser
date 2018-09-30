@@ -1,7 +1,7 @@
-#ifndef BOOST_YAML_DETAIL_JSON_IMPL_HPP
-#define BOOST_YAML_DETAIL_JSON_IMPL_HPP
+#ifndef BOOST_YAML_DETAIL_YAML_IMPL_HPP
+#define BOOST_YAML_DETAIL_YAML_IMPL_HPP
 
-#include <boost/yaml/json_fwd.hpp>
+#include <boost/yaml/yaml_fwd.hpp>
 
 #include <boost/text/algorithm.hpp>
 #include <boost/text/utility.hpp>
@@ -10,39 +10,49 @@
 #include <iostream>
 
 
-namespace boost { namespace json { namespace detail {
+namespace boost { namespace yaml { namespace detail {
 
-    template<>
-    struct value_impl<object> : value_impl_base
+    template<typename T>
+    struct value_impl : value_impl_base
     {
-        template<typename Iter>
-        value_impl(Iter first, Iter last) : value_(first, last)
-        {}
+        value_impl(T && x) : value_(std::move(x)) {}
 
         virtual std::unique_ptr<value_impl_base> copy_impl() const override
         {
-            return std::unique_ptr<value_impl_base>(
-                new value_impl<object>(*this));
+            return std::unique_ptr<value_impl_base>(new value_impl(*this));
         }
 
         virtual value_kind kind() const noexcept override
         {
-            return value_kind::object;
+            return value_kind::user_defined;
         }
 
         virtual bool equal_impl(value const & rhs) const noexcept override
         {
-            return value_ == get<object>(rhs);
+            return value_ == get<T>(rhs);
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
-            noexcept override;
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
+            noexcept override
+        {
+            return to_yaml(os, value_);
+        }
 
-        object value_;
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<T>();
+        }
+
+        virtual std::size_t hash_append_impl(std::size_t seed) const noexcept
+        {
+            return hash_append(seed, value_);
+        }
+
+        T value_;
     };
 
     template<>
-    struct value_impl<array> : value_impl_base
+    struct value_impl<map> : value_impl_base
     {
         template<typename Iter>
         value_impl(Iter first, Iter last) : value_(first, last)
@@ -50,24 +60,61 @@ namespace boost { namespace json { namespace detail {
 
         virtual std::unique_ptr<value_impl_base> copy_impl() const override
         {
-            return std::unique_ptr<value_impl_base>(
-                new value_impl<array>(*this));
+            return std::unique_ptr<value_impl_base>(new value_impl<map>(*this));
         }
 
         virtual value_kind kind() const noexcept override
         {
-            return value_kind::array;
+            return value_kind::map;
         }
 
         virtual bool equal_impl(value const & rhs) const noexcept override
         {
-            return value_ == get<array>(rhs);
+            return value_ == get<map>(rhs);
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override;
 
-        array value_;
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<map>();
+        }
+
+        map value_;
+    };
+
+    template<>
+    struct value_impl<seq> : value_impl_base
+    {
+        template<typename Iter>
+        value_impl(Iter first, Iter last) : value_(first, last)
+        {}
+
+        virtual std::unique_ptr<value_impl_base> copy_impl() const override
+        {
+            return std::unique_ptr<value_impl_base>(new value_impl<seq>(*this));
+        }
+
+        virtual value_kind kind() const noexcept override
+        {
+            return value_kind::seq;
+        }
+
+        virtual bool equal_impl(value const & rhs) const noexcept override
+        {
+            return value_ == get<seq>(rhs);
+        }
+
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
+            noexcept override;
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<seq>();
+        }
+
+        seq value_;
     };
 
     template<>
@@ -83,7 +130,7 @@ namespace boost { namespace json { namespace detail {
 
         virtual value_kind kind() const noexcept override
         {
-            return value_kind::number;
+            return value_kind::double_;
         }
 
         virtual bool equal_impl(value const & rhs) const noexcept override
@@ -91,13 +138,52 @@ namespace boost { namespace json { namespace detail {
             return value_ == get<double>(rhs);
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override
         {
             return os << value_;
         }
 
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<double>();
+        }
+
         double value_;
+    };
+
+    template<>
+    struct value_impl<int> : value_impl_base
+    {
+        value_impl(int i) : value_(i) {}
+
+        virtual std::unique_ptr<value_impl_base> copy_impl() const override
+        {
+            return std::unique_ptr<value_impl_base>(new value_impl<int>(*this));
+        }
+
+        virtual value_kind kind() const noexcept override
+        {
+            return value_kind::int_;
+        }
+
+        virtual bool equal_impl(value const & rhs) const noexcept override
+        {
+            return value_ == get<int>(rhs);
+        }
+
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
+            noexcept override
+        {
+            return os << value_;
+        }
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<int>();
+        }
+
+        int value_;
     };
 
     template<>
@@ -125,6 +211,7 @@ namespace boost { namespace json { namespace detail {
         static std::ostream &
         write_escaped_cps(std::ostream & os, CPSubRange subr)
         {
+            // TODO: This is JSON specific!
             os << std::hex << std::setfill('0');
             for (auto cp : subr) {
                 switch (cp) {
@@ -156,7 +243,7 @@ namespace boost { namespace json { namespace detail {
             return os;
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override
         {
             os << '"';
@@ -176,6 +263,11 @@ namespace boost { namespace json { namespace detail {
             os.write(last_written_it, &*value_.end() - last_written_it);
             os << '"';
             return os;
+        }
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<std::string>();
         }
 
         std::string value_;
@@ -202,10 +294,15 @@ namespace boost { namespace json { namespace detail {
             return value_ == get<bool>(rhs);
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override
         {
             return os << (value_ ? "true" : "false");
+        }
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<bool>();
         }
 
         bool value_;
@@ -233,13 +330,82 @@ namespace boost { namespace json { namespace detail {
             return true;
         }
 
-        virtual std::ostream & to_json(std::ostream & os) const
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override
         {
             return os << "null";
         }
 
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<null_t>();
+        }
+
         null_t value_;
+    };
+
+    template<>
+    struct value_impl<alias> : value_impl_base
+    {
+        value_impl(alias && a) : value_(std::move(a)) {}
+
+        virtual std::unique_ptr<value_impl_base> copy_impl() const override
+        {
+            return std::unique_ptr<value_impl_base>(
+                new value_impl<alias>(*this));
+        }
+
+        virtual value_kind kind() const noexcept override
+        {
+            return value_kind::alias;
+        }
+
+        virtual bool equal_impl(value const &) const noexcept override
+        {
+            return true;
+        }
+
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
+            noexcept override;
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<alias>();
+        }
+
+        alias value_;
+    };
+
+    template<>
+    struct value_impl<property_node> : value_impl_base
+    {
+        value_impl(property_node && pn) : value_(std::move(pn)) {}
+
+        virtual std::unique_ptr<value_impl_base> copy_impl() const override
+        {
+            return std::unique_ptr<value_impl_base>(
+                new value_impl<property_node>(*this));
+        }
+
+        virtual value_kind kind() const noexcept override
+        {
+            return value_kind::property_node;
+        }
+
+        virtual bool equal_impl(value const &) const noexcept override
+        {
+            return true;
+        }
+
+        virtual std::ostream & to_yaml_impl(std::ostream & os) const
+            noexcept override;
+
+        virtual typeindex::type_index type_id() const noexcept override
+        {
+            return typeindex::type_id<property_node>();
+        }
+
+        property_node value_;
     };
 
 }}}
