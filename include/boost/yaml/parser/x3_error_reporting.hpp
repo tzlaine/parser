@@ -44,13 +44,19 @@ namespace boost { namespace yaml {
             iterator err_last,
             std::string const & error_message);
 
+        std::ptrdiff_t column(iterator it) const noexcept
+        {
+            auto const line_start = get_line_start(first_, it);
+            return std::distance(line_start, it);
+        }
+
     private:
         void print_file_line(std::size_t line);
         void print_line(iterator first, iterator last);
         void print_indicator(iterator & first, iterator last, char ind);
         void skip_whitespace(iterator & first, iterator last);
         void skip_non_whitespace(iterator & first, iterator last);
-        iterator get_line_start(iterator first, iterator last);
+        iterator get_line_start(iterator first, iterator last) const;
         std::size_t position(iterator it);
         void emit();
 
@@ -129,7 +135,7 @@ namespace boost { namespace yaml {
 
     template<class Iter>
     inline Iter
-    x3_error_handler<Iter>::get_line_start(iterator first, iterator last)
+    x3_error_handler<Iter>::get_line_start(iterator first, iterator last) const
     {
         auto latest = first;
         for (auto it = first; it != last; ++it){

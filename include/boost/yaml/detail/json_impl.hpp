@@ -160,9 +160,9 @@ namespace boost { namespace json { namespace detail {
             noexcept override
         {
             os << '"';
-            auto const r = boost::text::make_to_utf32_range(value_);
+            auto const r = text::make_to_utf32_range(value_);
             char const * last_written_it = &*value_.begin();
-            boost::text::foreach_subrange_if(
+            text::foreach_subrange_if(
                 r.begin(),
                 r.end(),
                 [](uint32_t cp) { return cp < 0x0020 || 0xffff < cp; },

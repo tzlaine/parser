@@ -54,7 +54,8 @@ add_library(
     src/flow_style.cpp
     src/block_style.cpp
     src/stream.cpp
-    src/json.cpp 
+    src/json.cpp
+    src/yaml.cpp
 )
 target_compile_features(yaml-static PUBLIC cxx_generic_lambdas)
 target_compile_options(yaml-static PUBLIC ${cxx_defs})
@@ -81,7 +82,8 @@ add_library(
     src/flow_style.cpp
     src/block_style.cpp
     src/stream.cpp
-    src/json.cpp 
+    src/json.cpp
+    src/yaml.cpp
 )
 target_compile_features(yaml PUBLIC cxx_generic_lambdas)
 target_compile_options(yaml PUBLIC ${cxx_defs})

@@ -4,7 +4,8 @@
 #include <boost/yaml/yaml_fwd.hpp>
 #include <boost/yaml/detail/yaml.hpp>
 
-#include <memory>
+#include <boost/optional.hpp>
+#include <boost/utility/string_view.hpp>
 
 
 namespace boost { namespace yaml {
@@ -191,6 +192,13 @@ namespace boost { namespace yaml {
 
         friend std::size_t hash_append(std::size_t seed, value const & v);
     };
+
+    using error_function = std::function<void(std::string const &)>;
+
+    optional<value> parse(
+        string_view const & str,
+        error_function parse_error = error_function(),
+        int max_recursive_count = 512);
 
 }}
 

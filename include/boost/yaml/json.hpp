@@ -134,6 +134,13 @@ namespace boost { namespace json {
         friend struct detail::get_impl;
     };
 
+    using error_function = std::function<void(std::string const &)>;
+
+    optional<value> parse(
+        string_view const & str,
+        error_function parse_error = error_function(),
+        int max_recursive_count = 512);
+
 }}
 
 #include <boost/yaml/detail/json_impl.hpp>
@@ -214,11 +221,6 @@ namespace boost { namespace json {
     inline value & value::operator=(bool b) { return *this = value(b); }
 
     inline value & value::operator=(null_t) { return *this = value(null_t{}); }
-
-    boost::optional<value> parse(
-        boost::string_view const & str,
-        std::function<void(std::string const &)> parse_error,
-        int max_recursive_count = 512);
 
     namespace detail {
 

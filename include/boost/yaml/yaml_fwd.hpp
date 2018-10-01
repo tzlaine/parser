@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <memory>
+
 
 namespace boost { namespace yaml {
 
