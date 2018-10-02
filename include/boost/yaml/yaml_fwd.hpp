@@ -53,6 +53,7 @@ namespace boost { namespace yaml {
 
     using seq = std::vector<value>;
     using map = std::unordered_map<value, value>;
+    using map_element = std::pair<value, value>;
 
     struct properties
     {

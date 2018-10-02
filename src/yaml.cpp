@@ -250,37 +250,23 @@ namespace boost { namespace yaml {
     }
 #endif
 
-    struct block_header
+    struct block_header_t
     {
-        block_header() : indentation_(0), chomping_(chomping::clip) {}
-        block_header(int indentation, chomping chomping) :
-            indentation_(indentation),
-            chomping_(chomping)
-        {}
-
         int indentation_;
         chomping chomping_;
     };
 
 #ifdef BOOST_SPIRIT_X3_DEBUG
-    inline std::ostream & operator<<(std::ostream & os, block_header b)
+    inline std::ostream & operator<<(std::ostream & os, block_header_t b)
     {
         return os << b.indentation_ << ',' << b.chomping_;
     }
 #endif
 
-    template<typename Iter>
     struct parser_properties
     {
-        parser_properties() {}
-        parser_properties(
-            std::string const & tag, iterator_range<Iter> anchor) :
-            tag_(tag),
-            anchor_(anchor)
-        {}
-
         std::string tag_;
-        iterator_range<Iter> anchor_;
+        any anchor_; // iterator range
     };
 #ifdef BOOST_SPIRIT_X3_DEBUG
     inline std::ostream &
@@ -290,11 +276,10 @@ namespace boost { namespace yaml {
     }
 #endif
 
-    template<typename Iter>
     struct anchor
     {
         alias alias_;
-        Iter position_;
+        any position_; // iterator
     };
 
 
@@ -309,20 +294,56 @@ namespace boost { namespace yaml {
         using iterator = Iter;
         using iterator_range = boost::iterator_range<Iter>;
 
+        parser_state(int max_recursion) :
+            max_recursive_open_count_(max_recursion)
+        {
+            context_stack_.push_back(context::block_in); // TODO
+        }
+
+        context context_() const noexcept { return context_stack_.back(); }
+
+        void push_in_flow_context()
+        {
+            // in-flow [136]
+            switch (context_()) {
+            case context::flow_out:
+            case context::flow_in:
+                context_stack_.push_back(context::flow_in);
+                break;
+            case context::block_key:
+            case context::flow_key:
+                context_stack_.push_back(context::flow_key);
+                break;
+            default: BOOST_ASSERT(!"Invalid input passed to in_flow()");
+            }
+        }
+        void pop_context() { context_stack_.pop_back(); }
+
+        int recursive_open_count_ = 0;
+        int const max_recursive_open_count_;
+
         int indent_ = 0;
-        context context_ = context::block_in;
+        std::vector<context> context_stack_;
         bool stop_at_document_delimiter_ = false;
 
         eoi_state eoi_state_ = eoi_state::not_at_end;
 
-        bool yaml_directive_seen_;
-        Iter first_yaml_directive_it_;
-        Iter latest_yaml_directive_it_;
+        bool yaml_directive_seen_ = false;
+        iterator first_yaml_directive_it_;
+        iterator latest_yaml_directive_it_;
+
+        iterator_range tag_handle_;
+
+        std::string tag_property_;
+        any anchor_property_; // iterator range
     };
 
 
+    // Declarations.
 
     namespace x3 = spirit::x3;
+
+    // Helper rules.
 
     x3::rule<class two_hex_digits, char> const two_hex_digits =
         "two hexidecimal digits";
@@ -330,75 +351,6 @@ namespace boost { namespace yaml {
         "four hexidecimal digits";
     x3::rule<class eight_hex_digits, char> const eight_hex_digits =
         "eight hexidecimal digits";
-
-    auto const two_hex_digits_def = x3::repeat(2)[x3::ascii::xdigit];
-    BOOST_SPIRIT_DEFINE(two_hex_digits);
-    auto const four_hex_digits_def = x3::repeat(4)[x3::ascii::xdigit];
-    BOOST_SPIRIT_DEFINE(four_hex_digits);
-    auto const eight_hex_digits_def = x3::repeat(8)[x3::ascii::xdigit];
-    BOOST_SPIRIT_DEFINE(eight_hex_digits);
-
-
-
-    // 5.2. Character Encodings
-
-    // [1]
-    x3::rule<class printable, uint32_t> const printable = "printable";
-    auto const printable_def = x3::char_("\t\n\f") | x3::char_('\x20', '\x7e') |
-                               x3::unicode::char_(0x0085u) |
-                               x3::unicode::char_(0x00a0u, 0xd7ffu) |
-                               x3::unicode::char_(0xe000u, 0xfffdu) |
-                               x3::unicode::char_(0x00010000u, 0x0010ffffu);
-    BOOST_SPIRIT_DEFINE(printable);
-
-    // [2]
-    x3::rule<class ws, uint32_t> const nb_json = "nb_json";
-    auto const nb_json_def =
-        x3::char_('\t') | x3::unicode::char_(0x0020u, 0x0010ffffu);
-    BOOST_SPIRIT_DEFINE(nb_json);
-
-    // [3]
-    x3::rule<class bom, uint32_t> const bom = "bom";
-    auto const bom_def = x3::unicode::char_(0xfeff);
-    BOOST_SPIRIT_DEFINE(bom);
-
-    // 5.4. Line Break Characters
-
-    // [27]
-    x3::rule<class nb_char, uint32_t> const nb_char = "nb_char";
-    auto const nb_char_def = printable - x3::eol - bom;
-    BOOST_SPIRIT_DEFINE(nb_char);
-
-    // 5.5. White Space Characters
-
-    // [34]
-    x3::rule<class ns_char, uint32_t> const ns_char = "ns_char";
-    auto const ns_char_def = printable - x3::eol - bom - x3::ascii::blank;
-    BOOST_SPIRIT_DEFINE(ns_char);
-
-    // 5.6. Miscellaneous Characters
-
-    // [38]
-    x3::rule<class word_char, uint32_t> const word_char = "word_char";
-    auto const word_char_def = x3::ascii::alnum | x3::char_('-');
-    BOOST_SPIRIT_DEFINE(word_char);
-
-    // [39]
-    x3::rule<class uri_char, uint32_t> const uri_char = "uri_char";
-    auto const uri_char_def = x3::char_('%') >> &two_hex_digits | word_char |
-                              x3::char_("#;/?:@&=+$,_.!~*'()[]");
-    BOOST_SPIRIT_DEFINE(uri_char);
-
-    // [40]
-    x3::rule<class tag_char, uint32_t> const tag_char = "tag_char";
-    auto const tag_char_def =
-        uri_char - x3::char_("!,[]{}"); // - '!' - flow_indicator [23]
-    BOOST_SPIRIT_DEFINE(tag_char);
-
-    // 5.7. Escaped Characters
-
-    // [62]
-    x3::rule<class esc_char, uint32_t> const esc_char = "esc_char";
 
     x3::rule<class x_escape_seq, uint32_t> const x_escape_seq =
         "\\xXX hexidecimal escape sequence";
@@ -410,6 +362,576 @@ namespace boost { namespace yaml {
         "'0', 'a', 'b', 't', 'n', 'v', 'f', 'r', 'e', '\"', '/', '\\', 'N', "
         "'_', 'L', 'P', SPACE or TAB";
 
+    x3::rule<class push_in_flow_context> const push_in_flow_context;
+    x3::rule<class pop_context> const pop_context;
+
+
+
+    // 5.2. Character Encodings
+
+    // [1]
+    x3::rule<class printable, uint32_t> const printable = "printable";
+
+    // [2]
+    x3::rule<class ws, uint32_t> const nb_json = "nb_json";
+
+    // [3]
+    x3::rule<class bom, uint32_t> const bom = "bom";
+
+    // 5.4. Line Break Characters
+
+    // [27]
+    x3::rule<class nb_char, uint32_t> const nb_char = "nb_char";
+
+    // 5.5. White Space Characters
+
+    // [34]
+    x3::rule<class ns_char, std::string> const ns_char = "ns_char";
+
+    // 5.6. Miscellaneous Characters
+
+    // [38]
+    x3::rule<class word_char, uint32_t> const word_char = "word_char";
+
+    // [39]
+    x3::rule<class uri_char, uint32_t> const uri_char = "uri_char";
+
+    // [40]
+    x3::rule<class tag_char, uint32_t> const tag_char = "tag_char";
+
+    // 5.7. Escaped Characters
+
+    // [62]
+    x3::rule<class esc_char, uint32_t> const esc_char = "esc_char";
+
+    // 6.1. Indentation Spaces
+
+    // [63]
+    x3::rule<class indent> const indent = "indent";
+
+    // [64]
+    x3::rule<class indent_lt> const indent_lt = "indent_lt";
+
+    // [65]
+    x3::rule<class indent_le> const indent_le = "indent_le";
+
+    // 6.2. Separation Spaces
+
+    // [66]
+    x3::rule<class separate_in_line> const separate_in_line =
+        "separate_in_line";
+
+    // 6.3. Line Prefixes
+
+    // [67]
+    x3::rule<class line_prefix> const line_prefix = "line_prefix";
+
+    // 6.4 Empty Lines
+
+    // [70]
+    x3::rule<class l_empty, char> const l_empty = "l_empty";
+
+    // 6.5 Line Folding
+
+    // [73]
+    x3::rule<class b_l_folded, std::string> const b_l_folded = "b_l_folded";
+
+    // [74]
+    x3::rule<class flow_folded, std::string> const flow_folded = "flow_folded";
+
+    // 6.6 Comments
+
+    // [75]
+    x3::rule<class comment_text> const comment_text = "comment_text";
+
+    // [77]
+    x3::rule<class s_b_comment> const s_b_comment = "s_b_comment";
+
+    // [78]
+    x3::rule<class l_comment> const l_comment = "l_comment";
+
+    // [79]
+    x3::rule<class s_l_comments> const s_l_comments = "s_l_comments";
+
+    // 6.7 Separation Lines
+
+    // [80]
+    x3::rule<class separate> const separate = "separate";
+
+    // [81]
+    x3::rule<class separate_lines> const separate_lines = "separate_lines";
+
+    // 6.8 Directives
+
+    // [82]
+    x3::rule<class directive> const directive = "directive";
+
+    // [83]
+    x3::rule<class reserved_directive> const reserved_directive =
+        "reserved_directive";
+
+    // [86]
+    x3::rule<class yaml_directive> const yaml_directive = "yaml_directive";
+
+    // [88]
+    x3::rule<class tag_directive> const tag_directive = "tag_directive";
+
+    // [89]
+    x3::rule<class tag_handle> const tag_handle = "tag_handle";
+
+    // [93]
+    x3::rule<class tag_prefix> const tag_prefix = "tag_prefix";
+
+    // 6.9 Node Properties
+
+    // [96]
+    x3::rule<class properties_t, parser_properties> const properties =
+        "properties";
+
+    // [97]
+    x3::rule<class tag_property, std::string> const tag_property =
+        "tag_property";
+
+    // [22]
+    // auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
+
+    // [101]
+    x3::rule<class anchor_property, any> const anchor_property =
+        "anchor_property";
+
+    // [102]
+    // auto anchor_char = ns_char - char_(",[]{}");
+
+    // [103]
+    x3::rule<class anchor_name, any> const anchor_name = "anchor_name";
+
+    x3::rule<class one_time_eoi> const one_time_eoi = "one_time_eoi";
+
+    // 7.1 Alias Nodes
+
+    // [104]
+    x3::rule<class alias_node, alias> const alias_node = "alias_node";
+
+    // 7.3 Flow Scalar Styles
+
+    // 7.3.1 Double Quoted Style
+
+    // [107]
+    x3::rule<class nb_double_char, std::string> const nb_double_char =
+        "nb_double_char";
+
+    // [108]
+    x3::rule<class ns_double_char, std::string> const ns_double_char =
+        "ns_double_char";
+
+    // [109]
+    x3::rule<class double_quoted, std::string> const double_quoted =
+        "double_quoted";
+
+    // [110]
+    x3::rule<class double_text, std::string> const double_text = "double_text";
+
+    // [112]
+    x3::rule<class double_escaped, std::string> const double_escaped =
+        "double_escaped";
+
+    // [113]
+    x3::rule<class double_break, std::string> const double_break =
+        "double_break";
+
+    // [114]
+    x3::rule<class double_in_line, std::string> const double_in_line =
+        "double_in_line";
+
+    // [115]
+    x3::rule<class double_next_line, std::string> const double_next_line =
+        "double_next_line";
+
+    // [116]
+    x3::rule<class double_multi_line, std::string> const double_multi_line =
+        "double_multi_line";
+
+    // 7.3.2 Single Quoted Style
+
+    // [118]
+    x3::rule<class nb_single_char, std::string> const nb_single_char =
+        "nb_single_char";
+
+    // [119]
+    x3::rule<class ns_single_char, std::string> const ns_single_char =
+        "ns_single_char";
+
+    // [120]
+    x3::rule<class single_quoted, std::string> const single_quoted =
+        "single_quoted";
+
+    // [121]
+    x3::rule<class single_text, std::string> const single_text = "single_text";
+
+    // [123]
+    x3::rule<class single_in_line, std::string> const single_in_line =
+        "single_in_line";
+
+    // [124]
+    x3::rule<class single_next_line, std::string> const single_next_line =
+        "single_next_line";
+
+    // [125]
+    x3::rule<class single_multi_line, std::string> const single_multi_line =
+        "single_multi_line";
+
+    // 7.3.3 Plain Style
+
+    // [22]
+    x3::rule<class indicator> const indicator = "indicator";
+
+    // [126]
+    x3::rule<class plain_first, std::string> const plain_first = "plain_first";
+
+    // [127]
+    x3::rule<class plain_safe, std::string> const plain_safe = "plain_safe";
+
+    // [130]
+    x3::rule<class plain_char, std::string> const plain_char = "plain_char";
+
+    // [131]
+    x3::rule<class plain, std::string> const plain = "plain";
+
+    // [132]
+    x3::rule<class plain_in_line, std::string> const plain_in_line =
+        "plain_in_line";
+
+    // [133]
+    x3::rule<class plain_one_line, std::string> const plain_one_line =
+        "plain_one_line";
+
+    // [134]
+    x3::rule<class plain_next_line, std::string> const plain_next_line =
+        "plain_next_line";
+
+    // [135]
+    x3::rule<class plain_multi_line, std::string> const plain_multi_line =
+        "plain_multi_line";
+
+
+    // 7.4 Flow Collection Styles
+
+    // [137]
+    x3::rule<class flow_sequence, value> const flow_sequence = "flow_sequence";
+
+    // [138]
+    x3::rule<class flow_seq_entries, value> const flow_seq_entries =
+        "flow_seq_entries";
+
+    // [139]
+    x3::rule<class flow_seq_entry, value> const flow_seq_entry =
+        "flow_seq_entry";
+
+    // 7.4.2 Flow Mappings
+
+    // [140]
+    x3::rule<class flow_mapping, map> const flow_mapping = "flow_mapping";
+
+    // [141]
+    x3::rule<class flow_map_entries, map> const flow_map_entries =
+        "flow_map_entries";
+
+    // [142]
+    x3::rule<class flow_map_entry, map_element> const flow_map_entry =
+        "flow_map_entry";
+
+    // [143]
+    x3::rule<class flow_map_explicit_entry, map_element> const
+        flow_map_explicit_entry = "flow_map_explicit_entry";
+
+    // [144]
+    x3::rule<class flow_map_implicit_entry, map_element> const
+        flow_map_implicit_entry = "flow_map_implicit_entry";
+
+    // [145]
+    x3::rule<class flow_map_yaml_key_entry, map_element> const
+        flow_map_yaml_key_entry = "flow_map_yaml_key_entry";
+
+    // [146]
+    x3::rule<class flow_map_empty_key_entry, map_element> const
+        flow_map_empty_key_entry = "flow_map_empty_key_entry";
+
+    // [147]
+    x3::rule<class flow_map_separate_value, value> const
+        flow_map_separate_value = "flow_map_separate_value";
+
+    // [148]
+    x3::rule<class flow_map_json_key_entry, map_element> const
+        flow_map_json_key_entry = "flow_map_json_key_entry";
+
+    // [149]
+    x3::rule<class flow_map_adjacent_value, value> const
+        flow_map_adjacent_value = "flow_map_adjacent_value";
+
+    // [150]
+    x3::rule<class flow_pair, value> const flow_pair = "flow_pair";
+
+    // [151]
+    x3::rule<class flow_pair_entry, map_element> const flow_pair_entry =
+        "flow_pair_entry";
+
+    // [152]
+    x3::rule<class flow_pair_yaml_key_entry, map_element> const
+        flow_pair_yaml_key_entry = "flow_pair_yaml_key_entry";
+
+    // [153]
+    x3::rule<class flow_pair_json_key_entry, map_element> const
+        flow_pair_json_key_entry = "flow_pair_json_key_entry";
+
+    // [154]
+    x3::rule<class implicit_yaml_key, value> const implicit_yaml_key =
+        "implicit_yaml_key";
+
+    // [155]
+    x3::rule<class implicit_json_key, value> const implicit_json_key =
+        "implicit_json_key";
+
+    // 7.5 Flow Nodes
+
+    // [156]
+    x3::rule<class flow_yaml_content, value> const flow_yaml_content =
+        "flow_yaml_content";
+
+    // [157]
+    x3::rule<class flow_json_content, value> const flow_json_content =
+        "flow_json_content";
+
+    // [158]
+    x3::rule<class flow_content, value> const flow_content = "flow_content";
+
+    // [159]
+    x3::rule<class flow_yaml_node, value> const flow_yaml_node =
+        "flow_yaml_node";
+
+    // [160]
+    x3::rule<class flow_json_node, value> const flow_json_node =
+        "flow_json_node";
+
+    // [161]
+    x3::rule<class flow_node, value> const flow_node = "flow_node";
+
+    // 8.1 Block Scalar Styles
+
+    // [162]
+    x3::rule<class block_header, block_header_t> const block_header =
+        "block_header";
+
+    // [163]
+    x3::rule<class indentation_indicator, int> const indentation_indicator =
+        "indentation_indicator";
+
+    // [164]
+    x3::rule<class chomping_indicator, chomping> const chomping_indicator =
+        "chomping_indicator";
+
+    // [165]
+    x3::rule<class chomped_last, std::string> const chomped_last =
+        "chomped_last";
+
+    // [166]
+    x3::rule<class chomped_empty> const chomped_empty = "chomped_empty";
+
+    // [167]
+    x3::rule<class strip_empty> const strip_empty = "strip_empty";
+
+    // [168]
+    x3::rule<class keep_empty, std::string> const keep_empty = "keep_empty";
+
+    // [169]
+    x3::rule<class trail_comments> const trail_comments = "trail_comments";
+
+    // [170]
+    x3::rule<class literal, std::string> const literal = "literal";
+
+    // [171]
+    x3::rule<class literal_text, std::string> const literal_text =
+        "literal_text";
+
+    // [172]
+    x3::rule<class literal_next, std::string> const literal_next =
+        "literal_next";
+
+    x3::rule<class literal_content_optional, std::string> const
+        literal_content_optional = "literal_content_optional";
+
+    // [173]
+    x3::rule<class literal_content, std::string> const literal_content =
+        "literal_content";
+
+    // 8.1.3. Folded Style
+
+    // [174]
+    x3::rule<class folded, std::string> const folded = "folded";
+
+    // [175]
+    x3::rule<class folded_text, std::string> const folded_text = "folded_text";
+
+    // [176]
+    x3::rule<class folded_lines, std::string> const folded_lines =
+        "folded_lines";
+
+    // [177]
+    x3::rule<class spaced_text, std::string> const spaced_text = "spaced_text";
+
+    // [178]
+    x3::rule<class spaced, std::string> const spaced = "spaced";
+
+    // [179]
+    x3::rule<class spaced_lines, std::string> const spaced_lines =
+        "spaced_lines";
+
+    // [180]
+    x3::rule<class same_lines, std::string> const same_lines = "same_lines";
+
+    // [181]
+    x3::rule<class diff_lines, std::string> const diff_lines = "diff_lines";
+
+    x3::rule<class folded_content_optional, std::string> const
+        folded_content_optional = "folded_content_optional";
+
+    // [182]
+    x3::rule<class folded_content, std::string> const folded_content =
+        "folded_content";
+
+    // 8.2.1. Block Sequences
+
+    x3::rule<class auto_detect_indent, int> const auto_detect_indent =
+        "auto_detect_indent";
+
+    x3::rule<class scalar_auto_detect_indent, int> const
+        scalar_auto_detect_indent = "scalar_auto_detect_indent";
+
+    // [183]
+    x3::rule<class block_sequence, seq> const block_sequence = "block_sequence";
+
+    // [184]
+    x3::rule<class block_seq_entry, value> const block_seq_entry =
+        "block_seq_entry";
+
+    // [185]
+    x3::rule<class block_indented, value> const block_indented =
+        "block_indented";
+
+    // [186]
+    x3::rule<class compact_sequence, seq> const compact_sequence =
+        "compact_sequence";
+
+    // 8.2.1. Block Mappings
+
+    // [187]
+    x3::rule<class block_mapping, map> const block_mapping = "block_mapping";
+
+    // [188]
+    x3::rule<class block_map_entry, map_element> const block_map_entry =
+        "block_map_entry";
+
+    // [189]
+    x3::rule<class block_map_explicit_entry, map_element> const
+        block_map_explicit_entry = "block_map_explicit_entry";
+
+    // [190]
+    x3::rule<class block_map_explicit_key, value> const block_map_explicit_key =
+        "block_map_explicit_key";
+
+    // [191]
+    x3::rule<class block_map_explicit_value, value> const
+        block_map_explicit_value = "block_map_explicit_value";
+
+    // [192]
+    x3::rule<class block_map_implicit_entry, map_element> const
+        block_map_implicit_entry = "block_map_implicit_entry";
+
+    // [193]
+    x3::rule<class block_map_implicit_key, value> const block_map_implicit_key =
+        "block_map_implicit_key";
+
+    // [194]
+    x3::rule<class block_map_implicit_value, value> const
+        block_map_implicit_value = "block_map_implicit_value";
+
+    // [195]
+    x3::rule<class compact_mapping, map> const compact_mapping =
+        "compact_mapping";
+
+    // 8.2.3. Block Nodes
+
+    // [196]
+    x3::rule<class block_node, value> const block_node = "block_node";
+
+    // [197]
+    x3::rule<class flow_in_block, value> const flow_in_block = "flow_in_block";
+
+    // [198]
+    x3::rule<class block_in_block, value> const block_in_block =
+        "block_in_block";
+
+    // [199]
+    x3::rule<class block_scalar, value> const block_scalar = "block_scalar";
+
+    // [200]
+    x3::rule<class block_collection, value> const block_collection =
+        "block_collection";
+
+
+    // [202]
+    x3::rule<class document_prefix> const document_prefix = "document_prefix";
+
+    // [205]
+    x3::rule<class document_suffix> const document_suffix = "document_suffix";
+
+    // [206]
+    x3::rule<class forbidden> const forbidden = "forbidden";
+
+    // [207]
+    x3::rule<class bare_document, value> const bare_document = "bare_document";
+
+    // [208]
+    x3::rule<class explicit_document, value> const explicit_document =
+        "explicit_document";
+
+    // [209]
+    x3::rule<class directive_document, value> const directive_document =
+        "directive_document";
+
+    // [210]
+    x3::rule<class any_document, value> const any_document = "any_document";
+
+    // [211]
+    x3::rule<class yaml_stream, std::vector<value>> const yaml_stream =
+        "yaml_stream";
+
+    x3::rule<class end_of_input> const end_of_input = "end_of_input";
+
+
+
+    // Definitions
+
+    // Needed for use with all the uint32_t-generating char parsers.
+    auto append_utf8 = [](auto & ctx) {
+        std::array<uint32_t, 1> const cps = {{_attr(ctx)}};
+        auto const r = text::make_from_utf32_range(cps);
+        std::string & str = _val(ctx);
+        str.insert(str.end(), r.begin(), r.end());
+    };
+
+    // Make this a callable object with multiple signatures, and recognize the
+    // case that the range begin appended is a pair of
+    // text::utf8::from_utf32_iterators.  In that case, insert with .base().
+    auto append_utf8_range = [](auto & ctx) {
+        auto const r = text::make_from_utf32_range(_attr(ctx));
+        std::string & str = _val(ctx);
+        str.insert(str.end(), r.begin(), r.end());
+    };
+
+    auto const two_hex_digits_def = x3::repeat(2)[x3::ascii::xdigit];
+    auto const four_hex_digits_def = x3::repeat(4)[x3::ascii::xdigit];
+    auto const eight_hex_digits_def = x3::repeat(8)[x3::ascii::xdigit];
+
     auto parse_hex = [](auto & ctx) {
         auto const cp_range = _attr(ctx);
         uint32_t result;
@@ -420,12 +942,66 @@ namespace boost { namespace yaml {
     };
 
     auto const x_escape_seq_def = x3::raw["\\x" > two_hex_digits][parse_hex];
-    BOOST_SPIRIT_DEFINE(x_escape_seq);
     auto const u_escape_seq_def = x3::raw["\\u" > four_hex_digits][parse_hex];
-    BOOST_SPIRIT_DEFINE(u_escape_seq);
     auto const U_escape_seq_def = x3::raw["\\U" > eight_hex_digits][parse_hex];
-    BOOST_SPIRIT_DEFINE(U_escape_seq);
 
+    auto push_in_flow_context_ = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.push_in_flow_context();
+    };
+    auto pop_context_ = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.pop_context();
+    };
+
+    auto const push_in_flow_context_def = x3::eps[push_in_flow_context_];
+    auto const pop_context_def = x3::eps[pop_context_];
+
+
+
+
+    // 5.2. Character Encodings
+
+    // [1]
+    auto const printable_def = x3::char_("\t\n\f") | x3::char_('\x20', '\x7e') |
+                               x3::unicode::char_(0x0085u) |
+                               x3::unicode::char_(0x00a0u, 0xd7ffu) |
+                               x3::unicode::char_(0xe000u, 0xfffdu) |
+                               x3::unicode::char_(0x00010000u, 0x0010ffffu);
+
+    // [2]
+    auto const nb_json_def =
+        x3::char_('\t') | x3::unicode::char_(0x0020u, 0x0010ffffu);
+
+    // [3]
+    auto const bom_def = x3::unicode::char_(0xfeff);
+
+    // 5.4. Line Break Characters
+
+    // [27]
+    auto const nb_char_def = printable - x3::eol - bom;
+
+    // 5.5. White Space Characters
+
+    // [34]
+    auto const ns_char_def = (nb_char_def - x3::ascii::blank)[append_utf8];
+
+    // 5.6. Miscellaneous Characters
+
+    // [38]
+    auto const word_char_def = x3::ascii::alnum | x3::char_('-');
+
+    // [39]
+    auto const uri_char_def = x3::char_('%') >> &two_hex_digits | word_char |
+                              x3::char_("#;/?:@&=+$,_.!~*'()[]");
+
+    // [40]
+    auto const tag_char_def =
+        uri_char - x3::char_("!,[]{}"); // - '!' - flow_indicator [23]
+
+    // 5.7. Escaped Characters
+
+    // [62]
     auto const single_escaped_char_def =
         '0' >> x3::attr(0x0000u) | 'a' >> x3::attr(0x0007u) |
         'b' >> x3::attr(0x0008u) | (x3::lit('t') | '\t') >> x3::attr(0x0009u) |
@@ -436,11 +1012,9 @@ namespace boost { namespace yaml {
         '\\' >> x3::attr(0x005cu) | 'N' >> x3::attr(0x0085u) |
         '_' >> x3::attr(0x00a0u) | 'L' >> x3::attr(0x2028u) |
         'P' >> x3::attr(0x2029u);
-    BOOST_SPIRIT_DEFINE(single_escaped_char);
 
     auto const esc_char_def = x_escape_seq | u_escape_seq | U_escape_seq |
                               x3::lit('\\') > single_escaped_char;
-    BOOST_SPIRIT_DEFINE(esc_char);
 
 
 
@@ -456,19 +1030,13 @@ namespace boost { namespace yaml {
     };
 
     // [63]
-    x3::rule<class indent> const indent = "indent";
     auto const indent_def = x3::lazy_repeat(indent_)[x3::lit(' ')];
-    BOOST_SPIRIT_DEFINE(indent);
 
     // [64]
-    x3::rule<class indent_lt> const indent_lt = "indent_lt";
     auto const indent_lt_def = x3::lazy_repeat(0, indent_minus_1)[x3::lit(' ')];
-    BOOST_SPIRIT_DEFINE(indent_lt);
 
     // [65]
-    x3::rule<class indent_le> const indent_le = "indent_le";
     auto const indent_le_def = x3::lazy_repeat(0, indent_)[x3::lit(' ')];
-    BOOST_SPIRIT_DEFINE(indent_le);
 
     // 6.2. Separation Spaces
 
@@ -481,38 +1049,31 @@ namespace boost { namespace yaml {
     };
 
     // [66]
-    x3::rule<class separate_in_line> const separate_in_line =
-        "separate_in_line";
     auto const separate_in_line_def =
         +x3::blank | x3::raw[x3::eps][check_start_of_line];
-    BOOST_SPIRIT_DEFINE(separate_in_line);
 
     // 6.3. Line Prefixes
 
     auto block_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_ == context::block_in ||
-               rule_ctx.get().context_ == context::block_out;
+        return rule_ctx.get().context_() == context::block_in ||
+               rule_ctx.get().context_() == context::block_out;
     };
 
     auto flow_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_ == context::flow_in ||
-               rule_ctx.get().context_ == context::flow_out;
+        return rule_ctx.get().context_() == context::flow_in ||
+               rule_ctx.get().context_() == context::flow_out;
     };
 
     // [67]
-    x3::rule<class line_prefix> const line_prefix = "line_prefix";
     auto const line_prefix_def = x3::eps(block_context) >> indent |
                                  x3::eps(flow_context) >> indent >>
                                      -separate_in_line;
-    BOOST_SPIRIT_DEFINE(line_prefix);
 
     // 6.4 Empty Lines
 
     // [70]
-    x3::rule<class l_empty, char> const l_empty = "l_empty";
     auto const l_empty_def = x3::omit[line_prefix | indent_lt] >> x3::eol >>
                              x3::attr('\n');
-    BOOST_SPIRIT_DEFINE(l_empty);
 
     // 6.5 Line Folding
 
@@ -521,34 +1082,28 @@ namespace boost { namespace yaml {
     };
 
     // [73]
-    x3::rule<class b_l_folded, std::string> const b_l_folded =
-        "b_l_folded";
     auto const b_l_folded_def = x3::eol >>
                                 (x3::eps(dont_stop_at_doc_delimiter) |
                                  !(x3::lit("...") | "---")) >>
                                 (+l_empty /* b-l-trimmed [71] */
                                  | x3::attr(" "));
-    BOOST_SPIRIT_DEFINE(b_l_folded);
 
     auto set_context = [](context c) {
         return [c](auto & rule_ctx) {
-            rule_ctx.get().context_ = c;
+            rule_ctx.get().context_stack_.back() = c;
             return true;
         };
     };
 
     // [74]
-    x3::rule<class flow_folded, std::string> const flow_folded = "flow_folded";
+    // TODO: Prolly need to push the context here, not set it.
     auto const flow_folded_def = x3::eps(set_context(context::flow_in)) >>
                                  -separate_in_line >> b_l_folded >> line_prefix;
-    BOOST_SPIRIT_DEFINE(flow_folded);
 
     // 6.6 Comments
 
     // [75]
-    x3::rule<class comment_text> const comment_text = "comment_text";
     auto const comment_text_def = '#' >> +nb_char;
-    BOOST_SPIRIT_DEFINE(comment_text);
 
     // HACK!  This is a dirty, dirty hack that bears explaining.  Many
     // productions in the YAML 1.2 spec include "newline | end-of-input"
@@ -577,77 +1132,51 @@ namespace boost { namespace yaml {
     };
 
     // [77]
-    x3::rule<class s_b_comment> const s_b_comment = "s_b_comment";
     auto const s_b_comment_def =
         -(separate_in_line >> -comment_text) >>
         (x3::eol | x3::eoi >> x3::eps(first_time_eoi)); // b-comment [77]
-    BOOST_SPIRIT_DEFINE(s_b_comment);
 
     // [78]
-    x3::rule<class l_comment> const l_comment = "l_comment";
     auto const l_comment_def = separate_in_line >> -comment_text >>
                                (x3::eol | x3::eoi >> x3::eps(first_time_eoi));
-    BOOST_SPIRIT_DEFINE(l_comment);
 
     // [79]
-    x3::rule<class s_l_comments> const s_l_comments = "s_l_comments";
     auto const s_l_comments_def =
         (s_b_comment | x3::raw[x3::eps][check_start_of_line]) >> *l_comment;
-    BOOST_SPIRIT_DEFINE(s_l_comments);
 
     // 6.7 Separation Lines
 
     auto key_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_ == context::block_key ||
-               rule_ctx.get().context_ == context::flow_key;
+        return rule_ctx.get().context_() == context::block_key ||
+               rule_ctx.get().context_() == context::flow_key;
     };
 
     auto not_key_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_ != context::block_key &&
-               rule_ctx.get().context_ != context::flow_key;
+        return rule_ctx.get().context_() != context::block_key &&
+               rule_ctx.get().context_() != context::flow_key;
     };
-
-    // [80]
-    x3::rule<class separate> const separate = "separate";
-    // [81]
-    x3::rule<class separate_lines> const separate_lines = "separate_lines";
 
     // [80]
     auto const separate_def = x3::eps(key_context) >> separate_in_line |
                               x3::eps(not_key_context) >> separate_lines;
-    BOOST_SPIRIT_DEFINE(separate);
 
     // [81]
     auto const separate_lines_def =
         s_l_comments >> indent >> -separate_in_line // flow-line-prefix [69]
         | separate_in_line;
-    BOOST_SPIRIT_DEFINE(separate_lines);
 
     // 6.8 Directives
-
-    // [82]
-    x3::rule<class directive> const directive = "directive";
-    // [83]
-    x3::rule<class reserved_directive> const reserved_directive =
-        "reserved_directive";
-    // [86]
-    x3::rule<class yaml_directive> const yaml_directive = "yaml_directive";
-    // [88]
-    x3::rule<class tag_directive> const tag_directive = "tag_directive";
-    // [89]
-    x3::rule<class tag_handle> const tag_handle = "tag_handle";
-    // [93]
-    x3::rule<class tag_prefix> const tag_prefix = "tag_prefix";
 
     // [82]
     auto const directive_def =
         '%' >>
         (yaml_directive | tag_directive | reserved_directive) >> s_l_comments;
-    BOOST_SPIRIT_DEFINE(directive);
 
     auto reserved_directive_warning = [](auto & ctx) {
+#if 0 // TODO
         auto const & error_handler =
             x3::get<yaml::error_handler_tag>(ctx).get();
+#endif
         // TODO: Report warning.
     };
 
@@ -655,7 +1184,6 @@ namespace boost { namespace yaml {
     auto const reserved_directive_def = x3::raw
         [+x3::omit[ns_char] >> *(+x3::omit[x3::blank] >> +x3::omit[ns_char])]
         [reserved_directive_warning];
-    BOOST_SPIRIT_DEFINE(reserved_directive);
 
     auto record_yaml_directive = [](auto & ctx) {
         auto & state = x3::get<parser_state_tag>(ctx).get();
@@ -664,8 +1192,10 @@ namespace boost { namespace yaml {
 
     auto check_yaml_version = [](auto & ctx) {
         auto & state = x3::get<parser_state_tag>(ctx).get();
+#if 0 // TODO
         auto const & error_handler =
             x3::get<yaml::error_handler_tag>(ctx).get();
+#endif
 
         if (state.yaml_directive_seen_) {
 #if 0 // TODO
@@ -698,7 +1228,8 @@ namespace boost { namespace yaml {
                     state.first_yaml_directive_it_, oss.str(), multipart);
 #endif
                 _pass(ctx) = false;
-            } else if (minor != 2/* TODO && error_handler.impl().warning_fn_*/) {
+            } else if (
+                minor != 2 /* TODO && error_handler.impl().warning_fn_*/) {
 #if 0 // TODO
                 std::ostringstream oss;
                 oss << "The current document has a %YAML " << major << '.'
@@ -719,11 +1250,14 @@ namespace boost { namespace yaml {
                                     +x3::blank >>
                                     (x3::uint_ >> '.' >>
                                      x3::uint_)[check_yaml_version];
-    BOOST_SPIRIT_DEFINE(yaml_directive);
 
 
     struct tag
     {
+        // This allows parsing rules that use the tagparsing symbol table to
+        // produce strings without semantic actions.
+        operator std::string const &() const noexcept { return prefix_; }
+
         std::string prefix_;
         any position_;
         bool default_;
@@ -741,15 +1275,22 @@ namespace boost { namespace yaml {
     // TODO: This makes the parser thread-unsafe.
     tags_t tags;
 
+    auto record_tag_handle = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.tag_handle_ = _attr(ctx);
+    };
+
     auto record_tag = [](auto & ctx) {
         auto & state = x3::get<parser_state_tag>(ctx).get();
+#if 0 // TODO
         auto const & error_handler =
             x3::get<yaml::error_handler_tag>(ctx).get();
+#endif
 
-        using cp_iter = typename decltype(state)::iterator;
-        using cp_range = typename decltype(state)::iterator_range;
-        cp_range const handle_cp_range = fusion::at_c<0>(_attr(ctx));
-        cp_range const prefix_cp_range = fusion::at_c<1>(_attr(ctx));
+        using state_t = typename std::remove_reference<decltype(state)>::type;
+        using cp_range = typename state_t::iterator_range;
+        cp_range const handle_cp_range = state.tag_handle_;
+        cp_range const prefix_cp_range = _attr(ctx);
 
         auto const handle_char_range =
             text::make_from_utf32_range(handle_cp_range);
@@ -790,11 +1331,10 @@ namespace boost { namespace yaml {
     };
 
     // [88]
-    // TODO: This definition breaks directive above by leaking attributes.
-    auto const tag_directive_def =
-        ("TAG" >> +x3::omit[x3::blank] >> x3::raw[tag_handle] >>
-         +x3::omit[x3::blank] >> x3::raw[tag_prefix])[record_tag];
-    BOOST_SPIRIT_DEFINE(tag_directive);
+    auto const tag_directive_def = "TAG" >> +x3::omit[x3::blank] >>
+                                   x3::raw[tag_handle][record_tag_handle] >>
+                                   +x3::omit[x3::blank] >>
+                                   x3::raw[tag_prefix][record_tag];
 
     // [89]
     auto const tag_handle_def =
@@ -803,73 +1343,484 @@ namespace boost { namespace yaml {
         | "!!"                                      // secondary_tag_handle [91]
         | '!'                                       // primary_tag_handle [90]
         ;
-    BOOST_SPIRIT_DEFINE(tag_handle);
 
     // [93]
     auto const tag_prefix_def = '!' >> *uri_char | tag_char >> *uri_char;
-    BOOST_SPIRIT_DEFINE(tag_prefix);
 
 
     // 6.9 Node Properties
 
-#if 0 // TODO
+    auto assign_tag_property = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.tag_property_ = _attr(ctx);
+    };
+    auto assign_optional_tag_property = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.tag_property_ = *_attr(ctx);
+    };
+    auto assign_anchor_property = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.anchor_property_ = _attr(ctx);
+    };
+    auto assign_optional_anchor_property = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.anchor_property_ = *_attr(ctx);
+    };
+
+    auto make_parser_properties = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        _val(ctx) = parser_properties{std::move(state.tag_property_),
+                                      std::move(state.anchor_property_)};
+    };
+
     // [96]
-    x3::rule<class properties, parser_properties> const properties =
-        "properties";
     auto const properties_def =
-        (tag_property[_a = _1] >>
-             -(separate(_r1, _r2) >> anchor_property[_b = *_1]) |
-         anchor_property[_b = _1] >>
-             -(separate(_r1, _r2) >> tag_property[_a = *_1]))
-            [_val = construct<parser_properties_t>(_a, _b)];
-    BOOST_SPIRIT_DEFINE(properties);
+        (tag_property[assign_tag_property] >>
+             -(separate >> anchor_property[assign_optional_anchor_property]) |
+         anchor_property[assign_anchor_property] >>
+             -(separate >> tag_property[assign_optional_tag_property]))
+            [make_parser_properties];
 
     // [97]
-    x3::rule<class tag_property, std::string> const tag_property =
-        "tag_property";
     auto const tag_property_def =
-        raw["!<" > +uri_char > '>'][_val = to_str(_1)] // verbatim_tag [98]
-        | (tags >>
-           raw[+tag_char])[_val = prefix(_1) + to_str(_2)] // shorthand_tag [99]
-        | lit('!')[_val = "!"] // non_specific_tag [100]
+        "!<" > +uri_char[append_utf8] > '>' // verbatim_tag [98]
+        | (tags >> +tag_char[append_utf8])  // shorthand_tag [99]
+        | x3::lit('!') >> x3::attr("!")     // non_specific_tag [100]
         ;
-    BOOST_SPIRIT_DEFINE(tag_property);
-#endif
 
     // [22]
     // auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
 
+    auto make_iterator_range_any = [](auto & ctx) {
+        any & result = _val(ctx);
+        using state_t = typename std::remove_reference<decltype(
+            x3::get<parser_state_tag>(ctx).get())>::type;
+        typename state_t::iterator_range range = _attr(ctx);
+        result = range;
+    };
+
     // [101]
-    x3::rule<class anchor_property, any> const anchor_property =
-        "anchor_property";
     auto const anchor_property_def =
-        '&' >> x3::raw[+(ns_char - x3::char_(",[]{}"))];
-    BOOST_SPIRIT_DEFINE(anchor_property);
+        '&' >>
+        x3::raw[+(ns_char - x3::char_(",[]{}"))][make_iterator_range_any];
 
     // [102]
     // auto anchor_char = ns_char - char_(",[]{}");
 
     // [103]
-    x3::rule<class anchor_name, any> const anchor_name = "anchor_name";
-    auto const anchor_name_def = x3::raw[+(ns_char - x3::char_(",[]{}"))];
-    BOOST_SPIRIT_DEFINE(anchor_name);
+    auto const anchor_name_def =
+        x3::raw[+(ns_char - x3::char_(",[]{}"))][make_iterator_range_any];
 
-    x3::rule<class one_time_eoi> const one_time_eoi = "one_time_eoi";
     auto const one_time_eoi_def = x3::eoi >> x3::eps(first_time_eoi);
-    BOOST_SPIRIT_DEFINE(one_time_eoi);
+
+    // 7.1 Alias Nodes
+
+    struct anchors_t : x3::symbols<anchor>
+    {};
+
+    // TODO: -> context
+    anchors_t anchors;
+
+    auto alias_from_anchor = [](auto&ctx) {
+        _val(ctx) = _attr(ctx).alias_;
+    };
+
+    // [104]
+    auto const alias_node_def = '*' > anchors[alias_from_anchor];
+
+    // 7.3 Flow Scalar Styles
+
+    // 7.3.1 Double Quoted Style
+
+    // [107]
+    auto const nb_double_char_def =
+        esc_char[append_utf8] | (nb_json - x3::char_("\"\\"))[append_utf8];
+
+    // [108]
+    auto const ns_double_char_def = nb_double_char - x3::blank;
+
+    // [109]
+    auto const double_quoted_def = '"' >> double_text >> '"';
+
+    // [110]
+    auto const double_text_def =
+        x3::eps(flow_context) >> double_multi_line |
+        x3::eps(key_context) >> *nb_double_char // double-one-line [111]
+        ;
+
+    // [112]
+    // TODO: A hold[] was removed here; this may need a fix somewhere else.
+    // TODO: Prolly need to push the context here, not set it.
+    auto const double_escaped_def = *x3::blank >> '\\' >> x3::omit[x3::eol] >>
+                                    x3::eps(set_context(context::flow_in)) >>
+                                    *l_empty >> line_prefix;
+
+    auto set_stop_at_doc_delimiter = [](bool b) {
+        return [b](auto & rule_ctx) {
+            rule_ctx.get().stop_at_document_delimiter_ = b;
+            return true;
+        };
+    };
+
+    // [113]
+    auto const double_break_def =
+        double_escaped |
+        x3::eps(set_stop_at_doc_delimiter(false)) >> flow_folded;
+
+    // [114]
+    auto const double_in_line_def = *(*x3::blank >> ns_double_char);
+
+    // [115]
+    auto const double_next_line_def = double_break >>
+                                      -(ns_double_char >> double_in_line >>
+                                        (double_next_line | *x3::blank));
+
+    // [116]
+    auto const double_multi_line_def = double_in_line >>
+                                       (double_next_line | *x3::blank);
+
+    // 7.3.2 Single Quoted Style
+
+    // [118]
+    auto const nb_single_char_def = "''" >> x3::attr('\'') |
+                                    (nb_json - '\'')[append_utf8];
+
+    // [119]
+    auto const ns_single_char_def = nb_single_char - x3::blank;
+
+    // [120]
+    auto const single_quoted_def = '\'' >> single_text >> '\'';
+
+    // [121]
+    auto const single_text_def = x3::eps(flow_context) >> single_multi_line |
+                                 x3::eps(key_context) >> *nb_single_char;
+
+    // [123]
+    auto const single_in_line_def = *(*x3::blank >> ns_single_char);
+
+    // [124]
+    auto const single_next_line_def =
+        x3::eps(set_stop_at_doc_delimiter(false)) >> flow_folded >>
+        -(ns_single_char >> single_in_line >> (single_next_line | *x3::blank));
+
+    // [125]
+    auto const single_multi_line_def = single_in_line >>
+                                       (single_next_line | *x3::blank);
+
+    // 7.3.3 Plain Style
+
+    // [22]
+    // auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
+
+    // [126]
+    auto const plain_first_def = (ns_char - x3::char_("-?:,[]{}#&*!|>'\"%@`")) |
+                                 (x3::char_("?:-") >> plain_safe);
+
+    auto flow_out_block_key_context = [](auto & rule_ctx) {
+        return rule_ctx.get().context_() == context::flow_out ||
+               rule_ctx.get().context_() == context::block_key;
+    };
+
+    auto flow_in_key_context = [](auto & rule_ctx) {
+        return rule_ctx.get().context_() == context::flow_in ||
+               rule_ctx.get().context_() == context::flow_key;
+    };
+
+    // [127]
+    auto const plain_safe_def = x3::eps(flow_out_block_key_context) >> ns_char |
+                                x3::eps(flow_in_key_context) >>
+                                    (ns_char - x3::char_(",[]{}"));
+
+    // [130]
+    auto const plain_char_def =
+        ns_char >> x3::char_('#') | x3::char_(':') >> plain_safe
+        | plain_safe - x3::char_(":#");
+
+    // [131]
+    auto const plain_def = x3::eps(flow_context) >> plain_multi_line |
+                           x3::eps(key_context) >> plain_one_line;
+
+    // [132]
+    // TODO: Removed hold[].
+    auto const plain_in_line_def = *(*x3::blank >> plain_char);
+
+    // [133]
+    // TODO: Removed hold[].
+    auto const plain_one_line_def = plain_first >> plain_in_line;
+
+    // [134]
+    // TODO: Removed hold[].
+    auto const plain_next_line_def = x3::eps(set_stop_at_doc_delimiter(true)) >>
+                                     flow_folded >> plain_char >> plain_in_line;
+
+    // [135]
+    auto const plain_multi_line_def = plain_one_line >> *plain_next_line;
+
+    // 7.4 Flow Collection Styles
+
+    // 7.4.1 Flow Sequences
+
+    auto seq_init = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        if (state.max_recursive_open_count_ < ++state.recursive_open_count_)
+            _pass(ctx) = false;
+        else
+            _val(ctx) = seq();
+    };
+    auto seq_append = [](auto & ctx) {
+        value & v = _val(ctx);
+        get<seq>(v).push_back(std::move(_attr(ctx)));
+    };
+
+    // [137]
+    auto const flow_sequence_def = '[' >> -separate >> push_in_flow_context >>
+                                   (flow_seq_entries | x3::eps[seq_init]) >>
+                                   pop_context >> -separate >> ']';
+
+    // [138]
+    auto const flow_seq_entries_def = x3::eps[seq_init] >>
+                                      flow_seq_entry[seq_append] %
+                                          (-separate >> ',' >> -separate) >>
+                                      -(-separate >> ',');
+
+    // [139]
+    auto const flow_seq_entry_def = flow_pair | flow_node;
+
+    // 7.4.2 Flow Mappings
+
+    auto map_init = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        if (state.max_recursive_open_count_ < ++state.recursive_open_count_)
+            _pass(ctx) = false;
+        else
+            _val(ctx) = map();
+    };
+    auto map_insert = [](auto & ctx) {
+        value & v = _val(ctx);
+        get<map>(v).insert(std::make_pair(
+            std::move(fusion::at_c<0>(_attr(ctx))),
+            std::move(fusion::at_c<1>(_attr(ctx)))));
+    };
+
+    // [140]
+    auto const
+        flow_mapping_def = '{' >> -separate >> push_in_flow_context >>
+                           (flow_map_entries | x3::eps[map_init]) >> pop_context >>
+                           -separate >> '}';
+
+    // [141]
+    auto const flow_map_entries_def = x3::eps[map_init] >>
+                                      flow_map_entry[map_insert] %
+                                          (-separate >> ',' >> -separate) >>
+                                      -(-separate >> ',');
+
+    // [142]
+    auto const flow_map_entry_def =
+        '?' >> separate >> flow_map_explicit_entry | flow_map_implicit_entry;
+
+    // [143]
+    auto const flow_map_explicit_entry_def =
+        flow_map_implicit_entry | x3::attr(map_element());
+
+    // [144]
+    auto const flow_map_implicit_entry_def = flow_map_json_key_entry |
+                                             flow_map_yaml_key_entry |
+                                             flow_map_empty_key_entry;
+
+    // [145]
+    auto const flow_map_yaml_key_entry_def =
+        flow_yaml_node >>
+        (-separate >> flow_map_separate_value |
+         x3::attr(value()));
+
+    // [146]
+    auto const flow_map_empty_key_entry_def =
+        x3::attr(value()) >> flow_map_separate_value;
+
+    // [147]
+    auto const flow_map_separate_value_def = ':' >> !plain_safe >>
+                                             (separate >> flow_node |
+                                              x3::attr(value()));
+
+    // [148]
+    auto const flow_map_json_key_entry_def = flow_json_node >>
+                                             (-separate >>
+                                                  flow_map_adjacent_value |
+                                              x3::attr(value()));
+
+    // [149]
+    auto const flow_map_adjacent_value_def = ':' >> (-separate >> flow_node |
+                                                     x3::attr(value()));
+
+#if 0 // TODO
+    // [150]
+    auto const
+        flow_pair_def = '?' >> separate >>
+                            flow_map_explicit_entry[unchecked_ins] |
+                        flow_pair_entry[unchecked_ins];
+#endif
+
+    // [151]
+    auto const flow_pair_entry_def = flow_pair_yaml_key_entry |
+                                     flow_map_empty_key_entry |
+                                     flow_pair_json_key_entry;
+
+    // [152]
+    auto const flow_pair_yaml_key_entry_def =
+        implicit_yaml_key >> flow_map_separate_value;
+
+    // [153]
+    auto const flow_pair_json_key_entry_def =
+        implicit_json_key >> flow_map_adjacent_value;
+
+#if 0 // TODO
+    // [154]
+    auto const implicit_yaml_key_def = // TODO: Limit to 1024 characters.
+        flow_yaml_node(0, _r1) >> -separate_in_line;
+
+    // [155]
+    auto const implicit_json_key_def = // TODO: Limit to 1024 characters.
+        flow_json_node(0, _r1) >> -separate_in_line;
+#endif
+
+    // 7.5 Flow Nodes
+
+    // [156]
+    auto const flow_yaml_content_def = plain;
+
+    // [157]
+    auto const flow_json_content_def =
+        flow_sequence | flow_mapping |
+        single_quoted | double_quoted;
+
+    // [158]
+    auto const flow_content_def =
+        flow_json_content | flow_yaml_content;
+
+    // TODO: Use Niabelek trick to handle parse after properties.
+
+#if 0 // TODO
+    // [159]
+    auto const flow_yaml_node_def =
+        as<ast::value_t>{}[alias_node][_val = _1] |
+        flow_yaml_content[_val = _1] |
+        omit[properties[_a = _1]] >>
+            (separate >> flow_yaml_content |
+             attr(ast::value_t()))
+                [_val = handle_properties(
+                     _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+
+    // [160]
+    auto const flow_json_node_def =
+        -(omit[properties[_a = _1]] >> separate) >>
+        flow_json_content
+            [_val = handle_properties(
+                 _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+
+    // [161]
+    auto const flow_node_def =
+        as<ast::value_t>{}[alias_node][_val = _1] |
+        flow_content[_val = _1] |
+        omit[properties[_a = _1]] >>
+            (separate >> flow_content |
+             attr(ast::value_t()))
+                [_val = handle_properties(
+                     _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+#endif
+
+
+
+    // Helper rules.
+    BOOST_SPIRIT_DEFINE(
+        two_hex_digits,
+        four_hex_digits,
+        eight_hex_digits,
+        x_escape_seq,
+        u_escape_seq,
+        U_escape_seq);
+
+    // Characters.
+    BOOST_SPIRIT_DEFINE(
+        printable,
+        nb_json,
+        bom,
+        nb_char,
+        ns_char,
+        word_char,
+        uri_char,
+        tag_char,
+        single_escaped_char,
+        esc_char);
+
+    // Basic structures.
+    BOOST_SPIRIT_DEFINE(
+        indent,
+        indent_lt,
+        indent_le,
+        separate_in_line,
+        line_prefix,
+        l_empty,
+        b_l_folded,
+        flow_folded,
+        comment_text,
+        s_b_comment,
+        l_comment,
+        s_l_comments,
+        separate,
+        separate_lines,
+        directive,
+        reserved_directive,
+        yaml_directive,
+        tag_directive,
+        tag_handle,
+        tag_prefix,
+        properties,
+        tag_property,
+        anchor_property,
+        anchor_name,
+        one_time_eoi);
+
+    // Flow styles.
+    BOOST_SPIRIT_DEFINE(
+        alias_node,
+        nb_double_char,
+        ns_double_char,
+        double_quoted,
+        double_text,
+        double_escaped,
+        double_break,
+        double_in_line,
+        double_next_line,
+        double_multi_line,
+        nb_single_char,
+        ns_single_char,
+        single_quoted,
+        single_text,
+        single_in_line,
+        single_next_line,
+        single_multi_line,
+        plain_first,
+        plain_safe,
+        plain_char,
+        plain,
+        plain_in_line,
+        plain_one_line,
+        plain_next_line,
+        plain_multi_line/*,
+        flow_sequence,
+        flow_seq_entries,
+        flow_seq_entry,
+        flow_mapping,
+        flow_map_entries,
+        flow_map_entry*/);
+
 
 
     // TODO
     struct test_parser_struct;
     x3::rule<test_parser_struct> const test = "test";
-    auto const test_def = x3::omit
-        [indent | indent_lt | indent_le | separate_in_line | line_prefix |
-         l_empty | b_l_folded | flow_folded | comment_text | s_b_comment |
-         s_l_comments | separate | separate_lines | reserved_directive |
-         yaml_directive | tag_handle | tag_prefix | anchor_property |
-         anchor_name | one_time_eoi];
+    auto const test_def = plain;
     BOOST_SPIRIT_DEFINE(test);
-
 
 
 
@@ -897,20 +1848,18 @@ namespace boost { namespace yaml {
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
     optional<value> parse(
-        string_view const & str,
-        error_function parse_error,
-        int max_recursive_count)
+        string_view const & str, error_function parse_error, int max_recursion)
     {
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
         auto const last = range.end();
 
-        yaml::x3_error_handler<iter_t> error_handler{first, last, parse_error};
-        parser_state<iter_t> state;
+        if (max_recursion <= 0)
+            max_recursion = INT_MAX;
 
-        if (max_recursive_count < 0)
-            max_recursive_count = INT_MAX;
+        yaml::x3_error_handler<iter_t> error_handler{first, last, parse_error};
+        parser_state<iter_t> state(max_recursion);
 
         // clang-format off
         auto parser = x3::with<yaml::error_handler_tag>(std::ref(error_handler))[

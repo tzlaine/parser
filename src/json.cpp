@@ -36,9 +36,43 @@ namespace boost { namespace spirit { namespace x3 { namespace detail {
 
 namespace boost { namespace json {
 
+    struct recursive_open_count_tag;
+    struct max_recursive_open_count_tag;
+    struct value_parser_struct;
+
+    // Declarations.
+
     namespace x3 = spirit::x3;
 
+    // Helper rules.
+
     x3::rule<class ws, std::string> const ws = "whitespace";
+
+    x3::rule<class string_char, uint32_t> const string_char =
+        "code point (code points <= U+001F must be escaped)";
+    x3::rule<class four_hex_digits, char> const four_hex_digits =
+        "four hexidecimal digits";
+    x3::rule<class escape_seq, uint32_t> const escape_seq =
+        "\\uXXXX hexidecimal escape sequence";
+    x3::rule<class escape_double_seq, uint32_t> const escape_double_seq =
+        "\\uXXXX hexidecimal escape sequence";
+    x3::rule<class single_escaped_char, uint32_t> const single_escaped_char =
+        "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
+
+    x3::rule<class null, value> const null = "null";
+    x3::rule<class string, std::string> const string = "string";
+    x3::rule<class number, double> const number = "number";
+    x3::rule<class object_element, std::pair<std::string, value>> const
+        object_element = "object_element";
+    x3::rule<class object_tag, value> const object_p = "object";
+    x3::rule<class array_tag, value> const array_p = "array";
+
+    x3::rule<value_parser_struct, value> const value_p = "value";
+
+
+
+    // Definitions.
+
     auto const ws_def = x3::lit('\x09') | '\x0a' | '\x0d' | '\x20';
 
     auto append_utf8 = [](auto & ctx) {
@@ -47,9 +81,6 @@ namespace boost { namespace json {
         std::string & str = _val(ctx);
         str.insert(str.end(), r.begin(), r.end());
     };
-
-    struct recursive_open_count_tag;
-    struct max_recursive_open_count_tag;
 
     auto object_init = [](auto & ctx) {
         int & recursive_open_count =
@@ -105,17 +136,6 @@ namespace boost { namespace json {
         }
     };
 
-    x3::rule<class string_char, uint32_t> const string_char =
-        "code point (code points <= U+001F must be escaped)";
-    x3::rule<class four_hex_digits, char> const four_hex_digits =
-        "four hexidecimal digits";
-    x3::rule<class escape_seq, uint32_t> const escape_seq =
-        "\\uXXXX hexidecimal escape sequence";
-    x3::rule<class escape_double_seq, uint32_t> const escape_double_seq =
-        "\\uXXXX hexidecimal escape sequence";
-    x3::rule<class single_escaped_char, uint32_t> const single_escaped_char =
-        "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
-
     auto const four_hex_digits_def = &x3::repeat(4)[x3::ascii::xdigit];
 
     auto const escape_seq_def = ("\\u" > four_hex_digits) >> x3::hex;
@@ -136,17 +156,6 @@ namespace boost { namespace json {
                                  x3::lit('\\') > single_escaped_char |
                                  (x3::unicode::char_ -
                                   x3::unicode::char_(0x0000u, 0x001fu));
-
-    x3::rule<class null, value> const null = "null";
-    x3::rule<class string, std::string> const string = "string";
-    x3::rule<class number, double> const number = "number";
-    x3::rule<class object_element, std::pair<std::string, value>> const
-        object_element = "object_element";
-    x3::rule<class object_tag, value> const object_p = "object";
-    x3::rule<class array_tag, value> const array_p = "array";
-
-    struct value_parser_struct;
-    x3::rule<value_parser_struct, value> const value_p = "value";
 
     auto const null_def = "null" >> x3::attr(value());
 
@@ -239,7 +248,7 @@ namespace boost { namespace json {
     optional<value> parse(
         string_view const & str,
         error_function parse_error,
-        int max_recursive_count)
+        int max_recursion)
     {
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
@@ -250,14 +259,14 @@ namespace boost { namespace json {
         uint32_t first_surrogate = 0;
         int recursive_open_count = 0;
 
-        if (max_recursive_count < 0)
-            max_recursive_count = INT_MAX;
+        if (max_recursion <= 0)
+            max_recursion = INT_MAX;
 
         // clang-format off
         auto parser = x3::with<yaml::error_handler_tag>(std::ref(error_handler))[
             x3::with<first_surrogate_tag>(std::ref(first_surrogate))[
                 x3::with<recursive_open_count_tag>(std::ref(recursive_open_count))[
-                    x3::with<max_recursive_open_count_tag>(max_recursive_count)[
+                    x3::with<max_recursive_open_count_tag>(max_recursion)[
                         value_p
                     ]
                 ]
@@ -271,7 +280,7 @@ namespace boost { namespace json {
             result = x3::phrase_parse(first, last, parser, ws, v);
         } catch (x3::expectation_failure<iter_t> const & e) {
             std::string message = "error: Exceeded maximum number (" +
-                                  std::to_string(max_recursive_count) +
+                                  std::to_string(max_recursion) +
                                   ") of open arrays and/or objects " +
                                   e.which() + " here:";
             error_handler(e.where(), message);

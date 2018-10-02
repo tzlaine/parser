@@ -139,7 +139,7 @@ namespace boost { namespace json {
     optional<value> parse(
         string_view const & str,
         error_function parse_error = error_function(),
-        int max_recursive_count = 512);
+        int max_recursion = 512);
 
 }}
 
