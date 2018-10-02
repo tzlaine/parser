@@ -297,9 +297,11 @@ namespace boost { namespace yaml {
         parser_state(int max_recursion) :
             max_recursive_open_count_(max_recursion)
         {
+            indent_stack_.push_back(0); // TODO
             context_stack_.push_back(context::block_in); // TODO
         }
 
+        int indent() const noexcept { return indent_stack_.back(); }
         context context_() const noexcept { return context_stack_.back(); }
 
         void push_in_flow_context()
@@ -317,12 +319,11 @@ namespace boost { namespace yaml {
             default: BOOST_ASSERT(!"Invalid input passed to in_flow()");
             }
         }
-        void pop_context() { context_stack_.pop_back(); }
 
         int recursive_open_count_ = 0;
         int const max_recursive_open_count_;
 
-        int indent_ = 0;
+        std::vector<int> indent_stack_;
         std::vector<context> context_stack_;
         bool stop_at_document_delimiter_ = false;
 
@@ -364,6 +365,7 @@ namespace boost { namespace yaml {
 
     x3::rule<class push_in_flow_context> const push_in_flow_context;
     x3::rule<class pop_context> const pop_context;
+    x3::rule<class pop_indent> const pop_indent;
 
 
 
@@ -387,6 +389,7 @@ namespace boost { namespace yaml {
 
     // [34]
     x3::rule<class ns_char, std::string> const ns_char = "ns_char";
+    x3::rule<class raw_ns_char, std::string> const raw_ns_char = "ns_char";
 
     // 5.6. Miscellaneous Characters
 
@@ -590,6 +593,7 @@ namespace boost { namespace yaml {
 
     // [127]
     x3::rule<class plain_safe, std::string> const plain_safe = "plain_safe";
+    x3::rule<class not_plain_safe> const not_plain_safe = "not_plain_safe";
 
     // [130]
     x3::rule<class plain_char, std::string> const plain_char = "plain_char";
@@ -630,10 +634,10 @@ namespace boost { namespace yaml {
     // 7.4.2 Flow Mappings
 
     // [140]
-    x3::rule<class flow_mapping, map> const flow_mapping = "flow_mapping";
+    x3::rule<class flow_mapping, value> const flow_mapping = "flow_mapping";
 
     // [141]
-    x3::rule<class flow_map_entries, map> const flow_map_entries =
+    x3::rule<class flow_map_entries, value> const flow_map_entries =
         "flow_map_entries";
 
     // [142]
@@ -694,8 +698,7 @@ namespace boost { namespace yaml {
     // 7.5 Flow Nodes
 
     // [156]
-    x3::rule<class flow_yaml_content, value> const flow_yaml_content =
-        "flow_yaml_content";
+    // flow_yaml_content = plain
 
     // [157]
     x3::rule<class flow_json_content, value> const flow_json_content =
@@ -919,6 +922,7 @@ namespace boost { namespace yaml {
         str.insert(str.end(), r.begin(), r.end());
     };
 
+#if 0 // TODO: Looks like this is unneeded.
     // Make this a callable object with multiple signatures, and recognize the
     // case that the range begin appended is a pair of
     // text::utf8::from_utf32_iterators.  In that case, insert with .base().
@@ -927,6 +931,7 @@ namespace boost { namespace yaml {
         std::string & str = _val(ctx);
         str.insert(str.end(), r.begin(), r.end());
     };
+#endif
 
     auto const two_hex_digits_def = x3::repeat(2)[x3::ascii::xdigit];
     auto const four_hex_digits_def = x3::repeat(4)[x3::ascii::xdigit];
@@ -951,11 +956,18 @@ namespace boost { namespace yaml {
     };
     auto pop_context_ = [](auto & ctx) {
         auto & state = x3::get<parser_state_tag>(ctx).get();
-        state.pop_context();
+        state.context_stack_.pop_back();
     };
 
     auto const push_in_flow_context_def = x3::eps[push_in_flow_context_];
     auto const pop_context_def = x3::eps[pop_context_];
+
+    auto pop_indent_ = [](auto & ctx) {
+        auto & state = x3::get<parser_state_tag>(ctx).get();
+        state.indent_stack_.pop_back();
+    };
+
+    auto const pop_indent_def = x3::eps[pop_indent_];
 
 
 
@@ -985,6 +997,7 @@ namespace boost { namespace yaml {
 
     // [34]
     auto const ns_char_def = (nb_char_def - x3::ascii::blank)[append_utf8];
+    auto const raw_ns_char_def = nb_char_def - x3::ascii::blank;
 
     // 5.6. Miscellaneous Characters
 
@@ -1022,11 +1035,11 @@ namespace boost { namespace yaml {
 
     auto indent_ = [](auto & ctx) {
         auto const & state = x3::get<parser_state_tag>(ctx).get();
-        return state.indent_;
+        return state.indent();
     };
     auto indent_minus_1 = [](auto & ctx) {
         auto const & state = x3::get<parser_state_tag>(ctx).get();
-        return state.indent_ - 1;
+        return state.indent() - 1;
     };
 
     // [63]
@@ -1530,6 +1543,9 @@ namespace boost { namespace yaml {
     auto const plain_safe_def = x3::eps(flow_out_block_key_context) >> ns_char |
                                 x3::eps(flow_in_key_context) >>
                                     (ns_char - x3::char_(",[]{}"));
+    auto const not_plain_safe_def =
+        !(x3::eps(flow_out_block_key_context) >> raw_ns_char |
+          x3::eps(flow_in_key_context) >> (raw_ns_char - x3::char_(",[]{}")));
 
     // [130]
     auto const plain_char_def =
@@ -1573,18 +1589,19 @@ namespace boost { namespace yaml {
     };
 
     // [137]
-    auto const flow_sequence_def = '[' >> -separate >> push_in_flow_context >>
-                                   (flow_seq_entries | x3::eps[seq_init]) >>
-                                   pop_context >> -separate >> ']';
+    auto const flow_sequence_def = // !
+        '[' >> -separate >> push_in_flow_context >>
+        (flow_seq_entries | x3::attr(value(seq()))) >> pop_context >> -separate
+        >> ']';
 
     // [138]
-    auto const flow_seq_entries_def = x3::eps[seq_init] >>
+    auto const flow_seq_entries_def = x3::eps[seq_init] >> // !
                                       flow_seq_entry[seq_append] %
                                           (-separate >> ',' >> -separate) >>
                                       -(-separate >> ',');
 
     // [139]
-    auto const flow_seq_entry_def = flow_pair | flow_node;
+    auto const flow_seq_entry_def = flow_pair | flow_node; // !
 
     // 7.4.2 Flow Mappings
 
@@ -1603,90 +1620,104 @@ namespace boost { namespace yaml {
     };
 
     // [140]
-    auto const
-        flow_mapping_def = '{' >> -separate >> push_in_flow_context >>
-                           (flow_map_entries | x3::eps[map_init]) >> pop_context >>
-                           -separate >> '}';
+    auto const flow_mapping_def = '{' >> -separate >> push_in_flow_context >> // !
+                                  (flow_map_entries | x3::attr(value(map()))) >>
+                                  pop_context >> -separate >> '}';
 
     // [141]
-    auto const flow_map_entries_def = x3::eps[map_init] >>
+    auto const flow_map_entries_def = x3::eps[map_init] >> // !
                                       flow_map_entry[map_insert] %
                                           (-separate >> ',' >> -separate) >>
                                       -(-separate >> ',');
 
     // [142]
-    auto const flow_map_entry_def =
+    auto const flow_map_entry_def = // !
         '?' >> separate >> flow_map_explicit_entry | flow_map_implicit_entry;
 
     // [143]
-    auto const flow_map_explicit_entry_def =
+    auto const flow_map_explicit_entry_def = // !
         flow_map_implicit_entry | x3::attr(map_element());
 
     // [144]
-    auto const flow_map_implicit_entry_def = flow_map_json_key_entry |
+    auto const flow_map_implicit_entry_def = flow_map_json_key_entry | // !
                                              flow_map_yaml_key_entry |
                                              flow_map_empty_key_entry;
 
     // [145]
-    auto const flow_map_yaml_key_entry_def =
+    auto const flow_map_yaml_key_entry_def = // !
         flow_yaml_node >>
         (-separate >> flow_map_separate_value |
          x3::attr(value()));
 
     // [146]
-    auto const flow_map_empty_key_entry_def =
+    auto const flow_map_empty_key_entry_def = // !
         x3::attr(value()) >> flow_map_separate_value;
 
     // [147]
-    auto const flow_map_separate_value_def = ':' >> !plain_safe >>
+    auto const flow_map_separate_value_def = ':' >> not_plain_safe >> // !
                                              (separate >> flow_node |
                                               x3::attr(value()));
 
     // [148]
-    auto const flow_map_json_key_entry_def = flow_json_node >>
+    auto const flow_map_json_key_entry_def = flow_json_node >> // !
                                              (-separate >>
                                                   flow_map_adjacent_value |
                                               x3::attr(value()));
 
     // [149]
-    auto const flow_map_adjacent_value_def = ':' >> (-separate >> flow_node |
-                                                     x3::attr(value()));
+    auto const flow_map_adjacent_value_def = ':' >>
+                                             (-separate >> flow_node | // !
+                                              x3::attr(value()));
 
-#if 0 // TODO
+    auto value_from_map_from_element = [](auto & ctx) {
+        _val(ctx) = map();
+        map_element & element = _attr(ctx);
+        get<map>(_val(ctx)).emplace(
+            std::move(element.first), std::move(element.second));
+    };
+
     // [150]
     auto const
-        flow_pair_def = '?' >> separate >>
-                            flow_map_explicit_entry[unchecked_ins] |
-                        flow_pair_entry[unchecked_ins];
-#endif
+        flow_pair_def = '?' >> separate >> // !
+                            flow_map_explicit_entry[value_from_map_from_element] |
+                        flow_pair_entry[value_from_map_from_element];
 
     // [151]
-    auto const flow_pair_entry_def = flow_pair_yaml_key_entry |
+    auto const flow_pair_entry_def = flow_pair_yaml_key_entry | // !
                                      flow_map_empty_key_entry |
                                      flow_pair_json_key_entry;
 
     // [152]
-    auto const flow_pair_yaml_key_entry_def =
+    auto const flow_pair_yaml_key_entry_def = // !
         implicit_yaml_key >> flow_map_separate_value;
 
     // [153]
-    auto const flow_pair_json_key_entry_def =
+    auto const flow_pair_json_key_entry_def = // !
         implicit_json_key >> flow_map_adjacent_value;
 
-#if 0 // TODO
+    auto push_indent = [](int i) {
+        return [i](auto & rule_ctx) {
+            rule_ctx.get().indent_stack_.push_back(i);
+            return true;
+        };
+    };
+
     // [154]
-    auto const implicit_yaml_key_def = // TODO: Limit to 1024 characters.
-        flow_yaml_node(0, _r1) >> -separate_in_line;
+    auto const implicit_yaml_key_def = // TODO: Limit to 1024 characters. // !
+        x3::eps(push_indent(0)) >> flow_yaml_node >> -separate_in_line >>
+        pop_indent;
 
     // [155]
-    auto const implicit_json_key_def = // TODO: Limit to 1024 characters.
-        flow_json_node(0, _r1) >> -separate_in_line;
-#endif
+    auto const implicit_json_key_def = // TODO: Limit to 1024 characters. // !
+        x3::eps(push_indent(0)) >> flow_json_node >> -separate_in_line >>
+        pop_indent;
 
     // 7.5 Flow Nodes
 
     // [156]
-    auto const flow_yaml_content_def = plain;
+    // flow_yaml_content = plain;
+
+#define BOOST_YAML_FLOW_YAML_CONTENT plain
 
     // [157]
     auto const flow_json_content_def =
@@ -1695,37 +1726,74 @@ namespace boost { namespace yaml {
 
     // [158]
     auto const flow_content_def =
-        flow_json_content | flow_yaml_content;
+        flow_json_content | BOOST_YAML_FLOW_YAML_CONTENT;
 
-    // TODO: Use Niabelek trick to handle parse after properties.
+    // TODO: Use Niabelek trick to perform a typesafe parse after properties.
 
-#if 0 // TODO
+    auto handle_properties = [](auto & ctx) {
+        // TODO
+#if 0
+        ast::properties_t properties;
+        properties.tag_ = parser_properties.tag_;
+
+        if (!parser_properties.anchor_.empty()) {
+            properties.anchor_ = range_to_string(parser_properties.anchor_);
+
+            anchor_t anchor;
+            std::shared_ptr<ast::value_t> anchor_ptr(new ast::value_t(x));
+            anchor.alias_ = ast::alias_t(properties.anchor_, anchor_ptr);
+            anchor.position_ = parser_properties.anchor_.begin();
+
+            auto existing_anchor = anchors.find(properties.anchor_);
+            if (existing_anchor && error_handler.impl().warning_fn_) {
+                std::ostringstream oss;
+                oss << "Redefining anchor " << properties.anchor_;
+                error_handler.impl().report_warning_at(
+                    parser_properties.anchor_.begin(), oss.str());
+                error_handler.impl().report_warning_at(
+                    existing_anchor->position_,
+                    "The previous one was was here");
+            }
+
+            anchors.remove(properties.anchor_);
+            anchors.add(properties.anchor_, anchor);
+        }
+
+        if (properties)
+            return ast::value_t(
+                ast::properties_node_t(properties, ast::value_t(x)));
+
+        return ast::value_t(x);
+#endif
+    };
+
     // [159]
-    auto const flow_yaml_node_def =
-        as<ast::value_t>{}[alias_node][_val = _1] |
-        flow_yaml_content[_val = _1] |
-        omit[properties[_a = _1]] >>
-            (separate >> flow_yaml_content |
-             attr(ast::value_t()))
-                [_val = handle_properties(
-                     _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+    auto const flow_yaml_node_def = x3::attr(value());
+#if 0 // TODO
+        alias_node | BOOST_YAML_FLOW_YAML_CONTENT |
+        (properties >> (separate >> BOOST_YAML_FLOW_YAML_CONTENT |
+                        x3::attr(value())))[handle_properties];
+#endif
+
+#undef BOOST_YAML_FLOW_YAML_CONTENT
+
+    auto handle_optional_properties = [](auto & ctx) {
+        // TODO
+    };
 
     // [160]
-    auto const flow_json_node_def =
-        -(omit[properties[_a = _1]] >> separate) >>
-        flow_json_content
-            [_val = handle_properties(
-                 _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+    auto const flow_json_node_def = x3::attr(value());
+#if 0 // TODO
+        (-(properties >> separate) >>
+         flow_json_content)[handle_optional_properties];
+#endif
 
     // [161]
-    auto const flow_node_def =
-        as<ast::value_t>{}[alias_node][_val = _1] |
-        flow_content[_val = _1] |
-        omit[properties[_a = _1]] >>
-            (separate >> flow_content |
-             attr(ast::value_t()))
-                [_val = handle_properties(
-                     _a, _1, phx::ref(anchors), phx::cref(error_handler.f))];
+    auto const flow_node_def = x3::attr(value());
+#if 0 // TODO
+        alias_node | flow_content |
+        (properties >>
+         (separate >> flow_content | x3::attr(value())))[handle_properties];
 #endif
 
 
@@ -1737,7 +1805,10 @@ namespace boost { namespace yaml {
         eight_hex_digits,
         x_escape_seq,
         u_escape_seq,
-        U_escape_seq);
+        U_escape_seq,
+        push_in_flow_context,
+        pop_context,
+        pop_indent);
 
     // Characters.
     BOOST_SPIRIT_DEFINE(
@@ -1746,6 +1817,7 @@ namespace boost { namespace yaml {
         bom,
         nb_char,
         ns_char,
+        raw_ns_char,
         word_char,
         uri_char,
         tag_char,
@@ -1801,25 +1873,44 @@ namespace boost { namespace yaml {
         single_multi_line,
         plain_first,
         plain_safe,
+        not_plain_safe,
         plain_char,
         plain,
         plain_in_line,
         plain_one_line,
         plain_next_line,
-        plain_multi_line/*,
+        plain_multi_line,
         flow_sequence,
         flow_seq_entries,
         flow_seq_entry,
         flow_mapping,
         flow_map_entries,
-        flow_map_entry*/);
+        flow_map_entry,
+        flow_map_explicit_entry,
+        flow_map_implicit_entry,
+        flow_map_yaml_key_entry,
+        flow_map_empty_key_entry,
+        flow_map_separate_value,
+        flow_map_json_key_entry,
+        flow_map_adjacent_value,
+        flow_pair,
+        flow_pair_entry,
+        flow_pair_yaml_key_entry,
+        flow_pair_json_key_entry,
+        implicit_yaml_key,
+        implicit_json_key,
+        flow_json_content,
+        flow_content,
+        flow_yaml_node,
+        flow_json_node,
+        flow_node);
 
 
 
     // TODO
     struct test_parser_struct;
     x3::rule<test_parser_struct> const test = "test";
-    auto const test_def = plain;
+    auto const test_def = flow_yaml_node; // flow_json_node flow_node // TODO
     BOOST_SPIRIT_DEFINE(test);
 
 
@@ -1871,13 +1962,13 @@ namespace boost { namespace yaml {
                 ]
             ]
         ];
-        // clang-format on
+            // clang-format on
 
-        bool result = x3::parse(first, last, parser);
+            bool result = x3::parse(first, last, parser);
 
-        if (!result || first != last)
-            return {};
+            if (!result || first != last)
+                return {};
 
-        return {}; // TODO optional<value>(std::move(v));
-    }
+            return {}; // TODO optional<value>(std::move(v));
+        }
 }}
