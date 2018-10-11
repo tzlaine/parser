@@ -196,19 +196,6 @@ namespace boost { namespace parser {
         {
         };
 
-        template<typename T>
-        struct unwrapped_optional
-        {
-            using type = T;
-        };
-        template<typename T>
-        struct unwrapped_optional<optional<T>>
-        {
-            using type = T;
-        };
-        template<typename T>
-        using unwrapped_optional_t = typename unwrapped_optional<T>::type;
-
 
 
         // Metafunctions.
@@ -281,6 +268,19 @@ namespace boost { namespace parser {
 
         template<typename T>
         using optional_of = typename optional_of_impl<T>::type;
+
+        template<typename T>
+        struct unwrapped_optional
+        {
+            using type = T;
+        };
+        template<typename T>
+        struct unwrapped_optional<optional<T>>
+        {
+            using type = T;
+        };
+        template<typename T>
+        using unwrapped_optional_t = typename unwrapped_optional<T>::type;
 
 
 
@@ -478,6 +478,19 @@ namespace boost { namespace parser {
                 return true;
             }
         };
+
+        template<typename Container, typename T>
+        constexpr void move_back(Container & c, T & x)
+        {
+            c.insert(c.end(), std::move(x));
+        }
+
+        template<typename Container, typename T>
+        constexpr void move_back(Container & c, optional<T> & x)
+        {
+            if (x)
+                c.insert(c.end(), std::move(*x));
+        }
     }
 
 
@@ -766,14 +779,13 @@ namespace boost { namespace parser {
 
             if (!gen_attrs(flags)) {
                 parser_.call(first, last, context, skip, flags, success);
-                return retval;
+                return;
             }
 
             auto attr =
                 parser_.call(first, last, context, skip, flags, success);
             if (success)
                 retval = std::move(attr);
-            return retval;
         }
 
         Parser parser_;
@@ -976,22 +988,26 @@ namespace boost { namespace parser {
             auto operator()(T result_and_indices, U x) const
             {
                 auto result = hana::first(result_and_indices);
+                using result_back_type =
+                    typename std::decay_t<decltype(hana::back(result))>::type;
+                using unwrapped_optional_result_back_type =
+                    detail::unwrapped_optional_t<result_back_type>;
+
                 auto indices = hana::second(result_and_indices);
+
                 using x_type = typename decltype(x)::type;
                 using unwrapped_optional_x_type =
                     detail::unwrapped_optional_t<x_type>;
 
                 constexpr auto one = hana::size_c<1>;
+                (void)one;
 
                 if constexpr (std::is_same<x_type, detail::nope>{}) {
                     // T >> nope -> T
                     return hana::make_pair(
                         result,
                         hana::append(indices, hana::size(result) - one));
-                } else if constexpr (std::is_same<
-                                         typename std::decay_t<decltype(
-                                             hana::back(result))>::type,
-                                         x_type>{}) {
+                } else if constexpr (std::is_same<result_back_type, x_type>{}) {
                     if constexpr (detail::is_container<x_type>{}) {
                         // C<T> >> C<T> -> C<T>
                         return hana::make_pair(
@@ -1007,27 +1023,38 @@ namespace boost { namespace parser {
                     }
                 } else if constexpr (
                     detail::is_container_and_insertable<
-                        typename std::decay_t<decltype(
-                            hana::back(result))>::type,
+                        result_back_type,
                         x_type>{} ||
                     detail::is_container_and_insertable<
-                        typename std::decay_t<decltype(
-                            hana::back(result))>::type,
+                        result_back_type,
                         unwrapped_optional_x_type>{}) {
                     // C<T> >> T -> C<T>
+                    // C<T> >> optional<T> -> C<T>
                     return hana::make_pair(
                         result,
                         hana::append(indices, hana::size(result) - one));
                 } else if constexpr (
                     detail::is_container_and_insertable<
                         x_type,
-                        typename std::decay_t<decltype(
-                            hana::back(result))>::type>{} ||
-                    detail::is_container_and_insertable<
-                        unwrapped_optional_x_type,
-                        typename std::decay_t<decltype(
-                            hana::back(result))>::type>{}) {
+                        result_back_type>{}) {
                     // T >> C<T> -> C<T>
+                    return hana::make_pair(
+                        hana::append(hana::drop_back(result), x),
+                        hana::append(indices, hana::size(result) - one));
+                } else if constexpr (
+                    detail::is_container_and_insertable<
+                        x_type,
+                        unwrapped_optional_result_back_type>{}) {
+                    // optional<T> >> C<T> -> C<T>
+                    return hana::make_pair(
+                        hana::append(
+                            hana::drop_back(result),
+                            hana::type_c<unwrapped_optional_x_type>),
+                        hana::append(indices, hana::size(result) - one));
+                } else if constexpr (std::is_same<
+                                         result_back_type,
+                                         detail::nope>{}) {
+                    // hana::tuple<nope> >> T -> hana::tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
@@ -1255,7 +1282,7 @@ namespace boost { namespace parser {
                         return;
                     }
                 } else {
-                    auto x =
+                    attr_t x =
                         parser.call(first, last, context, skip, flags, success);
                     if (!success) {
                         if (!can_backtrack) {
@@ -1267,7 +1294,7 @@ namespace boost { namespace parser {
                     }
                     if constexpr (!std::is_same<decltype(x), detail::nope>{}) {
                         if constexpr (out_container)
-                            out.insert(out.end(), std::move(x));
+                            detail::move_back(out, x);
                         else
                             out = std::move(x);
                     }

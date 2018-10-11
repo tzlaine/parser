@@ -16,6 +16,13 @@ add_executable(parser parser.cpp)
 target_link_libraries(parser yaml gtest gtest_main ${link_flags})
 add_test(parser --gtest_catch_exceptions=1)
 
+add_executable(
+    compile_tests
+    compile_tests_main.cpp
+    compile_seq_attribute.cpp
+)
+target_link_libraries(compile_tests yaml)
+
 
 ##################################################
 # Header-only build test
