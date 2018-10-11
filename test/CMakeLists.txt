@@ -10,6 +10,14 @@ set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app wit
 
 
 ##################################################
+# Parser tests
+##################################################
+add_executable(parser parser.cpp)
+target_link_libraries(parser yaml gtest gtest_main ${link_flags})
+add_test(parser --gtest_catch_exceptions=1)
+
+
+##################################################
 # Header-only build test
 ##################################################
 if (BUILD_HEADER_ONLY_TEST)
@@ -17,8 +25,8 @@ add_executable(
     header_only_parse_test
     parse_yaml_test.cpp
 )
-target_link_libraries(header_only_parse_test yaml gtest ${link_flags})  
-target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)  
+target_link_libraries(header_only_parse_test yaml gtest ${link_flags})
+target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)
 endif ()
 
 ##################################################
