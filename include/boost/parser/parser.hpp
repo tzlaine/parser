@@ -1868,7 +1868,6 @@ namespace boost { namespace parser {
                 opt_parser<Parser>{parser_}};
         }
 
-        // TODO: If rhs is also a seq_parser, merge the two.
         template<typename Parser2>
         constexpr auto operator>>(parser_interface<Parser2> rhs) const noexcept
         {
@@ -1904,7 +1903,6 @@ namespace boost { namespace parser {
         constexpr auto operator>(char32_t rhs) const noexcept;
         constexpr auto operator>(std::string_view rhs) const noexcept;
 
-        // TODO: If rhs is also an or_parser, merge the two.
         template<typename Parser2>
         constexpr auto operator|(parser_interface<Parser2> rhs) const noexcept
         {

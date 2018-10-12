@@ -453,4 +453,38 @@ void compile_or_attribute()
                 attr_t,
                 optional<optional<variant<optional<char>, std::string>>>>));
     }
+
+    // or grouping
+    {
+        constexpr auto parser = (-char_ | *string("str")) | eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                optional<optional<variant<optional<char>, std::string>>>>));
+    }
+    {
+        constexpr auto parser = -char_ | (*string("str") | eps);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                optional<variant<optional<char>, optional<std::string>>>>));
+    }
+    {
+        constexpr auto parser = eps | (-char_ | *string("str") | eps);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                optional<optional<variant<optional<char>, std::string>>>>));
+    }
+    {
+        constexpr auto parser = eps | (-char_ | *string("str") | eps) | eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                optional<optional<variant<optional<char>, std::string>>>>));
+    }
 }

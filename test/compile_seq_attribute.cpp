@@ -360,4 +360,26 @@ void compile_seq_attribute()
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
     }
+
+    // seq grouping
+    {
+        constexpr auto parser = (-char_ >> *string("str")) >> eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
+    }
+    {
+        constexpr auto parser = -char_ >> (*string("str") >> eps);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
+    }
+    {
+        constexpr auto parser = eps >> (-char_ >> *string("str") >> eps);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
+    }
+    {
+        constexpr auto parser = eps >> (-char_ >> *string("str") >> eps) >> eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
+    }
 }
