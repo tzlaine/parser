@@ -75,6 +75,56 @@ void compile_seq_attribute()
         BOOST_MPL_ASSERT((is_same<attr_t, optional<tuple<int, char>>>));
     }
 
+    // -scalar >> -scalar
+    {
+        constexpr auto parser = -char_ >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<std::vector<optional<char>>>>));
+    }
+    {
+        constexpr auto parser = eps >> -char_ >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<std::vector<optional<char>>>>));
+    }
+    {
+        constexpr auto parser = -char_ >> eps >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<std::vector<optional<char>>>>));
+    }
+    {
+        constexpr auto parser = -char_ >> -char_ >> eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<std::vector<optional<char>>>>));
+    }
+    {
+        constexpr auto parser = -int_ >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<tuple<optional<int>, optional<char>>>>));
+    }
+    {
+        constexpr auto parser = eps >> -int_ >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<tuple<optional<int>, optional<char>>>>));
+    }
+    {
+        constexpr auto parser = -int_ >> eps >> -char_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<tuple<optional<int>, optional<char>>>>));
+    }
+    {
+        constexpr auto parser = -int_ >> -char_ >> eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, optional<tuple<optional<int>, optional<char>>>>));
+    }
+
     // seq<T> >> seq<T>
     {
         constexpr auto parser = *char_ >> *char_;

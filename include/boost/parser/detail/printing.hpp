@@ -7,6 +7,7 @@
 #include <boost/hana.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
+#include <boost/variant.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -237,18 +238,50 @@ namespace boost { namespace parser { namespace detail {
     };
 
     template<typename... T>
-    inline void print_attribute(hana::tuple<T...> const & attr, int indent)
+    inline void print(hana::tuple<T...> const & attr);
+
+    template<typename... T>
+    inline void print(variant<T...> const & attr);
+
+    template<typename T>
+    inline void print(optional<T> const & attr);
+
+    template<typename Attribute>
+    inline void print(Attribute const & attr);
+
+    template<typename... T>
+    inline void print(hana::tuple<T...> const & attr)
     {
-        trace_indent(indent);
-        std::cout << "attribute: (";
+        std::cout << "(";
         bool first = false;
         hana::for_each(attr, [&](auto const & a) {
             if (first)
                 std::cout << ", ";
-            printer<decltype(a)>{}(std::cout, a);
+            print(a);
             first = false;
         });
         std::cout << ")\n";
+    }
+
+    template<typename... T>
+    inline void print(variant<T...> const & attr)
+    {
+        std::cout << "TODO"; // TODO
+    }
+
+    template<typename T>
+    inline void print(optional<T> const & attr)
+    {
+        if (!attr)
+            std::cout << "<<empty>>";
+        else
+            print(*attr);
+    }
+
+    template<typename Attribute>
+    inline void print(Attribute const & attr)
+    {
+        printer<Attribute>{}(std::cout, attr);
     }
 
     template<typename Attribute>
@@ -256,7 +289,7 @@ namespace boost { namespace parser { namespace detail {
     {
         trace_indent(indent);
         std::cout << "attribute: ";
-        printer<Attribute>{}(std::cout, attr);
+        print(attr);
         std::cout << "\n";
     }
 

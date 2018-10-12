@@ -196,6 +196,32 @@ namespace boost { namespace parser {
         {
         };
 
+        template<typename T>
+        struct is_optional : std::false_type
+        {
+        };
+        template<typename T>
+        struct is_optional<optional<T>> : std::true_type
+        {
+        };
+
+        template<typename T>
+        struct is_variant : std::false_type
+        {
+        };
+        template<typename... T>
+        struct is_variant<variant<T...>> : std::true_type
+        {
+        };
+
+        template<typename T, typename U>
+        using move_assignable =
+            decltype(std::declval<T &>() = std::declval<U>());
+        template<typename T, typename U>
+        struct is_move_assignable : is_detected<move_assignable, T, U>
+        {
+        };
+
 
 
         // Metafunctions.
@@ -226,6 +252,13 @@ namespace boost { namespace parser {
 
         template<typename T>
         struct hana_tuple_to_or_type<hana::pair<hana::tuple<T>, std::true_type>>
+        {
+            using type = optional<T>;
+        };
+
+        template<typename T>
+        struct hana_tuple_to_or_type<
+            hana::pair<hana::tuple<optional<T>>, std::true_type>>
         {
             using type = optional<T>;
         };
@@ -480,7 +513,7 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, T & x)
+        constexpr void move_back(Container & c, T && x)
         {
             c.insert(c.end(), std::move(x));
         }
@@ -491,6 +524,27 @@ namespace boost { namespace parser {
             if (x)
                 c.insert(c.end(), std::move(*x));
         }
+
+        template<typename Container, typename T>
+        constexpr void move_back(Container & c, optional<T> && x)
+        {
+            if (x)
+                c.insert(c.end(), std::move(*x));
+        }
+
+        template<typename Container>
+        constexpr void move_back(Container &, nope)
+        {}
+
+        template<typename T, typename U>
+        constexpr void assign(T & t, U && u)
+        {
+            t = std::move(u);
+        }
+
+        template<typename T>
+        constexpr void assign(T &, nope)
+        {}
     }
 
 
@@ -607,7 +661,13 @@ namespace boost { namespace parser {
 
             using attr_t = decltype(
                 parser_.call(first, last, context, skip, flags, success));
-            if constexpr (detail::is_container<attr_t>{}) {
+            if constexpr (detail::is_variant<Attribute>{}) {
+                using attr_t =
+                    decltype(call(first, last, context, skip, flags, success));
+                attr_t attr;
+                call(first, last, context, skip, flags, success, attr);
+                detail::assign(retval, std::move(attr));
+            } else if constexpr (detail::is_container<attr_t>{}) {
                 int64_t count = 0;
 
                 for (; count != min_; ++count) {
@@ -782,10 +842,16 @@ namespace boost { namespace parser {
                 return;
             }
 
-            auto attr =
-                parser_.call(first, last, context, skip, flags, success);
-            if (success)
-                retval = std::move(attr);
+            if constexpr (detail::is_variant<Attribute>{}) {
+                using attr_t =
+                    decltype(call(first, last, context, skip, flags, success));
+                typename attr_t::value_type attr;
+                call(first, last, context, skip, flags, success, attr);
+                detail::assign(retval, attr_t(std::move(attr)));
+            } else {
+                parser_.call(
+                    first, last, context, skip, flags, success, retval);
+            }
         }
 
         Parser parser_;
@@ -830,8 +896,36 @@ namespace boost { namespace parser {
             {
                 detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
-                return parser.call(
-                    first_, last_, context_, skip_, flags_, success_, retval);
+
+                if constexpr (detail::is_optional<Attribute>{}) {
+                    using retval_inner_type = typename Attribute::value_type;
+                    retval_inner_type retval_inner;
+                    parser.call(
+                        first_,
+                        last_,
+                        context_,
+                        skip_,
+                        flags_,
+                        success_,
+                        retval_inner);
+                    detail::assign(retval, retval_inner);
+                } else if constexpr (detail::is_variant<Attribute>{}) {
+                    using attr_t = decltype(parser.call(
+                        first_, last_, context_, skip_, flags_, success_));
+                    attr_t attr;
+                    parser.call(
+                        first_, last_, context_, skip_, flags_, success_, attr);
+                    detail::assign(retval, std::move(attr));
+                } else {
+                    parser.call(
+                        first_,
+                        last_,
+                        context_,
+                        skip_,
+                        flags_,
+                        success_,
+                        retval);
+                }
             }
 
             Iter & first_;
@@ -1036,20 +1130,14 @@ namespace boost { namespace parser {
                 } else if constexpr (
                     detail::is_container_and_insertable<
                         x_type,
-                        result_back_type>{}) {
-                    // T >> C<T> -> C<T>
-                    return hana::make_pair(
-                        hana::append(hana::drop_back(result), x),
-                        hana::append(indices, hana::size(result) - one));
-                } else if constexpr (
+                        result_back_type>{} ||
                     detail::is_container_and_insertable<
                         x_type,
                         unwrapped_optional_result_back_type>{}) {
+                    // T >> C<T> -> C<T>
                     // optional<T> >> C<T> -> C<T>
                     return hana::make_pair(
-                        hana::append(
-                            hana::drop_back(result),
-                            hana::type_c<unwrapped_optional_x_type>),
+                        hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
                 } else if constexpr (std::is_same<
                                          result_back_type,
@@ -1292,12 +1380,10 @@ namespace boost { namespace parser {
                         }
                         return;
                     }
-                    if constexpr (!std::is_same<decltype(x), detail::nope>{}) {
-                        if constexpr (out_container)
-                            detail::move_back(out, x);
-                        else
-                            out = std::move(x);
-                    }
+                    if constexpr (out_container)
+                        detail::move_back(out, x);
+                    else
+                        detail::assign(out, x);
                 }
             };
 
@@ -1782,6 +1868,7 @@ namespace boost { namespace parser {
                 opt_parser<Parser>{parser_}};
         }
 
+        // TODO: If rhs is also a seq_parser, merge the two.
         template<typename Parser2>
         constexpr auto operator>>(parser_interface<Parser2> rhs) const noexcept
         {
@@ -1817,6 +1904,7 @@ namespace boost { namespace parser {
         constexpr auto operator>(char32_t rhs) const noexcept;
         constexpr auto operator>(std::string_view rhs) const noexcept;
 
+        // TODO: If rhs is also an or_parser, merge the two.
         template<typename Parser2>
         constexpr auto operator|(parser_interface<Parser2> rhs) const noexcept
         {

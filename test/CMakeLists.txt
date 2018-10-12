@@ -20,8 +20,10 @@ add_executable(
     compile_tests
     compile_tests_main.cpp
     compile_seq_attribute.cpp
+    compile_or_attribute.cpp
 )
 target_link_libraries(compile_tests yaml)
+add_definitions(compile_tests -ftemplate-backtrace-limit=0)
 
 
 ##################################################
