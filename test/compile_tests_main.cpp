@@ -5,9 +5,11 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 void compile_seq_attribute();
 void compile_or_attribute();
+void compile_or_seq_attribute();
 
 int main()
 {
     compile_seq_attribute();
     compile_or_attribute();
+    compile_or_seq_attribute();
 }

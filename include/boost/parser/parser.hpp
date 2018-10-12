@@ -216,7 +216,7 @@ namespace boost { namespace parser {
 
         template<typename T, typename U>
         using move_assignable =
-            decltype(std::declval<T &>() = std::declval<U>());
+            decltype(std::declval<U &>() = std::declval<T>());
         template<typename T, typename U>
         struct is_move_assignable : is_detected<move_assignable, T, U>
         {
@@ -231,23 +231,16 @@ namespace boost { namespace parser {
 
         template<typename... T>
         struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::false_type>>
+            hana::pair<hana::tuple<T...>, std::true_type>>
         {
-            using type = variant<T...>;
-        };
-
-        template<typename T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T>, std::false_type>>
-        {
-            using type = T;
+            using type = optional<variant<T...>>;
         };
 
         template<typename... T>
         struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::true_type>>
+            hana::pair<hana::tuple<T...>, std::false_type>>
         {
-            using type = optional<variant<T...>>;
+            using type = variant<T...>;
         };
 
         template<typename T>
@@ -258,13 +251,26 @@ namespace boost { namespace parser {
 
         template<typename T>
         struct hana_tuple_to_or_type<
+            hana::pair<hana::tuple<T>, std::false_type>>
+        {
+            using type = T;
+        };
+
+        template<typename T>
+        struct hana_tuple_to_or_type<
             hana::pair<hana::tuple<optional<T>>, std::true_type>>
         {
             using type = optional<T>;
         };
 
-        template<typename IsOptional>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, IsOptional>>
+        template<>
+        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::true_type>>
+        {
+            using type = nope;
+        };
+
+        template<>
+        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::false_type>>
         {
             using type = nope;
         };
@@ -289,6 +295,12 @@ namespace boost { namespace parser {
 
         template<typename T>
         struct optional_of_impl
+        {
+            using type = optional<T>;
+        };
+
+        template<typename T>
+        struct optional_of_impl<optional<T>>
         {
             using type = optional<T>;
         };
@@ -362,6 +374,10 @@ namespace boost { namespace parser {
         {
             return flags(uint32_t(f) | uint32_t(flags::trace));
         }
+        constexpr inline flags disable_trace(flags f)
+        {
+            return flags(uint32_t(f) & ~uint32_t(flags::trace));
+        }
         constexpr inline bool gen_attrs(flags f)
         {
             return (uint32_t(f) & uint32_t(flags::gen_attrs)) ==
@@ -379,12 +395,12 @@ namespace boost { namespace parser {
         struct skip_skipper
         {
             template<typename Iter, typename Context, typename SkipParser>
-            detail::nope call(
+            nope call(
                 Iter & first,
                 Iter last,
                 Context const & context,
                 SkipParser const & skip,
-                detail::flags flags,
+                flags flags,
                 bool & success) const noexcept
             {
                 return {};
@@ -400,7 +416,7 @@ namespace boost { namespace parser {
                 Iter last,
                 Context const & context,
                 SkipParser const & skip,
-                detail::flags flags,
+                flags flags,
                 bool & success,
                 Attribute & retval) const
             {}
@@ -545,6 +561,78 @@ namespace boost { namespace parser {
         template<typename T>
         constexpr void assign(T &, nope)
         {}
+
+        template<
+            typename Parser,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename... T>
+        void apply_parser(
+            Parser const & parser,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            flags flags,
+            bool & success,
+            optional<variant<T...>> & retval)
+        {
+            using attr_t = decltype(
+                parser.call(first, last, context, skip, flags, success));
+            if constexpr (std::is_same<attr_t, optional<variant<T...>>>{}) {
+                parser.call(first, last, context, skip, flags, success, retval);
+            } else {
+                if constexpr (std::is_same<attr_t, nope>{}) {
+                    parser.call(first, last, context, skip, flags, success);
+                } else {
+                    auto attr =
+                        parser.call(first, last, context, skip, flags, success);
+                    if (success)
+                        *retval = variant<T...>(std::move(attr));
+                }
+            }
+        }
+
+        template<
+            typename Parser,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename... T>
+        void apply_parser(
+            Parser const & parser,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            flags flags,
+            bool & success,
+            variant<T...> & retval)
+        {
+            auto attr = parser.call(first, last, context, skip, flags, success);
+            if (success)
+                assign(retval, attr);
+        }
+
+        template<
+            typename Parser,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void apply_parser(
+            Parser const & parser,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            flags flags,
+            bool & success,
+            Attribute & retval)
+        {
+            parser.call(first, last, context, skip, flags, success, retval);
+        }
     }
 
 
@@ -604,7 +692,6 @@ namespace boost { namespace parser {
 
     // Second order parsers.
 
-
     int64_t const Inf = detail::unbounded;
 
     template<typename Parser, typename DelimiterParser>
@@ -618,7 +705,8 @@ namespace boost { namespace parser {
             parser_(parser),
             delimiter_parser_(delimiter_parser),
             min_(_min),
-            max_(_max)
+            max_(_max),
+            in_apply_parser_(false)
         {}
 
         template<typename Iter, typename Context, typename SkipParser>
@@ -657,16 +745,23 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = scoped_trace(
+                *this,
+                first,
+                last,
+                context,
+                in_apply_parser_ ? disable_trace(flags) : flags,
+                retval);
 
             using attr_t = decltype(
                 parser_.call(first, last, context, skip, flags, success));
-            if constexpr (detail::is_variant<Attribute>{}) {
-                using attr_t =
-                    decltype(call(first, last, context, skip, flags, success));
-                attr_t attr;
-                call(first, last, context, skip, flags, success, attr);
-                detail::assign(retval, std::move(attr));
+            if constexpr (
+                detail::is_variant<Attribute>{} ||
+                detail::is_optional<Attribute>{}) {
+                in_apply_parser_ = true;
+                detail::apply_parser(
+                    *this, first, last, context, skip, flags, success, retval);
+                in_apply_parser_ = false;
             } else if constexpr (detail::is_container<attr_t>{}) {
                 int64_t count = 0;
 
@@ -772,6 +867,7 @@ namespace boost { namespace parser {
         DelimiterParser delimiter_parser_;
         int64_t min_;
         int64_t max_;
+        mutable bool in_apply_parser_;
     };
 
     template<typename Parser>
@@ -819,6 +915,11 @@ namespace boost { namespace parser {
             return retval;
         }
 
+        using Attribute = boost::optional<boost::hana::tuple<
+            std::vector<
+                boost::optional<int>,
+                std::allocator<boost::optional<int>>>,
+            std::vector<char, std::allocator<char>>>>;
         template<
             typename Iter,
             typename Context,
@@ -842,16 +943,7 @@ namespace boost { namespace parser {
                 return;
             }
 
-            if constexpr (detail::is_variant<Attribute>{}) {
-                using attr_t =
-                    decltype(call(first, last, context, skip, flags, success));
-                typename attr_t::value_type attr;
-                call(first, last, context, skip, flags, success, attr);
-                detail::assign(retval, attr_t(std::move(attr)));
-            } else {
-                parser_.call(
-                    first, last, context, skip, flags, success, retval);
-            }
+            parser_.call(first, last, context, skip, flags, success, retval);
         }
 
         Parser parser_;
@@ -897,35 +989,15 @@ namespace boost { namespace parser {
                 detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
 
-                if constexpr (detail::is_optional<Attribute>{}) {
-                    using retval_inner_type = typename Attribute::value_type;
-                    retval_inner_type retval_inner;
-                    parser.call(
-                        first_,
-                        last_,
-                        context_,
-                        skip_,
-                        flags_,
-                        success_,
-                        retval_inner);
-                    detail::assign(retval, retval_inner);
-                } else if constexpr (detail::is_variant<Attribute>{}) {
-                    using attr_t = decltype(parser.call(
-                        first_, last_, context_, skip_, flags_, success_));
-                    attr_t attr;
-                    parser.call(
-                        first_, last_, context_, skip_, flags_, success_, attr);
-                    detail::assign(retval, std::move(attr));
-                } else {
-                    parser.call(
-                        first_,
-                        last_,
-                        context_,
-                        skip_,
-                        flags_,
-                        success_,
-                        retval);
-                }
+                detail::apply_parser(
+                    parser,
+                    first_,
+                    last_,
+                    context_,
+                    skip_,
+                    flags_,
+                    success_,
+                    retval);
             }
 
             Iter & first_;
@@ -1043,7 +1115,10 @@ namespace boost { namespace parser {
     {
         using backtracking = BacktrackingTuple;
 
-        constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
+        constexpr seq_parser(ParserTuple parsers) :
+            parsers_(parsers),
+            in_apply_parser_(false)
+        {}
 
         template<typename Iter, typename Context, typename SkipParser>
         struct dummy_use_parser_t
@@ -1220,7 +1295,13 @@ namespace boost { namespace parser {
                 make_temp_result(first, last, context, skip, flags, success)))>
                 retval;
 
-            auto _ = scoped_trace(*this, first_, last, context, flags, retval);
+            auto _ = scoped_trace(
+                *this,
+                first_,
+                last,
+                context,
+                in_apply_parser_ ? disable_trace(flags) : flags,
+                retval);
 
             std::decay_t<decltype(hana::second(
                 make_temp_result(first, last, context, skip, flags, success)))>
@@ -1254,14 +1335,27 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first_, last, context, flags, retval);
+            auto _ = scoped_trace(
+                *this,
+                first_,
+                last,
+                context,
+                in_apply_parser_ ? disable_trace(flags) : flags,
+                retval);
 
             Iter first = first_;
 
             std::decay_t<decltype(hana::second(
                 make_temp_result(first, last, context, skip, flags, success)))>
                 indices;
-            if constexpr (detail::is_hana_tuple<Attribute>{}) {
+            if constexpr (
+                detail::is_optional<Attribute>{} ||
+                detail::is_optional<Attribute>{}) {
+                in_apply_parser_ = true;
+                detail::apply_parser(
+                    *this, first, last, context, skip, flags, success, retval);
+                in_apply_parser_ = false;
+            } else if constexpr (detail::is_hana_tuple<Attribute>{}) {
                 call_impl(
                     first,
                     last,
@@ -1316,76 +1410,72 @@ namespace boost { namespace parser {
         {
             static_assert(detail::is_hana_tuple<Attribute>{}, "");
 
-            auto use_parser = [&first,
-                               last,
-                               &context,
-                               &skip,
-                               flags,
-                               &success,
-                               &retval](
-                                  auto const & parser_index_and_backtrack) {
-                using namespace hana::literals;
-                detail::skip(first, last, skip, flags);
-                if (!success) // Someone earlier already failed...
-                    return;
-
-                auto const & parser = parser_index_and_backtrack[0_c];
-                bool const can_backtrack = parser_index_and_backtrack[2_c];
-
-                if (!gen_attrs(flags)) {
-                    parser.call(first, last, context, skip, flags, success);
-                    if (!success && !can_backtrack) {
-                        std::string name;
-                        detail::parser_name(parser, name);
-                        throw parse_error<Iter>(first, name);
-                    }
-                    return;
-                }
-
-                auto & out = retval[parser_index_and_backtrack[1_c]];
-
-                using attr_t = decltype(
-                    parser.call(first, last, context, skip, flags, success));
-                constexpr bool out_container =
-                    detail::is_container<std::decay_t<decltype(out)>>{};
-                constexpr bool attr_container = detail::is_container<attr_t>{};
-
-                if constexpr (out_container == attr_container) {
-                    // TODO: Document that the user can pass anything she
-                    // likes for retval, but that if retval is not a
-                    // container, but the default retval would have been,
-                    // weird assignments may occur.  For instance,
-                    // parse(first, last, char_ >> char_, a), where 'a' is
-                    // a boost::any, will only yeild a single char in the
-                    // any.
-                    parser.call(
-                        first, last, context, skip, flags, success, out);
-                    if (!success) {
-                        if (!can_backtrack) {
-                            std::string name;
-                            detail::parser_name(parser, name);
-                            throw parse_error<Iter>(first, name);
-                        }
-                        out = std::decay_t<decltype(out)>();
+            auto use_parser =
+                [&first, last, &context, &skip, flags, &success, &retval](
+                    auto const & parser_index_and_backtrack) {
+                    using namespace hana::literals;
+                    detail::skip(first, last, skip, flags);
+                    if (!success) // Someone earlier already failed...
                         return;
-                    }
-                } else {
-                    attr_t x =
+
+                    auto const & parser = parser_index_and_backtrack[0_c];
+                    bool const can_backtrack = parser_index_and_backtrack[2_c];
+
+                    if (!gen_attrs(flags)) {
                         parser.call(first, last, context, skip, flags, success);
-                    if (!success) {
-                        if (!can_backtrack) {
+                        if (!success && !can_backtrack) {
                             std::string name;
                             detail::parser_name(parser, name);
                             throw parse_error<Iter>(first, name);
                         }
                         return;
                     }
-                    if constexpr (out_container)
-                        detail::move_back(out, x);
-                    else
-                        detail::assign(out, x);
-                }
-            };
+
+                    auto & out = retval[parser_index_and_backtrack[1_c]];
+
+                    using attr_t = decltype(parser.call(
+                        first, last, context, skip, flags, success));
+                    constexpr bool out_container =
+                        detail::is_container<std::decay_t<decltype(out)>>{};
+                    constexpr bool attr_container =
+                        detail::is_container<attr_t>{};
+
+                    if constexpr (out_container == attr_container) {
+                        // TODO: Document that the user can pass anything she
+                        // likes for retval, but that if retval is not a
+                        // container, but the default retval would have been,
+                        // weird assignments may occur.  For instance,
+                        // parse(first, last, char_ >> char_, a), where 'a' is
+                        // a boost::any, will only yeild a single char in the
+                        // any.
+                        parser.call(
+                            first, last, context, skip, flags, success, out);
+                        if (!success) {
+                            if (!can_backtrack) {
+                                std::string name;
+                                detail::parser_name(parser, name);
+                                throw parse_error<Iter>(first, name);
+                            }
+                            out = std::decay_t<decltype(out)>();
+                            return;
+                        }
+                    } else {
+                        attr_t x = parser.call(
+                            first, last, context, skip, flags, success);
+                        if (!success) {
+                            if (!can_backtrack) {
+                                std::string name;
+                                detail::parser_name(parser, name);
+                                throw parse_error<Iter>(first, name);
+                            }
+                            return;
+                        }
+                        if constexpr (out_container)
+                            detail::move_back(out, x);
+                        else
+                            detail::assign(out, x);
+                    }
+                };
 
             auto const parsers_and_indices =
                 hana::zip(parsers_, indices, backtracking{});
@@ -1397,7 +1487,8 @@ namespace boost { namespace parser {
         template<bool AllowBacktracking, typename Parser>
         constexpr auto append(Parser parser) const noexcept;
 
-        ParserTuple parsers_; // This should be (parser, can-backtrack) pairs.
+        ParserTuple parsers_;
+        mutable bool in_apply_parser_;
     };
 
     // Wraps a parser, applying a semantic action to it.
