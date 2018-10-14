@@ -135,18 +135,15 @@ namespace boost { namespace parser {
         {
         };
 
-        template<typename T, typename U>
-        using insert_range_insert_begin_and_end_2 = decltype(
-            std::declval<T>().insert(
-                std::declval<T>().end(), std::declval<U>()),
-            std::declval<T>().insert(
-                std::declval<T>().end(),
-                std::declval<T>().begin(),
-                std::declval<T>().end()));
+        template<typename T>
+        using value_type = std::decay_t<decltype(*std::declval<T>().begin())>;
 
         template<typename T, typename U>
-        struct is_container_and_insertable
-            : is_detected<insert_range_insert_begin_and_end_2, T, U>
+        struct is_container_and_value_type
+            : std::integral_constant<
+                  bool,
+                  (is_detected<insert_range_insert_begin_and_end, T>{} &&
+                   std::is_same<detected_t<value_type, T>, U>{})>
         {
         };
 
@@ -915,11 +912,6 @@ namespace boost { namespace parser {
             return retval;
         }
 
-        using Attribute = boost::optional<boost::hana::tuple<
-            std::vector<
-                boost::optional<int>,
-                std::allocator<boost::optional<int>>>,
-            std::vector<char, std::allocator<char>>>>;
         template<
             typename Iter,
             typename Context,
@@ -1191,10 +1183,10 @@ namespace boost { namespace parser {
                             hana::append(indices, hana::size(result) - one));
                     }
                 } else if constexpr (
-                    detail::is_container_and_insertable<
+                    detail::is_container_and_value_type<
                         result_back_type,
                         x_type>{} ||
-                    detail::is_container_and_insertable<
+                    detail::is_container_and_value_type<
                         result_back_type,
                         unwrapped_optional_x_type>{}) {
                     // C<T> >> T -> C<T>
@@ -1203,10 +1195,10 @@ namespace boost { namespace parser {
                         result,
                         hana::append(indices, hana::size(result) - one));
                 } else if constexpr (
-                    detail::is_container_and_insertable<
+                    detail::is_container_and_value_type<
                         x_type,
                         result_back_type>{} ||
-                    detail::is_container_and_insertable<
+                    detail::is_container_and_value_type<
                         x_type,
                         unwrapped_optional_result_back_type>{}) {
                     // T >> C<T> -> C<T>
