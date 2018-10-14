@@ -76,16 +76,16 @@ for first in all_atoms:
         first_optional = (i % 3) == 0 and '-' or ''
         second_optional = (i % 4) == 0 and '-' or ''
         all_exprs.append(first_optional + add_infix_op(first, '>>') + ' | ' +
-                         second_optional + add_infix_op(first, '>>'))
+                         second_optional + add_infix_op(second, '>>'))
         i += 1
 
         first_optional = (i % 3) == 0 and '-' or ''
         second_optional = (i % 4) == 0 and '-' or ''
         all_exprs.append(first_optional + add_infix_op(first, '|') + ' >> ' +
-                         second_optional + add_infix_op(first, '|'))
+                         second_optional + add_infix_op(second, '|'))
         i += 1
 
-all_checks = ''
+all_checks = []
 for expr in all_exprs:
     check = '''\
     {{
@@ -94,9 +94,11 @@ for expr in all_exprs:
         BOOST_MPL_ASSERT((is_same<attr_t, attr_t>)); // TODO
     }}
 '''.format(expr)
-    all_checks += check
+    all_checks.append(check)
 
-print '''\
+checks_per_file = 250
+
+file_form = '''\
 // Copyright (C) 2018 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -122,4 +124,13 @@ void compile_or_seq_attribute()
 
 {}
 }}
-'''.format(all_checks)
+'''
+
+i = 0
+while i < len(all_checks):
+    f = open('generated_parsers_{:02}.cpp'.format(i / checks_per_file), 'w')
+    if i + checks_per_file <= len(all_checks):
+        f.write(file_form.format(''.join(all_checks[i:i + checks_per_file])))
+    else:
+        f.write(file_form.format(''.join(all_checks[i:])))
+    i += checks_per_file

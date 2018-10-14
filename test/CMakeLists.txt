@@ -21,10 +21,22 @@ add_executable(
     compile_tests_main.cpp
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
-    compile_or_seq_attribute.cpp
 )
 target_link_libraries(compile_tests yaml)
 add_definitions(-ftemplate-backtrace-limit=0)
+
+macro(add_test_executable name)
+    add_executable(${name} ${name}.cpp)
+    target_link_libraries(${name} yaml gtest gtest_main ${link_flags})
+    add_test(${name} --gtest_catch_exceptions=1)
+endmacro()
+
+file(GLOB generated_parser_tests generated_parsers_??.cpp)
+foreach(test ${generated_parser_tests})
+    get_filename_component(test_name ${test} NAME_WE)
+    add_test_executable(${test_name})
+endforeach()
+
 
 
 ##################################################
