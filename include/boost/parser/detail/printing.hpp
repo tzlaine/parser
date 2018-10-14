@@ -29,9 +29,21 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components = 0);
 
+    template<typename Parser>
+    void parser_name(
+        zero_plus_parser<Parser> const & parser,
+        std::string & str,
+        int components = 0);
+
+    template<typename Parser>
+    void parser_name(
+        one_plus_parser<Parser> const & parser,
+        std::string & str,
+        int components = 0);
+
     template<typename Parser, typename DelimiterParser>
     void parser_name(
-        repeat_parser<Parser, DelimiterParser> const & parser,
+        delimited_seq_parser<Parser, DelimiterParser> const & parser,
         std::string & str,
         int components = 0);
 

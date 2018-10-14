@@ -586,7 +586,7 @@ namespace boost { namespace parser {
                     auto attr =
                         parser.call(first, last, context, skip, flags, success);
                     if (success)
-                        *retval = variant<T...>(std::move(attr));
+                        retval = variant<T...>(std::move(attr));
                 }
             }
         }
@@ -610,6 +610,34 @@ namespace boost { namespace parser {
             auto attr = parser.call(first, last, context, skip, flags, success);
             if (success)
                 assign(retval, attr);
+        }
+
+        template<
+            typename Parser,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename T>
+        void apply_parser(
+            Parser const & parser,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            flags flags,
+            bool & success,
+            optional<T> & retval)
+        {
+            using attr_t = decltype(
+                parser.call(first, last, context, skip, flags, success));
+            if constexpr (std::is_same<attr_t, nope>{}) {
+                parser.call(first, last, context, skip, flags, success);
+            } else {
+                auto attr =
+                    parser.call(first, last, context, skip, flags, success);
+                if (success)
+                    assign(retval, attr);
+            }
         }
 
         template<
@@ -755,6 +783,7 @@ namespace boost { namespace parser {
             if constexpr (
                 detail::is_variant<Attribute>{} ||
                 detail::is_optional<Attribute>{}) {
+                // TODO: Guard against reentrancy here?
                 in_apply_parser_ = true;
                 detail::apply_parser(
                     *this, first, last, context, skip, flags, success, retval);
@@ -932,10 +961,12 @@ namespace boost { namespace parser {
 
             if (!gen_attrs(flags)) {
                 parser_.call(first, last, context, skip, flags, success);
+                success = true;
                 return;
             }
 
             parser_.call(first, last, context, skip, flags, success, retval);
+            success = true;
         }
 
         Parser parser_;
@@ -1340,13 +1371,16 @@ namespace boost { namespace parser {
             std::decay_t<decltype(hana::second(
                 make_temp_result(first, last, context, skip, flags, success)))>
                 indices;
-            if constexpr (
-                detail::is_optional<Attribute>{} ||
-                detail::is_optional<Attribute>{}) {
+            if constexpr (detail::is_variant<Attribute>{}) {
                 in_apply_parser_ = true;
                 detail::apply_parser(
                     *this, first, last, context, skip, flags, success, retval);
                 in_apply_parser_ = false;
+            } else if constexpr (detail::is_optional<Attribute>{}) {
+                typename Attribute::value_type attr;
+                call(first_, last, context, skip, flags, success, attr);
+                if (success)
+                    detail::assign(retval, attr);
             } else if constexpr (detail::is_hana_tuple<Attribute>{}) {
                 call_impl(
                     first,

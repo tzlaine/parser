@@ -33,10 +33,10 @@ namespace boost { namespace parser {
     template<typename Parser, typename DelimiterParser = detail::nope>
     struct repeat_parser;
 
-    template<typename ParserTuple>
+    template<typename Parser>
     struct zero_plus_parser;
 
-    template<typename ParserTuple>
+    template<typename Parser>
     struct one_plus_parser;
 
     template<typename Parser, typename DelimiterParser>

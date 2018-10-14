@@ -31,7 +31,7 @@ macro(add_test_executable name)
     add_test(${name} --gtest_catch_exceptions=1)
 endmacro()
 
-file(GLOB generated_parser_tests generated_parsers_??.cpp)
+file(GLOB generated_parser_tests generated_parsers_???.cpp)
 foreach(test ${generated_parser_tests})
     get_filename_component(test_name ${test} NAME_WE)
     add_test_executable(${test_name})

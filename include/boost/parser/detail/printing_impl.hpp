@@ -20,33 +20,45 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components)
     {
-        if (parser.min_ == 0 && parser.max_ == unbounded) {
-            str += "*";
-            parser_name(parser.parser_, str, components + 1);
-        } else if (parser.min_ == 1 && parser.max_ == unbounded) {
-            str += "+";
-            parser_name(parser.parser_, str, components + 1);
+        str += "repeat(";
+        str += std::to_string(parser.min_);
+        if (parser.min_ == parser.max_) {
+            str += ")[";
         } else {
-            str += "repeat(";
-            str += std::to_string(parser.min_);
-            if (parser.min_ == parser.max_) {
-                str += ")[";
-            } else {
-                str += ", ";
-                if (parser.max_ == unbounded)
-                    str += "Inf";
-                else
-                    str += std::to_string(parser.max_);
-                str += ")[";
-            }
-            parser_name(parser.parser_, str, components + 1);
-            str += "]";
+            str += ", ";
+            if (parser.max_ == unbounded)
+                str += "Inf";
+            else
+                str += std::to_string(parser.max_);
+            str += ")[";
         }
+        parser_name(parser.parser_, str, components + 1);
+        str += "]";
+    }
+
+    template<typename Parser>
+    void parser_name(
+        zero_plus_parser<Parser> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "*";
+        parser_name(parser.parser_, str, components + 1);
+    }
+
+    template<typename Parser>
+    void parser_name(
+        one_plus_parser<Parser> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "+";
+        parser_name(parser.parser_, str, components + 1);
     }
 
     template<typename Parser, typename DelimiterParser>
     void parser_name(
-        repeat_parser<Parser, DelimiterParser> const & parser,
+        delimited_seq_parser<Parser, DelimiterParser> const & parser,
         std::string & str,
         int components)
     {

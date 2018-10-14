@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 atoms = ['*char_', 'eps', '-int_']
-atoms_pass = [['"abc"', '"z"'], [''], ['', '"3"']]
 
 infix_ops = ['>>', '|']
 unary_ops = ['-']
@@ -164,8 +163,34 @@ def optional_of(op_token, type_str):
         return 'optional<{}>'.format(type_str)
     return type_str
 
+def atom_str(a):
+    mapping = {'*char_': 'cb', 'eps': '', '-int_': '3', "char_('z')": 'z'}
+    return mapping[a]
+
+def seq_str(t):
+    if t[0] not in atoms:
+        strs = t
+    else:
+        strs = map(atom_str, t)
+    return ''.join(strs)
+
+def or_str(t):
+    if t[0] not in atoms:
+        strs = t
+    else:
+        strs = map(atom_str, t)
+    return strs[0]
+
+def str_of(t, op):
+    if op == '>>':
+        return seq_str(t)
+    else:
+        return or_str(t)
+
 all_exprs = []
 all_types = []
+all_strs = []
+all_results = []
 
 i = 0
 for first in all_atoms:
@@ -176,6 +201,7 @@ for first in all_atoms:
                          second_opt + add_infix_op(second, '>>'))
         all_types.append(or_of((optional_of(first_opt, type_of(first, '>>')),
                                 optional_of(second_opt, type_of(second, '>>')))))
+        all_strs.append(or_str((str_of(first, '>>'), str_of(second, '>>'))))
         i += 1
 
         first_opt = (i % 3) == 0 and '-' or ''
@@ -184,6 +210,7 @@ for first in all_atoms:
                          second_opt + add_infix_op(second, '|'))
         all_types.append(seq_of((optional_of(first_opt, type_of(first, '|')),
                                  optional_of(second_opt, type_of(second, '|')))))
+        all_strs.append(seq_str((str_of(first, '|'), str_of(second, '|'))))
         i += 1
 
 def type_to_result(type_):
@@ -192,19 +219,31 @@ def type_to_result(type_):
     return 'optional<{}>'.format(type_)
 
 all_checks = []
-for expr_,type_ in zip(all_exprs, all_types):
+for expr_,type_,str_ in zip(all_exprs, all_types, all_strs):
     check = '''\
     {{
-        constexpr auto parser = {};
-        using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, {}>));
+        constexpr auto parser = {0};
+        using attr_t = decltype(parse(g_first, g_last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, {1}>));
+
+        std::string const str = "{2}";
+        auto first = str.begin();
+        auto const last = str.end();
+        attr_t const attr = parse(first, last, parser);
+        EXPECT_TRUE(attr);
+
+        constexpr auto fail_parser = parser >> repeat(Inf)[int_];
+        first = str.begin();
+        auto const fail_attr = parse(first, last, fail_parser);
+        EXPECT_FALSE(fail_attr);
     }}
-'''.format(expr_, type_to_result(type_))
+'''.format(expr_, type_to_result(type_), str_)
     all_checks.append(check)
 
-checks_per_file = 250
+checks_per_file = 100
+checks_per_test = 5
 
-file_form = '''\
+file_prefix = '''\
 // WARNING!  This file is generated.
 // Copyright (C) 2018 T. Zachary Laine
 //
@@ -216,6 +255,8 @@ file_form = '''\
 #include <boost/mpl/assert.hpp>
 #include <boost/type_traits/is_same.hpp>
 
+#include <gtest/gtest.h>
+
 
 using namespace boost::parser;
 using boost::is_same;
@@ -223,21 +264,37 @@ using boost::optional;
 using boost::variant;
 using boost::hana::tuple;
 
-void compile_or_seq_attribute()
-{{
-    char const chars[] = "";
-    auto first = std::begin(chars);
-    auto const last = std::end(chars);
+char const g_chars[] = "";
+auto g_first = std::begin(g_chars);
+auto const g_last = std::end(g_chars);
 
-{}
-}}
+
+'''
+
+test_prefix = '''\
+TEST(parser, generated_{:03}_{:03})
+{{
+'''
+
+test_suffix = '''\
+}
+
 '''
 
 i = 0
 while i < len(all_checks):
-    f = open('generated_parsers_{:02}.cpp'.format(i / checks_per_file), 'w')
-    if i + checks_per_file <= len(all_checks):
-        f.write(file_form.format(''.join(all_checks[i:i + checks_per_file])))
-    else:
-        f.write(file_form.format(''.join(all_checks[i:])))
+    file_index = i / checks_per_file
+    f = open('generated_parsers_{:03}.cpp'.format(file_index), 'w')
+    lo = i
+    hi = min(i + checks_per_file, len(all_checks))
+    test_index = 0
+    f.write(file_prefix)
+    for j in range(lo, hi):
+        if test_index != 0 and j % checks_per_test == 0:
+            f.write(test_suffix)
+        if j % checks_per_test == 0:
+            f.write(test_prefix.format(file_index, test_index))
+            test_index += 1
+        f.write(all_checks[j])
+    f.write(test_suffix)
     i += checks_per_file
