@@ -2647,10 +2647,10 @@ namespace boost { namespace parser {
 
     template<
         typename T,
-        int Radix = 10,
-        int MinDigits = 1,
-        int MaxDigits = -1,
-        typename Expected = detail::nope>
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
     struct uint_parser
     {
         static_assert(
@@ -2723,10 +2723,10 @@ namespace boost { namespace parser {
 
     template<
         typename T,
-        int Radix = 10,
-        int MinDigits = 1,
-        int MaxDigits = -1,
-        typename Expected = detail::nope>
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
     struct int_parser
     {
         constexpr int_parser() {}

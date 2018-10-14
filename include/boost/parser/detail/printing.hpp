@@ -132,6 +132,112 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components = 0);
 
+    inline void parser_name(
+        eol_parser const & parser, std::string & str, int components = 0);
+
+    template<
+        typename T,
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
+    void parser_name(
+        uint_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
+        std::string & str,
+        int components = 0);
+
+    template<typename T, int Radix, int MinDigits, int MaxDigits>
+    void parser_name(
+        uint_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned int, 2> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned int, 8> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned int, 16> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned short> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned int> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned long> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        uint_parser<unsigned long long> const & parser,
+        std::string & str,
+        int components = 0);
+
+    template<
+        typename T,
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
+    void parser_name(
+        int_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
+        std::string & str,
+        int components = 0);
+
+    template<typename T, int Radix, int MinDigits, int MaxDigits>
+    void parser_name(
+        int_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        int_parser<short> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        int_parser<int> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        int_parser<long> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        int_parser<long long> const & parser,
+        std::string & str,
+        int components = 0);
+
+    template<typename T>
+    void parser_name(
+        float_parser<T> const & parser, std::string & str, int components = 0);
+
+    inline void parser_name(
+        float_parser<float> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        float_parser<double> const & parser,
+        std::string & str,
+        int components = 0);
+
     enum { trace_indent_factor = 2, trace_input_cps = 8 };
 
     inline void trace_indent(int indent)

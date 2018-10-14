@@ -3,6 +3,8 @@
 
 #include <boost/parser/detail/printing.hpp>
 
+#include <boost/type_index.hpp>
+
 
 namespace boost { namespace parser { namespace detail {
 
@@ -250,6 +252,199 @@ namespace boost { namespace parser { namespace detail {
         str += "\"";
         str += parser.parser_.expected_;
         str += "\"";
+    }
+
+    inline void parser_name(
+        eol_parser const & parser, std::string & str, int components)
+    {
+        str += "eol";
+    }
+
+    template<
+        typename T,
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
+    void parser_name(
+        uint_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "uint<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ", ";
+        str += std::to_string(Radix);
+        str += ", ";
+        str += std::to_string(MinDigits);
+        str += ", ";
+        str += std::to_string(MaxDigits);
+        str += ">(";
+        str += std::to_string(parser.expected_);
+        str += ")";
+    }
+
+    template<
+        typename T,
+        int Radix,
+        int MinDigits,
+        int MaxDigits>
+    void parser_name(
+        uint_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "uint<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ", ";
+        str += std::to_string(Radix);
+        str += ", ";
+        str += std::to_string(MinDigits);
+        str += ", ";
+        str += std::to_string(MaxDigits);
+        str += ">";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned int, 2> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "bin";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned int, 8> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "oct";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned int, 16> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "hex";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned short> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "ushort_";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned int> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "uint_";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned long> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "ulong_";
+    }
+
+    inline void parser_name(
+        uint_parser<unsigned long long> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "ulong_long";
+    }
+
+    template<
+        typename T,
+        int Radix,
+        int MinDigits,
+        int MaxDigits,
+        typename Expected>
+    void parser_name(
+        int_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "int<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ", ";
+        str += std::to_string(Radix);
+        str += ", ";
+        str += std::to_string(MinDigits);
+        str += ", ";
+        str += std::to_string(MaxDigits);
+        str += ">(";
+        str += std::to_string(parser.expected_);
+        str += ")";
+    }
+
+    template<typename T, int Radix, int MinDigits, int MaxDigits>
+    void parser_name(
+        int_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "int<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ", ";
+        str += std::to_string(Radix);
+        str += ", ";
+        str += std::to_string(MinDigits);
+        str += ", ";
+        str += std::to_string(MaxDigits);
+        str += ">";
+    }
+
+    inline void parser_name(
+        int_parser<short> const & parser, std::string & str, int components)
+    {
+        str += "short_";
+    }
+
+    inline void parser_name(
+        int_parser<int> const & parser, std::string & str, int components)
+    {
+        str += "int_";
+    }
+
+    inline void parser_name(
+        int_parser<long> const & parser, std::string & str, int components)
+    {
+        str += "long_";
+    }
+
+    inline void parser_name(
+        int_parser<long long> const & parser, std::string & str, int components)
+    {
+        str += "long_long";
+    }
+
+    template<typename T>
+    void parser_name(
+        float_parser<T> const & parser, std::string & str, int components)
+    {
+        str += "float<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ">";
+    }
+
+    inline void parser_name(
+        float_parser<float> const & parser, std::string & str, int components)
+    {
+        str += "float_";
+    }
+
+    inline void parser_name(
+        float_parser<double> const & parser, std::string & str, int components)
+    {
+        str += "double_";
     }
 
 }}}

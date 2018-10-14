@@ -69,6 +69,9 @@ namespace boost { namespace parser {
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
 
+    template<typename Parser, typename Attribute, typename LocalState>
+    struct rule_parser;
+
     template<
         typename Parser,
         typename Attribute = detail::nope,
@@ -90,6 +93,27 @@ namespace boost { namespace parser {
     struct char_parser;
 
     struct string_parser;
+
+    struct eol_parser;
+
+    template<
+        typename T,
+        int Radix = 10,
+        int MinDigits = 1,
+        int MaxDigits = -1,
+        typename Expected = detail::nope>
+    struct uint_parser;
+
+    template<
+        typename T,
+        int Radix = 10,
+        int MinDigits = 1,
+        int MaxDigits = -1,
+        typename Expected = detail::nope>
+    struct int_parser;
+
+    template<typename T>
+    struct float_parser;
 
     enum class error_handler_result { fail, rethrow };
 
