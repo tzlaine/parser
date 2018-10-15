@@ -5,6 +5,9 @@
 #include <boost/parser/error_handling.hpp>
 #include <boost/parser/detail/printing.hpp>
 
+#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <boost/preprocessor/variadic/elem.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/spirit/home/x3/numeric/real_policies.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
@@ -531,6 +534,19 @@ namespace boost { namespace parser {
             c.insert(c.end(), std::move(x));
         }
 
+        template<typename Container>
+        constexpr void move_back(Container & c, Container & x)
+        {
+            c.insert(c.end(), x.begin(), x.end());
+        }
+
+        template<typename Container>
+        constexpr void move_back(Container & c, optional<Container> & x)
+        {
+            if (x)
+                c.insert(c.end(), x->begin(), x->end());
+        }
+
         template<typename Container, typename T>
         constexpr void move_back(Container & c, optional<T> & x)
         {
@@ -783,7 +799,6 @@ namespace boost { namespace parser {
             if constexpr (
                 detail::is_variant<Attribute>{} ||
                 detail::is_optional<Attribute>{}) {
-                // TODO: Guard against reentrancy here?
                 in_apply_parser_ = true;
                 detail::apply_parser(
                     *this, first, last, context, skip, flags, success, retval);
@@ -1199,7 +1214,11 @@ namespace boost { namespace parser {
                     return hana::make_pair(
                         result,
                         hana::append(indices, hana::size(result) - one));
-                } else if constexpr (std::is_same<result_back_type, x_type>{}) {
+                } else if constexpr (
+                    std::is_same<result_back_type, x_type>{} ||
+                    std::is_same<
+                        result_back_type,
+                        unwrapped_optional_x_type>{}) {
                     if constexpr (detail::is_container<x_type>{}) {
                         // C<T> >> C<T> -> C<T>
                         return hana::make_pair(
@@ -1857,16 +1876,16 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-    // TODO: Consider making this parser go through a tag-dispatched function
-    // call instead of storing its parser.
-    template<typename Parser, typename Attribute, typename LocalState>
+    // TODO: Add a variant of this for callback-driving rules.
+    template<typename TagType, typename Attribute, typename LocalState>
     struct rule_parser
     {
+        using tag_type = TagType;
         using attr_type = Attribute;
         using locals_type = LocalState;
 
         template<typename Iter, typename Context, typename SkipParser>
-        auto call(
+        attr_type call(
             Iter & first,
             Iter last,
             Context const & context,
@@ -1875,11 +1894,11 @@ namespace boost { namespace parser {
             bool & success) const
         {
             if constexpr (std::is_same<attr_type, detail::nope>{}) {
-                using attr_t = decltype(
-                    parser_.call(first, last, context, skip, flags, success));
-                attr_t retval;
-                call(first, last, context, skip, flags, success, retval);
-                return retval;
+                detail::nope n;
+                auto _ = scoped_trace(*this, first, last, context, flags, n);
+                tag_type * const tag_ptr = nullptr;
+                parse_rule(tag_ptr, first, last, context, skip, flags, success);
+                return {};
             } else {
                 attr_type retval;
                 call(first, last, context, skip, flags, success, retval);
@@ -1903,25 +1922,39 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
+            tag_type * const tag_ptr = nullptr;
             if constexpr (std::is_same<locals_type, detail::nope>{}) {
-                parser_.call(
-                    first, last, context, skip, flags, success, retval);
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
             } else {
                 locals_type locals;
                 // Replace the context's current locals with these, and its
                 // current val with retval.
-                auto const action_context = hana::insert(
+                auto const rule_context = hana::insert(
                     hana::insert(
                         hana::erase_key(
                             hana::erase_key(context, locals_), val_),
                         hana::make_pair(locals_, &locals)),
                     hana::make_pair(val_, &retval));
-                parser_.call(
-                    first, last, context, skip, flags, success, retval);
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
             }
         }
 
-        Parser parser_;
         std::string_view name_;
     };
 
@@ -1932,16 +1965,10 @@ namespace boost { namespace parser {
     template<typename Parser>
     struct parser_interface
     {
+        using parser_type = Parser;
+
         constexpr parser_interface() {}
         constexpr parser_interface(Parser parser) : parser_(parser) {}
-
-        template<typename Attribute, typename LocalState>
-        constexpr auto
-        make_rule(std::string_view name = std::string_view()) const noexcept
-        {
-            using rule_t = rule_parser<Parser, Attribute, LocalState>;
-            return parser_interface<rule_t>{rule_t{parser_, name}};
-        }
 
         constexpr auto operator!() const noexcept
         {
@@ -2114,6 +2141,58 @@ namespace boost { namespace parser {
 
         Parser parser_;
     };
+
+
+    using no_attribute = detail::nope;
+    using no_local_state = detail::nope;
+
+    template<
+        typename TagType,
+        typename Attribute = no_attribute,
+        typename LocalState = no_local_state>
+    struct rule : parser_interface<rule_parser<TagType, Attribute, LocalState>>
+    {
+        constexpr rule(char const * name) { this->parser_.name_ = name; }
+    };
+
+#define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
+    template<typename Iter, typename Context, typename SkipParser>             \
+    auto parse_rule(                                                           \
+        decltype(name_)::parser_type::tag_type *,                              \
+        Iter & first,                                                          \
+        Iter last,                                                             \
+        Context const & context,                                               \
+        SkipParser const & skip,                                               \
+        boost::parser::detail::flags flags,                                    \
+        bool & success)                                                        \
+    {                                                                          \
+        return BOOST_PP_CAT(name_, _def)(                                      \
+            first, last, context, skip, flags, success);                       \
+    }                                                                          \
+                                                                               \
+    template<                                                                  \
+        typename Iter,                                                         \
+        typename Context,                                                      \
+        typename SkipParser,                                                   \
+        typename Attribute>                                                    \
+    void parse_rule(                                                           \
+        decltype(name_)::parser_type::tag_type *,                              \
+        Iter & first,                                                          \
+        Iter last,                                                             \
+        Context const & context,                                               \
+        SkipParser const & skip,                                               \
+        boost::parser::detail::flags flags,                                    \
+        bool & success,                                                        \
+        Attribute & retval)                                                    \
+    {                                                                          \
+        BOOST_PP_CAT(name_, _def)                                              \
+        (first, last, context, skip, flags, success, retval);                  \
+    }
+
+#define BOOST_PARSER_DEFINE_RULES(...)                                         \
+    BOOST_PP_SEQ_FOR_EACH(                                                     \
+        BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
 
     template<typename ParserTuple>
     template<typename Parser>
