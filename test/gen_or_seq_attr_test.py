@@ -190,7 +190,6 @@ def str_of(t, op):
 all_exprs = []
 all_types = []
 all_strs = []
-all_results = []
 
 i = 0
 for first in all_atoms:
@@ -236,6 +235,12 @@ for expr_,type_,str_ in zip(all_exprs, all_types, all_strs):
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
+        {{
+            attr_t attr;
+            attr_t copy = attr;
+            EXPECT_FALSE(parse(first, last, fail_parser, attr));
+            EXPECT_EQ(attr, copy);
+        }}
     }}
 '''.format(expr_, type_to_result(type_), str_)
     all_checks.append(check)
