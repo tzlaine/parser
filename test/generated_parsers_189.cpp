@@ -40,12 +40,12 @@ TEST(parser, generated_189_000)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | eps | *char_ | eps);
@@ -62,12 +62,12 @@ TEST(parser, generated_189_000)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> eps >> *char_ >> *char_);
@@ -84,12 +84,12 @@ TEST(parser, generated_189_000)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | eps | *char_ | *char_);
@@ -106,12 +106,12 @@ TEST(parser, generated_189_000)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(*char_ >> *char_ >> eps >> *char_);
@@ -128,12 +128,12 @@ TEST(parser, generated_189_000)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -154,12 +154,12 @@ TEST(parser, generated_189_001)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (eps >> -int_);
@@ -176,12 +176,12 @@ TEST(parser, generated_189_001)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | -int_);
@@ -198,12 +198,12 @@ TEST(parser, generated_189_001)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(*char_ >> *char_ >> -int_);
@@ -220,12 +220,12 @@ TEST(parser, generated_189_001)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (*char_ | *char_ | -int_);
@@ -242,12 +242,12 @@ TEST(parser, generated_189_001)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -268,12 +268,12 @@ TEST(parser, generated_189_002)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | eps | eps | -int_);
@@ -290,12 +290,12 @@ TEST(parser, generated_189_002)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(*char_ >> *char_ >> eps >> eps);
@@ -312,12 +312,12 @@ TEST(parser, generated_189_002)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | *char_ | eps | eps);
@@ -334,12 +334,12 @@ TEST(parser, generated_189_002)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (*char_ >> eps >> -int_ >> -int_);
@@ -356,12 +356,12 @@ TEST(parser, generated_189_002)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -382,12 +382,12 @@ TEST(parser, generated_189_003)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(*char_ >> -int_ >> -int_ >> eps);
@@ -404,12 +404,12 @@ TEST(parser, generated_189_003)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | -int_ | -int_ | eps);
@@ -426,12 +426,12 @@ TEST(parser, generated_189_003)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (*char_ >> *char_ >> eps);
@@ -448,12 +448,12 @@ TEST(parser, generated_189_003)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | *char_ | eps);
@@ -470,12 +470,12 @@ TEST(parser, generated_189_003)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -496,12 +496,12 @@ TEST(parser, generated_189_004)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (*char_ | -int_ | -int_ | *char_);
@@ -518,12 +518,12 @@ TEST(parser, generated_189_004)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (-int_ >> -int_ >> eps >> -int_);
@@ -540,12 +540,12 @@ TEST(parser, generated_189_004)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | -int_ | eps | -int_);
@@ -562,12 +562,12 @@ TEST(parser, generated_189_004)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(-int_ >> *char_ >> *char_ >> eps);
@@ -584,12 +584,12 @@ TEST(parser, generated_189_004)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -610,12 +610,12 @@ TEST(parser, generated_189_005)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> *char_);
@@ -632,12 +632,12 @@ TEST(parser, generated_189_005)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | *char_);
@@ -654,12 +654,12 @@ TEST(parser, generated_189_005)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(-int_ >> *char_ >> eps >> -int_);
@@ -676,12 +676,12 @@ TEST(parser, generated_189_005)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | *char_ | eps | -int_);
@@ -698,12 +698,12 @@ TEST(parser, generated_189_005)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -724,12 +724,12 @@ TEST(parser, generated_189_006)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | -int_ | *char_);
@@ -746,12 +746,12 @@ TEST(parser, generated_189_006)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(eps >> *char_ >> *char_);
@@ -768,12 +768,12 @@ TEST(parser, generated_189_006)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | *char_ | *char_);
@@ -790,12 +790,12 @@ TEST(parser, generated_189_006)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> -int_ >> *char_ >> *char_);
@@ -812,12 +812,12 @@ TEST(parser, generated_189_006)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -838,12 +838,12 @@ TEST(parser, generated_189_007)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(*char_ >> -int_ >> *char_ >> *char_);
@@ -860,12 +860,12 @@ TEST(parser, generated_189_007)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | -int_ | *char_ | *char_);
@@ -882,12 +882,12 @@ TEST(parser, generated_189_007)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> *char_ >> *char_ >> *char_);
@@ -904,12 +904,12 @@ TEST(parser, generated_189_007)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | *char_ | *char_ | *char_);
@@ -926,12 +926,12 @@ TEST(parser, generated_189_007)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -952,12 +952,12 @@ TEST(parser, generated_189_008)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | *char_ | -int_ | *char_);
@@ -974,12 +974,12 @@ TEST(parser, generated_189_008)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (*char_ >> *char_ >> -int_ >> -int_);
@@ -996,12 +996,12 @@ TEST(parser, generated_189_008)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | *char_ | -int_ | -int_);
@@ -1018,12 +1018,12 @@ TEST(parser, generated_189_008)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(*char_ >> -int_);
@@ -1040,12 +1040,12 @@ TEST(parser, generated_189_008)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1066,12 +1066,12 @@ TEST(parser, generated_189_009)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> *char_ >> *char_ >> eps);
@@ -1088,12 +1088,12 @@ TEST(parser, generated_189_009)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | *char_ | *char_ | eps);
@@ -1110,12 +1110,12 @@ TEST(parser, generated_189_009)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(*char_ >> -int_ >> eps >> eps);
@@ -1132,12 +1132,12 @@ TEST(parser, generated_189_009)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | -int_ | eps | eps);
@@ -1154,12 +1154,12 @@ TEST(parser, generated_189_009)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1180,12 +1180,12 @@ TEST(parser, generated_189_010)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | -int_ | -int_ | -int_);
@@ -1202,12 +1202,12 @@ TEST(parser, generated_189_010)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(*char_ >> -int_ >> *char_ >> eps);
@@ -1224,12 +1224,12 @@ TEST(parser, generated_189_010)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | -int_ | *char_ | eps);
@@ -1246,12 +1246,12 @@ TEST(parser, generated_189_010)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (*char_ >> -int_ >> *char_);
@@ -1268,12 +1268,12 @@ TEST(parser, generated_189_010)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1294,12 +1294,12 @@ TEST(parser, generated_189_011)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(-int_ >> -int_ >> eps);
@@ -1316,12 +1316,12 @@ TEST(parser, generated_189_011)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (-int_ | -int_ | eps);
@@ -1338,12 +1338,12 @@ TEST(parser, generated_189_011)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> *char_ >> eps);
@@ -1360,12 +1360,12 @@ TEST(parser, generated_189_011)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | *char_ | eps);
@@ -1382,12 +1382,12 @@ TEST(parser, generated_189_011)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1408,12 +1408,12 @@ TEST(parser, generated_189_012)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | eps | eps | eps);
@@ -1430,12 +1430,12 @@ TEST(parser, generated_189_012)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> eps >> -int_ >> eps);
@@ -1452,12 +1452,12 @@ TEST(parser, generated_189_012)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | eps | -int_ | eps);
@@ -1474,12 +1474,12 @@ TEST(parser, generated_189_012)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(-int_ >> *char_ >> -int_);
@@ -1496,12 +1496,12 @@ TEST(parser, generated_189_012)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1522,12 +1522,12 @@ TEST(parser, generated_189_013)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (*char_ >> -int_ >> eps);
@@ -1544,12 +1544,12 @@ TEST(parser, generated_189_013)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | -int_ | eps);
@@ -1566,12 +1566,12 @@ TEST(parser, generated_189_013)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(eps >> eps >> -int_);
@@ -1588,12 +1588,12 @@ TEST(parser, generated_189_013)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | eps | -int_);
@@ -1610,12 +1610,12 @@ TEST(parser, generated_189_013)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1636,12 +1636,12 @@ TEST(parser, generated_189_014)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | *char_ | -int_ | -int_);
@@ -1658,12 +1658,12 @@ TEST(parser, generated_189_014)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(-int_ >> eps >> -int_);
@@ -1680,12 +1680,12 @@ TEST(parser, generated_189_014)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | eps | -int_);
@@ -1702,12 +1702,12 @@ TEST(parser, generated_189_014)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (*char_ >> eps);
@@ -1724,12 +1724,12 @@ TEST(parser, generated_189_014)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1750,12 +1750,12 @@ TEST(parser, generated_189_015)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(eps >> *char_ >> -int_ >> eps);
@@ -1772,12 +1772,12 @@ TEST(parser, generated_189_015)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | *char_ | -int_ | eps);
@@ -1794,12 +1794,12 @@ TEST(parser, generated_189_015)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | (*char_ >> eps >> -int_);
@@ -1816,12 +1816,12 @@ TEST(parser, generated_189_015)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (*char_ | eps | -int_);
@@ -1838,12 +1838,12 @@ TEST(parser, generated_189_015)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1864,12 +1864,12 @@ TEST(parser, generated_189_016)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (*char_ | eps | *char_);
@@ -1886,12 +1886,12 @@ TEST(parser, generated_189_016)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> eps >> -int_ >> -int_);
@@ -1908,12 +1908,12 @@ TEST(parser, generated_189_016)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (eps | eps | -int_ | -int_);
@@ -1930,12 +1930,12 @@ TEST(parser, generated_189_016)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(-int_ >> *char_ >> -int_ >> *char_);
@@ -1952,12 +1952,12 @@ TEST(parser, generated_189_016)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -1978,12 +1978,12 @@ TEST(parser, generated_189_017)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (-int_ >> *char_);
@@ -2000,12 +2000,12 @@ TEST(parser, generated_189_017)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (-int_ | *char_);
@@ -2022,12 +2022,12 @@ TEST(parser, generated_189_017)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(-int_ >> *char_ >> -int_ >> eps);
@@ -2044,12 +2044,12 @@ TEST(parser, generated_189_017)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | *char_ | -int_ | eps);
@@ -2066,12 +2066,12 @@ TEST(parser, generated_189_017)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -2092,12 +2092,12 @@ TEST(parser, generated_189_018)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | *char_ | *char_ | *char_);
@@ -2114,12 +2114,12 @@ TEST(parser, generated_189_018)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | -(-int_ >> eps >> eps >> -int_);
@@ -2136,12 +2136,12 @@ TEST(parser, generated_189_018)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (-int_ | eps | eps | -int_);
@@ -2158,12 +2158,12 @@ TEST(parser, generated_189_018)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (-int_ >> *char_ >> eps >> *char_);
@@ -2180,12 +2180,12 @@ TEST(parser, generated_189_018)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 
@@ -2206,12 +2206,12 @@ TEST(parser, generated_189_019)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ >> -int_ >> eps) | -(-int_ >> eps >> *char_);
@@ -2228,12 +2228,12 @@ TEST(parser, generated_189_019)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ | -int_ | eps) >> (-int_ | eps | *char_);
@@ -2250,12 +2250,12 @@ TEST(parser, generated_189_019)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = (*char_ >> -int_ >> eps) | (eps >> -int_ >> -int_ >> *char_);
@@ -2272,12 +2272,12 @@ TEST(parser, generated_189_019)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
     {
         constexpr auto parser = -(*char_ | -int_ | eps) >> (eps | -int_ | -int_ | *char_);
@@ -2294,12 +2294,12 @@ TEST(parser, generated_189_019)
         first = str.begin();
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
-        {
-            attr_t attr;
-            attr_t copy = attr;
-            EXPECT_FALSE(parse(first, last, fail_parser, attr));
-            EXPECT_EQ(attr, copy);
-        }
+        //{
+        //    attr_t attr;
+        //    attr_t copy = attr;
+        //    EXPECT_FALSE(parse(first, last, fail_parser, attr));
+        //    EXPECT_EQ(attr, copy);
+        //}
     }
 }
 

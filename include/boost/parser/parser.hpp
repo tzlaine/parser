@@ -1219,7 +1219,7 @@ namespace boost { namespace parser {
                     std::is_same<
                         result_back_type,
                         unwrapped_optional_x_type>{}) {
-                    if constexpr (detail::is_container<x_type>{}) {
+                    if constexpr (detail::is_container<result_back_type>{}) {
                         // C<T> >> C<T> -> C<T>
                         return hana::make_pair(
                             result,
@@ -1229,7 +1229,7 @@ namespace boost { namespace parser {
                         return hana::make_pair(
                             hana::append(
                                 hana::drop_back(result),
-                                hana::type_c<std::vector<x_type>>),
+                                hana::type_c<std::vector<result_back_type>>),
                             hana::append(indices, hana::size(result) - one));
                     }
                 } else if constexpr (
