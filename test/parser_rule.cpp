@@ -109,8 +109,3 @@ TEST(parser, vector_attribute_rules)
             *parse(str, flat_vector_rule), std::vector<char>({'a', 'b', 'c'}));
     }
 }
-
-TEST(parser, local_state_rules)
-{
-    // TODO
-}

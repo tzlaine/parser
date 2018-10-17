@@ -1924,11 +1924,14 @@ namespace boost { namespace parser {
 
             tag_type * const tag_ptr = nullptr;
             if constexpr (std::is_same<locals_type, detail::nope>{}) {
+                auto const rule_context = hana::insert(
+                    hana::erase_key(context, val_),
+                    hana::make_pair(val_, &retval));
                 parse_rule(
                     tag_ptr,
                     first,
                     last,
-                    context,
+                    rule_context,
                     skip,
                     flags,
                     success,
@@ -2086,7 +2089,7 @@ namespace boost { namespace parser {
         constexpr auto operator%(std::string_view rhs) const noexcept;
 
         template<typename Action>
-        constexpr auto operator[](Action action)
+        constexpr auto operator[](Action action) const
         {
             using action_parser_t = action_parser<Parser, Action>;
             return parser_interface<action_parser_t>{
@@ -2126,7 +2129,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser,
             typename Attribute>
-        auto operator()(
+        void operator()(
             Iter & first,
             Iter last,
             Context const & context,
@@ -2135,8 +2138,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & attr) const
         {
-            return parser_.call(
-                first, last, context, skip, flags, success, attr);
+            parser_.call(first, last, context, skip, flags, success, attr);
         }
 
         Parser parser_;
@@ -2166,8 +2168,8 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        return BOOST_PP_CAT(name_, _def)(                                      \
-            first, last, context, skip, flags, success);                       \
+        auto const & parser = BOOST_PP_CAT(name_, _def);                       \
+        return parser(first, last, context, skip, flags, success);             \
     }                                                                          \
                                                                                \
     template<                                                                  \
@@ -2185,8 +2187,13 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        BOOST_PP_CAT(name_, _def)                                              \
-        (first, last, context, skip, flags, success, retval);                  \
+        auto const & parser = BOOST_PP_CAT(name_, _def);                       \
+        using attr_t =                                                         \
+            decltype(parser(first, last, context, skip, flags, success));      \
+        if constexpr (std::is_same<attr_t, boost::parser::detail::nope>{})     \
+            parser(first, last, context, skip, flags, success);                \
+        else                                                                   \
+            parser(first, last, context, skip, flags, success, retval);        \
     }
 
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \

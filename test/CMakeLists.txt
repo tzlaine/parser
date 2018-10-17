@@ -38,6 +38,7 @@ foreach(test ${generated_parser_tests})
 endforeach()
 
 add_test_executable(parser_rule)
+add_test_executable(parser_action)
 
 
 ##################################################
