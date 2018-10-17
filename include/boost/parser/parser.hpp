@@ -725,6 +725,7 @@ namespace boost { namespace parser {
 
     // TODO: symbol table parser.
 
+    // TODO: Support adding arbitrary context state to a parser, a la with[].
 
     // TODO: All the parsers are constexpr.  Figure out how to use them for
     // compile-time parsing.
@@ -2157,6 +2158,8 @@ namespace boost { namespace parser {
         constexpr rule(char const * name) { this->parser_.name_ = name; }
     };
 
+    // TODO: This should define a type with these two overloads and a
+    // constexpr variable of that type.
 #define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
     template<typename Iter, typename Context, typename SkipParser>             \
     auto parse_rule(                                                           \
