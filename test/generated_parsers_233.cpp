@@ -41,7 +41,7 @@ TEST(parser, generated_233_000)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -63,7 +63,7 @@ TEST(parser, generated_233_000)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -85,7 +85,7 @@ TEST(parser, generated_233_000)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -107,7 +107,7 @@ TEST(parser, generated_233_000)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -129,7 +129,7 @@ TEST(parser, generated_233_000)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -155,7 +155,7 @@ TEST(parser, generated_233_001)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, variant<optional<int>, std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -177,7 +177,7 @@ TEST(parser, generated_233_001)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -199,7 +199,7 @@ TEST(parser, generated_233_001)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, variant<optional<int>, std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -221,7 +221,7 @@ TEST(parser, generated_233_001)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -243,7 +243,7 @@ TEST(parser, generated_233_001)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<variant<optional<int>, std::vector<char>>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -269,7 +269,7 @@ TEST(parser, generated_233_002)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -291,7 +291,7 @@ TEST(parser, generated_233_002)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, variant<optional<int>, std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -313,7 +313,7 @@ TEST(parser, generated_233_002)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -335,7 +335,7 @@ TEST(parser, generated_233_002)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -357,7 +357,7 @@ TEST(parser, generated_233_002)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -383,7 +383,7 @@ TEST(parser, generated_233_003)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<variant<optional<int>, std::vector<char>>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -405,7 +405,7 @@ TEST(parser, generated_233_003)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -427,7 +427,7 @@ TEST(parser, generated_233_003)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<variant<optional<int>, std::vector<char>>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -449,7 +449,7 @@ TEST(parser, generated_233_003)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -471,7 +471,7 @@ TEST(parser, generated_233_003)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<variant<optional<int>, std::vector<char>>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -497,7 +497,7 @@ TEST(parser, generated_233_004)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -519,7 +519,7 @@ TEST(parser, generated_233_004)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, optional<std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -541,7 +541,7 @@ TEST(parser, generated_233_004)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -563,7 +563,7 @@ TEST(parser, generated_233_004)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, variant<std::vector<char>, optional<int>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -585,7 +585,7 @@ TEST(parser, generated_233_004)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -611,7 +611,7 @@ TEST(parser, generated_233_005)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<optional<int>, variant<optional<int>, std::vector<char>>, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -633,7 +633,7 @@ TEST(parser, generated_233_005)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
@@ -655,7 +655,7 @@ TEST(parser, generated_233_005)
         auto const fail_attr = parse(first, last, fail_parser);
         EXPECT_FALSE(fail_attr);
         {
-            tuple<typename attr_t::value_type, std::vector<int>> attr;
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);

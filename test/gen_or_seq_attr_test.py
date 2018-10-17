@@ -223,7 +223,7 @@ def type_to_fail_result(type_):
     if type_.startswith('tuple<'):
         elements = type_[len('tuple<'):-1].split(', ') + ['std::vector<int>']
         return seq_of(elements)
-    return 'tuple<typename attr_t::value_type, std::vector<int>>'
+    return seq_of((type_, 'std::vector<int>'))
 
 all_checks = []
 for expr_,type_,str_ in zip(all_exprs, all_types, all_strs):
@@ -246,14 +246,16 @@ for expr_,type_,str_ in zip(all_exprs, all_types, all_strs):
 '''.format(expr_, type_to_result(type_), str_)
     if type_to_result(type_) != 'bool':
         check += '''\
-        {{
-            {} attr;
+        {
+            decltype(parse(first, last, fail_parser)) attr;
             auto const copy = attr;
             EXPECT_FALSE(parse(first, last, fail_parser, attr));
             EXPECT_EQ(attr, copy);
-        }}
-    }}
-'''.format(type_to_fail_result(type_))
+        }
+'''
+    check += '''\
+    }
+'''
     all_checks.append(check)
 
 checks_per_file = 100

@@ -28,7 +28,7 @@ add_definitions(-ftemplate-backtrace-limit=0)
 macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} yaml gtest gtest_main ${link_flags})
-    add_test(${name} --gtest_catch_exceptions=1)
+    add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 
 file(GLOB generated_parser_tests generated_parsers_???.cpp)
