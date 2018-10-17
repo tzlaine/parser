@@ -31,11 +31,13 @@ macro(add_test_executable name)
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 
-file(GLOB generated_parser_tests generated_parsers_???.cpp)
-foreach(test ${generated_parser_tests})
-    get_filename_component(test_name ${test} NAME_WE)
-    add_test_executable(${test_name})
-endforeach()
+# Disabling these.  They served their purpose, but take too long to build and
+# run.
+#file(GLOB generated_parser_tests generated_parsers_???.cpp)
+#foreach(test ${generated_parser_tests})
+#    get_filename_component(test_name ${test} NAME_WE)
+#    add_test_executable(${test_name})
+#endforeach()
 
 add_test_executable(parser_rule)
 add_test_executable(parser_action)
