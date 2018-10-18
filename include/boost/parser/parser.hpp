@@ -100,13 +100,38 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
-                    hana::type_c<error_handler_tag>, &error_handler));
+                    hana::type_c<error_handler_tag>, &error_handler),
+                hana::make_pair(hana::type_c<callbacks_tag>, global_nope));
+        }
+
+        template<typename ErrorHandler, typename Callbacks>
+        inline auto make_context(
+            bool & success,
+            int & indent,
+            ErrorHandler const & error_handler,
+            Callbacks const & callbacks) noexcept
+        {
+            return hana::make_map(
+                hana::make_pair(hana::type_c<pass_tag>, &success),
+                hana::make_pair(hana::type_c<val_tag>, global_nope),
+                hana::make_pair(hana::type_c<attr_tag>, global_nope),
+                hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
+                hana::make_pair(
+                    hana::type_c<error_handler_tag>, &error_handler),
+                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks));
         }
 
         template<typename Context>
         inline decltype(auto) _indent(Context const & context)
         {
             return *context[hana::type_c<trace_indent_tag>];
+        }
+
+        template<typename Context>
+        inline decltype(auto) _callbacks(Context const & context)
+        {
+            return *context[hana::type_c<callbacks_tag>];
         }
 
 
@@ -219,6 +244,15 @@ namespace boost { namespace parser {
             decltype(std::declval<U &>() = std::declval<T>());
         template<typename T, typename U>
         struct is_move_assignable : is_detected<move_assignable, T, U>
+        {
+        };
+
+        template<typename Callbacks, typename TagType, typename ResultType>
+        using overloaded_callback = decltype(std::declval<Callbacks>()(
+            hana::type_c<TagType>, std::declval<ResultType>()));
+        template<typename Callbacks, typename TagType, typename ResultType>
+        struct has_overloaded_callback
+            : is_detected<overloaded_callback, Callbacks, TagType, ResultType>
         {
         };
 
@@ -1877,9 +1911,8 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-    // TODO: Add a variant of this for callback-driving rules.
     template<typename TagType, typename Attribute, typename LocalState>
-    struct rule_parser
+    struct rule_parser<false, TagType, Attribute, LocalState>
     {
         using tag_type = TagType;
         using attr_type = Attribute;
@@ -1957,6 +1990,111 @@ namespace boost { namespace parser {
                     success,
                     retval);
             }
+        }
+
+        std::string_view name_;
+    };
+
+    template<typename TagType, typename Attribute, typename LocalState>
+    struct rule_parser<true, TagType, Attribute, LocalState>
+    {
+        using tag_type = TagType;
+        using attr_type = Attribute;
+        using locals_type = LocalState;
+
+        template<typename Iter, typename Context, typename SkipParser>
+        detail::nope call(
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            attr_type retval;
+            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+
+            tag_type * const tag_ptr = nullptr;
+            if constexpr (std::is_same<locals_type, detail::nope>{}) {
+                auto const rule_context = hana::insert(
+                    hana::erase_key(context, val_),
+                    hana::make_pair(val_, &retval));
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            } else {
+                locals_type locals;
+                // Replace the context's current locals with these, and its
+                // current val with retval.
+                auto const rule_context = hana::insert(
+                    hana::insert(
+                        hana::erase_key(
+                            hana::erase_key(context, locals_), val_),
+                        hana::make_pair(locals_, &locals)),
+                    hana::make_pair(val_, &retval));
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            }
+
+            static_assert(
+                !std::is_same<
+                    std::decay_t<decltype(
+                        context[hana::type_c<detail::callbacks_tag>])>,
+                    detail::nope>{},
+                "Callbacks must be supplied in the context for this parser to "
+                "work.  Did you forget to use call callback_*parse() instead "
+                "of *parse()?");
+
+            auto const & callbacks = _callbacks(context);
+
+            if constexpr (detail::has_overloaded_callback<
+                              decltype((callbacks)),
+                              tag_type,
+                              decltype(std::move(retval))>{}) {
+                if (success)
+                    callbacks(hana::type_c<tag_type>, std::move(retval));
+            } else {
+                // Callbacks must be a struct with overloads of the form
+                // void(hana::basic_type<tag_type>, attr_type &) (the case
+                // above), or Callbacks mut be a hana::map that containts a
+                // callback of the form void(attr_type &) for each associated
+                // tag_type (this case).  If you're seeing an error here, you
+                // probably have not met this contract.
+                if (success)
+                    callbacks[hana::type_c<tag_type>](std::move(retval));
+            }
+
+            return {};
+        }
+
+        template<
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename Attribute_>
+        void call(
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute_ &) const
+        {
+            call(first, last, context, skip, flags, success);
         }
 
         std::string_view name_;
@@ -2153,9 +2291,23 @@ namespace boost { namespace parser {
         typename TagType,
         typename Attribute = no_attribute,
         typename LocalState = no_local_state>
-    struct rule : parser_interface<rule_parser<TagType, Attribute, LocalState>>
+    struct rule
+        : parser_interface<rule_parser<false, TagType, Attribute, LocalState>>
     {
         constexpr rule(char const * name) { this->parser_.name_ = name; }
+    };
+
+    template<
+        typename TagType,
+        typename Attribute,
+        typename LocalState = no_local_state>
+    struct callback_rule
+        : parser_interface<rule_parser<true, TagType, Attribute, LocalState>>
+    {
+        constexpr callback_rule(char const * name)
+        {
+            this->parser_.name_ = name;
+        }
     };
 
     // TODO: This should define a type with these two overloads and a
@@ -3361,6 +3513,77 @@ namespace boost { namespace parser {
         auto first = str.begin();
         auto const last = str.end();
         return parse(first, last, parser, error_handler);
+    }
+
+    // TODO: Add remaining callback_*parse() overloads.
+    template<
+        typename Iter,
+        typename Parser,
+        typename ErrorHandler,
+        typename Callbacks>
+    bool callback_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto const initial_first = first;
+        bool success = true;
+        int trace_indent = 0;
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, callbacks);
+        try {
+            parser(
+                first,
+                last,
+                context,
+                detail::null_parser{},
+                detail::flags::gen_attrs,
+                success);
+            return success;
+        } catch (parse_error<Iter> const & e) {
+            if (error_handler(initial_first, last, e) ==
+                error_handler_result::rethrow) {
+                throw;
+            }
+            return false;
+        }
+    }
+
+    template<typename Iter, typename Parser, typename Callbacks>
+    auto callback_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        Callbacks const & callbacks)
+    {
+        return callback_parse(
+            first, last, parser, default_error_handler{}, callbacks);
+    }
+
+    template<typename Parser, typename Callbacks>
+    auto callback_parse(
+        std::string_view str,
+        Parser const & parser,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return callback_parse(
+            first, last, parser, default_error_handler{}, callbacks);
+    }
+
+    template<typename Parser, typename ErrorHandler, typename Callbacks>
+    auto callback_parse(
+        std::string_view str,
+        Parser const & parser,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return callback_parse(first, last, parser, error_handler, callbacks);
     }
 
     template<typename Iter, typename Parser, typename SkipParser, typename Attr>

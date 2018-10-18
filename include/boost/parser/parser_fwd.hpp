@@ -28,6 +28,7 @@ namespace boost { namespace parser {
         struct locals_tag;
         struct trace_indent_tag;
         struct error_handler_tag;
+        struct callbacks_tag;
     }
 
     template<typename Parser, typename DelimiterParser = detail::nope>
@@ -69,13 +70,11 @@ namespace boost { namespace parser {
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
 
-    template<typename Parser, typename Attribute, typename LocalState>
-    struct rule_parser;
-
     template<
+        bool UseCallbacks,
         typename Parser,
-        typename Attribute = detail::nope,
-        typename LocalState = detail::nope>
+        typename Attribute,
+        typename LocalState>
     struct rule_parser;
 
     template<typename Parser>

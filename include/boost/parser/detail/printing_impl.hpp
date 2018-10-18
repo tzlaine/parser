@@ -196,9 +196,13 @@ namespace boost { namespace parser { namespace detail {
         parser_name(parser.parser_, str, components + 1);
     }
 
-    template<typename Parser, typename Attribute, typename LocalState>
+    template<
+        bool UseCallbacks,
+        typename Parser,
+        typename Attribute,
+        typename LocalState>
     void parser_name(
-        rule_parser<Parser, Attribute, LocalState> const & parser,
+        rule_parser<UseCallbacks, Parser, Attribute, LocalState> const & parser,
         std::string & str,
         int components)
     {

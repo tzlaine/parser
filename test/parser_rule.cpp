@@ -109,3 +109,80 @@ TEST(parser, vector_attribute_rules)
             *parse(str, flat_vector_rule), std::vector<char>({'a', 'b', 'c'}));
     }
 }
+
+constexpr callback_rule<struct callback_vector_rule_tag, std::vector<char>>
+    callback_vector_rule = "callback_vector_rule";
+constexpr auto callback_vector_rule_def = string("abc") | string("def");
+BOOST_PARSER_DEFINE_RULES(callback_vector_rule);
+
+struct callbacks_t
+{
+    void operator()(
+        boost::hana::basic_type<callback_vector_rule_tag>,
+        std::vector<char> && vec) const
+    {
+        all_results.push_back(std::move(vec));
+    }
+
+    mutable std::vector<std::vector<char>> all_results;
+};
+
+TEST(parser, callback_rules)
+{
+    {
+        std::string const str = "xyz";
+        callbacks_t callbacks;
+        EXPECT_FALSE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 0u);
+    }
+    {
+        std::string const str = "abc";
+        callbacks_t callbacks;
+        EXPECT_TRUE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(callbacks.all_results[0], std::vector<char>({'a', 'b', 'c'}));
+    }
+    {
+        std::string const str = "def";
+        callbacks_t callbacks;
+        EXPECT_TRUE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(callbacks.all_results[0], std::vector<char>({'d', 'e', 'f'}));
+    }
+
+    {
+        std::string const str = "xyz";
+        std::vector<std::vector<char>> all_results;
+        auto record_results = [&all_results](std::vector<char> && vec) {
+            all_results.push_back(std::move(vec));
+        };
+        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
+            boost::hana::type_c<callback_vector_rule_tag>, record_results));
+        EXPECT_FALSE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(all_results.size(), 0u);
+    }
+    {
+        std::string const str = "abc";
+        std::vector<std::vector<char>> all_results;
+        auto record_results = [&all_results](std::vector<char> && vec) {
+            all_results.push_back(std::move(vec));
+        };
+        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
+            boost::hana::type_c<callback_vector_rule_tag>, record_results));
+        EXPECT_TRUE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(all_results.size(), 1u);
+        EXPECT_EQ(all_results[0], std::vector<char>({'a', 'b', 'c'}));
+    }
+    {
+        std::string const str = "def";
+        std::vector<std::vector<char>> all_results;
+        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
+            boost::hana::type_c<callback_vector_rule_tag>,
+            [&all_results](std::vector<char> && vec) {
+                all_results.push_back(std::move(vec));
+            }));
+        EXPECT_TRUE(callback_parse(str, callback_vector_rule, callbacks));
+        EXPECT_EQ(all_results.size(), 1u);
+        EXPECT_EQ(all_results[0], std::vector<char>({'d', 'e', 'f'}));
+    }
+}
