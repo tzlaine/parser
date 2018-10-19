@@ -14,7 +14,7 @@ set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app wit
 ##################################################
 add_executable(parser parser.cpp)
 target_link_libraries(parser yaml gtest gtest_main ${link_flags})
-add_test(parser --gtest_catch_exceptions=1)
+add_test(NAME parser COMMAND parser ---gtest_catch_exceptions=1)
 
 add_executable(
     compile_tests
