@@ -4025,7 +4025,6 @@ namespace boost { namespace parser {
         return parse(first, last, parser, error_handler);
     }
 
-    // TODO: Add remaining callback_*parse() overloads.
     template<
         typename Iter,
         typename Parser,
@@ -4257,6 +4256,101 @@ namespace boost { namespace parser {
     template<
         typename Iter,
         typename Parser,
+        typename SkipParser,
+        typename ErrorHandler,
+        typename Callbacks>
+    auto callback_skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto const initial_first = first;
+        bool success = true;
+        int trace_indent = 0;
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, callbacks, parser.globals_);
+        detail::skip(first, last, skip, detail::default_flags());
+        using attr_t = decltype(parser(
+            hana::false_c,
+            first,
+            last,
+            context,
+            skip,
+            detail::default_flags(),
+            success));
+        try {
+            attr_t attr_ = parser(
+                hana::false_c,
+                first,
+                last,
+                context,
+                skip,
+                detail::default_flags(),
+                success);
+            detail::skip(first, last, skip, detail::default_flags());
+            return detail::make_parse_result(attr_, success);
+        } catch (parse_error<Iter> const & e) {
+            if (error_handler(initial_first, last, e) ==
+                error_handler_result::rethrow) {
+                throw;
+            }
+            attr_t attr_;
+            return detail::make_parse_result(attr_, false);
+        }
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
+        typename SkipParser,
+        typename Callbacks>
+    auto callback_skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        Callbacks const & callbacks)
+    {
+        return skip_parse(
+            first, last, parser, skip, default_error_handler{}, callbacks);
+    }
+
+    template<
+        typename Parser,
+        typename SkipParser,
+        typename ErrorHandler,
+        typename Callbacks>
+    auto callback_skip_parse(
+        std::string_view str,
+        Parser const & parser,
+        SkipParser const & skip,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return skip_parse(first, last, parser, skip, error_handler, callbacks);
+    }
+
+    template<typename Parser, typename SkipParser, typename Callbacks>
+    auto callback_skip_parse(
+        std::string_view str,
+        Parser const & parser,
+        SkipParser const & skip,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return skip_parse(
+            first, last, parser, skip, default_error_handler{}, callbacks);
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
         typename Attr,
         typename ErrorHandler>
     bool debug_parse(
@@ -4379,6 +4473,82 @@ namespace boost { namespace parser {
         auto first = str.begin();
         auto const last = str.end();
         return debug_parse(first, last, parser, default_error_handler{});
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
+        typename ErrorHandler,
+        typename Callbacks>
+    auto debug_callback_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto const initial_first = first;
+        bool success = true;
+        int trace_indent = 0;
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, callbacks, parser.globals_);
+        auto const flags = enable_trace(detail::flags::gen_attrs);
+        using attr_t = decltype(parser(
+            first, last, context, detail::null_parser{}, flags, success));
+        try {
+            attr_t attr_ = parser(
+                hana::false_c,
+                first,
+                last,
+                context,
+                detail::null_parser{},
+                flags,
+                success);
+            final_trace(context, flags, detail::nope{});
+            return detail::make_parse_result(attr_, success);
+        } catch (parse_error<Iter> const & e) {
+            if (error_handler(initial_first, last, e) ==
+                error_handler_result::rethrow) {
+                throw;
+            }
+            attr_t attr_;
+            return detail::make_parse_result(attr_, false);
+        }
+    }
+
+    template<typename Iter, typename Parser, typename Callbacks>
+    auto debug_callback_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        Callbacks const & callbacks)
+    {
+        return debug_parse(
+            first, last, parser, default_error_handler{}, callbacks);
+    }
+
+    template<typename Parser, typename ErrorHandler, typename Callbacks>
+    auto debug_callback_parse(
+        std::string_view str,
+        Parser const & parser,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return debug_parse(first, last, parser, error_handler, callbacks);
+    }
+
+    template<typename Parser, typename Callbacks>
+    auto debug_callback_parse(
+        std::string_view str,
+        Parser const & parser,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return debug_parse(
+            first, last, parser, default_error_handler{}, callbacks);
     }
 
     template<
@@ -4531,6 +4701,92 @@ namespace boost { namespace parser {
         auto const last = str.end();
         return debug_skip_parse(
             first, last, parser, skip, default_error_handler{});
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
+        typename SkipParser,
+        typename ErrorHandler,
+        typename Callbacks>
+    auto debug_callback_skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto const initial_first = first;
+        bool success = true;
+        int trace_indent = 0;
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, callbacks, parser.globals_);
+        auto const flags = enable_trace(detail::default_flags());
+        detail::skip(first, last, skip, flags);
+        using attr_t =
+            decltype(parser(first, last, context, skip, flags, success));
+        try {
+            attr_t attr_ = parser(
+                hana::false_c, first, last, context, skip, flags, success);
+            detail::skip(first, last, skip, flags);
+            final_trace(context, flags, detail::nope{});
+            return detail::make_parse_result(attr_, success);
+        } catch (parse_error<Iter> const & e) {
+            if (error_handler(initial_first, last, e) ==
+                error_handler_result::rethrow) {
+                throw;
+            }
+            attr_t attr_;
+            return detail::make_parse_result(attr_, false);
+        }
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
+        typename SkipParser,
+        typename Callbacks>
+    auto debug_callback_skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        Callbacks const & callbacks)
+    {
+        return debug_skip_parse(
+            first, last, parser, skip, default_error_handler{}, callbacks);
+    }
+
+    template<
+        typename Parser,
+        typename SkipParser,
+        typename ErrorHandler,
+        typename Callbacks>
+    auto debug_callback_skip_parse(
+        std::string_view str,
+        Parser const & parser,
+        SkipParser const & skip,
+        ErrorHandler const & error_handler,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return debug_skip_parse(
+            first, last, parser, skip, error_handler, callbacks);
+    }
+
+    template<typename Parser, typename SkipParser, typename Callbacks>
+    auto debug_callback_skip_parse(
+        std::string_view str,
+        Parser const & parser,
+        SkipParser const & skip,
+        Callbacks const & callbacks)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return debug_skip_parse(
+            first, last, parser, skip, default_error_handler{}, callbacks);
     }
 
 }}
