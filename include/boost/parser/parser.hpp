@@ -2708,8 +2708,8 @@ namespace boost { namespace parser {
     {
         symbols & add(std::string_view str, T x)
         {
-            // TODO: str -> code point range.
-            this->parser_.trie_.insert(str, std::move(x));
+            this->parser_.trie_.insert(
+                text::make_to_utf32_range(str), std::move(x));
             return *this;
         }
 
