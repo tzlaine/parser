@@ -92,13 +92,34 @@ namespace boost { namespace parser {
         inline auto make_context(
             bool & success,
             int & indent,
-            ErrorHandler const & error_handler) noexcept
+            ErrorHandler const & error_handler,
+            nope &) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<globals_tag>, global_nope),
+                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
+                hana::make_pair(
+                    hana::type_c<error_handler_tag>, &error_handler),
+                hana::make_pair(hana::type_c<callbacks_tag>, global_nope));
+        }
+
+        template<typename ErrorHandler, typename GlobalState>
+        inline auto make_context(
+            bool & success,
+            int & indent,
+            ErrorHandler const & error_handler,
+            GlobalState & globals) noexcept
+        {
+            return hana::make_map(
+                hana::make_pair(hana::type_c<pass_tag>, &success),
+                hana::make_pair(hana::type_c<val_tag>, global_nope),
+                hana::make_pair(hana::type_c<attr_tag>, global_nope),
+                hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<globals_tag>, &globals),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
@@ -110,13 +131,38 @@ namespace boost { namespace parser {
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
-            Callbacks const & callbacks) noexcept
+            Callbacks const & callbacks,
+            nope &) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<globals_tag>, global_nope),
+                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
+                hana::make_pair(
+                    hana::type_c<error_handler_tag>, &error_handler),
+                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks));
+        }
+
+        template<
+            typename ErrorHandler,
+            typename Callbacks,
+            typename GlobalState>
+        inline auto make_context(
+            bool & success,
+            int & indent,
+            ErrorHandler const & error_handler,
+            Callbacks const & callbacks,
+            GlobalState & globals) noexcept
+        {
+            return hana::make_map(
+                hana::make_pair(hana::type_c<pass_tag>, &success),
+                hana::make_pair(hana::type_c<val_tag>, global_nope),
+                hana::make_pair(hana::type_c<attr_tag>, global_nope),
+                hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<globals_tag>, &globals),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
@@ -488,7 +534,8 @@ namespace boost { namespace parser {
             bool success = true;
             int indent = 0;
             rethrow_error_handler eh;
-            auto const context = make_context(success, indent, eh);
+            nope n;
+            auto const context = make_context(success, indent, eh, n);
             while (success) {
                 skip_(
                     hana::false_c,
@@ -761,6 +808,7 @@ namespace boost { namespace parser {
     inline constexpr auto where_ = tag<detail::where_tag>;
     inline constexpr auto pass_ = tag<detail::pass_tag>;
     inline constexpr auto locals_ = tag<detail::locals_tag>;
+    inline constexpr auto globals_ = tag<detail::globals_tag>;
     inline constexpr auto error_handler_ = tag<detail::error_handler_tag>;
 
     template<typename Context>
@@ -789,6 +837,11 @@ namespace boost { namespace parser {
         return *context[locals_];
     }
     template<typename Context>
+    inline decltype(auto) _globals(Context const & context)
+    {
+        return *context[globals_];
+    }
+    template<typename Context>
     inline decltype(auto) _error_handler(Context const & context)
     {
         return *context[error_handler_];
@@ -797,8 +850,6 @@ namespace boost { namespace parser {
 
 
     // TODO: no_skip[]?
-
-    // TODO: Support adding arbitrary context state to a parser, a la with[].
 
     // TODO: All the parsers are constexpr.  Figure out how to use them for
     // compile-time parsing.
@@ -2453,7 +2504,7 @@ namespace boost { namespace parser {
 
     // Parser interface.
 
-    template<typename Parser>
+    template<typename Parser, typename GlobalState>
     struct parser_interface
     {
         using parser_type = Parser;
@@ -2639,7 +2690,18 @@ namespace boost { namespace parser {
         }
 
         Parser parser_;
+        GlobalState globals_;
     };
+
+
+    template<typename Parser, typename GlobalState>
+    auto with_globals(
+        parser_interface<Parser, detail::nope> const & parser,
+        GlobalState globals)
+    {
+        return parser_interface<Parser, GlobalState>{parser.parser_,
+                                                     std::move(globals)};
+    }
 
 
     template<typename T>
@@ -3541,8 +3603,9 @@ namespace boost { namespace parser {
     inline constexpr parser_interface<float_parser<float>> float_;
     inline constexpr parser_interface<float_parser<double>> double_;
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator>>(char rhs) const noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator>>(char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append<true>(lit(rhs));
@@ -3551,9 +3614,9 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator>>(char32_t rhs) const
-        noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator>>(char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append<true>(lit(rhs));
@@ -3562,8 +3625,8 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
     operator>>(std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
@@ -3604,8 +3667,9 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator>(char rhs) const noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator>(char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append<false>(lit(rhs));
@@ -3614,9 +3678,9 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator>(char32_t rhs) const
-        noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator>(char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append<false>(lit(rhs));
@@ -3625,8 +3689,8 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
     operator>(std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
@@ -3667,8 +3731,9 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator|(char rhs) const noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator|(char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append(lit(rhs));
@@ -3677,9 +3742,9 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator|(char32_t rhs) const
-        noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator|(char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.append(lit(rhs));
@@ -3688,8 +3753,8 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
     operator|(std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
@@ -3730,21 +3795,22 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator-(char rhs) const noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator-(char rhs) const noexcept
     {
         return *this >> !lit(rhs);
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator-(char32_t rhs) const
-        noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator-(char32_t rhs) const noexcept
     {
         return *this >> !lit(rhs);
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
     operator-(std::string_view rhs) const noexcept
     {
         return *this >> !lit(rhs);
@@ -3769,21 +3835,22 @@ namespace boost { namespace parser {
         return lit(str) >> !rhs;
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator%(char rhs) const noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator%(char rhs) const noexcept
     {
         return *this % lit(rhs);
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::operator%(char32_t rhs) const
-        noexcept
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
+    operator%(char32_t rhs) const noexcept
     {
         return *this % lit(rhs);
     }
 
-    template<typename Parser>
-    constexpr auto parser_interface<Parser>::
+    template<typename Parser, typename GlobalState>
+    constexpr auto parser_interface<Parser, GlobalState>::
     operator%(std::string_view rhs) const noexcept
     {
         return *this % lit(rhs);
@@ -3845,8 +3912,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         try {
             parser(
                 hana::false_c,
@@ -3903,8 +3970,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         using attr_t = decltype(parser(
             hana::false_c,
             first,
@@ -3975,7 +4042,7 @@ namespace boost { namespace parser {
         bool success = true;
         int trace_indent = 0;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, callbacks);
+            success, trace_indent, error_handler, callbacks, parser.globals_);
         try {
             parser(
                 hana::true_c,
@@ -4059,8 +4126,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         detail::skip(first, last, skip, detail::default_flags());
         try {
             parser(
@@ -4127,8 +4194,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         detail::skip(first, last, skip, detail::default_flags());
         using attr_t = decltype(parser(
             hana::false_c,
@@ -4202,8 +4269,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         auto const flags = enable_trace(detail::flags::gen_attrs);
         try {
             parser(
@@ -4263,8 +4330,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         auto const flags = enable_trace(detail::flags::gen_attrs);
         using attr_t = decltype(parser(
             first, last, context, detail::null_parser{}, flags, success));
@@ -4331,8 +4398,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         auto const flags = enable_trace(detail::default_flags());
         detail::skip(first, last, skip, flags);
         try {
@@ -4414,8 +4481,8 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
-        auto context =
-            detail::make_context(success, trace_indent, error_handler);
+        auto context = detail::make_context(
+            success, trace_indent, error_handler, parser.globals_);
         auto const flags = enable_trace(detail::default_flags());
         detail::skip(first, last, skip, flags);
         using attr_t =
