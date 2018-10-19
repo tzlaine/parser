@@ -7,6 +7,7 @@
 #include <boost/hana.hpp>
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
+#include <boost/text/utf8.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -267,16 +268,16 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Iter>
-    inline void trace_input(Iter first, Iter last)
+    inline void trace_input(Iter first_, Iter last_)
     {
-        // TODO: Print 8 code points worth of characters; use UTF-8 ->
-        // UTF-32 iteration to get the number of code units to print when
-        // *first is a char, and UTF-32 -> UTF-8 transcoding when *first
-        // is a char32_t.  In both cases, the output should be UTF-8.
-
+        auto first = text::utf8::make_to_utf32_iterator(first_, first_, last_);
+        auto last = text::utf8::make_to_utf32_iterator(first_, last_, last_);
+        for (int i = 0; i < trace_input_cps && first != last; ++i) {
+            ++first;
+        }
         std::cout << '"';
-        for (int i = 0; i != trace_input_cps && first != last; ++first, ++i) {
-            std::cout << *first;
+        for (Iter it = first_, end = first.base(); it != end; ++it) {
+            std::cout << *it;
         }
         std::cout << '"';
     }
@@ -391,7 +392,7 @@ namespace boost { namespace parser { namespace detail {
     template<typename... T>
     inline void print(variant<T...> const & attr)
     {
-        std::cout << "TODO"; // TODO
+        std::cout << "<<variant>>";
     }
 
     template<typename T>
