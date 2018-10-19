@@ -2280,94 +2280,94 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            attr_type retval;
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
-
-            tag_type * const tag_ptr = nullptr;
-            if constexpr (std::is_same<locals_type, detail::nope>{}) {
-                auto const rule_context = hana::insert(
-                    hana::erase_key(context, val_),
-                    hana::make_pair(val_, &retval));
-                parse_rule(
-                    tag_ptr,
-                    hana::true_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
+            if constexpr (!UseCallbacks) {
+                rule_parser<false, TagType, Attribute, LocalState>
+                    without_callbacks{name_};
+                return without_callbacks.call(
+                    use_cbs, first, last, context, skip, flags, success);
             } else {
-                locals_type locals;
-                // Replace the context's current locals with these, and its
-                // current val with retval.
-                auto const rule_context = hana::insert(
-                    hana::insert(
-                        hana::erase_key(
-                            hana::erase_key(context, locals_), val_),
-                        hana::make_pair(locals_, &locals)),
-                    hana::make_pair(val_, &retval));
-                parse_rule(
-                    tag_ptr,
-                    hana::true_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-            }
+                attr_type retval;
+                auto _ =
+                    scoped_trace(*this, first, last, context, flags, retval);
 
-            static_assert(
-                !std::is_same<
-                    std::decay_t<decltype(
-                        context[hana::type_c<detail::callbacks_tag>])>,
-                    detail::nope>{},
-                "Callbacks must be supplied in the context for this parser to "
-                "work.  Did you forget to use call callback_*parse() instead "
-                "of *parse()?");
+                tag_type * const tag_ptr = nullptr;
+                if constexpr (std::is_same<locals_type, detail::nope>{}) {
+                    auto const rule_context = hana::insert(
+                        hana::erase_key(context, val_),
+                        hana::make_pair(val_, &retval));
+                    parse_rule(
+                        tag_ptr,
+                        hana::true_c,
+                        first,
+                        last,
+                        rule_context,
+                        skip,
+                        flags,
+                        success,
+                        retval);
+                } else {
+                    locals_type locals;
+                    // Replace the context's current locals with these, and
+                    // its current val with retval.
+                    auto const rule_context = hana::insert(
+                        hana::insert(
+                            hana::erase_key(
+                                hana::erase_key(context, locals_), val_),
+                            hana::make_pair(locals_, &locals)),
+                        hana::make_pair(val_, &retval));
+                    parse_rule(
+                        tag_ptr,
+                        hana::true_c,
+                        first,
+                        last,
+                        rule_context,
+                        skip,
+                        flags,
+                        success,
+                        retval);
+                }
 
-            if (!success)
+                if (!success)
+                    return {};
+
+                auto const & callbacks = _callbacks(context);
+
+                if constexpr (std::is_same<attr_type, detail::nope>{}) {
+                    if constexpr (detail::has_overloaded_callback_1<
+                                      decltype((callbacks)),
+                                      tag_type>{}) {
+                        callbacks(hana::type_c<tag_type>);
+                    } else {
+                        // For rules without attributes, Callbacks must be a
+                        // struct with overloads of the form
+                        // void(hana::basic_type<tag_type>) (the case above),
+                        // or Callbacks mut be a hana::map that contains a
+                        // callback of the form void() for each associated
+                        // tag_type (this case).  If you're seeing an error
+                        // here, you probably have not met this contract.
+                        callbacks[hana::type_c<tag_type>]();
+                    }
+                } else {
+                    if constexpr (detail::has_overloaded_callback_2<
+                                      decltype((callbacks)),
+                                      tag_type,
+                                      decltype(std::move(retval))>{}) {
+                        callbacks(hana::type_c<tag_type>, std::move(retval));
+                    } else {
+                        // For rules with attributes, Callbacks must be a
+                        // struct with overloads of the form
+                        // void(hana::basic_type<tag_type>, attr_type &) (the
+                        // case above), or Callbacks mut be a hana::map that
+                        // contains a callback of the form void(attr_type &)
+                        // for each associated tag_type (this case).  If
+                        // you're seeing an error here, you probably have not
+                        // met this contract.
+                        callbacks[hana::type_c<tag_type>](std::move(retval));
+                    }
+                }
+
                 return {};
-
-            auto const & callbacks = _callbacks(context);
-
-            if constexpr (std::is_same<attr_type, detail::nope>{}) {
-                if constexpr (detail::has_overloaded_callback_1<
-                                  decltype((callbacks)),
-                                  tag_type>{}) {
-                    callbacks(hana::type_c<tag_type>);
-                } else {
-                    // For rules without attributes, Callbacks must be a
-                    // struct with overloads of the form
-                    // void(hana::basic_type<tag_type>) (the case above), or
-                    // Callbacks mut be a hana::map that contains a callback
-                    // of the form void() for each associated tag_type (this
-                    // case).  If you're seeing an error here, you probably
-                    // have not met this contract.
-                    callbacks[hana::type_c<tag_type>]();
-                }
-            } else {
-                if constexpr (detail::has_overloaded_callback_2<
-                                  decltype((callbacks)),
-                                  tag_type,
-                                  decltype(std::move(retval))>{}) {
-                    callbacks(hana::type_c<tag_type>, std::move(retval));
-                } else {
-                    // For rules with attributes, Callbacks must be a struct
-                    // with overloads of the form
-                    // void(hana::basic_type<tag_type>, attr_type &) (the case
-                    // above), or Callbacks mut be a hana::map that contains a
-                    // callback of the form void(attr_type &) for each
-                    // associated tag_type (this case).  If you're seeing an
-                    // error here, you probably have not met this contract.
-                    callbacks[hana::type_c<tag_type>](std::move(retval));
-                }
             }
-
-            return {};
         }
 
         template<
@@ -2384,9 +2384,16 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             detail::flags flags,
             bool & success,
-            Attribute_ &) const
+            Attribute_ & attr) const
         {
-            call(use_cbs, first, last, context, skip, flags, success);
+            if (!UseCallbacks) {
+                rule_parser<false, TagType, Attribute, LocalState>
+                    without_callbacks{name_};
+                without_callbacks.call(
+                    use_cbs, first, last, context, skip, flags, success, attr);
+            } else {
+                call(use_cbs, first, last, context, skip, flags, success);
+            }
         }
 
         std::string_view name_;

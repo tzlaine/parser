@@ -108,6 +108,10 @@ TEST(parser, vector_attribute_rules)
         EXPECT_EQ(
             *parse(str, flat_vector_rule), std::vector<char>({'a', 'b', 'c'}));
     }
+    {
+        std::string const str = "abcaabc";
+        EXPECT_EQ(callback_parse(str, flat_vector_rule, int{}), true);
+    }
 }
 
 constexpr callback_rule<struct callback_vector_rule_tag, std::vector<char>>
@@ -245,5 +249,72 @@ TEST(parser, callback_rules)
             [&void_callback_called]() { void_callback_called = true; }));
         EXPECT_TRUE(callback_parse(str, callback_void_rule, callbacks));
         EXPECT_TRUE(void_callback_called);
+    }
+}
+
+TEST(parser, callback_rules_normal_parse)
+{
+    {
+        std::string const str = "xyz";
+        std::vector<char> chars;
+        EXPECT_FALSE(parse(str, callback_vector_rule, chars));
+    }
+    {
+        std::string const str = "abc";
+        std::vector<char> chars;
+        EXPECT_TRUE(parse(str, callback_vector_rule, chars));
+        EXPECT_EQ(chars, std::vector<char>({'a', 'b', 'c'}));
+    }
+    {
+        std::string const str = "def";
+        std::vector<char> chars;
+        EXPECT_TRUE(parse(str, callback_vector_rule, chars));
+        EXPECT_EQ(chars, std::vector<char>({'d', 'e', 'f'}));
+    }
+
+    {
+        std::string const str = "xyz";
+        std::vector<char> chars;
+        EXPECT_FALSE(parse(str, callback_void_rule, chars));
+    }
+    {
+        std::string const str = "abc";
+        std::vector<char> chars;
+        EXPECT_TRUE(parse(str, callback_void_rule, chars));
+    }
+    {
+        std::string const str = "def";
+        EXPECT_TRUE(parse(str, callback_void_rule));
+    }
+
+    {
+        std::string const str = "xyz";
+        auto const chars = parse(str, callback_vector_rule);
+        EXPECT_FALSE(chars);
+    }
+    {
+        std::string const str = "abc";
+        auto const chars = parse(str, callback_vector_rule);
+        EXPECT_TRUE(chars);
+        EXPECT_EQ(chars, std::vector<char>({'a', 'b', 'c'}));
+    }
+    {
+        std::string const str = "def";
+        auto const chars = parse(str, callback_vector_rule);
+        EXPECT_TRUE(chars);
+        EXPECT_EQ(chars, std::vector<char>({'d', 'e', 'f'}));
+    }
+
+    {
+        std::string const str = "xyz";
+        EXPECT_FALSE(parse(str, callback_vector_rule));
+    }
+    {
+        std::string const str = "abc";
+        EXPECT_TRUE(parse(str, callback_vector_rule));
+    }
+    {
+        std::string const str = "def";
+        EXPECT_TRUE(parse(str, callback_vector_rule));
     }
 }
