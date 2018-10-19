@@ -1,6 +1,8 @@
 #ifndef BOOST_PARSER_ERROR_HANDLING_HPP
 #define BOOST_PARSER_ERROR_HANDLING_HPP
 
+#include <boost/text/utf8.hpp>
+
 #include <array>
 #include <functional>
 #include <iostream>
@@ -100,18 +102,25 @@ namespace boost { namespace parser {
             os << " (end of input)";
         os << ":\n";
 
-        // TODO: This should be transcoded from UTF-32 if necessary!
-        std::string underlining;
-        for (Iter it2 = first; it2 != it; ++it2) {
-            os << *it2;
-            underlining += ' ';
+        std::string underlining(std::distance(first, it), ' ');
+        if constexpr (sizeof(*first) == 4) {
+            for (auto it2 = text::utf8::make_from_utf32_iterator(
+                          first, first, it),
+                      end = text::utf8::make_from_utf32_iterator(first, it, it);
+                 it2 != end;
+                 ++it2) {
+                os << *it2;
+            }
+        } else {
+            for (Iter it2 = first; it2 != it; ++it2) {
+                os << *it2;
+            }
         }
         if (it == last) {
             os << '\n' << underlining << "^\n";
             return os;
         }
 
-        os << *it;
         underlining += '^';
 
         int64_t const limit = (std::max)(
@@ -120,8 +129,19 @@ namespace boost { namespace parser {
 
         int64_t i = (int64_t)underlining.size();
         auto const line_end = find_line_end(std::next(it), last);
-        for (Iter it2 = std::next(it); i < limit && it2 != line_end; ++it2) {
-            os << *it2;
+        if constexpr (sizeof(*first) == 4) {
+            for (auto it2 = text::utf8::make_from_utf32_iterator(
+                          it, it, line_end),
+                      end = text::utf8::make_from_utf32_iterator(
+                          it, line_end, line_end);
+                 i < limit && it2 != end;
+                 ++it2) {
+                os << *it2;
+            }
+        } else {
+            for (Iter it2 = it; i < limit && it2 != line_end; ++it2) {
+                os << *it2;
+            }
         }
 
         os << '\n' << underlining << '\n';
