@@ -239,20 +239,21 @@ namespace boost { namespace parser {
         {
         };
 
-        template<typename T, typename U>
-        using move_assignable =
-            decltype(std::declval<U &>() = std::declval<T>());
-        template<typename T, typename U>
-        struct is_move_assignable : is_detected<move_assignable, T, U>
+        template<typename Callbacks, typename TagType>
+        using overloaded_callback_1 =
+            decltype(std::declval<Callbacks>()(hana::type_c<TagType>));
+        template<typename Callbacks, typename TagType>
+        struct has_overloaded_callback_1
+            : is_detected<overloaded_callback_1, Callbacks, TagType>
         {
         };
 
         template<typename Callbacks, typename TagType, typename ResultType>
-        using overloaded_callback = decltype(std::declval<Callbacks>()(
+        using overloaded_callback_2 = decltype(std::declval<Callbacks>()(
             hana::type_c<TagType>, std::declval<ResultType>()));
         template<typename Callbacks, typename TagType, typename ResultType>
-        struct has_overloaded_callback
-            : is_detected<overloaded_callback, Callbacks, TagType, ResultType>
+        struct has_overloaded_callback_2
+            : is_detected<overloaded_callback_2, Callbacks, TagType, ResultType>
         {
         };
 
@@ -383,6 +384,17 @@ namespace boost { namespace parser {
 
         inline void append(nope &, nope &&, bool gen_attrs) {}
 
+        template<typename Container, typename Iter>
+        void append(Container & c, Iter first, Iter last, bool gen_attrs)
+        {
+            if (gen_attrs)
+                c.insert(c.end(), first, last);
+        }
+
+        template<typename Iter>
+        void append(nope &, Iter first, Iter last, bool gen_attrs)
+        {}
+
         constexpr inline flags default_flags()
         {
             return flags(
@@ -495,7 +507,7 @@ namespace boost { namespace parser {
         {
             optional<T> retval;
             if (success)
-                retval = std::move(x);
+                retval = x;
             return retval;
         }
 
@@ -655,7 +667,7 @@ namespace boost { namespace parser {
                     auto attr = parser.call(
                         use_cbs, first, last, context, skip, flags, success);
                     if (success)
-                        retval = variant<T...>(std::move(attr));
+                        assign(retval, variant<T...>(std::move(attr)));
                 }
             }
         }
@@ -912,7 +924,7 @@ namespace boost { namespace parser {
                         success,
                         retval);
                     if (!success) {
-                        retval = Attribute();
+                        detail::assign(retval, Attribute());
                         return;
                     }
                 }
@@ -982,7 +994,7 @@ namespace boost { namespace parser {
                             success);
                     }
                     if (!success) {
-                        retval = Attribute();
+                        detail::assign(retval, Attribute());
                         return;
                     }
                     detail::append(retval, std::move(attr), gen_attrs(flags));
@@ -1291,7 +1303,7 @@ namespace boost { namespace parser {
                 if (gen_attrs(flags)) {
                     use_parser(parser, retval);
                     if (!success)
-                        retval = Attribute();
+                        detail::assign(retval, Attribute());
                 } else {
                     use_parser(parser);
                 }
@@ -1604,7 +1616,7 @@ namespace boost { namespace parser {
                     indices);
 
                 if (!success || !gen_attrs(flags))
-                    retval = Attribute();
+                    detail::assign(retval, Attribute());
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
                 hana::tuple<Attribute> temp_retval;
@@ -1620,7 +1632,7 @@ namespace boost { namespace parser {
                     indices);
 
                 if (success && gen_attrs(flags))
-                    retval = hana::front(std::move(temp_retval));
+                    detail::assign(retval, hana::front(temp_retval));
             }
 
             if (success)
@@ -1930,7 +1942,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
-            retval = range<Iter>(initial_first, first);
+            detail::assign(retval, range<Iter>(initial_first, first));
         }
 
         Parser parser_;
@@ -2259,7 +2271,7 @@ namespace boost { namespace parser {
             typename Iter,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        attr_type call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Iter last,
@@ -2317,23 +2329,42 @@ namespace boost { namespace parser {
                 "work.  Did you forget to use call callback_*parse() instead "
                 "of *parse()?");
 
+            if (!success)
+                return {};
+
             auto const & callbacks = _callbacks(context);
 
-            if constexpr (detail::has_overloaded_callback<
-                              decltype((callbacks)),
-                              tag_type,
-                              decltype(std::move(retval))>{}) {
-                if (success)
-                    callbacks(hana::type_c<tag_type>, std::move(retval));
+            if constexpr (std::is_same<attr_type, detail::nope>{}) {
+                if constexpr (detail::has_overloaded_callback_1<
+                                  decltype((callbacks)),
+                                  tag_type>{}) {
+                    callbacks(hana::type_c<tag_type>);
+                } else {
+                    // For rules without attributes, Callbacks must be a
+                    // struct with overloads of the form
+                    // void(hana::basic_type<tag_type>) (the case above), or
+                    // Callbacks mut be a hana::map that contains a callback
+                    // of the form void() for each associated tag_type (this
+                    // case).  If you're seeing an error here, you probably
+                    // have not met this contract.
+                    callbacks[hana::type_c<tag_type>]();
+                }
             } else {
-                // Callbacks must be a struct with overloads of the form
-                // void(hana::basic_type<tag_type>, attr_type &) (the case
-                // above), or Callbacks mut be a hana::map that containts a
-                // callback of the form void(attr_type &) for each associated
-                // tag_type (this case).  If you're seeing an error here, you
-                // probably have not met this contract.
-                if (success)
+                if constexpr (detail::has_overloaded_callback_2<
+                                  decltype((callbacks)),
+                                  tag_type,
+                                  decltype(std::move(retval))>{}) {
+                    callbacks(hana::type_c<tag_type>, std::move(retval));
+                } else {
+                    // For rules with attributes, Callbacks must be a struct
+                    // with overloads of the form
+                    // void(hana::basic_type<tag_type>, attr_type &) (the case
+                    // above), or Callbacks mut be a hana::map that contains a
+                    // callback of the form void(attr_type &) for each
+                    // associated tag_type (this case).  If you're seeing an
+                    // error here, you probably have not met this contract.
                     callbacks[hana::type_c<tag_type>](std::move(retval));
+                }
             }
 
             return {};
@@ -2569,7 +2600,7 @@ namespace boost { namespace parser {
 
     template<
         typename TagType,
-        typename Attribute,
+        typename Attribute = no_attribute,
         typename LocalState = no_local_state>
     struct callback_rule
         : parser_interface<rule_parser<true, TagType, Attribute, LocalState>>
@@ -2904,7 +2935,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             if (gen_attrs(flags))
-                retval = attr_;
+                detail::assign(retval, attr_);
         }
 
         Attribute attr_;
@@ -2969,7 +3000,7 @@ namespace boost { namespace parser {
                 success = false;
                 return;
             }
-            retval = std::move(x);
+            detail::assign(retval, x);
             ++first;
         }
 
@@ -3104,8 +3135,8 @@ namespace boost { namespace parser {
 
             first = mismatch.first;
 
-            if (gen_attrs(flags))
-                retval.insert(retval.end(), expected_.begin(), expected_.end());
+            detail::append(
+                retval, expected_.begin(), expected_.end(), gen_attrs(flags));
         }
 
         std::string_view expected_;
@@ -3289,7 +3320,7 @@ namespace boost { namespace parser {
             if (attr != expected_)
                 success = false;
             if (success)
-                retval = attr;
+                detail::assign(retval, attr);
         }
 
         constexpr auto operator()(T x) const noexcept
@@ -3368,7 +3399,7 @@ namespace boost { namespace parser {
             if (attr != expected_)
                 success = false;
             if (success)
-                retval = attr;
+                detail::assign(retval, attr);
         }
 
         constexpr auto operator()(T x) const noexcept
@@ -3435,7 +3466,7 @@ namespace boost { namespace parser {
                 spirit::x3::extract_real<T, spirit::x3::real_policies<T>>;
             T attr = 0;
             if (extract::parse(first, last, attr, policies))
-                retval = attr;
+                detail::assign(retval, attr);
         }
     };
 
