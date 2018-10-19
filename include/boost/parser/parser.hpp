@@ -2200,7 +2200,6 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-    // TODO: Add printing support.
     template<typename T>
     struct symbol_parser
     {

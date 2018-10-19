@@ -209,6 +209,15 @@ namespace boost { namespace parser { namespace detail {
         str += parser.name_;
     }
 
+    template<typename T>
+    void parser_name(
+        symbol_parser<T> const & parser, std::string & str, int components)
+    {
+        str += "symbols<";
+        str += typeindex::type_id<T>().pretty_name();
+        str += ">";
+    }
+
     template<typename Predicate>
     void parser_name(
         eps_parser<Predicate> const & parser, std::string & str, int components)

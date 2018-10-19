@@ -110,6 +110,10 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components = 0);
 
+    template<typename T>
+    void parser_name(
+        symbol_parser<T> const & parser, std::string & str, int components = 0);
+
     template<typename Predicate>
     void parser_name(
         eps_parser<Predicate> const & parser,

@@ -78,6 +78,9 @@ namespace boost { namespace parser {
         typename LocalState>
     struct rule_parser;
 
+    template<typename T>
+    struct symbol_parser;
+
     template<typename Parser, typename GlobalState = detail::nope>
     struct parser_interface;
 
