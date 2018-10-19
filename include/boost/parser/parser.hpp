@@ -12,6 +12,7 @@
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
 #include <boost/text/trie.hpp>
+#include <boost/text/utility.hpp>
 #include <boost/variant.hpp>
 
 #include <type_traits>
@@ -584,8 +585,14 @@ namespace boost { namespace parser {
             template<typename T>
             friend bool operator!=(T c, char_range<Range> const & chars)
             {
-                return std::find(chars.chars_.begin(), chars.chars_.end(), c) ==
-                       chars.chars_.end();
+                if (sizeof(c) == 4) {
+                    auto const cps = text::make_to_utf32_range(chars.chars_);
+                    return std::find(cps.begin(), cps.end(), c) == cps.end();
+                } else {
+                    return std::find(
+                               chars.chars_.begin(), chars.chars_.end(), c) ==
+                           chars.chars_.end();
+                }
             }
 
             range<std::decay_t<decltype(std::declval<Range>().begin())>> chars_;
@@ -3250,10 +3257,6 @@ namespace boost { namespace parser {
             // TODO: Automagically treat expected_ as UTF-8 and transcode for
             // this comparison if is_integral<decltype(*first)> &&
             // sizeof(*first) == 4.
-
-            // TODO: The analogous same thing should happen in char_ when
-            // comparing a char32_t expected value to a [first, last) sequence
-            // of char.
 
             auto const mismatch =
                 std::mismatch(first, last, expected_.begin(), expected_.end());
