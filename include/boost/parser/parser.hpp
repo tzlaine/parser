@@ -3254,21 +3254,33 @@ namespace boost { namespace parser {
                 return;
             }
 
-            // TODO: Automagically treat expected_ as UTF-8 and transcode for
-            // this comparison if is_integral<decltype(*first)> &&
-            // sizeof(*first) == 4.
+            if constexpr (sizeof(*first) == 4) {
+                auto const cps = text::make_to_utf32_range(expected_);
+                auto const mismatch =
+                    std::mismatch(first, last, cps.begin(), cps.end());
+                if (mismatch.second != cps.end()) {
+                    success = false;
+                    return;
+                }
 
-            auto const mismatch =
-                std::mismatch(first, last, expected_.begin(), expected_.end());
-            if (mismatch.second != expected_.end()) {
-                success = false;
-                return;
+                // TODO: Should this (and whereever CPs are pushed into
+                // strings) be changed to automagically transcode to UTF-8?
+                detail::append(
+                    retval, first, mismatch.first.base(), gen_attrs(flags));
+
+                first = mismatch.first.base();
+            } else {
+                auto const mismatch = std::mismatch(
+                    first, last, expected_.begin(), expected_.end());
+                if (mismatch.second != expected_.end()) {
+                    success = false;
+                    return;
+                }
+
+                detail::append(retval, first, mismatch.first, gen_attrs(flags));
+
+                first = mismatch.first;
             }
-
-            first = mismatch.first;
-
-            detail::append(
-                retval, expected_.begin(), expected_.end(), gen_attrs(flags));
         }
 
         std::string_view expected_;
