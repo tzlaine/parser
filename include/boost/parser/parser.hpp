@@ -2681,8 +2681,6 @@ namespace boost { namespace parser {
         }
     };
 
-    // TODO: This should define a type with these two overloads and a
-    // constexpr variable of that type.
 #define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
     template<                                                                  \
         bool UseCallbacks,                                                     \
