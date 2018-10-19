@@ -11,6 +11,7 @@
 #include <boost/spirit/home/x3/numeric/real_policies.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
+#include <boost/text/trie.hpp>
 #include <boost/variant.hpp>
 
 #include <type_traits>
@@ -796,8 +797,6 @@ namespace boost { namespace parser {
 
 
     // TODO: no_skip[]?
-
-    // TODO: symbol table parser.
 
     // TODO: Support adding arbitrary context state to a parser, a la with[].
 
@@ -2150,6 +2149,57 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
+    // TODO: Add printing support.
+    template<typename T>
+    struct symbol_parser
+    {
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser>
+        T call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            T retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+
+            auto const lookup = trie_.longest_match(first, last);
+            if (lookup.match) {
+                std::advance(first, lookup.size);
+                detail::assign(retval, T{*trie_[lookup]});
+            }
+        }
+
+        trie::trie<uint32_t, T> trie_;
+    };
+
     template<typename TagType, typename Attribute, typename LocalState>
     struct rule_parser<false, TagType, Attribute, LocalState>
     {
@@ -2591,6 +2641,19 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
+
+    template<typename T>
+    struct symbols : parser_interface<symbol_parser<T>>
+    {
+        symbols & add(std::string_view str, T x)
+        {
+            // TODO: str -> code point range.
+            this->parser_.trie_.insert(str, std::move(x));
+            return *this;
+        }
+
+        void clear() noexcept { this->parser_.trie_.clear(); }
+    };
 
     using no_attribute = detail::nope;
     using no_local_state = detail::nope;

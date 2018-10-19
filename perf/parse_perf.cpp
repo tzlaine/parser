@@ -32,7 +32,7 @@ void BM_229Q_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/229Q.yml",
+            "/home/tzlaine/yaml/test/test_files/229Q.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -58,7 +58,7 @@ void BM_27NA_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/27NA.yml",
+            "/home/tzlaine/yaml/test/test_files/27NA.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -86,7 +86,7 @@ void BM_2AUY_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/2AUY.yml",
+            "/home/tzlaine/yaml/test/test_files/2AUY.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -112,7 +112,7 @@ void BM_2JQS_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/2JQS.yml",
+            "/home/tzlaine/yaml/test/test_files/2JQS.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -139,7 +139,7 @@ foo:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/2SXE.yml",
+            "/home/tzlaine/yaml/test/test_files/2SXE.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -170,7 +170,7 @@ void BM_2XXW_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/2XXW.yml",
+            "/home/tzlaine/yaml/test/test_files/2XXW.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -202,7 +202,7 @@ e
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/35KP.yml",
+            "/home/tzlaine/yaml/test/test_files/35KP.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -229,7 +229,7 @@ void BM_3ALJ_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/3ALJ.yml",
+            "/home/tzlaine/yaml/test/test_files/3ALJ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -257,7 +257,7 @@ Reuse anchor: *anchor
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/3GZX.yml",
+            "/home/tzlaine/yaml/test/test_files/3GZX.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -283,7 +283,7 @@ void BM_3MYT_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/3MYT.yml",
+            "/home/tzlaine/yaml/test/test_files/3MYT.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -313,7 +313,7 @@ omitted value:,
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/4ABK.yml",
+            "/home/tzlaine/yaml/test/test_files/4ABK.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -343,7 +343,7 @@ quoted: "So does this
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/4CQQ.yml",
+            "/home/tzlaine/yaml/test/test_files/4CQQ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -368,7 +368,7 @@ void BM_4GC6_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/4GC6.yml",
+            "/home/tzlaine/yaml/test/test_files/4GC6.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -393,7 +393,7 @@ void BM_4UYU_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/4UYU.yml",
+            "/home/tzlaine/yaml/test/test_files/4UYU.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -424,7 +424,7 @@ block: |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/4ZYM.yml",
+            "/home/tzlaine/yaml/test/test_files/4ZYM.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -449,7 +449,7 @@ void BM_54T7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/54T7.yml",
+            "/home/tzlaine/yaml/test/test_files/54T7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -485,7 +485,7 @@ description:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/565N.yml",
+            "/home/tzlaine/yaml/test/test_files/565N.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -515,7 +515,7 @@ mapping: !!map
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/57H4.yml",
+            "/home/tzlaine/yaml/test/test_files/57H4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -545,7 +545,7 @@ folded: >
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5BVJ.yml",
+            "/home/tzlaine/yaml/test/test_files/5BVJ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -571,7 +571,7 @@ void BM_5C5M_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5C5M.yml",
+            "/home/tzlaine/yaml/test/test_files/5C5M.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -603,7 +603,7 @@ Chomping: |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5GBF.yml",
+            "/home/tzlaine/yaml/test/test_files/5GBF.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -629,7 +629,7 @@ void BM_5KJE_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5KJE.yml",
+            "/home/tzlaine/yaml/test/test_files/5KJE.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -655,7 +655,7 @@ void BM_5NYZ_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5NYZ.yml",
+            "/home/tzlaine/yaml/test/test_files/5NYZ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -686,7 +686,7 @@ void BM_5TYM_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5TYM.yml",
+            "/home/tzlaine/yaml/test/test_files/5TYM.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -715,7 +715,7 @@ void BM_5WE3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/5WE3.yml",
+            "/home/tzlaine/yaml/test/test_files/5WE3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -740,7 +740,7 @@ void BM_65WH_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/65WH.yml",
+            "/home/tzlaine/yaml/test/test_files/65WH.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -768,7 +768,7 @@ void BM_6BCT_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6BCT.yml",
+            "/home/tzlaine/yaml/test/test_files/6BCT.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -797,7 +797,7 @@ void BM_6CK3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6CK3.yml",
+            "/home/tzlaine/yaml/test/test_files/6CK3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -826,7 +826,7 @@ void BM_6FWR_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6FWR.yml",
+            "/home/tzlaine/yaml/test/test_files/6FWR.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -851,7 +851,7 @@ void BM_6H3V_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6H3V.yml",
+            "/home/tzlaine/yaml/test/test_files/6H3V.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -887,7 +887,7 @@ Not indented:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6HB6.yml",
+            "/home/tzlaine/yaml/test/test_files/6HB6.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -915,7 +915,7 @@ void BM_6JQW_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6JQW.yml",
+            "/home/tzlaine/yaml/test/test_files/6JQW.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -943,7 +943,7 @@ void BM_6JWB_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6JWB.yml",
+            "/home/tzlaine/yaml/test/test_files/6JWB.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -970,7 +970,7 @@ void BM_6LVF_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6LVF.yml",
+            "/home/tzlaine/yaml/test/test_files/6LVF.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -997,7 +997,7 @@ void BM_6M2F_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6M2F.yml",
+            "/home/tzlaine/yaml/test/test_files/6M2F.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1023,7 +1023,7 @@ void BM_6SLA_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6SLA.yml",
+            "/home/tzlaine/yaml/test/test_files/6SLA.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1055,7 +1055,7 @@ void BM_6VJK_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6VJK.yml",
+            "/home/tzlaine/yaml/test/test_files/6VJK.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1086,7 +1086,7 @@ matches %: 20
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/6ZKB.yml",
+            "/home/tzlaine/yaml/test/test_files/6ZKB.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1116,7 +1116,7 @@ void BM_735Y_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/735Y.yml",
+            "/home/tzlaine/yaml/test/test_files/735Y.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1145,7 +1145,7 @@ g: h
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/74H7.yml",
+            "/home/tzlaine/yaml/test/test_files/74H7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1182,7 +1182,7 @@ application specific tag: !something |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/77H8.yml",
+            "/home/tzlaine/yaml/test/test_files/77H8.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1210,7 +1210,7 @@ void BM_7A4E_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/7A4E.yml",
+            "/home/tzlaine/yaml/test/test_files/7A4E.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1242,7 +1242,7 @@ rbi:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/7BUB.yml",
+            "/home/tzlaine/yaml/test/test_files/7BUB.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1268,7 +1268,7 @@ void BM_7FWL_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/7FWL.yml",
+            "/home/tzlaine/yaml/test/test_files/7FWL.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1308,7 +1308,7 @@ void BM_7T8X_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/7T8X.yml",
+            "/home/tzlaine/yaml/test/test_files/7T8X.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1335,7 +1335,7 @@ c:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/7W2P.yml",
+            "/home/tzlaine/yaml/test/test_files/7W2P.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1361,7 +1361,7 @@ word2
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/82AN.yml",
+            "/home/tzlaine/yaml/test/test_files/82AN.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1388,7 +1388,7 @@ void BM_87E4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/87E4.yml",
+            "/home/tzlaine/yaml/test/test_files/87E4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1416,7 +1416,7 @@ void BM_8G76_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/8G76.yml",
+            "/home/tzlaine/yaml/test/test_files/8G76.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1441,7 +1441,7 @@ void BM_8MK2_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/8MK2.yml",
+            "/home/tzlaine/yaml/test/test_files/8MK2.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1468,7 +1468,7 @@ void BM_8QBE_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/8QBE.yml",
+            "/home/tzlaine/yaml/test/test_files/8QBE.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1500,7 +1500,7 @@ single: pair,
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/8UDB.yml",
+            "/home/tzlaine/yaml/test/test_files/8UDB.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1528,7 +1528,7 @@ void BM_93JH_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/93JH.yml",
+            "/home/tzlaine/yaml/test/test_files/93JH.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1556,7 +1556,7 @@ void BM_96L6_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/96L6.yml",
+            "/home/tzlaine/yaml/test/test_files/96L6.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1581,7 +1581,7 @@ void BM_98YD_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/98YD.yml",
+            "/home/tzlaine/yaml/test/test_files/98YD.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1611,7 +1611,7 @@ h: i
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9FMG.yml",
+            "/home/tzlaine/yaml/test/test_files/9FMG.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1637,7 +1637,7 @@ void BM_9J7A_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9J7A.yml",
+            "/home/tzlaine/yaml/test/test_files/9J7A.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1663,7 +1663,7 @@ double: "text"
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9SHH.yml",
+            "/home/tzlaine/yaml/test/test_files/9SHH.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1695,7 +1695,7 @@ void BM_9U5K_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9U5K.yml",
+            "/home/tzlaine/yaml/test/test_files/9U5K.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1726,7 +1726,7 @@ void BM_9WXW_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9WXW.yml",
+            "/home/tzlaine/yaml/test/test_files/9WXW.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1756,7 +1756,7 @@ e
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/9YRD.yml",
+            "/home/tzlaine/yaml/test/test_files/9YRD.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1785,7 +1785,7 @@ void BM_A2M4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/A2M4.yml",
+            "/home/tzlaine/yaml/test/test_files/A2M4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1815,7 +1815,7 @@ keep: |+
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/A6F9.yml",
+            "/home/tzlaine/yaml/test/test_files/A6F9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1844,7 +1844,7 @@ d:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/A984.yml",
+            "/home/tzlaine/yaml/test/test_files/A984.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1868,7 +1868,7 @@ void BM_AVM7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/AVM7.yml",
+            "/home/tzlaine/yaml/test/test_files/AVM7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1896,7 +1896,7 @@ void BM_AZ63_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/AZ63.yml",
+            "/home/tzlaine/yaml/test/test_files/AZ63.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1922,7 +1922,7 @@ void BM_AZW3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/AZW3.yml",
+            "/home/tzlaine/yaml/test/test_files/AZW3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1950,7 +1950,7 @@ void BM_BEC7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/BEC7.yml",
+            "/home/tzlaine/yaml/test/test_files/BEC7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -1977,7 +1977,7 @@ void BM_BU8L_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/BU8L.yml",
+            "/home/tzlaine/yaml/test/test_files/BU8L.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2006,7 +2006,7 @@ void BM_C2DT_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/C2DT.yml",
+            "/home/tzlaine/yaml/test/test_files/C2DT.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2044,7 +2044,7 @@ void BM_C4HZ_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/C4HZ.yml",
+            "/home/tzlaine/yaml/test/test_files/C4HZ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2071,7 +2071,7 @@ void BM_CC74_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/CC74.yml",
+            "/home/tzlaine/yaml/test/test_files/CC74.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2099,7 +2099,7 @@ void BM_CT4Q_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/CT4Q.yml",
+            "/home/tzlaine/yaml/test/test_files/CT4Q.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2125,7 +2125,7 @@ alias: *anchor
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/CUP7.yml",
+            "/home/tzlaine/yaml/test/test_files/CUP7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2150,7 +2150,7 @@ void BM_D88J_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/D88J.yml",
+            "/home/tzlaine/yaml/test/test_files/D88J.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2175,7 +2175,7 @@ void BM_D9TU_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/D9TU.yml",
+            "/home/tzlaine/yaml/test/test_files/D9TU.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2211,7 +2211,7 @@ void BM_DBG4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/DBG4.yml",
+            "/home/tzlaine/yaml/test/test_files/DBG4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2240,7 +2240,7 @@ implicit: entry,
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/DFF7.yml",
+            "/home/tzlaine/yaml/test/test_files/DFF7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2265,7 +2265,7 @@ void BM_DHP8_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/DHP8.yml",
+            "/home/tzlaine/yaml/test/test_files/DHP8.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2298,7 +2298,7 @@ void BM_DWX9_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/DWX9.yml",
+            "/home/tzlaine/yaml/test/test_files/DWX9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2324,7 +2324,7 @@ void BM_E76Z_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/E76Z.yml",
+            "/home/tzlaine/yaml/test/test_files/E76Z.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2352,7 +2352,7 @@ void BM_EHF6_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/EHF6.yml",
+            "/home/tzlaine/yaml/test/test_files/EHF6.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2380,7 +2380,7 @@ void BM_F2C7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/F2C7.yml",
+            "/home/tzlaine/yaml/test/test_files/F2C7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2423,7 +2423,7 @@ keep: |+
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/F8F9.yml",
+            "/home/tzlaine/yaml/test/test_files/F8F9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2452,7 +2452,7 @@ void BM_FH7J_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/FH7J.yml",
+            "/home/tzlaine/yaml/test/test_files/FH7J.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2479,7 +2479,7 @@ void BM_FQ7F_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/FQ7F.yml",
+            "/home/tzlaine/yaml/test/test_files/FQ7F.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2508,7 +2508,7 @@ void BM_FRK4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/FRK4.yml",
+            "/home/tzlaine/yaml/test/test_files/FRK4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2533,7 +2533,7 @@ void BM_FUP4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/FUP4.yml",
+            "/home/tzlaine/yaml/test/test_files/FUP4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2564,7 +2564,7 @@ tie-fighter: '|\-*-/|'
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/G4RS.yml",
+            "/home/tzlaine/yaml/test/test_files/G4RS.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2593,7 +2593,7 @@ void BM_G992_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/G992.yml",
+            "/home/tzlaine/yaml/test/test_files/G992.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2620,7 +2620,7 @@ void BM_GH63_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/GH63.yml",
+            "/home/tzlaine/yaml/test/test_files/GH63.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2656,7 +2656,7 @@ text: |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/H2RW.yml",
+            "/home/tzlaine/yaml/test/test_files/H2RW.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2687,7 +2687,7 @@ stats: |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/HMK4.yml",
+            "/home/tzlaine/yaml/test/test_files/HMK4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2714,7 +2714,7 @@ void BM_HMQ5_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/HMQ5.yml",
+            "/home/tzlaine/yaml/test/test_files/HMQ5.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2742,7 +2742,7 @@ void BM_HS5T_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/HS5T.yml",
+            "/home/tzlaine/yaml/test/test_files/HS5T.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2772,7 +2772,7 @@ block:	|
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/J3BT.yml",
+            "/home/tzlaine/yaml/test/test_files/J3BT.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2799,7 +2799,7 @@ baz: jazz
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/J5UC.yml",
+            "/home/tzlaine/yaml/test/test_files/J5UC.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2830,7 +2830,7 @@ void BM_J7PZ_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/J7PZ.yml",
+            "/home/tzlaine/yaml/test/test_files/J7PZ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2858,7 +2858,7 @@ void BM_J7VC_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/J7VC.yml",
+            "/home/tzlaine/yaml/test/test_files/J7VC.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2890,7 +2890,7 @@ rbi:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/J9HZ.yml",
+            "/home/tzlaine/yaml/test/test_files/J9HZ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2924,7 +2924,7 @@ void BM_JHB9_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/JHB9.yml",
+            "/home/tzlaine/yaml/test/test_files/JHB9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2951,7 +2951,7 @@ void BM_JQ4R_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/JQ4R.yml",
+            "/home/tzlaine/yaml/test/test_files/JQ4R.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -2977,7 +2977,7 @@ Second occurrence: *anchor
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/JS2J.yml",
+            "/home/tzlaine/yaml/test/test_files/JS2J.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3007,7 +3007,7 @@ void BM_JTV5_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/JTV5.yml",
+            "/home/tzlaine/yaml/test/test_files/JTV5.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3034,7 +3034,7 @@ void BM_K4SU_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/K4SU.yml",
+            "/home/tzlaine/yaml/test/test_files/K4SU.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3065,7 +3065,7 @@ void BM_K527_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/K527.yml",
+            "/home/tzlaine/yaml/test/test_files/K527.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3095,7 +3095,7 @@ keep: |+
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/K858.yml",
+            "/home/tzlaine/yaml/test/test_files/K858.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3122,7 +3122,7 @@ baz: 2
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/KMK3.yml",
+            "/home/tzlaine/yaml/test/test_files/KMK3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3149,7 +3149,7 @@ string"
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/KSS4.yml",
+            "/home/tzlaine/yaml/test/test_files/KSS4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3176,7 +3176,7 @@ void BM_KZN9_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/KZN9.yml",
+            "/home/tzlaine/yaml/test/test_files/KZN9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3204,7 +3204,7 @@ void BM_L94M_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/L94M.yml",
+            "/home/tzlaine/yaml/test/test_files/L94M.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3231,7 +3231,7 @@ void BM_L9U5_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/L9U5.yml",
+            "/home/tzlaine/yaml/test/test_files/L9U5.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3260,7 +3260,7 @@ void BM_LE5A_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/LE5A.yml",
+            "/home/tzlaine/yaml/test/test_files/LE5A.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3290,7 +3290,7 @@ void BM_LP6E_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/LP6E.yml",
+            "/home/tzlaine/yaml/test/test_files/LP6E.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3317,7 +3317,7 @@ void BM_LQZ7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/LQZ7.yml",
+            "/home/tzlaine/yaml/test/test_files/LQZ7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3349,7 +3349,7 @@ void BM_M29M_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/M29M.yml",
+            "/home/tzlaine/yaml/test/test_files/M29M.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3379,7 +3379,7 @@ folded:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/M5C3.yml",
+            "/home/tzlaine/yaml/test/test_files/M5C3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3412,7 +3412,7 @@ void BM_M5DY_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/M5DY.yml",
+            "/home/tzlaine/yaml/test/test_files/M5DY.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3446,7 +3446,7 @@ document
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/M7A3.yml",
+            "/home/tzlaine/yaml/test/test_files/M7A3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3475,7 +3475,7 @@ void BM_M9B4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/M9B4.yml",
+            "/home/tzlaine/yaml/test/test_files/M9B4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3505,7 +3505,7 @@ void BM_MJS9_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/MJS9.yml",
+            "/home/tzlaine/yaml/test/test_files/MJS9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3530,7 +3530,7 @@ void BM_MXS3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/MXS3.yml",
+            "/home/tzlaine/yaml/test/test_files/MXS3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3559,7 +3559,7 @@ void BM_MYW6_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/MYW6.yml",
+            "/home/tzlaine/yaml/test/test_files/MYW6.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3589,7 +3589,7 @@ void BM_MZX3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/MZX3.yml",
+            "/home/tzlaine/yaml/test/test_files/MZX3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3617,7 +3617,7 @@ void BM_N782_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/N782.yml",
+            "/home/tzlaine/yaml/test/test_files/N782.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3645,7 +3645,7 @@ void BM_NHX8_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/NHX8.yml",
+            "/home/tzlaine/yaml/test/test_files/NHX8.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3674,7 +3674,7 @@ to a line feed, or 	\
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/NP9H.yml",
+            "/home/tzlaine/yaml/test/test_files/NP9H.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3707,7 +3707,7 @@ void BM_P2AD_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/P2AD.yml",
+            "/home/tzlaine/yaml/test/test_files/P2AD.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3734,7 +3734,7 @@ void BM_P76L_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/P76L.yml",
+            "/home/tzlaine/yaml/test/test_files/P76L.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3763,7 +3763,7 @@ void BM_P94K_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/P94K.yml",
+            "/home/tzlaine/yaml/test/test_files/P94K.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3795,7 +3795,7 @@ national:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/PBJ2.yml",
+            "/home/tzlaine/yaml/test/test_files/PBJ2.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3823,7 +3823,7 @@ void BM_PRH3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/PRH3.yml",
+            "/home/tzlaine/yaml/test/test_files/PRH3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3857,7 +3857,7 @@ void BM_PW8X_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/PW8X.yml",
+            "/home/tzlaine/yaml/test/test_files/PW8X.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3886,7 +3886,7 @@ void BM_Q88A_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/Q88A.yml",
+            "/home/tzlaine/yaml/test/test_files/Q88A.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3916,7 +3916,7 @@ void BM_Q9WF_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/Q9WF.yml",
+            "/home/tzlaine/yaml/test/test_files/Q9WF.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3943,7 +3943,7 @@ foo: bar
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/QF4Y.yml",
+            "/home/tzlaine/yaml/test/test_files/QF4Y.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -3978,7 +3978,7 @@ void BM_R4YG_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/R4YG.yml",
+            "/home/tzlaine/yaml/test/test_files/R4YG.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4006,7 +4006,7 @@ bar:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/RLU9.yml",
+            "/home/tzlaine/yaml/test/test_files/RLU9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4033,7 +4033,7 @@ void BM_RR7F_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/RR7F.yml",
+            "/home/tzlaine/yaml/test/test_files/RR7F.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4062,7 +4062,7 @@ Document
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/RTP8.yml",
+            "/home/tzlaine/yaml/test/test_files/RTP8.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4112,7 +4112,7 @@ Stack:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/RZT7.yml",
+            "/home/tzlaine/yaml/test/test_files/RZT7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4140,7 +4140,7 @@ void BM_S3PD_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/S3PD.yml",
+            "/home/tzlaine/yaml/test/test_files/S3PD.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4168,7 +4168,7 @@ void BM_S4JQ_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/S4JQ.yml",
+            "/home/tzlaine/yaml/test/test_files/S4JQ.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4194,7 +4194,7 @@ void BM_S4T7_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/S4T7.yml",
+            "/home/tzlaine/yaml/test/test_files/S4T7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4225,7 +4225,7 @@ mapping:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/S9E8.yml",
+            "/home/tzlaine/yaml/test/test_files/S9E8.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4250,7 +4250,7 @@ void BM_SBG9_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/SBG9.yml",
+            "/home/tzlaine/yaml/test/test_files/SBG9.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4277,7 +4277,7 @@ rbi: 147   # Runs Batted In
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/SYW4.yml",
+            "/home/tzlaine/yaml/test/test_files/SYW4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4303,7 +4303,7 @@ void BM_TE2A_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/TE2A.yml",
+            "/home/tzlaine/yaml/test/test_files/TE2A.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4334,7 +4334,7 @@ void BM_TL85_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/TL85.yml",
+            "/home/tzlaine/yaml/test/test_files/TL85.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4366,7 +4366,7 @@ void BM_TS54_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/TS54.yml",
+            "/home/tzlaine/yaml/test/test_files/TS54.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4393,7 +4393,7 @@ void BM_U3C3_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/U3C3.yml",
+            "/home/tzlaine/yaml/test/test_files/U3C3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4434,7 +4434,7 @@ top7:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/U3XV.yml",
+            "/home/tzlaine/yaml/test/test_files/U3XV.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4468,7 +4468,7 @@ action: grand slam
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/U9NS.yml",
+            "/home/tzlaine/yaml/test/test_files/U9NS.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4494,7 +4494,7 @@ mapping: { sky: blue, sea: green }
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/UDR7.yml",
+            "/home/tzlaine/yaml/test/test_files/UDR7.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4547,7 +4547,7 @@ comments:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/UGM3.yml",
+            "/home/tzlaine/yaml/test/test_files/UGM3.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4578,7 +4578,7 @@ void BM_UT92_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/UT92.yml",
+            "/home/tzlaine/yaml/test/test_files/UT92.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4606,7 +4606,7 @@ void BM_V55R_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/V55R.yml",
+            "/home/tzlaine/yaml/test/test_files/V55R.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4633,7 +4633,7 @@ void BM_V9D5_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/V9D5.yml",
+            "/home/tzlaine/yaml/test/test_files/V9D5.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4663,7 +4663,7 @@ void BM_W42U_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/W42U.yml",
+            "/home/tzlaine/yaml/test/test_files/W42U.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4695,7 +4695,7 @@ void BM_W4TN_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/W4TN.yml",
+            "/home/tzlaine/yaml/test/test_files/W4TN.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4723,7 +4723,7 @@ void BM_WZ62_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/WZ62.yml",
+            "/home/tzlaine/yaml/test/test_files/WZ62.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4748,7 +4748,7 @@ void BM_X38W_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/X38W.yml",
+            "/home/tzlaine/yaml/test/test_files/X38W.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4775,7 +4775,7 @@ void BM_YD5X_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/YD5X.yml",
+            "/home/tzlaine/yaml/test/test_files/YD5X.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4802,7 +4802,7 @@ void BM_Z9M4_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/Z9M4.yml",
+            "/home/tzlaine/yaml/test/test_files/Z9M4.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4831,7 +4831,7 @@ Sammy Sosa: {
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/ZF4X.yml",
+            "/home/tzlaine/yaml/test/test_files/ZF4X.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4857,7 +4857,7 @@ c: &d d
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/ZH7C.yml",
+            "/home/tzlaine/yaml/test/test_files/ZH7C.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4902,7 +4902,7 @@ r: *R
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/anchors.yaml",
+            "/home/tzlaine/yaml/test/test_files/anchors.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4935,7 +4935,7 @@ national:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/basic_yaml_block.yaml",
+            "/home/tzlaine/yaml/test/test_files/basic_yaml_block.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4963,7 +4963,7 @@ void BM_basic_yaml_block2_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/basic_yaml_block2.yaml",
+            "/home/tzlaine/yaml/test/test_files/basic_yaml_block2.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -4995,7 +4995,7 @@ y:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/basic_yaml_block3.yaml",
+            "/home/tzlaine/yaml/test/test_files/basic_yaml_block3.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5024,7 +5024,7 @@ void BM_basic_yaml_flow_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/basic_yaml_flow.yaml",
+            "/home/tzlaine/yaml/test/test_files/basic_yaml_flow.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5097,7 +5097,7 @@ void BM_block_literals_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/block_literals.yaml",
+            "/home/tzlaine/yaml/test/test_files/block_literals.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5127,7 +5127,7 @@ stats: |
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/block_literals2.yaml",
+            "/home/tzlaine/yaml/test/test_files/block_literals2.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5159,7 +5159,7 @@ h: Yes we have No bananas  # a string, "Yes" and "No" disambiguated by context.)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/data-types.yaml",
+            "/home/tzlaine/yaml/test/test_files/data-types.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5219,7 +5219,7 @@ comments: >
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/invoice.yaml",
+            "/home/tzlaine/yaml/test/test_files/invoice.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5276,7 +5276,7 @@ specialDelivery:  >
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/relational.yaml",
+            "/home/tzlaine/yaml/test/test_files/relational.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5358,7 +5358,7 @@ A numeric string: !!str 12345 # should be parsed as string
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/scalar.yaml",
+            "/home/tzlaine/yaml/test/test_files/scalar.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5388,7 +5388,7 @@ void BM_yaml_block_array1_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array1.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array1.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5419,7 +5419,7 @@ void BM_yaml_block_array2_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array2.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array2.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5444,7 +5444,7 @@ void BM_yaml_block_array3_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array3.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array3.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5473,7 +5473,7 @@ void BM_yaml_block_array4_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array4.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array4.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5501,7 +5501,7 @@ void BM_yaml_block_array5_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array5.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array5.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5528,7 +5528,7 @@ void BM_yaml_block_array6_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array6.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array6.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5559,7 +5559,7 @@ void BM_yaml_block_array7_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_array7.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_array7.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5585,7 +5585,7 @@ Lemmon : !!map {a:1, b:2, c:3})YAML_TEXT";
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map1.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map1.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5616,7 +5616,7 @@ y : 3
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map10.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map10.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5642,7 +5642,7 @@ z: zz)YAML_TEXT";
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map11.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map11.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5673,7 +5673,7 @@ national:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map12.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map12.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5701,7 +5701,7 @@ Foo : on the right # strict yaml 1.2 disallows "on" as a boolean value!)YAML_TEX
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map13.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map13.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5727,7 +5727,7 @@ void BM_yaml_block_map2_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map2.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map2.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5755,7 +5755,7 @@ void BM_yaml_block_map3_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map3.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map3.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5782,7 +5782,7 @@ key3: 2
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map4.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map4.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5808,7 +5808,7 @@ void BM_yaml_block_map5_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map5.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map5.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5835,7 +5835,7 @@ void BM_yaml_block_map6_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map6.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map6.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5860,7 +5860,7 @@ Orange :)YAML_TEXT";
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map7.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map7.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5885,7 +5885,7 @@ void BM_yaml_block_map8_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map8.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map8.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5910,7 +5910,7 @@ void BM_yaml_block_map9_yaml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/yaml_block_map9.yaml",
+            "/home/tzlaine/yaml/test/test_files/yaml_block_map9.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5937,7 +5937,7 @@ d: e
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/simple_flow_plain.yml",
+            "/home/tzlaine/yaml/test/test_files/simple_flow_plain.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -5964,7 +5964,7 @@ void BM_escaped_percent_27NA_yml (benchmark::State & state)
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/escaped_percent_27NA.yml",
+            "/home/tzlaine/yaml/test/test_files/escaped_percent_27NA.yml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
@@ -6017,7 +6017,7 @@ national:
         result = parse_yaml(
             g_parser,
             contents, contents + strlen(contents),
-            "/home/tzlaine/experiments/yaml/test/test_files/basic_yaml_block_repeated.yaml",
+            "/home/tzlaine/yaml/test/test_files/basic_yaml_block_repeated.yaml",
             reporting_fn_t(), reporting_fn_t()
         );
     }
