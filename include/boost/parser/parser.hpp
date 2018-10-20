@@ -210,7 +210,7 @@ namespace boost { namespace parser {
             if (a.empty()) {
                 a = trie_t{};
                 trie_ptr = any_cast<trie_t>(&a);
-                for (auto const & e : symbol_parser.initial_elements_) {
+                for (auto const & e : symbol_parser.elements()) {
                     trie_ptr->insert(
                         text::make_to_utf32_range(e.first), e.second);
                 }
@@ -2374,6 +2374,11 @@ namespace boost { namespace parser {
                 return *copied_from_;
             return *this;
         }
+        std::vector<std::pair<std::string_view, T>> const & elements() const
+            noexcept
+        {
+            return ref().initial_elements_;
+        }
     };
 
     template<typename TagType, typename Attribute, typename LocalState>
@@ -2831,6 +2836,12 @@ namespace boost { namespace parser {
     template<typename T>
     struct symbols : parser_interface<symbol_parser<T>>
     {
+        symbols() {}
+        symbols(std::initializer_list<std::pair<std::string_view, T>> il)
+        {
+            this->parser_.initial_elements_ = il;
+        }
+
         using parser_interface<symbol_parser<T>>::operator();
 
         // TODO: Document that this is for initial population, and that

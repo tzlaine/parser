@@ -25,10 +25,10 @@ TEST(parser, symbols_empty)
 
 TEST(parser, symbols_simple)
 {
-    symbols<int> roman_numerals;
-    roman_numerals.add("I", 1)("V", 5)("X", 10)("L", 50)("C", 100);
-    symbols<std::string> named_strings;
-    named_strings.add("I", "1")("V", "5")("X", "10")("L", "50")("C", "100");
+    symbols<int> const roman_numerals = {
+        {"I", 1}, {"V", 5}, {"X", 10}, {"L", 50}, {"C", 100}};
+    symbols<std::string> const named_strings = {
+        {"I", "1"}, {"V", "5"}, {"X", "10"}, {"L", "50"}, {"C", "100"}};
 
     {
         auto const result = parse("I", roman_numerals);
