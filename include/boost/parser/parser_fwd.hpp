@@ -30,6 +30,7 @@ namespace boost { namespace parser {
         struct trace_indent_tag;
         struct error_handler_tag;
         struct callbacks_tag;
+        struct symbol_table_tries_tag;
     }
 
     template<typename Parser, typename DelimiterParser = detail::nope>
@@ -71,6 +72,9 @@ namespace boost { namespace parser {
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
 
+    template<typename T>
+    struct symbol_parser;
+
     template<
         bool UseCallbacks,
         typename Parser,
@@ -79,7 +83,7 @@ namespace boost { namespace parser {
     struct rule_parser;
 
     template<typename T>
-    struct symbol_parser;
+    struct ref_parser;
 
     template<typename Parser, typename GlobalState = detail::nope>
     struct parser_interface;

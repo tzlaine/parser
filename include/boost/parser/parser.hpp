@@ -5,6 +5,8 @@
 #include <boost/parser/error_handling.hpp>
 #include <boost/parser/detail/printing.hpp>
 
+#include <boost/any.hpp>
+#include <boost/variant.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -13,8 +15,8 @@
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
 #include <boost/text/trie.hpp>
 #include <boost/text/utility.hpp>
-#include <boost/variant.hpp>
 
+#include <map>
 #include <type_traits>
 #include <vector>
 
@@ -89,12 +91,15 @@ namespace boost { namespace parser {
 
         inline nope global_nope;
 
+        using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
+
         template<typename ErrorHandler>
         inline auto make_context(
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
-            nope &) noexcept
+            nope &,
+            symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
@@ -105,7 +110,9 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, global_nope));
+                hana::make_pair(hana::type_c<callbacks_tag>, global_nope),
+                hana::make_pair(
+                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
         template<typename ErrorHandler, typename GlobalState>
@@ -113,7 +120,8 @@ namespace boost { namespace parser {
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
-            GlobalState & globals) noexcept
+            GlobalState & globals,
+            symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
@@ -124,7 +132,9 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, global_nope));
+                hana::make_pair(hana::type_c<callbacks_tag>, global_nope),
+                hana::make_pair(
+                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
         template<typename ErrorHandler, typename Callbacks>
@@ -133,7 +143,8 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks,
-            nope &) noexcept
+            nope &,
+            symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
@@ -144,7 +155,9 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks));
+                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks),
+                hana::make_pair(
+                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
         template<
@@ -156,7 +169,8 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks,
-            GlobalState & globals) noexcept
+            GlobalState & globals,
+            symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
                 hana::make_pair(hana::type_c<pass_tag>, &success),
@@ -167,7 +181,9 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
                     hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks));
+                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks),
+                hana::make_pair(
+                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
         template<typename Context>
@@ -180,6 +196,28 @@ namespace boost { namespace parser {
         inline decltype(auto) _callbacks(Context const & context)
         {
             return *context[hana::type_c<callbacks_tag>];
+        }
+
+        template<typename Context, typename T>
+        inline decltype(auto) get_trie(
+            Context const & context, symbol_parser<T> const & symbol_parser)
+        {
+            using trie_t = trie::trie<std::vector<uint32_t>, T>;
+            symbol_table_tries_t & symbol_table_tries =
+                *context[hana::type_c<symbol_table_tries_tag>];
+            any & a = symbol_table_tries[(void *)&symbol_parser];
+            trie_t * trie_ptr = nullptr;
+            if (a.empty()) {
+                a = trie_t{};
+                trie_ptr = any_cast<trie_t>(&a);
+                for (auto const & e : symbol_parser.initial_elements_) {
+                    trie_ptr->insert(
+                        text::make_to_utf32_range(e.first), e.second);
+                }
+            } else {
+                trie_ptr = any_cast<trie_t>(&a);
+            }
+            return *trie_ptr;
         }
 
 
@@ -536,7 +574,9 @@ namespace boost { namespace parser {
             int indent = 0;
             rethrow_error_handler eh;
             nope n;
-            auto const context = make_context(success, indent, eh, n);
+            symbol_table_tries_t symbol_table_tries;
+            auto const context =
+                make_context(success, indent, eh, n, symbol_table_tries);
             while (success) {
                 skip_(
                     hana::false_c,
@@ -803,6 +843,62 @@ namespace boost { namespace parser {
             parser.call(
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
+
+        template<typename Parser>
+        struct ref_parser
+        {
+            ref_parser() : parser_(nullptr) {}
+            ref_parser(Parser const * parser) : parser_(parser) {}
+
+            template<
+                bool UseCallbacks,
+                typename Iter,
+                typename Context,
+                typename SkipParser>
+            auto call(
+                hana::bool_<UseCallbacks> use_cbs,
+                Iter & first,
+                Iter last,
+                Context const & context,
+                SkipParser const & skip,
+                detail::flags flags,
+                bool & success) const
+            {
+                assert(parser_);
+                return parser_->call(
+                    use_cbs, first, last, context, skip, flags, success);
+            }
+
+            template<
+                bool UseCallbacks,
+                typename Iter,
+                typename Context,
+                typename SkipParser,
+                typename Attribute>
+            void call(
+                hana::bool_<UseCallbacks> use_cbs,
+                Iter & first,
+                Iter last,
+                Context const & context,
+                SkipParser const & skip,
+                detail::flags flags,
+                bool & success,
+                Attribute & retval) const
+            {
+                assert(parser_);
+                parser_->call(
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            }
+
+            Parser const * parser_;
+        };
     }
 
 
@@ -857,9 +953,6 @@ namespace boost { namespace parser {
 
 
     // TODO: no_skip[]?
-
-    // TODO: All the parsers are constexpr.  Figure out how to use them for
-    // compile-time parsing.
 
 
 
@@ -2210,6 +2303,20 @@ namespace boost { namespace parser {
     template<typename T>
     struct symbol_parser
     {
+        symbol_parser() : copied_from_(nullptr) {}
+        symbol_parser(symbol_parser const & other) :
+            initial_elements_(other.initial_elements_),
+            copied_from_(other.copied_from_ ? other.copied_from_ : &other)
+        {}
+
+        template<typename Context>
+        void insert(Context const & context, std::string_view str, T && x) const
+        {
+            trie::trie<std::vector<uint32_t>, T> & trie_ =
+                detail::get_trie(context, ref());
+            trie_.insert(text::make_to_utf32_range(str), std::move(x));
+        }
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2247,14 +2354,26 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
+            trie::trie<std::vector<uint32_t>, T> const & trie_ =
+                detail::get_trie(context, ref());
             auto const lookup = trie_.longest_match(first, last);
             if (lookup.match) {
                 std::advance(first, lookup.size);
                 detail::assign(retval, T{*trie_[lookup]});
+            } else {
+                success = false;
             }
         }
 
-        trie::trie<uint32_t, T> trie_;
+        std::vector<std::pair<std::string_view, T>> initial_elements_;
+        symbol_parser const * copied_from_;
+
+        symbol_parser const & ref() const noexcept
+        {
+            if (copied_from_)
+                return *copied_from_;
+            return *this;
+        }
     };
 
     template<typename TagType, typename Attribute, typename LocalState>
@@ -2507,7 +2626,6 @@ namespace boost { namespace parser {
     };
 
 
-
     // Parser interface.
 
     template<typename Parser, typename GlobalState>
@@ -2713,14 +2831,26 @@ namespace boost { namespace parser {
     template<typename T>
     struct symbols : parser_interface<symbol_parser<T>>
     {
+        using parser_interface<symbol_parser<T>>::operator();
+
+        // TODO: Document that this is for initial population, and that
+        // insert() is for during-parse updates.
         symbols & add(std::string_view str, T x)
         {
-            this->parser_.trie_.insert(
-                text::make_to_utf32_range(str), std::move(x));
+            this->parser_.initial_elements_.push_back(
+                std::pair<std::string_view, T>(str, std::move(x)));
             return *this;
         }
+        symbols & operator()(std::string_view str, T x)
+        {
+            return add(str, std::move(x));
+        }
 
-        void clear() noexcept { this->parser_.trie_.clear(); }
+        template<typename Context>
+        void insert(Context const & context, std::string_view str, T x) const
+        {
+            this->parser_.insert(context, str, std::move(x));
+        }
     };
 
     using no_attribute = detail::nope;
@@ -3926,8 +4056,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         try {
             parser(
                 hana::false_c,
@@ -3984,8 +4119,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         using attr_t = decltype(parser(
             hana::false_c,
             first,
@@ -4054,8 +4194,14 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, callbacks, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            callbacks,
+            parser.globals_,
+            symbol_table_tries);
         try {
             parser(
                 hana::true_c,
@@ -4139,8 +4285,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         detail::skip(first, last, skip, detail::default_flags());
         try {
             parser(
@@ -4207,8 +4358,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         detail::skip(first, last, skip, detail::default_flags());
         using attr_t = decltype(parser(
             hana::false_c,
@@ -4284,8 +4440,14 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, callbacks, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            callbacks,
+            parser.globals_,
+            symbol_table_tries);
         detail::skip(first, last, skip, detail::default_flags());
         try {
             parser(
@@ -4368,8 +4530,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::flags::gen_attrs);
         try {
             parser(
@@ -4429,11 +4596,22 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::flags::gen_attrs);
         using attr_t = decltype(parser(
-            first, last, context, detail::null_parser{}, flags, success));
+            hana::false_c,
+            first,
+            last,
+            context,
+            detail::null_parser{},
+            flags,
+            success));
         try {
             attr_t attr_ = parser(
                 hana::false_c,
@@ -4495,8 +4673,14 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, callbacks, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            callbacks,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::flags::gen_attrs);
         try {
             parser(
@@ -4570,8 +4754,13 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::default_flags());
         detail::skip(first, last, skip, flags);
         try {
@@ -4653,12 +4842,17 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::default_flags());
         detail::skip(first, last, skip, flags);
-        using attr_t =
-            decltype(parser(first, last, context, skip, flags, success));
+        using attr_t = decltype(
+            parser(hana::false_c, first, last, context, skip, flags, success));
         try {
             attr_t attr_ = parser(
                 hana::false_c, first, last, context, skip, flags, success);
@@ -4722,8 +4916,14 @@ namespace boost { namespace parser {
         auto const initial_first = first;
         bool success = true;
         int trace_indent = 0;
+        detail::symbol_table_tries_t symbol_table_tries;
         auto context = detail::make_context(
-            success, trace_indent, error_handler, callbacks, parser.globals_);
+            success,
+            trace_indent,
+            error_handler,
+            callbacks,
+            parser.globals_,
+            symbol_table_tries);
         auto const flags = enable_trace(detail::default_flags());
         detail::skip(first, last, skip, flags);
         try {

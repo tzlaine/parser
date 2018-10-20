@@ -41,7 +41,7 @@ endmacro()
 
 add_test_executable(parser_rule)
 add_test_executable(parser_action)
-
+add_test_executable(parser_symbol_table)
 
 ##################################################
 # Header-only build test
