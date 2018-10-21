@@ -103,6 +103,8 @@ namespace boost { namespace parser {
 
     struct eol_parser;
 
+    struct bool_parser;
+
     template<
         typename T,
         int Radix = 10,

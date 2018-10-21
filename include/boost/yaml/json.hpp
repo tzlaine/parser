@@ -137,7 +137,7 @@ namespace boost { namespace json {
     using error_function = std::function<void(std::string const &)>;
 
     optional<value> parse(
-        string_view const & str,
+        string_view str,
         error_function parse_error = error_function(),
         int max_recursion = 512);
 

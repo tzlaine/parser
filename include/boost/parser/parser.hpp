@@ -531,7 +531,7 @@ namespace boost { namespace parser {
                 typename Iter,
                 typename Context,
                 typename SkipParser>
-            nope call(
+            nope operator()(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
                 Iter last,
@@ -549,7 +549,7 @@ namespace boost { namespace parser {
                 typename Context,
                 typename SkipParser,
                 typename Attribute>
-            void call(
+            void operator()(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
                 Iter last,
@@ -2640,6 +2640,10 @@ namespace boost { namespace parser {
 
         constexpr parser_interface() {}
         constexpr parser_interface(Parser parser) : parser_(parser) {}
+        constexpr parser_interface(Parser parser, GlobalState globals) :
+            parser_(parser),
+            globals_(std::move(globals))
+        {}
 
         constexpr auto operator!() const noexcept
         {
@@ -3406,10 +3410,9 @@ namespace boost { namespace parser {
 
                 // TODO: Should this (and whereever CPs are pushed into
                 // strings) be changed to automagically transcode to UTF-8?
-                detail::append(
-                    retval, first, mismatch.first.base(), gen_attrs(flags));
+                detail::append(retval, first, mismatch.first, gen_attrs(flags));
 
-                first = mismatch.first.base();
+                first = mismatch.first;
             } else {
                 auto const mismatch = std::mismatch(
                     first, last, expected_.begin(), expected_.end());
@@ -3548,6 +3551,62 @@ namespace boost { namespace parser {
             upper;
     }
 
+    struct bool_parser
+    {
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser>
+        bool call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            bool retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            char const t[] = "true";
+            if (std::equal(t, t + 4, first, last)) {
+                std::advance(first, 4);
+                detail::assign(retval, true);
+                return;
+            }
+            char const f[] = "false";
+            if (std::equal(f, f + 5, first, last)) {
+                std::advance(first, 5);
+                detail::assign(retval, false);
+                return;
+            }
+            success = false;
+        }
+    };
+
+    inline constexpr parser_interface<bool_parser> bool_;
+
     template<
         typename T,
         int Radix,
@@ -3578,7 +3637,7 @@ namespace boost { namespace parser {
         {
             T retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
-            return {};
+            return retval;
         }
 
         template<
@@ -3657,7 +3716,7 @@ namespace boost { namespace parser {
         {
             T retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
-            return {};
+            return retval;
         }
 
         template<
@@ -3726,7 +3785,7 @@ namespace boost { namespace parser {
         {
             T retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
-            return {};
+            return retval;
         }
 
         template<
@@ -3763,7 +3822,7 @@ namespace boost { namespace parser {
     operator>>(char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<true>(lit(rhs));
+            return parser_.template append<true>(lit(rhs));
         } else {
             return *this >> lit(rhs);
         }
@@ -3774,7 +3833,7 @@ namespace boost { namespace parser {
     operator>>(char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<true>(lit(rhs));
+            return parser_.template append<true>(lit(rhs));
         } else {
             return *this >> lit(rhs);
         }
@@ -3785,7 +3844,7 @@ namespace boost { namespace parser {
     operator>>(std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<true>(lit(rhs));
+            return parser_.template append<true>(lit(rhs));
         } else {
             return *this >> lit(rhs);
         }
@@ -3795,7 +3854,7 @@ namespace boost { namespace parser {
     constexpr auto operator>>(char c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<true>(lit(c));
+            return rhs.parser_.template prepend<true>(lit(c));
         } else {
             return lit(c) >> rhs;
         }
@@ -3805,7 +3864,7 @@ namespace boost { namespace parser {
     constexpr auto operator>>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<true>(lit(c));
+            return rhs.parser_.template prepend<true>(lit(c));
         } else {
             return lit(c) >> rhs;
         }
@@ -3816,7 +3875,7 @@ namespace boost { namespace parser {
     operator>>(std::string_view str, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<true>(lit(str));
+            return rhs.parser_.template prepend<true>(lit(str));
         } else {
             return lit(str) >> rhs;
         }
@@ -3827,7 +3886,7 @@ namespace boost { namespace parser {
     operator>(char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<false>(lit(rhs));
+            return parser_.template append<false>(lit(rhs));
         } else {
             return *this > lit(rhs);
         }
@@ -3838,7 +3897,7 @@ namespace boost { namespace parser {
     operator>(char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<false>(lit(rhs));
+            return parser_.template append<false>(lit(rhs));
         } else {
             return *this > lit(rhs);
         }
@@ -3849,7 +3908,7 @@ namespace boost { namespace parser {
     operator>(std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.append<false>(lit(rhs));
+            return parser_.template append<false>(lit(rhs));
         } else {
             return *this > lit(rhs);
         }
@@ -3859,7 +3918,7 @@ namespace boost { namespace parser {
     constexpr auto operator>(char c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<false>(lit(c));
+            return rhs.parser_.template prepend<false>(lit(c));
         } else {
             return lit(c) > rhs;
         }
@@ -3869,7 +3928,7 @@ namespace boost { namespace parser {
     constexpr auto operator>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<false>(lit(c));
+            return rhs.parser_.template prepend<false>(lit(c));
         } else {
             return lit(c) > rhs;
         }
@@ -3880,7 +3939,7 @@ namespace boost { namespace parser {
     operator>(std::string_view str, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.prepend<false>(lit(str));
+            return rhs.parser_.template prepend<false>(lit(str));
         } else {
             return lit(str) > rhs;
         }
@@ -4748,6 +4807,7 @@ namespace boost { namespace parser {
             first, last, parser, default_error_handler{}, callbacks);
     }
 
+    // TODO: Can we unify debug_*parse() and *parse()?
     template<
         typename Iter,
         typename Parser,

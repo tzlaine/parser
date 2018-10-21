@@ -155,6 +155,9 @@ namespace boost { namespace parser { namespace detail {
     inline void parser_name(
         eol_parser const & parser, std::string & str, int components = 0);
 
+    inline void parser_name(
+        bool_parser const & parser, std::string & str, int components = 0);
+
     template<
         typename T,
         int Radix,
