@@ -608,7 +608,9 @@ namespace boost { namespace parser {
             template<typename T2>
             friend bool operator!=(T2 c, char_pair<T> const & chars)
             {
-                return c < chars.lo_ || chars.hi_ < c;
+                using common_t = std::common_type_t<T, T2>;
+                return (common_t)c < (common_t)chars.lo_ ||
+                       (common_t)chars.hi_ < (common_t)c;
             }
 
             T lo_;
@@ -637,6 +639,35 @@ namespace boost { namespace parser {
 
             range<std::decay_t<decltype(std::declval<Range>().begin())>> chars_;
         };
+
+        template<
+            typename CharType,
+            typename Expected,
+            bool BothIntegral =
+                std::is_integral<CharType>{} && std::is_integral<Expected>{}>
+        struct unequal_impl
+        {
+            static bool call(CharType c, Expected expected)
+            {
+                return c != expected;
+            }
+        };
+
+        template<typename CharType, typename Expected>
+        struct unequal_impl<CharType, Expected, true>
+        {
+            static bool call(CharType c, Expected expected)
+            {
+                using common_t = std::common_type_t<CharType, Expected>;
+                return (common_t)c != (common_t)expected;
+            }
+        };
+
+        template<typename CharType, typename Expected>
+        bool unequal(CharType c, Expected expected)
+        {
+            return unequal_impl<CharType, Expected>::call(c, expected);
+        }
 
         enum class ascii_char_class_t {
             alnum,
@@ -1297,8 +1328,6 @@ namespace boost { namespace parser {
     {
         constexpr or_parser(ParserTuple parsers) : parsers_(parsers) {}
 
-        // This more-verbose form (a lambda would have been easier!) prevents
-        // a Clang 6 ICE.
         template<
             bool UseCallbacks,
             typename Iter,
@@ -3277,7 +3306,7 @@ namespace boost { namespace parser {
                 return;
             }
             auto x = *first;
-            if (x != expected_) {
+            if (detail::unequal(x, expected_)) {
                 success = false;
                 return;
             }
