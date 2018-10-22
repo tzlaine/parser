@@ -3262,11 +3262,17 @@ namespace boost { namespace parser {
             attr_parser<Attribute>{std::move(a)}};
     }
 
-    template<typename Expected>
+    template<typename Expected, typename AttributeType>
     struct char_parser
     {
         constexpr char_parser() {}
         constexpr char_parser(Expected expected) : expected_(expected) {}
+
+        template<typename T>
+        using attribute_t = std::conditional_t<
+            std::is_same<AttributeType, void>{},
+            std::decay_t<T>,
+            AttributeType>;
 
         template<
             bool UseCallbacks,
@@ -3280,9 +3286,9 @@ namespace boost { namespace parser {
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> std::decay_t<decltype(*first)>
+            bool & success) const -> attribute_t<decltype(*first)>
         {
-            std::decay_t<decltype(*first)> retval;
+            attribute_t<decltype(*first)> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -3309,7 +3315,7 @@ namespace boost { namespace parser {
                 success = false;
                 return;
             }
-            auto x = *first;
+            attribute_t<decltype(*first)> const x = *first;
             if (detail::unequal(x, expected_)) {
                 success = false;
                 return;
@@ -3378,6 +3384,7 @@ namespace boost { namespace parser {
     };
 
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
+    inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
 
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
 

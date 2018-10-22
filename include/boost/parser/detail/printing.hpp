@@ -144,6 +144,17 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components = 0);
 
+    template<typename Expected>
+    void parser_name(
+        char_parser<Expected, uint32_t> const & parser,
+        std::string & str,
+        int components = 0);
+
+    inline void parser_name(
+        char_parser<nope, uint32_t> const & parser,
+        std::string & str,
+        int components = 0);
+
     inline void parser_name(
         string_parser const & parser, std::string & str, int components = 0);
 

@@ -261,6 +261,25 @@ namespace boost { namespace parser { namespace detail {
         str += to_string(parser.parser_.expected_);
     }
 
+    template<typename Expected>
+    void parser_name(
+        char_parser<Expected, uint32_t> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "cp(";
+        str += to_string(parser.expected_);
+        str += ")";
+    }
+
+    inline void parser_name(
+        char_parser<nope, uint32_t> const & parser,
+        std::string & str,
+        int components)
+    {
+        str += "cp";
+    }
+
     inline void
     parser_name(string_parser const & parser, std::string & str, int components)
     {

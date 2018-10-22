@@ -96,7 +96,7 @@ namespace boost { namespace parser {
     template<typename Attribute>
     struct attr_parser;
 
-    template<typename Expected>
+    template<typename Expected, typename AttributeType = void>
     struct char_parser;
 
     struct string_parser;
