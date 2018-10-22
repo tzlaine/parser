@@ -2830,7 +2830,7 @@ namespace boost { namespace parser {
         }
 
         Parser parser_;
-        GlobalState globals_;
+        mutable GlobalState globals_;
     };
 
 
