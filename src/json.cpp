@@ -47,7 +47,7 @@ namespace boost { namespace json {
     bp::rule<class null, value> const null = "null";
     bp::rule<class string, std::string> const string = "string";
     bp::rule<class number, double> const number = "number";
-    bp::rule<class object_element, std::pair<std::string, value>> const
+    bp::rule<class object_element, hana::tuple<std::string, value>> const
         object_element = "object-element";
     bp::rule<class object_tag, value> const object_p = "object";
     bp::rule<class array_tag, value> const array_p = "array";
@@ -65,8 +65,10 @@ namespace boost { namespace json {
         _val(ctx) = object();
     };
     auto object_insert = [](auto & ctx) {
+        using namespace hana::literals;
         value & v = _val(ctx);
-        get<object>(v).insert(std::move(_attr(ctx)));
+        get<object>(v).insert(std::make_pair(
+            std::move(_attr(ctx))[0_c], std::move(_attr(ctx)[1_c])));
     };
     auto array_init = [](auto & ctx) {
         auto & globals = _globals(ctx);
