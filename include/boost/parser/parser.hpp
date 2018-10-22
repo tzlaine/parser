@@ -2648,9 +2648,9 @@ namespace boost { namespace parser {
 
         constexpr parser_interface() {}
         constexpr parser_interface(Parser parser) : parser_(parser) {}
-        constexpr parser_interface(Parser parser, GlobalState globals) :
+        constexpr parser_interface(Parser parser, GlobalState & globals) :
             parser_(parser),
-            globals_(std::move(globals))
+            globals_(globals)
         {}
 
         constexpr auto operator!() const noexcept
@@ -2831,17 +2831,16 @@ namespace boost { namespace parser {
         }
 
         Parser parser_;
-        mutable GlobalState globals_;
+        GlobalState globals_;
     };
 
 
     template<typename Parser, typename GlobalState>
     auto with_globals(
         parser_interface<Parser, detail::nope> const & parser,
-        GlobalState globals)
+        GlobalState & globals)
     {
-        return parser_interface<Parser, GlobalState>{parser.parser_,
-                                                     std::move(globals)};
+        return parser_interface<Parser, GlobalState &>{parser.parser_, globals};
     }
 
 
