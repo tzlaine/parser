@@ -273,16 +273,6 @@ TEST(parser, callback_rules_normal_parse)
     }
 
     {
-        std::string const str = "xyz";
-        std::vector<char> chars;
-        EXPECT_FALSE(parse(str, callback_void_rule, chars));
-    }
-    {
-        std::string const str = "abc";
-        std::vector<char> chars;
-        EXPECT_TRUE(parse(str, callback_void_rule, chars));
-    }
-    {
         std::string const str = "def";
         EXPECT_TRUE(parse(str, callback_void_rule));
     }

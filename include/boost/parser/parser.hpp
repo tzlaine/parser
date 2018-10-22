@@ -186,6 +186,50 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
+        template<typename Context, typename AttributeType, typename LocalState>
+        inline auto make_rule_context(
+            Context const & context,
+            AttributeType & value,
+            LocalState & locals) noexcept
+        {
+            // Replace the context's current locals with these, and its
+            // current val with retval.
+            return hana::insert(
+                hana::insert(
+                    hana::erase_key(
+                        hana::erase_key(context, hana::type_c<locals_tag>),
+                        hana::type_c<val_tag>),
+                    hana::make_pair(hana::type_c<locals_tag>, &locals)),
+                hana::make_pair(hana::type_c<val_tag>, &value));
+        }
+
+        template<typename Context, typename LocalState>
+        inline auto make_rule_context(
+            Context const & context, nope & value, LocalState & locals) noexcept
+        {
+            return hana::insert(
+                hana::erase_key(context, hana::type_c<locals_tag>),
+                hana::make_pair(hana::type_c<locals_tag>, &locals));
+        }
+
+        template<typename Context, typename AttributeType>
+        inline auto make_rule_context(
+            Context const & context,
+            AttributeType & value,
+            nope & locals) noexcept
+        {
+            return hana::insert(
+                hana::erase_key(context, hana::type_c<val_tag>),
+                hana::make_pair(hana::type_c<val_tag>, &value));
+        }
+
+        template<typename Context>
+        inline auto make_rule_context(
+            Context const & context, nope & value, nope & locals) noexcept
+        {
+            return context;
+        }
+
         template<typename Context>
         inline decltype(auto) _indent(Context const & context)
         {
@@ -2431,33 +2475,25 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            if constexpr (std::is_same<attr_type, detail::nope>{}) {
-                detail::nope n;
-                auto _ = scoped_trace(*this, first, last, context, flags, n);
-                tag_type * const tag_ptr = nullptr;
-                parse_rule(
-                    tag_ptr,
-                    hana::false_c,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success);
-                return {};
-            } else {
-                attr_type retval;
-                call(
-                    hana::false_c,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-                return retval;
-            }
+            attr_type retval;
+            locals_type locals;
+            auto const rule_context =
+                make_rule_context(context, retval, locals);
+            auto _ =
+                scoped_trace(*this, first, last, rule_context, flags, retval);
+            tag_type * const tag_ptr = nullptr;
+            parse_rule(
+                tag_ptr,
+                hana::false_c,
+                first,
+                last,
+                rule_context,
+                skip,
+                flags,
+                success);
+            if (!success)
+                detail::assign(retval, attr_type());
+            return retval;
         }
 
         template<
@@ -2476,44 +2512,10 @@ namespace boost { namespace parser {
             bool & success,
             Attribute_ & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
-
-            tag_type * const tag_ptr = nullptr;
-            if constexpr (std::is_same<locals_type, detail::nope>{}) {
-                auto const rule_context = hana::insert(
-                    hana::erase_key(context, val_),
-                    hana::make_pair(val_, &retval));
-                parse_rule(
-                    tag_ptr,
-                    hana::false_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-            } else {
-                locals_type locals;
-                // Replace the context's current locals with these, and its
-                // current val with retval.
-                auto const rule_context = hana::insert(
-                    hana::insert(
-                        hana::erase_key(
-                            hana::erase_key(context, locals_), val_),
-                        hana::make_pair(locals_, &locals)),
-                    hana::make_pair(val_, &retval));
-                parse_rule(
-                    tag_ptr,
-                    hana::false_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-            }
+            attr_type attr =
+                call(use_cbs, first, last, context, skip, flags, success);
+            if (success)
+                detail::assign(retval, attr);
         }
 
         std::string_view name_;
@@ -2547,45 +2549,21 @@ namespace boost { namespace parser {
                     use_cbs, first, last, context, skip, flags, success);
             } else {
                 attr_type retval;
-                auto _ =
-                    scoped_trace(*this, first, last, context, flags, retval);
-
+                locals_type locals;
+                auto const rule_context = make_rule_context(context, retval, locals);
+                auto _ = scoped_trace(
+                    *this, first, last, rule_context, flags, retval);
                 tag_type * const tag_ptr = nullptr;
-                if constexpr (std::is_same<locals_type, detail::nope>{}) {
-                    auto const rule_context = hana::insert(
-                        hana::erase_key(context, val_),
-                        hana::make_pair(val_, &retval));
-                    parse_rule(
-                        tag_ptr,
-                        hana::true_c,
-                        first,
-                        last,
-                        rule_context,
-                        skip,
-                        flags,
-                        success,
-                        retval);
-                } else {
-                    locals_type locals;
-                    // Replace the context's current locals with these, and
-                    // its current val with retval.
-                    auto const rule_context = hana::insert(
-                        hana::insert(
-                            hana::erase_key(
-                                hana::erase_key(context, locals_), val_),
-                            hana::make_pair(locals_, &locals)),
-                        hana::make_pair(val_, &retval));
-                    parse_rule(
-                        tag_ptr,
-                        hana::true_c,
-                        first,
-                        last,
-                        rule_context,
-                        skip,
-                        flags,
-                        success,
-                        retval);
-                }
+                parse_rule(
+                    tag_ptr,
+                    hana::true_c,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
 
                 if (!success)
                     return {};
