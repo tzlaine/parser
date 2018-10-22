@@ -1493,9 +1493,9 @@ namespace boost { namespace parser {
         }
 
         template<typename Parser>
-        constexpr auto prepend(Parser parser) const noexcept;
+        constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
         template<typename Parser>
-        constexpr auto append(Parser parser) const noexcept;
+        constexpr auto append(parser_interface<Parser> parser) const noexcept;
 
         ParserTuple parsers_;
     };
@@ -1927,9 +1927,9 @@ namespace boost { namespace parser {
         }
 
         template<bool AllowBacktracking, typename Parser>
-        constexpr auto prepend(Parser parser) const noexcept;
+        constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
         template<bool AllowBacktracking, typename Parser>
-        constexpr auto append(Parser parser) const noexcept;
+        constexpr auto append(parser_interface<Parser> parser) const noexcept;
 
         ParserTuple parsers_;
         mutable bool in_apply_parser_;
@@ -2720,7 +2720,7 @@ namespace boost { namespace parser {
         constexpr auto operator>>(parser_interface<Parser2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<Parser>{}) {
-                return parser_.template append<true>(rhs.parser_);
+                return parser_.template append<true>(rhs);
             } else {
                 using parser_t = seq_parser<
                     hana::tuple<Parser, Parser2>,
@@ -2738,7 +2738,7 @@ namespace boost { namespace parser {
         constexpr auto operator>(parser_interface<Parser2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<Parser>{}) {
-                return parser_.template append<false>(rhs.parser_);
+                return parser_.template append<false>(rhs);
             } else {
                 using parser_t = seq_parser<
                     hana::tuple<Parser, Parser2>,
@@ -2755,7 +2755,7 @@ namespace boost { namespace parser {
         constexpr auto operator|(parser_interface<Parser2> rhs) const noexcept
         {
             if constexpr (detail::is_or_p<Parser>{}) {
-                return parser_.append(rhs.parser_);
+                return parser_.append(rhs);
             } else {
                 return parser_interface<
                     or_parser<hana::tuple<Parser, Parser2>>>{
@@ -2977,53 +2977,57 @@ namespace boost { namespace parser {
 
     template<typename ParserTuple>
     template<typename Parser>
-    constexpr auto or_parser<ParserTuple>::prepend(Parser parser) const noexcept
+    constexpr auto
+    or_parser<ParserTuple>::prepend(parser_interface<Parser> parser) const
+        noexcept
     {
         return parser_interface<
-            or_parser<decltype(hana::prepend(parsers_, parser))>>{
-            or_parser<decltype(hana::prepend(parsers_, parser))>{
-                hana::prepend(parsers_, parser)}};
+            or_parser<decltype(hana::prepend(parsers_, parser.parser_))>>{
+            or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
+                hana::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple>
     template<typename Parser>
-    constexpr auto or_parser<ParserTuple>::append(Parser parser) const noexcept
+    constexpr auto
+    or_parser<ParserTuple>::append(parser_interface<Parser> parser) const
+        noexcept
     {
         return parser_interface<
-            or_parser<decltype(hana::append(parsers_, parser))>>{
-            or_parser<decltype(hana::append(parsers_, parser))>{
-                hana::append(parsers_, parser)}};
+            or_parser<decltype(hana::append(parsers_, parser.parser_))>>{
+            or_parser<decltype(hana::append(parsers_, parser.parser_))>{
+                hana::append(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple, typename BacktrackingTuple>
     template<bool AllowBacktracking, typename Parser>
-    constexpr auto
-    seq_parser<ParserTuple, BacktrackingTuple>::prepend(Parser parser) const
-        noexcept
+    constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::prepend(
+        parser_interface<Parser> parser) const noexcept
     {
         using backtracking = decltype(hana::prepend(
             hana::prepend(
                 hana::drop_front(backtracking{}),
                 hana::bool_c<AllowBacktracking>),
             hana::true_c));
-        using parser_t =
-            seq_parser<decltype(hana::prepend(parsers_, parser)), backtracking>;
+        using parser_t = seq_parser<
+            decltype(hana::prepend(parsers_, parser.parser_)),
+            backtracking>;
         return parser_interface<parser_t>{
-            parser_t{hana::prepend(parsers_, parser)}};
+            parser_t{hana::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple, typename BacktrackingTuple>
     template<bool AllowBacktracking, typename Parser>
-    constexpr auto
-    seq_parser<ParserTuple, BacktrackingTuple>::append(Parser parser) const
-        noexcept
+    constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::append(
+        parser_interface<Parser> parser) const noexcept
     {
         using backtracking = decltype(
             hana::append(backtracking{}, hana::bool_c<AllowBacktracking>));
-        using parser_t =
-            seq_parser<decltype(hana::append(parsers_, parser)), backtracking>;
+        using parser_t = seq_parser<
+            decltype(hana::append(parsers_, parser.parser_)),
+            backtracking>;
         return parser_interface<parser_t>{
-            parser_t{hana::append(parsers_, parser)}};
+            parser_t{hana::append(parsers_, parser.parser_)}};
     }
 
 
