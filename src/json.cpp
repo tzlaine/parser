@@ -12,7 +12,10 @@ namespace boost { namespace json {
     template<typename Iter>
     struct excessive_nesting : std::runtime_error
     {
-        excessive_nesting(Iter it) : runtime_error(), iter(it) {}
+        excessive_nesting(Iter it) :
+            runtime_error("excessive_nesting"),
+            iter(it)
+        {}
         Iter iter;
     };
 
@@ -53,8 +56,6 @@ namespace boost { namespace json {
 
 
 
-    // Definitions.
-
     auto const ws_def = '\x09'_l | '\x0a' | '\x0d' | '\x20';
 
     auto object_init = [](auto & ctx) {
@@ -64,10 +65,8 @@ namespace boost { namespace json {
         _val(ctx) = object();
     };
     auto object_insert = [](auto & ctx) {
-        using namespace boost::hana::literals;
         value & v = _val(ctx);
-        get<object>(v).insert(std::make_pair(
-            std::move(_attr(ctx)[0_c]), std::move(_attr(ctx)[1_c])));
+        get<object>(v).insert(std::move(_attr(ctx)));
     };
     auto array_init = [](auto & ctx) {
         auto & globals = _globals(ctx);
@@ -122,7 +121,7 @@ namespace boost { namespace json {
 
     auto const string_char_def = escape_double_seq | escape_seq |
                                  '\\'_l > single_escaped_char |
-                                 (bp::char_ - bp::char_(0x0000u, 0x001fu));
+                                 (bp::cp - bp::char_(0x0000u, 0x001fu));
 
     auto const null_def = "null" >> bp::attr(value());
 
@@ -184,7 +183,6 @@ namespace boost { namespace json {
     optional<value>
     parse(string_view str, error_function parse_error, int max_recursion)
     {
-#if 1
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
@@ -193,14 +191,8 @@ namespace boost { namespace json {
         if (max_recursion <= 0)
             max_recursion = INT_MAX;
 
-        // number is problematic
-        // bp::bool_ works
-        // null works
-        // string is problematic
-        // array_p is problematic
-        // object_p is problematic
         auto const parser =
-            bp::with_globals(null/*string/* | bp::bool_ | null*/, global_state{0, max_recursion});
+            bp::with_globals(value_p, global_state{0, max_recursion});
 
         bp::callback_error_handler const error_handler(parse_error);
         try {
@@ -223,9 +215,6 @@ namespace boost { namespace json {
         }
 
         return {};
-#else
-        return {};
-#endif
     }
 
 }}
