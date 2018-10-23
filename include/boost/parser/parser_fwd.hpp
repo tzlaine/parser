@@ -26,6 +26,7 @@ namespace boost { namespace parser {
         struct where_tag;
         struct pass_tag;
         struct locals_tag;
+        struct rule_params_tag;
         struct globals_tag;
         struct trace_indent_tag;
         struct error_handler_tag;
@@ -79,7 +80,8 @@ namespace boost { namespace parser {
         bool UseCallbacks,
         typename Parser,
         typename Attribute,
-        typename LocalState>
+        typename LocalState,
+        typename ParamsTuple>
     struct rule_parser;
 
     template<typename T>

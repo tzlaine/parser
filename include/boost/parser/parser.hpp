@@ -106,6 +106,7 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
                 hana::make_pair(hana::type_c<globals_tag>, global_nope),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
@@ -128,6 +129,7 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
                 hana::make_pair(hana::type_c<globals_tag>, &globals),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
@@ -151,6 +153,7 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
                 hana::make_pair(hana::type_c<globals_tag>, global_nope),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
@@ -177,6 +180,7 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
                 hana::make_pair(hana::type_c<locals_tag>, global_nope),
+                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
                 hana::make_pair(hana::type_c<globals_tag>, &globals),
                 hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
                 hana::make_pair(
@@ -186,14 +190,65 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
+        template<typename T, typename U>
+        using callable = decltype(std::declval<T>()(std::declval<U>()));
+
+        template<typename Context, typename ParamsTuple>
+        inline auto
+        resolve_rule_params(Context const & context, ParamsTuple const & params)
+        {
+            return hana::transform(params, [&](auto const & x) {
+                if constexpr (is_detected<
+                                  callable,
+                                  decltype(x),
+                                  Context const &>{}) {
+                    return x(context);
+                } else {
+                    return x;
+                }
+            });
+        }
+
+        template<typename Context>
+        inline nope resolve_rule_params(Context const & context, nope)
+        {
+            return {};
+        }
+
+        template<
+            typename Context,
+            typename AttributeType,
+            typename LocalState,
+            typename ParamsTuple>
+        inline auto make_rule_context(
+            Context const & context,
+            AttributeType & value,
+            LocalState & locals,
+            ParamsTuple const & params) noexcept
+        {
+            // Replace the context's current locals and params with these, and
+            // its current val with value.
+            return hana::insert(
+                hana::insert(
+                    hana::insert(
+                        hana::erase_key(
+                            hana::erase_key(
+                                hana::erase_key(
+                                    context, hana::type_c<locals_tag>),
+                                hana::type_c<val_tag>),
+                            hana::type_c<rule_params_tag>),
+                        hana::make_pair(hana::type_c<locals_tag>, &locals)),
+                    hana::make_pair(hana::type_c<val_tag>, &value)),
+                hana::make_pair(hana::type_c<rule_params_tag>, &params));
+        }
+
         template<typename Context, typename AttributeType, typename LocalState>
         inline auto make_rule_context(
             Context const & context,
             AttributeType & value,
-            LocalState & locals) noexcept
+            LocalState & locals,
+            nope & params) noexcept
         {
-            // Replace the context's current locals with these, and its
-            // current val with retval.
             return hana::insert(
                 hana::insert(
                     hana::erase_key(
@@ -203,29 +258,80 @@ namespace boost { namespace parser {
                 hana::make_pair(hana::type_c<val_tag>, &value));
         }
 
+        template<typename Context, typename LocalState, typename ParamsTuple>
+        inline auto make_rule_context(
+            Context const & context,
+            nope & value,
+            LocalState & locals,
+            ParamsTuple const & params) noexcept
+        {
+            return hana::insert(
+                hana::insert(
+                    hana::erase_key(
+                        hana::erase_key(context, hana::type_c<locals_tag>),
+                        hana::type_c<rule_params_tag>),
+                    hana::make_pair(hana::type_c<locals_tag>, &locals)),
+                hana::make_pair(hana::type_c<rule_params_tag>, &params));
+        }
+
         template<typename Context, typename LocalState>
         inline auto make_rule_context(
-            Context const & context, nope & value, LocalState & locals) noexcept
+            Context const & context,
+            nope & value,
+            LocalState & locals,
+            nope & params) noexcept
         {
             return hana::insert(
                 hana::erase_key(context, hana::type_c<locals_tag>),
                 hana::make_pair(hana::type_c<locals_tag>, &locals));
         }
 
+        template<typename Context, typename AttributeType, typename ParamsTuple>
+        inline auto make_rule_context(
+            Context const & context,
+            AttributeType & value,
+            nope & locals,
+            ParamsTuple const & params) noexcept
+        {
+            return hana::insert(
+                hana::insert(
+                    hana::erase_key(
+                        hana::erase_key(context, hana::type_c<val_tag>),
+                        hana::type_c<rule_params_tag>),
+                    hana::make_pair(hana::type_c<val_tag>, &value)),
+                hana::make_pair(hana::type_c<rule_params_tag>, &params));
+        }
+
         template<typename Context, typename AttributeType>
         inline auto make_rule_context(
             Context const & context,
             AttributeType & value,
-            nope & locals) noexcept
+            nope & locals,
+            nope & params) noexcept
         {
             return hana::insert(
                 hana::erase_key(context, hana::type_c<val_tag>),
                 hana::make_pair(hana::type_c<val_tag>, &value));
         }
 
+        template<typename Context, typename ParamsTuple>
+        inline auto make_rule_context(
+            Context const & context,
+            nope & value,
+            nope & locals,
+            ParamsTuple const & params) noexcept
+        {
+            return hana::insert(
+                hana::erase_key(context, hana::type_c<rule_params_tag>),
+                hana::make_pair(hana::type_c<rule_params_tag>, &params));
+        }
+
         template<typename Context>
         inline auto make_rule_context(
-            Context const & context, nope & value, nope & locals) noexcept
+            Context const & context,
+            nope & value,
+            nope & locals,
+            nope & params) noexcept
         {
             return context;
         }
@@ -1343,6 +1449,7 @@ namespace boost { namespace parser {
     inline constexpr auto where_ = tag<detail::where_tag>;
     inline constexpr auto pass_ = tag<detail::pass_tag>;
     inline constexpr auto locals_ = tag<detail::locals_tag>;
+    inline constexpr auto params_ = tag<detail::rule_params_tag>;
     inline constexpr auto globals_ = tag<detail::globals_tag>;
     inline constexpr auto error_handler_ = tag<detail::error_handler_tag>;
 
@@ -1370,6 +1477,11 @@ namespace boost { namespace parser {
     inline decltype(auto) _locals(Context const & context)
     {
         return *context[locals_];
+    }
+    template<typename Context>
+    inline decltype(auto) _params(Context const & context)
+    {
+        return *context[params_];
     }
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
@@ -2808,8 +2920,12 @@ namespace boost { namespace parser {
         }
     };
 
-    template<typename TagType, typename Attribute, typename LocalState>
-    struct rule_parser<false, TagType, Attribute, LocalState>
+    template<
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    struct rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
     {
         using tag_type = TagType;
         using attr_type = Attribute;
@@ -2831,8 +2947,9 @@ namespace boost { namespace parser {
         {
             attr_type retval;
             locals_type locals;
+            auto params = detail::resolve_rule_params(context, params_);
             auto const rule_context =
-                make_rule_context(context, retval, locals);
+                make_rule_context(context, retval, locals, params);
             auto _ =
                 scoped_trace(*this, first, last, rule_context, flags, retval);
             tag_type * const tag_ptr = nullptr;
@@ -2874,10 +2991,15 @@ namespace boost { namespace parser {
         }
 
         std::string_view name_;
+        ParamsTuple params_;
     };
 
-    template<typename TagType, typename Attribute, typename LocalState>
-    struct rule_parser<true, TagType, Attribute, LocalState>
+    template<
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    struct rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>
     {
         using tag_type = TagType;
         using attr_type = Attribute;
@@ -2898,15 +3020,16 @@ namespace boost { namespace parser {
             bool & success) const
         {
             if constexpr (!UseCallbacks) {
-                rule_parser<false, TagType, Attribute, LocalState>
-                    without_callbacks{name_};
+                rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
+                    without_callbacks{name_, params_};
                 return without_callbacks.call(
                     use_cbs, first, last, context, skip, flags, success);
             } else {
                 attr_type retval;
                 locals_type locals;
+                auto params = detail::resolve_rule_params(context, params_);
                 auto const rule_context =
-                    make_rule_context(context, retval, locals);
+                    make_rule_context(context, retval, locals, params);
                 auto _ = scoped_trace(
                     *this, first, last, rule_context, flags, retval);
                 tag_type * const tag_ptr = nullptr;
@@ -2981,8 +3104,8 @@ namespace boost { namespace parser {
             Attribute_ & attr) const
         {
             if (!UseCallbacks) {
-                rule_parser<false, TagType, Attribute, LocalState>
-                    without_callbacks{name_};
+                rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
+                    without_callbacks{name_, params_};
                 without_callbacks.call(
                     use_cbs, first, last, context, skip, flags, success, attr);
             } else {
@@ -2991,6 +3114,7 @@ namespace boost { namespace parser {
         }
 
         std::string_view name_;
+        ParamsTuple params_;
     };
 
 
@@ -3232,27 +3356,68 @@ namespace boost { namespace parser {
 
     using no_attribute = detail::nope;
     using no_local_state = detail::nope;
+    using no_params = detail::nope;
 
     template<
         typename TagType,
         typename Attribute = no_attribute,
-        typename LocalState = no_local_state>
+        typename LocalState = no_local_state,
+        typename ParamsTuple = no_params>
     struct rule
-        : parser_interface<rule_parser<false, TagType, Attribute, LocalState>>
+        : parser_interface<
+              rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>>
     {
         constexpr rule(char const * name) { this->parser_.name_ = name; }
+
+        template<typename... T>
+        constexpr auto with(T &&... x) const
+        {
+            static_assert(
+                std::is_same<ParamsTuple, detail::nope>{},
+                "If you're seeing this, you tried to chain calls on a rule, "
+                "like 'rule(foo)(bar)'.  Quit it!'");
+            using params_tuple_type =
+                decltype(hana::make_tuple(static_cast<T &&>(x)...));
+            return rule_parser<
+                false,
+                TagType,
+                Attribute,
+                LocalState,
+                params_tuple_type>{this->parser_.name_,
+                                   hana::make_tuple(static_cast<T &&>(x)...)};
+        }
     };
 
     template<
         typename TagType,
         typename Attribute = no_attribute,
-        typename LocalState = no_local_state>
+        typename LocalState = no_local_state,
+        typename ParamsTuple = no_params>
     struct callback_rule
-        : parser_interface<rule_parser<true, TagType, Attribute, LocalState>>
+        : parser_interface<
+              rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>>
     {
         constexpr callback_rule(char const * name)
         {
             this->parser_.name_ = name;
+        }
+
+        template<typename... T>
+        constexpr auto with(T &&... x) const
+        {
+            static_assert(
+                std::is_same<ParamsTuple, detail::nope>{},
+                "If you're seeing this, you tried to chain calls on a "
+                "callback_rule, like 'rule(foo)(bar)'.  Quit it!'");
+            using params_tuple_type =
+                decltype(hana::make_tuple(static_cast<T &&>(x)...));
+            return rule_parser<
+                true,
+                TagType,
+                Attribute,
+                LocalState,
+                params_tuple_type>{this->parser_.name_,
+                                   hana::make_tuple(static_cast<T &&>(x)...)};
         }
     };
 
@@ -3423,7 +3588,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<SkipParser, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on skip, "
-                "like 'skip(foo)(bar).  Quit it!'");
+                "like 'skip(foo)(bar)'.  Quit it!'");
             return skip_directive<SkipParser2>{skip_parser};
         }
 
@@ -3485,7 +3650,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Predicate, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on eps, "
-                "like 'eps(foo)(bar).  Quit it!'");
+                "like 'eps(foo)(bar)'.  Quit it!'");
             return parser_interface<eps_parser<Predicate2>>{
                 eps_parser<Predicate2>{std::move(predicate)}};
         }
@@ -3664,7 +3829,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_('a')('b').  Quit it!'");
+                "like 'char_('a')('b')'.  Quit it!'");
             return parser_interface<char_parser<T>>{
                 char_parser<T>{std::move(x)}};
         }
@@ -3675,7 +3840,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_(\"chars\")(\"chars\").  Quit it!'");
+                "like 'char_(\"chars\")(\"chars\")'.  Quit it!'");
             std::string_view const range(s);
             using char_range_t = detail::char_range<std::string_view>;
             using char_parser_t = char_parser<char_range_t>;
@@ -3689,7 +3854,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_('a', 'b')('c', 'd').  Quit it!'");
+                "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
             return parser_interface<char_parser<detail::char_pair<T>>>(
                 char_parser<detail::char_pair<T>>(
                     detail::char_pair<T>{std::move(lo), std::move(hi)}));
@@ -3705,7 +3870,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_(char-set)(char-set).  Quit it!'");
+                "like 'char_(char-set)(char-set)'.  Quit it!'");
             auto range = make_range(r.begin(), r.end());
             using char_range_t = detail::char_range<decltype(range)>;
             using char_parser_t = char_parser<char_range_t>;
@@ -4044,7 +4209,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
-                "parser, like 'uint_(2)(3).  Quit it!'");
+                "parser, like 'uint_(2)(3)'.  Quit it!'");
             using parser_t = uint_parser<T, Radix, MinDigits, MaxDigits, T>;
             return parser_interface<parser_t>{parser_t{x}};
         }
@@ -4123,7 +4288,7 @@ namespace boost { namespace parser {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
-                "parser, like 'int_(2)(3).  Quit it!'");
+                "parser, like 'int_(2)(3)'.  Quit it!'");
             using parser_t = int_parser<T, Radix, MinDigits, MaxDigits, T>;
             return parser_interface<parser_t>{parser_t{x}};
         }
