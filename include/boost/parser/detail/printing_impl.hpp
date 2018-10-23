@@ -9,86 +9,64 @@
 namespace boost { namespace parser { namespace detail {
 
     template<typename Parser>
-    void parser_name(Parser const & parser, std::string & str, int components)
+    void parser_name(Parser const & parser, std::ostream & os, int components)
     {
-        str += "<<unknown-parser>>";
+        os << "<<unknown-parser>>";
     }
 
     template<typename Parser>
     void parser_name(
         repeat_parser<Parser, detail::nope> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
         if (parser.min_ == 0 && parser.max_ == Inf) {
-            str += "*";
-            parser_name(parser.parser_, str, components + 1);
+            os << "*";
+            parser_name(parser.parser_, os, components + 1);
         } else if (parser.min_ == 1 && parser.max_ == Inf) {
-            str += "+";
-            parser_name(parser.parser_, str, components + 1);
+            os << "+";
+            parser_name(parser.parser_, os, components + 1);
         } else {
-            str += "repeat(";
-            str += std::to_string(parser.min_);
+            os << "repeat(";
+            print(os, parser.min_);
             if (parser.min_ == parser.max_) {
-                str += ")[";
+                os << ")[";
             } else {
-                str += ", ";
+                os << ", ";
                 if (parser.max_ == unbounded)
-                    str += "Inf";
+                    os << "Inf";
                 else
-                    str += std::to_string(parser.max_);
-                str += ")[";
+                    print(os, parser.max_);
+                os << ")[";
             }
-            parser_name(parser.parser_, str, components + 1);
-            str += "]";
+            parser_name(parser.parser_, os, components + 1);
+            os << "]";
         }
-    }
-
-    template<typename Parser>
-    void parser_name(
-        zero_plus_parser<Parser> const & parser,
-        std::string & str,
-        int components)
-    {
-        str += "*";
-        parser_name(parser.parser_, str, components + 1);
-    }
-
-    template<typename Parser>
-    void parser_name(
-        one_plus_parser<Parser> const & parser,
-        std::string & str,
-        int components)
-    {
-        str += "+";
-        parser_name(parser.parser_, str, components + 1);
     }
 
     template<typename Parser, typename DelimiterParser>
     void parser_name(
-        delimited_seq_parser<Parser, DelimiterParser> const & parser,
-        std::string & str,
+        repeat_parser<Parser, DelimiterParser> const & parser,
+        std::ostream & os,
         int components)
     {
-        parser_name(parser.parser_, str, components + 1);
-        str += " % ";
-        parser_name(parser.delimiter_parser_, str, components + 2);
+        parser_name(parser.parser_, os, components + 1);
+        os << " % ";
+        parser_name(parser.delimiter_parser_, os, components + 2);
     }
 
     template<typename Parser>
     void parser_name(
-        opt_parser<Parser> const & parser,
-        std::string & str,
-        int components)
+        opt_parser<Parser> const & parser, std::ostream & os, int components)
     {
-        str += "-";
-        parser_name(parser.parser_, str, components + 1);
+        os << "-";
+        parser_name(parser.parser_, os, components + 1);
     }
 
     template<typename ParserTuple>
     void parser_name(
         or_parser<ParserTuple> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
         int i = 0;
@@ -96,13 +74,13 @@ namespace boost { namespace parser { namespace detail {
         hana::for_each(parser.parsers_, [&](auto const & parser) {
             if (components == parser_component_limit) {
                 if (!printed_ellipsis)
-                    str += " | ...";
+                    os << " | ...";
                 printed_ellipsis = true;
                 return;
             }
             if (i)
-                str += " | ";
-            parser_name(parser, str, components);
+                os << " | ";
+            parser_name(parser, os, components);
             ++components;
             ++i;
         });
@@ -111,7 +89,7 @@ namespace boost { namespace parser { namespace detail {
     template<typename ParserTuple, typename BacktrackingTuple>
     void parser_name(
         seq_parser<ParserTuple, BacktrackingTuple> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
         int i = 0;
@@ -125,13 +103,13 @@ namespace boost { namespace parser { namespace detail {
 
                 if (components == parser_component_limit) {
                     if (!printed_ellipsis)
-                        str += backtrack ? " >> ..." : " > ...";
+                        os << (backtrack ? " >> ..." : " > ...");
                     printed_ellipsis = true;
                     return;
                 }
                 if (i)
-                    str += backtrack ? " >> " : " > ";
-                parser_name(parser, str, components);
+                    os << (backtrack ? " >> " : " > ");
+                parser_name(parser, os, components);
                 ++components;
                 ++i;
             });
@@ -140,68 +118,86 @@ namespace boost { namespace parser { namespace detail {
     template<typename Parser, typename Action>
     void parser_name(
         action_parser<Parser, Action> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        parser_name(parser.parser_, str, components);
-        str += "[<<action>>]";
+        parser_name(parser.parser_, os, components);
+        os << "[<<action>>]";
     }
 
     template<typename Parser>
     void directive_name(
         std::string_view name,
         Parser const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += name;
-        str += "[";
+        os << name << "[";
         if (++components == parser_component_limit)
-            str += "...";
+            os << "...";
         else
-            parser_name(parser, str, components + 1);
-        str += "]";
+            parser_name(parser, os, components + 1);
+        os << "]";
     }
 
     template<typename Parser>
     void parser_name(
-        omit_parser<Parser> const & parser, std::string & str, int components)
+        omit_parser<Parser> const & parser, std::ostream & os, int components)
     {
-        directive_name("omit", parser.parser_, str, components);
+        directive_name("omit", parser.parser_, os, components);
     }
 
     template<typename Parser>
     void parser_name(
-        raw_parser<Parser> const & parser, std::string & str, int components)
+        raw_parser<Parser> const & parser, std::ostream & os, int components)
     {
-        directive_name("raw", parser.parser_, str, components);
+        directive_name("raw", parser.parser_, os, components);
     }
 
     template<typename Parser>
     void parser_name(
-        lexeme_parser<Parser> const & parser, std::string & str, int components)
+        lexeme_parser<Parser> const & parser, std::ostream & os, int components)
     {
-        directive_name("lexeme", parser.parser_, str, components);
+        directive_name("lexeme", parser.parser_, os, components);
+    }
+
+    template<typename Parser>
+    void parser_name(
+        skip_parser<Parser, detail::nope> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        directive_name("skip", parser.parser_, os, components);
+    }
+
+    template<typename Parser, typename SkipParser>
+    void parser_name(
+        skip_parser<Parser> const & parser, std::ostream & os, int components)
+    {
+        os << "skip(";
+        parser_name(parser.skip_parser_, os, components);
+        os << ")";
+        directive_name("", parser.parser_, os, components + 1);
     }
 
     template<typename Parser>
     void parser_name(
         expect_parser<Parser, true> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "!";
-        parser_name(parser.parser_, str, components + 1);
+        os << "!";
+        parser_name(parser.parser_, os, components + 1);
     }
 
     template<typename Parser>
     void parser_name(
         expect_parser<Parser, false> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "&";
-        parser_name(parser.parser_, str, components + 1);
+        os << "&";
+        parser_name(parser.parser_, os, components + 1);
     }
 
     template<
@@ -217,41 +213,46 @@ namespace boost { namespace parser { namespace detail {
             Attribute,
             LocalState,
             ParamsTuple> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        // TODO: Print attribute type?
-        // TODO: Print locals type?
-        // TODO: Print params.
-        str += parser.name_;
+        // TODO: Print params?
+        os << parser.name_;
     }
 
     template<typename T>
     void parser_name(
-        symbol_parser<T> const & parser, std::string & str, int components)
+        symbol_parser<T> const & parser, std::ostream & os, int components)
     {
-        str += "symbols<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ">";
+        os << "symbols<" << typeindex::type_id<T>().pretty_name() << ">";
     }
 
     template<typename Predicate>
     void parser_name(
-        eps_parser<Predicate> const & parser, std::string & str, int components)
+        eps_parser<Predicate> const & parser, std::ostream & os, int components)
     {
-        str += "eps(<<predicate>>)";
+        os << "eps(<<predicate>>)";
     }
 
     inline void parser_name(
-        eps_parser<nope> const & parser, std::string & str, int components)
+        eps_parser<nope> const & parser, std::ostream & os, int components)
     {
-        str += "eps";
+        os << "eps";
     }
 
     inline void
-    parser_name(eoi_parser const & parser, std::string & str, int components)
+    parser_name(eoi_parser const & parser, std::ostream & os, int components)
     {
-        str += "eoi";
+        os << "eoi";
+    }
+
+    template<typename Atribute>
+    void parser_name(
+        attr_parser<Atribute> const & parser, std::ostream & os, int components)
+    {
+        os << "attr(";
+        print(os, parser.attr_);
+        os << ")";
     }
 
     template<
@@ -260,146 +261,135 @@ namespace boost { namespace parser { namespace detail {
         int SizeofExpected = sizeof(Expected)>
     struct print_expected_impl
     {
-        static void call(std::string & str, Expected expected)
+        static void call(std::ostream & os, Expected expected)
         {
-            str += to_string(expected);
-        }
-    };
-
-    template<typename Expected>
-    struct print_expected_impl<Expected, true, 1>
-    {
-        static void call(std::string & str, Expected expected)
-        {
-            str += to_string(expected);
+            print(os, expected);
         }
     };
 
     template<typename Expected>
     struct print_expected_impl<Expected, true, 4>
     {
-        static void call(std::string & str, Expected expected)
+        static void call(std::ostream & os, Expected expected)
         {
             std::array<uint32_t, 1> cps = {{(uint32_t)expected}};
             auto const r = text::make_from_utf32_range(cps);
             for (auto c : r) {
-                str += c;
+                os << c;
             }
         }
     };
 
     template<typename Expected>
-    void print_expected(std::string & str, Expected expected)
+    void print_expected(std::ostream & os, Expected expected)
     {
-        print_expected_impl<Expected>::call(str, expected);
+        print_expected_impl<Expected>::call(os, expected);
     }
 
     template<typename T>
     struct char_parser_name_impl
     {
-        static void call(std::string & str, T expected)
+        static void call(std::ostream & os, T expected)
         {
-            str += "char_(";
-            print_expected(str, expected);
-            str += ")";
+            os << "char_(";
+            print_expected(os, expected);
+            os << ")";
         }
     };
 
     template<typename T>
     struct char_parser_name_impl<char_pair<T>>
     {
-        static void call(std::string & str, char_pair<T> expected)
+        static void call(std::ostream & os, char_pair<T> expected)
         {
-            str += "char_(";
-            print_expected(str, expected.lo_);
-            str += ", ";
-            print_expected(str, expected.hi_);
-            str += ")";
+            os << "char_(";
+            print_expected(os, expected.lo_);
+            os << ", ";
+            print_expected(os, expected.hi_);
+            os << ")";
         }
     };
 
     template<typename Range>
     struct char_parser_name_impl<char_range<Range>>
     {
-        static void call(std::string & str, char_range<Range> expected)
+        static void call(std::ostream & os, char_range<Range> expected)
         {
-            str += "char_(";
+            os << "char_(";
             for (auto c : expected.chars_) {
-                print_expected(str, c);
+                print_expected(os, c);
             }
-            str += ")";
+            os << ")";
         }
     };
 
     template<typename Expected>
     void parser_name(
-        char_parser<Expected> const & parser, std::string & str, int components)
+        char_parser<Expected> const & parser, std::ostream & os, int components)
     {
-        char_parser_name_impl<Expected>::call(str, parser.expected_);
+        char_parser_name_impl<Expected>::call(os, parser.expected_);
     }
 
     inline void parser_name(
-        char_parser<nope> const & parser, std::string & str, int components)
+        char_parser<nope> const & parser, std::ostream & os, int components)
     {
-        str += "char_";
+        os << "char_";
     }
 
     template<typename Expected>
     void parser_name(
         omit_parser<char_parser<Expected>> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += to_string(parser.parser_.expected_);
+        parser_name(parser.parser_, os, components);
     }
 
     template<typename Expected>
     void parser_name(
         char_parser<Expected, uint32_t> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "cp(";
-        str += to_string(parser.expected_);
-        str += ")";
+        os << "cp(";
+        print(os, parser.expected_);
+        os << ")";
     }
 
     inline void parser_name(
         char_parser<nope, uint32_t> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "cp";
+        os << "cp";
     }
 
     inline void
-    parser_name(string_parser const & parser, std::string & str, int components)
+    parser_name(string_parser const & parser, std::ostream & os, int components)
     {
-        str += "string(\"";
-        str += parser.expected_;
-        str += "\")";
+        os << "string(\"" << parser.expected_ << "\")";
     }
 
     inline void parser_name(
         omit_parser<string_parser> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "\"";
-        str += parser.parser_.expected_;
-        str += "\"";
-    }
-
-    inline void parser_name(
-        eol_parser const & parser, std::string & str, int components)
-    {
-        str += "eol";
+        os << "\"";
+        print(os, parser.parser_.expected_);
+        os << "\"";
     }
 
     inline void
-    parser_name(bool_parser const & parser, std::string & str, int components)
+    parser_name(eol_parser const & parser, std::ostream & os, int components)
     {
-        str += "bool_";
+        os << "eol";
+    }
+
+    inline void
+    parser_name(bool_parser const & parser, std::ostream & os, int components)
+    {
+        os << "bool_";
     }
 
     template<
@@ -410,97 +400,79 @@ namespace boost { namespace parser { namespace detail {
         typename Expected>
     void parser_name(
         uint_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "uint<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ", ";
-        str += std::to_string(Radix);
-        str += ", ";
-        str += std::to_string(MinDigits);
-        str += ", ";
-        str += std::to_string(MaxDigits);
-        str += ">(";
-        str += std::to_string(parser.expected_);
-        str += ")";
+        os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
+           << ", " << MinDigits << ", " << MaxDigits << ">(";
+        print(os, parser.expected_);
+        os << ")";
     }
 
-    template<
-        typename T,
-        int Radix,
-        int MinDigits,
-        int MaxDigits>
+    template<typename T, int Radix, int MinDigits, int MaxDigits>
     void parser_name(
         uint_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "uint<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ", ";
-        str += std::to_string(Radix);
-        str += ", ";
-        str += std::to_string(MinDigits);
-        str += ", ";
-        str += std::to_string(MaxDigits);
-        str += ">";
+        os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
+           << ", " << MinDigits << ", " << MaxDigits << ">";
     }
 
     inline void parser_name(
         uint_parser<unsigned int, 2> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "bin";
+        os << "bin";
     }
 
     inline void parser_name(
         uint_parser<unsigned int, 8> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "oct";
+        os << "oct";
     }
 
     inline void parser_name(
         uint_parser<unsigned int, 16> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "hex";
+        os << "hex";
     }
 
     inline void parser_name(
         uint_parser<unsigned short> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "ushort_";
+        os << "ushort_";
     }
 
     inline void parser_name(
         uint_parser<unsigned int> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "uint_";
+        os << "uint_";
     }
 
     inline void parser_name(
         uint_parser<unsigned long> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "ulong_";
+        os << "ulong_";
     }
 
     inline void parser_name(
         uint_parser<unsigned long long> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "ulong_long";
+        os << "ulong_long";
     }
 
     template<
@@ -511,82 +483,66 @@ namespace boost { namespace parser { namespace detail {
         typename Expected>
     void parser_name(
         int_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "int<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ", ";
-        str += std::to_string(Radix);
-        str += ", ";
-        str += std::to_string(MinDigits);
-        str += ", ";
-        str += std::to_string(MaxDigits);
-        str += ">(";
-        str += std::to_string(parser.expected_);
-        str += ")";
+        os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
+           << ", " << MinDigits << ", " << MaxDigits << ">(";
+        print(os, parser.expected_);
+        os << ")";
     }
 
     template<typename T, int Radix, int MinDigits, int MaxDigits>
     void parser_name(
         int_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::string & str,
+        std::ostream & os,
         int components)
     {
-        str += "int<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ", ";
-        str += std::to_string(Radix);
-        str += ", ";
-        str += std::to_string(MinDigits);
-        str += ", ";
-        str += std::to_string(MaxDigits);
-        str += ">";
+        os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
+           << ", " << MinDigits << ", " << MaxDigits << ">";
     }
 
     inline void parser_name(
-        int_parser<short> const & parser, std::string & str, int components)
+        int_parser<short> const & parser, std::ostream & os, int components)
     {
-        str += "short_";
+        os << "short_";
     }
 
     inline void parser_name(
-        int_parser<int> const & parser, std::string & str, int components)
+        int_parser<int> const & parser, std::ostream & os, int components)
     {
-        str += "int_";
+        os << "int_";
     }
 
     inline void parser_name(
-        int_parser<long> const & parser, std::string & str, int components)
+        int_parser<long> const & parser, std::ostream & os, int components)
     {
-        str += "long_";
+        os << "long_";
     }
 
     inline void parser_name(
-        int_parser<long long> const & parser, std::string & str, int components)
+        int_parser<long long> const & parser, std::ostream & os, int components)
     {
-        str += "long_long";
+        os << "long_long";
     }
 
     template<typename T>
     void parser_name(
-        float_parser<T> const & parser, std::string & str, int components)
+        float_parser<T> const & parser, std::ostream & os, int components)
     {
-        str += "float<";
-        str += typeindex::type_id<T>().pretty_name();
-        str += ">";
+        os << "float<" << typeindex::type_id<T>().pretty_name() << ">";
     }
 
     inline void parser_name(
-        float_parser<float> const & parser, std::string & str, int components)
+        float_parser<float> const & parser, std::ostream & os, int components)
     {
-        str += "float_";
+        os << "float_";
     }
 
     inline void parser_name(
-        float_parser<double> const & parser, std::string & str, int components)
+        float_parser<double> const & parser, std::ostream & os, int components)
     {
-        str += "double_";
+        os << "double_";
     }
 
 }}}

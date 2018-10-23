@@ -2371,9 +2371,9 @@ namespace boost { namespace parser {
                     parser.call(
                         use_cbs, first, last, context, skip, flags, success);
                     if (!success && !can_backtrack) {
-                        std::string name;
-                        detail::parser_name(parser, name);
-                        throw parse_error<Iter>(first, name);
+                        std::stringstream oss;
+                        detail::parser_name(parser, oss);
+                        throw parse_error<Iter>(first, oss.str());
                     }
                     return;
                 }
@@ -2405,9 +2405,9 @@ namespace boost { namespace parser {
                         out);
                     if (!success) {
                         if (!can_backtrack) {
-                            std::string name;
-                            detail::parser_name(parser, name);
-                            throw parse_error<Iter>(first, name);
+                            std::stringstream oss;
+                            detail::parser_name(parser, oss);
+                            throw parse_error<Iter>(first, oss.str());
                         }
                         out = std::decay_t<decltype(out)>();
                         return;
@@ -2417,9 +2417,9 @@ namespace boost { namespace parser {
                         use_cbs, first, last, context, skip, flags, success);
                     if (!success) {
                         if (!can_backtrack) {
-                            std::string name;
-                            detail::parser_name(parser, name);
-                            throw parse_error<Iter>(first, name);
+                            std::stringstream oss;
+                            detail::parser_name(parser, oss);
+                            throw parse_error<Iter>(first, oss.str());
                         }
                         return;
                     }
