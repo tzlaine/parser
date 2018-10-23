@@ -2751,7 +2751,7 @@ namespace boost { namespace parser {
         template<typename Parser2>
         constexpr auto operator-(parser_interface<Parser2> rhs) const noexcept
         {
-            return *this >> !rhs;
+            return !rhs >> *this;
         }
 
         constexpr auto operator-(char rhs) const noexcept;
@@ -4032,40 +4032,40 @@ namespace boost { namespace parser {
     constexpr auto parser_interface<Parser, GlobalState>::
     operator-(char rhs) const noexcept
     {
-        return *this >> !lit(rhs);
+        return !lit(rhs) >> *this;
     }
 
     template<typename Parser, typename GlobalState>
     constexpr auto parser_interface<Parser, GlobalState>::
     operator-(char32_t rhs) const noexcept
     {
-        return *this >> !lit(rhs);
+        return !lit(rhs) >> *this;
     }
 
     template<typename Parser, typename GlobalState>
     constexpr auto parser_interface<Parser, GlobalState>::
     operator-(std::string_view rhs) const noexcept
     {
-        return *this >> !lit(rhs);
+        return !lit(rhs) >> *this;
     }
 
     template<typename Parser>
     constexpr auto operator-(char c, parser_interface<Parser> rhs) noexcept
     {
-        return lit(c) >> !rhs;
+        return !rhs >> lit(c);
     }
 
     template<typename Parser>
     constexpr auto operator-(char32_t c, parser_interface<Parser> rhs) noexcept
     {
-        return lit(c) >> !rhs;
+        return !rhs >> lit(c);
     }
 
     template<typename Parser>
     constexpr auto
     operator-(std::string_view str, parser_interface<Parser> rhs) noexcept
     {
-        return lit(str) >> !rhs;
+        return !rhs >> lit(str);
     }
 
     template<typename Parser, typename GlobalState>
