@@ -1091,10 +1091,6 @@ namespace boost { namespace parser {
 
 
 
-    // TODO: no_skip[]?
-
-
-
     // Second order parsers.
 
     int64_t const Inf = detail::unbounded;
