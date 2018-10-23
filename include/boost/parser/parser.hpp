@@ -2358,9 +2358,10 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
+            auto first_copy = first;
             parser_.call(
                 use_cbs,
-                first,
+                first_copy,
                 last,
                 context,
                 skip,
