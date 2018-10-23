@@ -555,7 +555,8 @@ namespace boost { namespace parser {
             int SizeofT = sizeof(*std::declval<Iter>())>
         struct container_range_append
         {
-            static void call(Container & c, Iter first, Iter last, bool gen_attrs)
+            static void
+            call(Container & c, Iter first, Iter last, bool gen_attrs)
             {
                 if (gen_attrs)
                     c.insert(c.end(), first, last);
@@ -1038,6 +1039,298 @@ namespace boost { namespace parser {
 
             Parser const * parser_;
         };
+
+
+
+        // API implementations
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename Attr,
+            typename ErrorHandler>
+        bool parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            ErrorHandler const & error_handler,
+            Attr & attr)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
+                                     : detail::flags::gen_attrs;
+            try {
+                parser(
+                    hana::false_c,
+                    first,
+                    last,
+                    context,
+                    detail::null_parser{},
+                    flags,
+                    success,
+                    attr);
+                if (Debug)
+                    final_trace(context, flags, attr);
+                return success;
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                return false;
+            }
+        }
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename ErrorHandler>
+        auto parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            ErrorHandler const & error_handler)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
+                                     : detail::flags::gen_attrs;
+            using attr_t = decltype(parser(
+                hana::false_c,
+                first,
+                last,
+                context,
+                detail::null_parser{},
+                flags,
+                success));
+            try {
+                attr_t attr_ = parser(
+                    hana::false_c,
+                    first,
+                    last,
+                    context,
+                    detail::null_parser{},
+                    flags,
+                    success);
+                if (Debug)
+                    final_trace(context, flags, detail::nope{});
+                return detail::make_parse_result(attr_, success);
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                attr_t attr_;
+                return detail::make_parse_result(attr_, false);
+            }
+        }
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename ErrorHandler,
+            typename Callbacks>
+        bool callback_parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            ErrorHandler const & error_handler,
+            Callbacks const & callbacks)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                callbacks,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
+                                     : detail::flags::gen_attrs;
+            try {
+                parser(
+                    hana::true_c,
+                    first,
+                    last,
+                    context,
+                    detail::null_parser{},
+                    flags,
+                    success);
+                if (Debug)
+                    final_trace(context, flags, detail::nope{});
+                return success;
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                return false;
+            }
+        }
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename SkipParser,
+            typename Attr,
+            typename ErrorHandler>
+        bool skip_parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            SkipParser const & skip,
+            ErrorHandler const & error_handler,
+            Attr & attr)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::default_flags())
+                                     : detail::default_flags();
+            detail::skip(first, last, skip, flags);
+            try {
+                parser(
+                    hana::false_c,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    attr);
+                detail::skip(first, last, skip, flags);
+                if (Debug)
+                    final_trace(context, flags, attr);
+                return success;
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                return false;
+            }
+        }
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename SkipParser,
+            typename ErrorHandler>
+        auto skip_parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            SkipParser const & skip,
+            ErrorHandler const & error_handler)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::default_flags())
+                                     : detail::default_flags();
+            detail::skip(first, last, skip, flags);
+            using attr_t = decltype(parser(
+                hana::false_c, first, last, context, skip, flags, success));
+            try {
+                attr_t attr_ = parser(
+                    hana::false_c, first, last, context, skip, flags, success);
+                detail::skip(first, last, skip, flags);
+                if (Debug)
+                    final_trace(context, flags, detail::nope{});
+                return detail::make_parse_result(attr_, success);
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                attr_t attr_;
+                return detail::make_parse_result(attr_, false);
+            }
+        }
+
+        template<
+            bool Debug,
+            typename Iter,
+            typename Parser,
+            typename SkipParser,
+            typename ErrorHandler,
+            typename Callbacks>
+        bool callback_skip_parse_impl(
+            Iter & first,
+            Iter last,
+            Parser const & parser,
+            SkipParser const & skip,
+            ErrorHandler const & error_handler,
+            Callbacks const & callbacks)
+        {
+            auto const initial_first = first;
+            bool success = true;
+            int trace_indent = 0;
+            detail::symbol_table_tries_t symbol_table_tries;
+            auto context = detail::make_context(
+                success,
+                trace_indent,
+                error_handler,
+                callbacks,
+                parser.globals_,
+                symbol_table_tries);
+            auto const flags = Debug ? enable_trace(detail::default_flags())
+                                     : detail::default_flags();
+            detail::skip(first, last, skip, flags);
+            try {
+                parser(
+                    hana::false_c, first, last, context, skip, flags, success);
+                detail::skip(first, last, skip, flags);
+                if (Debug)
+                    final_trace(context, flags, detail::nope{});
+                return success;
+            } catch (parse_error<Iter> const & e) {
+                if (error_handler(initial_first, last, e) ==
+                    error_handler_result::rethrow) {
+                    throw;
+                }
+                return false;
+            }
+        }
     }
 
 
@@ -4202,34 +4495,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Attr & attr)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                detail::flags::gen_attrs,
-                success,
-                attr);
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::parse_impl<false>(
+            first, last, parser, error_handler, attr);
     }
 
     template<typename Iter, typename Parser, typename Attr>
@@ -4265,42 +4532,7 @@ namespace boost { namespace parser {
         Parser const & parser,
         ErrorHandler const & error_handler)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        using attr_t = decltype(parser(
-            hana::false_c,
-            first,
-            last,
-            context,
-            detail::null_parser{},
-            detail::flags::gen_attrs,
-            success));
-        try {
-            attr_t attr_ = parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                detail::flags::gen_attrs,
-                success);
-            return detail::make_parse_result(attr_, success);
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            attr_t attr_;
-            return detail::make_parse_result(attr_, false);
-        }
+        return detail::parse_impl<false>(first, last, parser, error_handler);
     }
 
     template<typename Iter, typename Parser>
@@ -4340,34 +4572,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Callbacks const & callbacks)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            callbacks,
-            parser.globals_,
-            symbol_table_tries);
-        try {
-            parser(
-                hana::true_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                detail::flags::gen_attrs,
-                success);
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::callback_parse_impl<false>(
+            first, last, parser, error_handler, callbacks);
     }
 
     template<typename Iter, typename Parser, typename Callbacks>
@@ -4405,18 +4611,6 @@ namespace boost { namespace parser {
         return callback_parse(first, last, parser, error_handler, callbacks);
     }
 
-    template<typename Iter, typename Parser, typename SkipParser, typename Attr>
-    bool skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        Attr & attr)
-    {
-        return skip_parse(
-            first, last, parser, skip, default_error_handler{}, attr);
-    }
-
     template<
         typename Iter,
         typename Parser,
@@ -4431,36 +4625,20 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Attr & attr)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        detail::skip(first, last, skip, detail::default_flags());
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                skip,
-                detail::default_flags(),
-                success,
-                attr);
-            detail::skip(first, last, skip, detail::default_flags());
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::skip_parse_impl<false>(
+            first, last, parser, skip, error_handler, attr);
+    }
+
+    template<typename Iter, typename Parser, typename SkipParser, typename Attr>
+    bool skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        Attr & attr)
+    {
+        return skip_parse(
+            first, last, parser, skip, default_error_handler{}, attr);
     }
 
     template<
@@ -4504,44 +4682,8 @@ namespace boost { namespace parser {
         SkipParser const & skip,
         ErrorHandler const & error_handler)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        detail::skip(first, last, skip, detail::default_flags());
-        using attr_t = decltype(parser(
-            hana::false_c,
-            first,
-            last,
-            context,
-            skip,
-            detail::default_flags(),
-            success));
-        try {
-            attr_t attr_ = parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                skip,
-                detail::default_flags(),
-                success);
-            detail::skip(first, last, skip, detail::default_flags());
-            return detail::make_parse_result(attr_, success);
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            attr_t attr_;
-            return detail::make_parse_result(attr_, false);
-        }
+        return detail::skip_parse_impl<false>(
+            first, last, parser, skip, error_handler);
     }
 
     template<typename Iter, typename Parser, typename SkipParser>
@@ -4586,36 +4728,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Callbacks const & callbacks)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            callbacks,
-            parser.globals_,
-            symbol_table_tries);
-        detail::skip(first, last, skip, detail::default_flags());
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                skip,
-                detail::default_flags(),
-                success);
-            detail::skip(first, last, skip, detail::default_flags());
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::callback_skip_parse_impl<false>(
+            first, last, parser, skip, error_handler, callbacks);
     }
 
     template<
@@ -4676,36 +4790,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Attr & attr)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::flags::gen_attrs);
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                flags,
-                success,
-                attr);
-            final_trace(context, flags, attr);
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::parse_impl<true>(
+            first, last, parser, error_handler, attr);
     }
 
     template<typename Iter, typename Parser, typename Attr>
@@ -4742,44 +4828,7 @@ namespace boost { namespace parser {
         Parser const & parser,
         ErrorHandler const & error_handler)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::flags::gen_attrs);
-        using attr_t = decltype(parser(
-            hana::false_c,
-            first,
-            last,
-            context,
-            detail::null_parser{},
-            flags,
-            success));
-        try {
-            attr_t attr_ = parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                flags,
-                success);
-            final_trace(context, flags, detail::nope{});
-            return detail::make_parse_result(attr_, success);
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            attr_t attr_;
-            return detail::make_parse_result(attr_, false);
-        }
+        return detail::parse_impl<true>(first, last, parser, error_handler);
     }
 
     template<typename Iter, typename Parser>
@@ -4819,36 +4868,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Callbacks const & callbacks)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            callbacks,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::flags::gen_attrs);
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                flags,
-                success);
-            final_trace(context, flags, detail::nope{});
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::callback_parse_impl<true>(
+            first, last, parser, error_handler, callbacks);
     }
 
     template<typename Iter, typename Parser, typename Callbacks>
@@ -4886,7 +4907,6 @@ namespace boost { namespace parser {
             first, last, parser, default_error_handler{}, callbacks);
     }
 
-    // TODO: Can we unify debug_*parse() and *parse()?
     template<
         typename Iter,
         typename Parser,
@@ -4901,38 +4921,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Attr & attr)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::default_flags());
-        detail::skip(first, last, skip, flags);
-        try {
-            parser(
-                hana::false_c,
-                first,
-                last,
-                context,
-                skip,
-                flags,
-                success,
-                attr);
-            detail::skip(first, last, skip, flags);
-            final_trace(context, flags, attr);
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::skip_parse_impl<true>(
+            first, last, parser, skip, error_handler, attr);
     }
 
     template<typename Iter, typename Parser, typename SkipParser, typename Attr>
@@ -4989,34 +4979,8 @@ namespace boost { namespace parser {
         SkipParser const & skip,
         ErrorHandler const & error_handler)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::default_flags());
-        detail::skip(first, last, skip, flags);
-        using attr_t = decltype(
-            parser(hana::false_c, first, last, context, skip, flags, success));
-        try {
-            attr_t attr_ = parser(
-                hana::false_c, first, last, context, skip, flags, success);
-            detail::skip(first, last, skip, flags);
-            final_trace(context, flags, detail::nope{});
-            return detail::make_parse_result(attr_, success);
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            attr_t attr_;
-            return detail::make_parse_result(attr_, false);
-        }
+        return detail::skip_parse_impl<true>(
+            first, last, parser, skip, error_handler);
     }
 
     template<typename Iter, typename Parser, typename SkipParser>
@@ -5063,32 +5027,8 @@ namespace boost { namespace parser {
         ErrorHandler const & error_handler,
         Callbacks const & callbacks)
     {
-        auto const initial_first = first;
-        bool success = true;
-        int trace_indent = 0;
-        detail::symbol_table_tries_t symbol_table_tries;
-        auto context = detail::make_context(
-            success,
-            trace_indent,
-            error_handler,
-            callbacks,
-            parser.globals_,
-            symbol_table_tries);
-        auto const flags = enable_trace(detail::default_flags());
-        detail::skip(first, last, skip, flags);
-        try {
-            attr_parser(
-                hana::false_c, first, last, context, skip, flags, success);
-            detail::skip(first, last, skip, flags);
-            final_trace(context, flags, detail::nope{});
-            return success;
-        } catch (parse_error<Iter> const & e) {
-            if (error_handler(initial_first, last, e) ==
-                error_handler_result::rethrow) {
-                throw;
-            }
-            return false;
-        }
+        return detail::callback_skip_parse_impl<false>(
+            first, last, parser, skip, error_handler);
     }
 
     template<
