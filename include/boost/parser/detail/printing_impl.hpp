@@ -390,7 +390,7 @@ namespace boost { namespace parser { namespace detail {
     inline void
     parser_name(bool_parser const & parser, std::string & str, int components)
     {
-        str += "bool";
+        str += "bool_";
     }
 
     template<

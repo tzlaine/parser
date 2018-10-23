@@ -2552,7 +2552,8 @@ namespace boost { namespace parser {
             } else {
                 attr_type retval;
                 locals_type locals;
-                auto const rule_context = make_rule_context(context, retval, locals);
+                auto const rule_context =
+                    make_rule_context(context, retval, locals);
                 auto _ = scoped_trace(
                     *this, first, last, rule_context, flags, retval);
                 tag_type * const tag_ptr = nullptr;
