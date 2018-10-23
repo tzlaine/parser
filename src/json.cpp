@@ -104,8 +104,7 @@ namespace boost { namespace json {
         }
     };
 
-    bp::parser_interface<bp::uint_parser<unsigned int, 16, 4, 4>> const
-        hex_4_def;
+    bp::parser_interface<bp::uint_parser<uint32_t, 16, 4, 4>> const hex_4_def;
 
     auto const escape_seq_def = "\\u" > hex_4;
 

@@ -271,7 +271,7 @@ namespace boost { namespace parser { namespace detail {
     {
         static void call(std::string & str, Expected expected)
         {
-            std::array<uint32_t, 1> cps = {{expected}};
+            std::array<uint32_t, 1> cps = {{(uint32_t)expected}};
             auto const r = text::make_from_utf32_range(cps);
             for (auto c : r) {
                 str += c;

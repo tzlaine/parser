@@ -505,20 +505,84 @@ namespace boost { namespace parser {
             }
         };
 
+        template<
+            typename Container,
+            typename T,
+            bool BothIntegral = std::is_integral<std::decay_t<decltype(
+                                    *std::declval<Container>().begin())>>{} &&
+                                std::is_integral<T>{},
+            int SizeofValueType = sizeof(*std::declval<Container>().begin()),
+            int SizeofT = sizeof(T)>
+        struct container_t_append
+        {
+            static void call(Container & c, T && x, bool gen_attrs)
+            {
+                if (gen_attrs)
+                    c.insert(c.end(), std::move(x));
+            }
+        };
+
+        template<typename Container, typename T>
+        struct container_t_append<Container, T, true, 1, 4>
+        {
+            static void call(Container & c, T x, bool gen_attrs)
+            {
+                if (gen_attrs) {
+                    std::array<uint32_t, 1> cps = {{(uint32_t)x}};
+                    auto const r = text::make_from_utf32_range(cps);
+                    c.insert(c.end(), r.begin(), r.end());
+                }
+            }
+        };
+
         template<typename Container, typename T>
         void append(Container & c, T && x, bool gen_attrs)
         {
-            if (gen_attrs)
-                c.insert(c.end(), std::move(x));
+            container_t_append<Container, T>::call(
+                c, std::forward<T>(x), gen_attrs);
         }
 
         inline void append(nope &, nope &&, bool gen_attrs) {}
 
+        template<
+            typename Container,
+            typename Iter,
+            bool BothIntegral = std::is_integral<std::decay_t<decltype(
+                                    *std::declval<Container>().begin())>>{} &&
+                                std::is_integral<std::decay_t<decltype(
+                                    *std::declval<Iter>())>>{},
+            int SizeofValueType = sizeof(*std::declval<Container>().begin()),
+            int SizeofT = sizeof(*std::declval<Iter>())>
+        struct container_range_append
+        {
+            static void call(Container & c, Iter first, Iter last, bool gen_attrs)
+            {
+                if (gen_attrs)
+                    c.insert(c.end(), first, last);
+            }
+        };
+
+        template<typename Container, typename Iter>
+        struct container_range_append<Container, Iter, true, 1, 4>
+        {
+            static void
+            call(Container & c, Iter first_, Iter last_, bool gen_attrs)
+            {
+                if (gen_attrs) {
+                    auto const first = text::utf8::make_from_utf32_iterator(
+                        first_, first_, last_);
+                    auto const last = text::utf8::make_from_utf32_iterator(
+                        first_, last_, last_);
+                    c.insert(c.end(), first, last);
+                }
+            }
+        };
+
         template<typename Container, typename Iter>
         void append(Container & c, Iter first, Iter last, bool gen_attrs)
         {
-            if (gen_attrs)
-                c.insert(c.end(), first, last);
+            container_range_append<Container, Iter>::call(
+                c, first, last, gen_attrs);
         }
 
         template<typename Iter>
@@ -3428,8 +3492,6 @@ namespace boost { namespace parser {
                     return;
                 }
 
-                // TODO: Should this (and whereever CPs are pushed into
-                // strings) be changed to automagically transcode to UTF-8?
                 detail::append(retval, first, mismatch.first, gen_attrs(flags));
 
                 first = mismatch.first;
