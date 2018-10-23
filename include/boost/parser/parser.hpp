@@ -628,7 +628,7 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip_skipper{},
-                    disable_skip(f),
+                    disable_trace(disable_skip(f)),
                     success);
             }
         }
