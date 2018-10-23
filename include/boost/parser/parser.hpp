@@ -3608,14 +3608,15 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
+
             char const t[] = "true";
-            if (std::equal(t, t + 4, first, last)) {
+            if (std::mismatch(t, t + 4, first, last).first == t + 4) {
                 std::advance(first, 4);
                 detail::assign(retval, true);
                 return;
             }
             char const f[] = "false";
-            if (std::equal(f, f + 5, first, last)) {
+            if (std::mismatch(f, f + 5, first, last).first == f + 5) {
                 std::advance(first, 5);
                 detail::assign(retval, false);
                 return;

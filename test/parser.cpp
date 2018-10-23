@@ -164,6 +164,45 @@ TEST(parser, int_uint)
     }
 }
 
+TEST(parser, bool_)
+{
+    {
+        std::string str = "";
+        bool b = false;
+        EXPECT_FALSE(parse(str, bool_, b));
+    }
+    {
+        std::string str = "true";
+        bool b = false;
+        EXPECT_TRUE(parse(str, bool_, b));
+        EXPECT_EQ(b, true);
+    }
+    {
+        std::string str = "false ";
+        bool b = true;
+        EXPECT_TRUE(parse(str, bool_, b));
+        EXPECT_EQ(b, false);
+    }
+    {
+        std::string str = "true ";
+        auto r = boost::text::make_to_utf32_range(str);
+        bool b = false;
+        auto first = r.begin();
+        auto const last = r.end();
+        EXPECT_TRUE(parse(first, last, bool_, b));
+        EXPECT_EQ(b, true);
+    }
+    {
+        std::string str = "false";
+        auto r = boost::text::make_to_utf32_range(str);
+        bool b = true;
+        auto first = r.begin();
+        auto const last = r.end();
+        EXPECT_TRUE(parse(first, last, bool_, b));
+        EXPECT_EQ(b, false);
+    }
+}
+
 TEST(parser, star)
 {
     {
