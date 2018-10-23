@@ -3378,13 +3378,15 @@ namespace boost { namespace parser {
                 "like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
-            return rule_parser<
+            using rule_parser_type = rule_parser<
                 false,
                 TagType,
                 Attribute,
                 LocalState,
-                params_tuple_type>{this->parser_.name_,
-                                   hana::make_tuple(static_cast<T &&>(x)...)};
+                params_tuple_type>;
+            return parser_interface<rule_parser_type>{
+                rule_parser_type{this->parser_.name_,
+                                 hana::make_tuple(static_cast<T &&>(x)...)}};
         }
     };
 
@@ -3411,13 +3413,15 @@ namespace boost { namespace parser {
                 "callback_rule, like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
-            return rule_parser<
+            using rule_parser_type = rule_parser<
                 true,
                 TagType,
                 Attribute,
                 LocalState,
-                params_tuple_type>{this->parser_.name_,
-                                   hana::make_tuple(static_cast<T &&>(x)...)};
+                params_tuple_type>;
+            return parser_interface<rule_parser_type>{
+                rule_parser_type{this->parser_.name_,
+                                 hana::make_tuple(static_cast<T &&>(x)...)}};
         }
     };
 

@@ -40,7 +40,9 @@ endmacro()
 #endforeach()
 
 add_test_executable(parser_rule)
+add_test_executable(parser_rule_with_params)
 add_test_executable(parser_action)
+add_test_executable(parser_action_with_params)
 add_test_executable(parser_symbol_table)
 
 ##################################################
