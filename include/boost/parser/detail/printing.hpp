@@ -8,6 +8,7 @@
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
 #include <boost/text/utf8.hpp>
+#include <boost/text/utility.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -281,19 +282,52 @@ namespace boost { namespace parser { namespace detail {
         }
     }
 
-    template<typename Iter>
-    inline void trace_input(Iter first_, Iter last_)
+    template<typename Iter, int SizeofValueType>
+    struct trace_input_impl
     {
-        auto first = text::utf8::make_to_utf32_iterator(first_, first_, last_);
-        auto last = text::utf8::make_to_utf32_iterator(first_, last_, last_);
-        for (int i = 0; i < trace_input_cps && first != last; ++i) {
-            ++first;
+        static void call(Iter first_, Iter last_)
+        {
+            static_assert(
+                std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
+            static_assert(SizeofValueType == 4, "");
+            auto first =
+                text::utf8::make_from_utf32_iterator(first_, first_, last_);
+            auto last =
+                text::utf8::make_from_utf32_iterator(first_, last_, last_);
+            std::cout << '"';
+            for (int i = 0; i < trace_input_cps && first != last;
+                 ++i, ++first) {
+                std::cout << *first;
+            }
+            std::cout << '"';
         }
-        std::cout << '"';
-        for (Iter it = first_, end = first.base(); it != end; ++it) {
-            std::cout << *it;
+    };
+
+    template<typename Iter>
+    struct trace_input_impl<Iter, 1>
+    {
+        static void call(Iter first_, Iter last_)
+        {
+            auto first =
+                text::utf8::make_to_utf32_iterator(first_, first_, last_);
+            auto last =
+                text::utf8::make_to_utf32_iterator(first_, last_, last_);
+            static_assert(sizeof(*first_) == 1);
+            for (int i = 0; i < trace_input_cps && first != last; ++i) {
+                ++first;
+            }
+            std::cout << '"';
+            for (Iter it = first_, end = first.base(); it != end; ++it) {
+                std::cout << *it;
+            }
+            std::cout << '"';
         }
-        std::cout << '"';
+    };
+
+    template<typename Iter>
+    inline void trace_input(Iter first, Iter last)
+    {
+        trace_input_impl<Iter, sizeof(*first)>::call(first, last);
     }
 
     template<typename Iter>
@@ -345,7 +379,7 @@ namespace boost { namespace parser { namespace detail {
     inline std::string to_string(char32_t c)
     {
         if (c < 256) {
-            return std::string("U'") + (char)c + '\'';
+            return "U" + to_string((char)c);
         } else {
             std::stringstream ss;
             ss << "U'\\U" << std::hex << std::setw(8) << std::setfill('0')

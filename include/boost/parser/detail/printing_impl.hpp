@@ -20,20 +20,28 @@ namespace boost { namespace parser { namespace detail {
         std::string & str,
         int components)
     {
-        str += "repeat(";
-        str += std::to_string(parser.min_);
-        if (parser.min_ == parser.max_) {
-            str += ")[";
+        if (parser.min_ == 0 && parser.max_ == Inf) {
+            str += "*";
+            parser_name(parser.parser_, str, components + 1);
+        } else if (parser.min_ == 1 && parser.max_ == Inf) {
+            str += "+";
+            parser_name(parser.parser_, str, components + 1);
         } else {
-            str += ", ";
-            if (parser.max_ == unbounded)
-                str += "Inf";
-            else
-                str += std::to_string(parser.max_);
-            str += ")[";
+            str += "repeat(";
+            str += std::to_string(parser.min_);
+            if (parser.min_ == parser.max_) {
+                str += ")[";
+            } else {
+                str += ", ";
+                if (parser.max_ == unbounded)
+                    str += "Inf";
+                else
+                    str += std::to_string(parser.max_);
+                str += ")[";
+            }
+            parser_name(parser.parser_, str, components + 1);
+            str += "]";
         }
-        parser_name(parser.parser_, str, components + 1);
-        str += "]";
     }
 
     template<typename Parser>
@@ -237,13 +245,88 @@ namespace boost { namespace parser { namespace detail {
         str += "eoi";
     }
 
+    template<
+        typename Expected,
+        bool Integral = std::is_integral<Expected>{},
+        int SizeofExpected = sizeof(Expected)>
+    struct print_expected_impl
+    {
+        static void call(std::string & str, Expected expected)
+        {
+            str += to_string(expected);
+        }
+    };
+
+    template<typename Expected>
+    struct print_expected_impl<Expected, true, 1>
+    {
+        static void call(std::string & str, Expected expected)
+        {
+            str += to_string(expected);
+        }
+    };
+
+    template<typename Expected>
+    struct print_expected_impl<Expected, true, 4>
+    {
+        static void call(std::string & str, Expected expected)
+        {
+            std::array<uint32_t, 1> cps = {{expected}};
+            auto const r = text::make_from_utf32_range(cps);
+            for (auto c : r) {
+                str += c;
+            }
+        }
+    };
+
+    template<typename Expected>
+    void print_expected(std::string & str, Expected expected)
+    {
+        print_expected_impl<Expected>::call(str, expected);
+    }
+
+    template<typename T>
+    struct char_parser_name_impl
+    {
+        static void call(std::string & str, T expected)
+        {
+            str += "char_(";
+            print_expected(str, expected);
+            str += ")";
+        }
+    };
+
+    template<typename T>
+    struct char_parser_name_impl<char_pair<T>>
+    {
+        static void call(std::string & str, char_pair<T> expected)
+        {
+            str += "char_(";
+            print_expected(str, expected.lo_);
+            str += ", ";
+            print_expected(str, expected.hi_);
+            str += ")";
+        }
+    };
+
+    template<typename Range>
+    struct char_parser_name_impl<char_range<Range>>
+    {
+        static void call(std::string & str, char_range<Range> expected)
+        {
+            str += "char_(";
+            for (auto c : expected.chars_) {
+                print_expected(str, c);
+            }
+            str += ")";
+        }
+    };
+
     template<typename Expected>
     void parser_name(
         char_parser<Expected> const & parser, std::string & str, int components)
     {
-        str += "char_(";
-        str += to_string(parser.expected_);
-        str += ")";
+        char_parser_name_impl<Expected>::call(str, parser.expected_);
     }
 
     inline void parser_name(
