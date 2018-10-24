@@ -297,10 +297,10 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename T>
-    struct char_parser_name_impl<char_pair<T>>
+    template<typename T, typename U>
+    struct char_parser_name_impl<char_pair<T, U>>
     {
-        static void call(std::ostream & os, char_pair<T> expected)
+        static void call(std::ostream & os, char_pair<T, U> expected)
         {
             os << "char_(";
             print_expected(os, expected.lo_);

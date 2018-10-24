@@ -1,6 +1,8 @@
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
 
+#include <cstdint>
+
 
 namespace boost { namespace parser {
 
@@ -28,7 +30,11 @@ namespace boost { namespace parser {
         struct symbol_table_tries_tag;
     }
 
-    template<typename Parser, typename DelimiterParser = detail::nope>
+    template<
+        typename Parser,
+        typename DelimiterParser = detail::nope,
+        typename MinType = int64_t,
+        typename MaxType = int64_t>
     struct repeat_parser;
 
     template<typename Parser>

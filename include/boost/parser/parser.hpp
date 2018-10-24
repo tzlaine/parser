@@ -190,52 +190,47 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
+
         template<typename T, typename U>
         using callable = decltype(std::declval<T>()(std::declval<U>()));
 
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
-
-        template<bool Callable>
-        struct resolve_rule_params_impl
+        template<
+            typename Context,
+            typename T,
+            bool Callable = is_detected<callable, T const &, Context const &>{}>
+        struct resolve_impl
         {
-            template<typename Context, typename T>
-            static auto call(Context const &, T const & x)
-            {
-                return x;
-            }
+            static auto call(Context const &, T const & x) { return x; }
         };
 
-        template<>
-        struct resolve_rule_params_impl<true>
+        template<typename Context, typename T>
+        struct resolve_impl<Context, T, true>
         {
-            template<typename Context, typename T>
             static auto call(Context const & context, T const & x)
             {
                 return x(context);
             }
         };
 
-#endif
+        template<typename Context, typename T>
+        auto resolve(Context const & context, T const & x)
+        {
+            return resolve_impl<Context, T>::call(context, x);
+        }
+
+        template<typename Context>
+        auto resolve(Context const &, nope n)
+        {
+            return n;
+        }
+
 
         template<typename Context, typename ParamsTuple>
         inline auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
             return hana::transform(params, [&](auto const & x) {
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
-                return resolve_rule_params_impl<
-                    is_detected<callable, decltype(x), Context const &>{}>::
-                    call(context, x);
-#else
-                if constexpr (is_detected<
-                                  callable,
-                                  decltype(x),
-                                  Context const &>{}) {
-                    return x(context);
-                } else {
-                    return x;
-                }
-#endif
+                return resolve(context, x);
             });
         }
 
@@ -859,19 +854,11 @@ namespace boost { namespace parser {
 
         inline bool make_parse_result(nope &, bool success) { return success; }
 
-        template<typename T>
+        template<typename LoType, typename HiType>
         struct char_pair
         {
-            template<typename T2>
-            friend bool operator!=(T2 c, char_pair<T> const & chars)
-            {
-                using common_t = std::common_type_t<T, T2>;
-                return (common_t)c < (common_t)chars.lo_ ||
-                       (common_t)chars.hi_ < (common_t)c;
-            }
-
-            T lo_;
-            T hi_;
+            LoType lo_;
+            HiType hi_;
         };
 
         template<typename Range>
@@ -898,32 +885,66 @@ namespace boost { namespace parser {
         };
 
         template<
+            typename Context,
             typename CharType,
             typename Expected,
             bool BothIntegral =
                 std::is_integral<CharType>{} && std::is_integral<Expected>{}>
         struct unequal_impl
         {
-            static bool call(CharType c, Expected expected)
+            static bool
+            call(Context const & context, CharType c, Expected const & expected)
             {
-                return c != expected;
+                return c != resolve(context, expected);
             }
         };
 
-        template<typename CharType, typename Expected>
-        struct unequal_impl<CharType, Expected, true>
+        template<typename Context, typename CharType, typename Expected>
+        struct unequal_impl<Context, CharType, Expected, true>
         {
-            static bool call(CharType c, Expected expected)
+            static bool call(Context const &, CharType c, Expected expected)
             {
                 using common_t = std::common_type_t<CharType, Expected>;
                 return (common_t)c != (common_t)expected;
             }
         };
 
-        template<typename CharType, typename Expected>
-        bool unequal(CharType c, Expected expected)
+        template<typename Context, typename CharType, typename Expected>
+        bool unequal(Context const & context, CharType c, Expected expected)
         {
-            return unequal_impl<CharType, Expected>::call(c, expected);
+            return unequal_impl<Context, CharType, Expected>::call(
+                context, c, expected);
+        }
+
+        template<
+            typename Context,
+            typename CharType,
+            typename LoType,
+            typename HiType>
+        bool unequal(
+            Context const & context,
+            CharType c,
+            char_pair<LoType, HiType> const & expected)
+        {
+            {
+                auto lo = resolve(context, expected.lo_);
+                using common_t = std::common_type_t<CharType, decltype(lo)>;
+                if ((common_t)c < (common_t)lo)
+                    return true;
+            }
+            {
+                auto hi = resolve(context, expected.hi_);
+                using common_t = std::common_type_t<CharType, decltype(hi)>;
+                if ((common_t)hi < (common_t)c)
+                    return true;
+            }
+            return false;
+        }
+
+        template<typename Context, typename CharType>
+        bool unequal(Context const &, CharType, nope)
+        {
+            return false;
         }
 
         enum class ascii_char_class_t {
@@ -1637,13 +1658,17 @@ namespace boost { namespace parser {
 
     int64_t const Inf = detail::unbounded;
 
-    template<typename Parser, typename DelimiterParser>
+    template<
+        typename Parser,
+        typename DelimiterParser,
+        typename MinType,
+        typename MaxType>
     struct repeat_parser
     {
         constexpr repeat_parser(
             Parser parser,
-            int64_t _min,
-            int64_t _max,
+            MinType _min,
+            MaxType _max,
             DelimiterParser delimiter_parser = DelimiterParser{}) :
             parser_(parser),
             delimiter_parser_(delimiter_parser),
@@ -1717,7 +1742,8 @@ namespace boost { namespace parser {
             } else if constexpr (detail::is_container<attr_t>{}) {
                 int64_t count = 0;
 
-                for (; count != min_; ++count) {
+                for (int64_t end = detail::resolve(context, min_); count != end;
+                     ++count) {
                     detail::skip(first, last, skip, flags);
                     parser_.call(
                         use_cbs,
@@ -1734,7 +1760,8 @@ namespace boost { namespace parser {
                     }
                 }
 
-                for (; count != max_; ++count) {
+                for (int64_t end = detail::resolve(context, max_); count != end;
+                     ++count) {
                     auto const prev_first = first;
                     // This is only ever used in delimited_parser, which
                     // always has a min=1; we therefore know we're after a
@@ -1777,7 +1804,8 @@ namespace boost { namespace parser {
                 attr_t attr;
                 int64_t count = 0;
 
-                for (; count != min_; ++count) {
+                for (int64_t end = detail::resolve(context, min_); count != end;
+                     ++count) {
                     detail::skip(first, last, skip, flags);
                     if (gen_attrs(flags)) {
                         attr = parser_.call(
@@ -1805,7 +1833,8 @@ namespace boost { namespace parser {
                     detail::append(retval, std::move(attr), gen_attrs(flags));
                 }
 
-                for (; count != max_; ++count) {
+                for (int64_t end = detail::resolve(context, max_); count != end;
+                     ++count) {
                     auto const prev_first = first;
                     if constexpr (!std::is_same<
                                       DelimiterParser,
@@ -1857,8 +1886,8 @@ namespace boost { namespace parser {
 
         Parser parser_;
         DelimiterParser delimiter_parser_;
-        int64_t min_;
-        int64_t max_;
+        MinType min_;
+        MaxType max_;
         mutable bool in_apply_parser_;
     };
 
@@ -3666,29 +3695,33 @@ namespace boost { namespace parser {
     inline constexpr directive<raw_parser> raw;
     inline constexpr directive<lexeme_parser> lexeme;
 
+    template<typename MinType, typename MaxType>
     struct repeat_directive
     {
         template<typename Parser2>
         constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
         {
-            return parser_interface<repeat_parser<Parser2>>{
-                repeat_parser<Parser2>{rhs.parser_, min_, max_}};
+            using repeat_parser_type =
+                repeat_parser<Parser2, detail::nope, MinType, MaxType>;
+            return parser_interface<repeat_parser_type>{
+                repeat_parser_type{rhs.parser_, min_, max_}};
         }
 
-        int64_t min_;
-        int64_t max_;
+        MinType min_;
+        MaxType max_;
     };
 
-    inline constexpr repeat_directive repeat(int64_t n) noexcept
+    template<typename T>
+    constexpr repeat_directive<T, T> repeat(T n) noexcept
     {
-        return repeat_directive{n, n};
+        return repeat_directive<T, T>{n, n};
     }
 
-    inline constexpr repeat_directive
-    repeat(int64_t min_, int64_t max_) noexcept
+    template<typename MinType, typename MaxType>
+    constexpr repeat_directive<MinType, MaxType>
+    repeat(MinType min_, MaxType max_) noexcept
     {
-        assert(max_ == Inf || min_ < max_);
-        return repeat_directive{min_, max_};
+        return repeat_directive<MinType, MaxType>{min_, max_};
     }
 
     template<typename SkipParser = detail::nope>
@@ -3845,7 +3878,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            return attr_;
+            return detail::resolve(context, attr_);
         }
 
         template<
@@ -3866,7 +3899,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             if (gen_attrs(flags))
-                detail::assign(retval, attr_);
+                detail::assign(retval, detail::resolve(context, attr_));
         }
 
         Attribute attr_;
@@ -3933,7 +3966,7 @@ namespace boost { namespace parser {
                 return;
             }
             attribute_t<decltype(*first)> const x = *first;
-            if (detail::unequal(x, expected_)) {
+            if (detail::unequal(context, x, expected_)) {
                 success = false;
                 return;
             }
@@ -3967,16 +4000,17 @@ namespace boost { namespace parser {
                 char_parser_t(char_range_t(range.begin(), range.end())));
         }
 
-        template<typename T>
-        constexpr auto operator()(T lo, T hi) const noexcept
+        template<typename LoType, typename HiType>
+        constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
-            return parser_interface<char_parser<detail::char_pair<T>>>(
-                char_parser<detail::char_pair<T>>(
-                    detail::char_pair<T>{std::move(lo), std::move(hi)}));
+            using pair_type = detail::char_pair<LoType, HiType>;
+            return parser_interface<char_parser<pair_type>>(
+                char_parser<pair_type>(
+                    pair_type{std::move(lo), std::move(hi)}));
         }
 
         template<typename Range>
@@ -4317,20 +4351,22 @@ namespace boost { namespace parser {
                 spirit::x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             success = extract::call(first, last, attr);
-            if (attr != expected_)
+            if (attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
                 detail::assign(retval, attr);
         }
 
-        constexpr auto operator()(T x) const noexcept
+        template<typename Expected2>
+        constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'uint_(2)(3)'.  Quit it!'");
-            using parser_t = uint_parser<T, Radix, MinDigits, MaxDigits, T>;
-            return parser_interface<parser_t>{parser_t{x}};
+            using parser_t =
+                uint_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
+            return parser_interface<parser_t>{parser_t{expected}};
         }
 
         Expected expected_;
@@ -4396,20 +4432,22 @@ namespace boost { namespace parser {
                 spirit::x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             success = extract::call(first, last, attr);
-            if (attr != expected_)
+            if (attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
                 detail::assign(retval, attr);
         }
 
-        constexpr auto operator()(T x) const noexcept
+        template<typename Expected2>
+        constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'int_(2)(3)'.  Quit it!'");
-            using parser_t = int_parser<T, Radix, MinDigits, MaxDigits, T>;
-            return parser_interface<parser_t>{parser_t{x}};
+            using parser_t =
+                int_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
+            return parser_interface<parser_t>{parser_t{expected}};
         }
 
         Expected expected_;
