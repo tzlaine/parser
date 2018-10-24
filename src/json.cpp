@@ -1,4 +1,5 @@
 #include <boost/yaml/json.hpp>
+#include <boost/yaml/exception.hpp>
 #include <boost/parser/parser.hpp>
 
 #include <boost/container/small_vector.hpp>
@@ -8,16 +9,6 @@ namespace boost { namespace json {
 
     namespace bp = ::boost::parser;
     using namespace bp::literals;
-
-    template<typename Iter>
-    struct excessive_nesting : std::runtime_error
-    {
-        excessive_nesting(Iter it) :
-            runtime_error("excessive_nesting"),
-            iter(it)
-        {}
-        Iter iter;
-    };
 
     struct global_state
     {
@@ -61,7 +52,7 @@ namespace boost { namespace json {
     auto object_init = [](auto & ctx) {
         auto & globals = _globals(ctx);
         if (globals.max_recursive_open_count < ++globals.recursive_open_count)
-            throw excessive_nesting(_where(ctx).begin());
+            throw yaml::excessive_nesting(_where(ctx).begin());
         _val(ctx) = object();
     };
     auto object_insert = [](auto & ctx) {
@@ -73,7 +64,7 @@ namespace boost { namespace json {
     auto array_init = [](auto & ctx) {
         auto & globals = _globals(ctx);
         if (globals.max_recursive_open_count < ++globals.recursive_open_count)
-            throw excessive_nesting(_where(ctx).begin());
+            throw yaml::excessive_nesting(_where(ctx).begin());
         _val(ctx) = array();
     };
     auto array_append = [](auto & ctx) {
@@ -203,7 +194,7 @@ namespace boost { namespace json {
             if (!success || first != last)
                 return {};
             return optional<value>(std::move(val));
-        } catch (excessive_nesting<iter_t> const & e) {
+        } catch (yaml::excessive_nesting<iter_t> const & e) {
             if (parse_error) {
                 std::string const message = "error: Exceeded maximum number (" +
                                             std::to_string(max_recursion) +

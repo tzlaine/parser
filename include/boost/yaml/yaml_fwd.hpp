@@ -1,6 +1,8 @@
 #ifndef BOOST_YAML_YAML_FWD_HPP
 #define BOOST_YAML_YAML_FWD_HPP
 
+#include <boost/yaml/exception.hpp>
+
 #include <functional>
 #include <string>
 #include <unordered_map>
