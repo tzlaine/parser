@@ -549,16 +549,28 @@ namespace boost { namespace parser {
         template<typename T>
         using hana_tuple_to_or_type_t = typename hana_tuple_to_or_type<T>::type;
 
-        template<typename T>
+        template<typename T, bool Container = is_container<T>{}>
         struct sequence_of_impl
         {
             using type = std::vector<T>;
         };
 
         template<>
-        struct sequence_of_impl<nope>
+        struct sequence_of_impl<nope, true>
         {
             using type = nope;
+        };
+
+        template<>
+        struct sequence_of_impl<nope, false>
+        {
+            using type = nope;
+        };
+
+        template<typename T>
+        struct sequence_of_impl<T, true>
+        {
+            using type = T;
         };
 
         template<typename T>
@@ -1531,31 +1543,9 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            if constexpr (detail::is_container<attr_t>{}) {
-                attr_t retval;
-                call(
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-                return retval;
-            } else {
-                detail::sequence_of<attr_t> retval;
-                call(
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-                return retval;
-            }
+            detail::sequence_of<attr_t> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
         }
 
         template<
