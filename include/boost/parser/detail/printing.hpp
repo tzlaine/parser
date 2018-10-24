@@ -26,7 +26,7 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename Parser>
     void parser_name(
-        repeat_parser<Parser, detail::nope> const & parser,
+        repeat_parser<Parser, nope> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -80,7 +80,7 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename Parser>
     void parser_name(
-        skip_parser<Parser, detail::nope> const & parser,
+        skip_parser<Parser, nope> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -281,7 +281,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    enum { trace_indent_factor = 2, trace_input_cps = 8 };
+    enum { trace_indent_factor = 2 };
 
     inline void trace_indent(int indent)
     {
@@ -293,7 +293,12 @@ namespace boost { namespace parser { namespace detail {
     template<typename Iter, int SizeofValueType>
     struct trace_input_impl
     {
-        static void call(Iter first_, Iter last_)
+        static void call(
+            std::ostream & os,
+            Iter first_,
+            Iter last_,
+            bool quote,
+            int64_t trace_input_cps)
         {
             static_assert(
                 std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
@@ -302,40 +307,55 @@ namespace boost { namespace parser { namespace detail {
                 text::utf8::make_from_utf32_iterator(first_, first_, last_);
             auto last =
                 text::utf8::make_from_utf32_iterator(first_, last_, last_);
-            std::cout << '"';
-            for (int i = 0; i < trace_input_cps && first != last;
+            if (quote)
+                os << '"';
+            for (int64_t i = 0; i < trace_input_cps && first != last;
                  ++i, ++first) {
-                std::cout << *first;
+                os << *first;
             }
-            std::cout << '"';
+            if (quote)
+                os << '"';
         }
     };
 
     template<typename Iter>
     struct trace_input_impl<Iter, 1>
     {
-        static void call(Iter first_, Iter last_)
+        static void call(
+            std::ostream & os,
+            Iter first_,
+            Iter last_,
+            bool quote,
+            int64_t trace_input_cps)
         {
             auto first =
                 text::utf8::make_to_utf32_iterator(first_, first_, last_);
             auto last =
                 text::utf8::make_to_utf32_iterator(first_, last_, last_);
             static_assert(sizeof(*first_) == 1);
-            for (int i = 0; i < trace_input_cps && first != last; ++i) {
+            for (int64_t i = 0; i < trace_input_cps && first != last; ++i) {
                 ++first;
             }
-            std::cout << '"';
+            if (quote)
+                os << '"';
             for (Iter it = first_, end = first.base(); it != end; ++it) {
-                std::cout << *it;
+                os << *it;
             }
-            std::cout << '"';
+            if (quote)
+                os << '"';
         }
     };
 
     template<typename Iter>
-    inline void trace_input(Iter first, Iter last)
+    inline void trace_input(
+        std::ostream & os,
+        Iter first,
+        Iter last,
+        bool quote = true,
+        int64_t trace_input_cps = 8)
     {
-        trace_input_impl<Iter, sizeof(*first)>::call(first, last);
+        trace_input_impl<Iter, sizeof(*first)>::call(
+            os, first, last, quote, trace_input_cps);
     }
 
     template<typename Iter>
@@ -344,7 +364,7 @@ namespace boost { namespace parser { namespace detail {
     {
         trace_indent(indent);
         std::cout << "[begin " << name << "; input=";
-        trace_input(first, last);
+        trace_input(std::cout, first, last);
         std::cout << "]" << std::endl;
     }
 
@@ -354,7 +374,7 @@ namespace boost { namespace parser { namespace detail {
     {
         trace_indent(indent);
         std::cout << "[end " << name << "; input=";
-        trace_input(first, last);
+        trace_input(std::cout, first, last);
         std::cout << "]" << std::endl;
     }
 
@@ -518,7 +538,7 @@ namespace boost { namespace parser { namespace detail {
             trace_indent(_indent(context_));
             if (*context_[hana::type_c<pass_tag>]) {
                 std::cout << "matched ";
-                trace_input(initial_first_, first_);
+                trace_input(std::cout, initial_first_, first_);
                 std::cout << "\n";
                 print_attribute(attr_, _indent(context_));
             } else {

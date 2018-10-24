@@ -16,7 +16,7 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename Parser>
     void parser_name(
-        repeat_parser<Parser, detail::nope> const & parser,
+        repeat_parser<Parser, nope> const & parser,
         std::ostream & os,
         int components)
     {
@@ -163,7 +163,7 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename Parser>
     void parser_name(
-        skip_parser<Parser, detail::nope> const & parser,
+        skip_parser<Parser, nope> const & parser,
         std::ostream & os,
         int components)
     {

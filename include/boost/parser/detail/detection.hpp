@@ -1,6 +1,8 @@
 #ifndef BOOST_PARSER_DETAIL_DETECTION_HPP
 #define BOOST_PARSER_DETAIL_DETECTION_HPP
 
+#include <type_traits>
+
 
 namespace boost { namespace parser {
 
