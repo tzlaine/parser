@@ -48,6 +48,10 @@ namespace boost { namespace parser {
         typename detector<nonesuch, void, Template, Args...>::value_t;
 
     template<template<typename...> class Template, typename... Args>
+    using is_detected_v =
+        typename detector<nonesuch, void, Template, Args...>::value_t::value;
+
+    template<template<typename...> class Template, typename... Args>
     using detected_t =
         typename detector<nonesuch, void, Template, Args...>::type;
 

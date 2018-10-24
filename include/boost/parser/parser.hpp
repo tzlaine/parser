@@ -193,11 +193,40 @@ namespace boost { namespace parser {
         template<typename T, typename U>
         using callable = decltype(std::declval<T>()(std::declval<U>()));
 
+#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+
+        template<bool Callable>
+        struct resolve_rule_params_impl
+        {
+            template<typename Context, typename T>
+            static auto call(Context const &, T const & x)
+            {
+                return x;
+            }
+        };
+
+        template<>
+        struct resolve_rule_params_impl<true>
+        {
+            template<typename Context, typename T>
+            static auto call(Context const & context, T const & x)
+            {
+                return x(context);
+            }
+        };
+
+#endif
+
         template<typename Context, typename ParamsTuple>
         inline auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
             return hana::transform(params, [&](auto const & x) {
+#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+                return resolve_rule_params_impl<
+                    is_detected<callable, decltype(x), Context const &>{}>::
+                    call(context, x);
+#else
                 if constexpr (is_detected<
                                   callable,
                                   decltype(x),
@@ -206,6 +235,7 @@ namespace boost { namespace parser {
                 } else {
                     return x;
                 }
+#endif
             });
         }
 
@@ -982,6 +1012,97 @@ namespace boost { namespace parser {
         constexpr void assign(T &, nope)
         {}
 
+#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+
+        template<typename Attr>
+        struct apply_opt_var_parser_impl
+        {
+            template<
+                typename Parser,
+                bool UseCallbacks,
+                typename Iter,
+                typename Context,
+                typename SkipParser,
+                typename... T>
+            static void call(
+                Parser const & parser,
+                hana::bool_<UseCallbacks> use_cbs,
+                Iter & first,
+                Iter last,
+                Context const & context,
+                SkipParser const & skip,
+                flags flags,
+                bool & success,
+                optional<variant<T...>> & retval)
+            {
+                Attr attr = parser.call(
+                    use_cbs, first, last, context, skip, flags, success);
+                if (success)
+                    assign(retval, variant<T...>(std::move(attr)));
+            }
+        };
+
+        template<typename... T>
+        struct apply_opt_var_parser_impl<optional<variant<T...>>>
+        {
+            template<
+                typename Parser,
+                bool UseCallbacks,
+                typename Iter,
+                typename Context,
+                typename SkipParser,
+                typename... U>
+            static void call(
+                Parser const & parser,
+                hana::bool_<UseCallbacks> use_cbs,
+                Iter & first,
+                Iter last,
+                Context const & context,
+                SkipParser const & skip,
+                flags flags,
+                bool & success,
+                optional<variant<U...>> & retval)
+            {
+                parser.call(
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            }
+        };
+
+        template<>
+        struct apply_opt_var_parser_impl<nope>
+        {
+            template<
+                typename Parser,
+                bool UseCallbacks,
+                typename Iter,
+                typename Context,
+                typename SkipParser,
+                typename... T>
+            static void call(
+                Parser const & parser,
+                hana::bool_<UseCallbacks> use_cbs,
+                Iter & first,
+                Iter last,
+                Context const & context,
+                SkipParser const & skip,
+                flags flags,
+                bool & success,
+                optional<variant<T...>> & retval)
+            {
+                parser.call(
+                    use_cbs, first, last, context, skip, flags, success);
+            }
+        };
+
+#endif
+
         template<
             typename Parser,
             bool UseCallbacks,
@@ -1002,6 +1123,18 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser.call(
                 use_cbs, first, last, context, skip, flags, success));
+#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+            apply_opt_var_parser_impl<attr_t>::call(
+                parser,
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                flags,
+                success,
+                retval);
+#else
             if constexpr (std::is_same<attr_t, optional<variant<T...>>>{}) {
                 parser.call(
                     use_cbs,
@@ -1012,17 +1145,16 @@ namespace boost { namespace parser {
                     flags,
                     success,
                     retval);
+            } else if constexpr (std::is_same<attr_t, nope>{}) {
+                parser.call(
+                    use_cbs, first, last, context, skip, flags, success);
             } else {
-                if constexpr (std::is_same<attr_t, nope>{}) {
-                    parser.call(
-                        use_cbs, first, last, context, skip, flags, success);
-                } else {
-                    auto attr = parser.call(
-                        use_cbs, first, last, context, skip, flags, success);
-                    if (success)
-                        assign(retval, variant<T...>(std::move(attr)));
-                }
+                auto attr = parser.call(
+                    use_cbs, first, last, context, skip, flags, success);
+                if (success)
+                    assign(retval, variant<T...>(std::move(attr)));
             }
+#endif
         }
 
         template<
@@ -1067,17 +1199,10 @@ namespace boost { namespace parser {
             bool & success,
             optional<T> & retval)
         {
-            using attr_t = decltype(parser.call(
-                use_cbs, first, last, context, skip, flags, success));
-            if constexpr (std::is_same<attr_t, nope>{}) {
-                parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
-            } else {
-                auto attr = parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
-                if (success)
-                    assign(retval, attr);
-            }
+            auto attr = parser.call(
+                use_cbs, first, last, context, skip, flags, success);
+            if (success)
+                assign(retval, attr);
         }
 
         template<
