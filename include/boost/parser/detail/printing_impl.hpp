@@ -8,6 +8,7 @@
 
 namespace boost { namespace parser { namespace detail {
 
+#if 0
     template<typename Context, typename Parser>
     void parser_name(
         Context const & context,
@@ -17,31 +18,38 @@ namespace boost { namespace parser { namespace detail {
     {
         os << "<<unknown-parser>>";
     }
+#endif
 
-    template<typename Context, typename Parser>
+    template<
+        typename Context,
+        typename Parser,
+        typename MinType,
+        typename MaxType>
     void parser_name(
         Context const & context,
-        repeat_parser<Parser, nope> const & parser,
+        repeat_parser<Parser, nope, MinType, MaxType> const & parser,
         std::ostream & os,
         int components)
     {
-        if (parser.min_ == 0 && parser.max_ == Inf) {
+        auto const min_ = resolve(context, parser.min_);
+        auto const max_ = resolve(context, parser.max_);
+        if (min_ == 0 && max_ == Inf) {
             os << "*";
             parser_name(context, parser.parser_, os, components + 1);
-        } else if (parser.min_ == 1 && parser.max_ == Inf) {
+        } else if (min_ == 1 && max_ == Inf) {
             os << "+";
             parser_name(context, parser.parser_, os, components + 1);
         } else {
             os << "repeat(";
-            print(os, parser.min_);
-            if (parser.min_ == parser.max_) {
+            print(os, min_);
+            if (min_ == max_) {
                 os << ")[";
             } else {
                 os << ", ";
-                if (parser.max_ == unbounded)
+                if (max_ == unbounded)
                     os << "Inf";
                 else
-                    print(os, parser.max_);
+                    print(os, max_);
                 os << ")[";
             }
             parser_name(context, parser.parser_, os, components + 1);
@@ -49,10 +57,15 @@ namespace boost { namespace parser { namespace detail {
         }
     }
 
-    template<typename Context, typename Parser, typename DelimiterParser>
+    template<
+        typename Context,
+        typename Parser,
+        typename DelimiterParser,
+        typename MinType,
+        typename MaxType>
     void parser_name(
         Context const & context,
-        repeat_parser<Parser, DelimiterParser> const & parser,
+        repeat_parser<Parser, DelimiterParser, MinType, MaxType> const & parser,
         std::ostream & os,
         int components)
     {
@@ -267,7 +280,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "eps(<<predicate>>)";
+        os << "eps(<<pred>>)";
     }
 
     template<typename Context>
@@ -683,6 +696,56 @@ namespace boost { namespace parser { namespace detail {
         int components)
     {
         os << "double_";
+    }
+
+    template<typename Context, typename ParserTuple, typename BacktrackingTuple>
+    void switch_parser_matchers(
+        Context const & context,
+        seq_parser<ParserTuple, BacktrackingTuple> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        using namespace hana::literals;
+
+        os << "(" << resolve(context, parser.parsers_[0_c].predicate_.value_)
+           << ", ";
+        parser_name(context, parser.parsers_[1_c], os, components);
+        os << ")";
+    }
+
+    template<typename Context, typename ParserTuple>
+    void switch_parser_matchers(
+        Context const & context,
+        or_parser<ParserTuple> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        using namespace hana::literals;
+
+        bool printed_ellipsis = false;
+        hana::for_each(parser.parsers_, [&](auto const & parser) {
+            if (components == parser_component_limit) {
+                if (!printed_ellipsis)
+                    os << "...";
+                printed_ellipsis = true;
+                return;
+            }
+            switch_parser_matchers(context, parser, os, components);
+            ++components;
+        });
+    }
+
+    template<typename Context, typename SwitchValue, typename OrParser>
+    void parser_name(
+        Context const & context,
+        switch_parser<SwitchValue, OrParser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "switch_(";
+        print(os, resolve(context, parser.switch_value_));
+        os << ")";
+        switch_parser_matchers(context, parser.or_parser_, os, components);
     }
 
 }}}

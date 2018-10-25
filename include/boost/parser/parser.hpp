@@ -4515,6 +4515,142 @@ namespace boost { namespace parser {
     inline constexpr parser_interface<float_parser<float>> float_;
     inline constexpr parser_interface<float_parser<double>> double_;
 
+
+    template<typename Predicate>
+    struct if_directive
+    {
+        template<typename Parser2>
+        constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
+        {
+            return eps(predicate_) >> rhs;
+        }
+
+        Predicate predicate_;
+    };
+
+    template<typename T>
+    constexpr auto if_(T x) noexcept
+    {
+        return if_directive<T>{x};
+    }
+
+    template<typename SwitchValue, typename Value>
+    struct switch_parser_equal
+    {
+        template<typename Context>
+        bool operator()(Context & context) const
+        {
+            auto const switch_value =
+                detail::resolve(context, switch_value_);
+            auto const value = detail::resolve(context, value_);
+            return value == switch_value;
+        }
+        SwitchValue switch_value_;
+        Value value_;
+    };
+
+    template<typename SwitchValue, typename OrParser>
+    struct switch_parser
+    {
+        switch_parser() {}
+        switch_parser(SwitchValue switch_value) : switch_value_(switch_value) {}
+        switch_parser(SwitchValue switch_value, OrParser or_parser) :
+            switch_value_(switch_value),
+            or_parser_(or_parser)
+        {}
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            static_assert(
+                !std::is_same<OrParser, detail::nope>{},
+                "It looks like you tried to write switch_(val).  You need at "
+                "least one alternative, like: switch_(val)(value_1, "
+                "parser_1)(value_2, parser_2)...");
+            using attr_t = decltype(or_parser_.call(
+                use_cbs, first, last, context, skip, flags, success));
+            attr_t attr;
+            auto _ = scoped_trace(*this, first, last, context, flags, attr);
+            attr = or_parser_.call(
+                use_cbs, first, last, context, skip, flags, success);
+            return attr;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            hana::bool_<UseCallbacks> use_cbs,
+            Iter & first,
+            Iter last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            static_assert(
+                !std::is_same<OrParser, detail::nope>{},
+                "It looks like you tried to write switch_(val).  You need at "
+                "least one alternative, like: switch_(val)(value_1, "
+                "parser_1)(value_2, parser_2)...");
+            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            or_parser_.call(
+                use_cbs, first, last, context, skip, flags, success, retval);
+        }
+
+        template<typename Value, typename Parser2>
+        constexpr auto
+        operator()(Value value_, parser_interface<Parser2> rhs) const noexcept
+        {
+            auto const match =
+                switch_parser_equal<SwitchValue, Value>{switch_value_, value_};
+            auto or_parser = new_or_parser(or_parser_, eps(match) >> rhs);
+            using switch_parser_type =
+                switch_parser<SwitchValue, decltype(or_parser)>;
+            return parser_interface<switch_parser_type>{
+                switch_parser_type{switch_value_, or_parser}};
+        }
+
+        template<typename Parser1, typename Parser2>
+        static constexpr auto
+        new_or_parser(Parser1 parser1, parser_interface<Parser2> parser2)
+        {
+            return (parser_interface<Parser1>{parser1} | parser2).parser_;
+        }
+
+        template<typename Parser>
+        static constexpr auto
+        new_or_parser(detail::nope, parser_interface<Parser> parser)
+        {
+            return parser.parser_;
+        }
+
+        SwitchValue switch_value_;
+        OrParser or_parser_;
+    };
+
+    template<typename T>
+    constexpr auto switch_(T x) noexcept
+    {
+        return switch_parser<T>{x};
+    }
+
+
     template<typename Parser, typename GlobalState>
     constexpr auto parser_interface<Parser, GlobalState>::
     operator>>(char rhs) const noexcept

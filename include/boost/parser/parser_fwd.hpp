@@ -126,6 +126,9 @@ namespace boost { namespace parser {
     template<typename T>
     struct float_parser;
 
+    template<typename SwitchValue, typename OrParser = detail::nope>
+    struct switch_parser;
+
     enum class error_handler_result { fail, rethrow };
 
 }}

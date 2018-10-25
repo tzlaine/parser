@@ -40,6 +40,7 @@ endmacro()
 #endforeach()
 
 add_test_executable(parser_lazy_params)
+add_test_executable(parser_if_switch)
 add_test_executable(parser_rule)
 add_test_executable(parser_rule_with_params)
 add_test_executable(parser_action)

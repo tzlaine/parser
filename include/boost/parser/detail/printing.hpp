@@ -20,24 +20,35 @@ namespace boost { namespace parser { namespace detail {
 
     enum { parser_component_limit = 4 };
 
+#if 0 // TODO
     template<typename Context, typename Parser>
     void parser_name(
         Context const & context,
         Parser const & parser,
         std::ostream & os,
         int components = 0);
+#endif
 
-    template<typename Context, typename Parser>
+    template<
+        typename Context,
+        typename Parser,
+        typename MinType,
+        typename MaxType>
     void parser_name(
         Context const & context,
-        repeat_parser<Parser, nope> const & parser,
+        repeat_parser<Parser, nope, MinType, MaxType> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Parser, typename DelimiterParser>
+    template<
+        typename Context,
+        typename Parser,
+        typename DelimiterParser,
+        typename MinType,
+        typename MaxType>
     void parser_name(
         Context const & context,
-        repeat_parser<Parser, DelimiterParser> const & parser,
+        repeat_parser<Parser, DelimiterParser, MinType, MaxType> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -379,6 +390,13 @@ namespace boost { namespace parser { namespace detail {
     void parser_name(
         Context const & context,
         float_parser<double> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context, typename SwitchValue, typename OrParser>
+    void parser_name(
+        Context const & context,
+        switch_parser<SwitchValue, OrParser> const & parser,
         std::ostream & os,
         int components = 0);
 
