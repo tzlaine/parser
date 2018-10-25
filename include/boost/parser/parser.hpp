@@ -2516,7 +2516,7 @@ namespace boost { namespace parser {
                         use_cbs, first, last, context, skip, flags, success);
                     if (!success && !can_backtrack) {
                         std::stringstream oss;
-                        detail::parser_name(parser, oss);
+                        detail::parser_name(context, parser, oss);
                         throw parse_error<Iter>(first, oss.str());
                     }
                     return;
@@ -2550,7 +2550,7 @@ namespace boost { namespace parser {
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
-                            detail::parser_name(parser, oss);
+                            detail::parser_name(context, parser, oss);
                             throw parse_error<Iter>(first, oss.str());
                         }
                         out = std::decay_t<decltype(out)>();
@@ -2562,7 +2562,7 @@ namespace boost { namespace parser {
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
-                            detail::parser_name(parser, oss);
+                            detail::parser_name(context, parser, oss);
                             throw parse_error<Iter>(first, oss.str());
                         }
                         return;
@@ -3410,9 +3410,9 @@ namespace boost { namespace parser {
         // For parsers that can be used like "char_('x', 'y')".
         template<typename T, typename U>
         constexpr auto operator()(T && x, U && y) const noexcept -> decltype(
-            std::declval<Parser>()(static_cast<T &&>(x), static_cast<T &&>(y)))
+            std::declval<Parser>()(static_cast<T &&>(x), static_cast<U &&>(y)))
         {
-            return parser_(static_cast<T &&>(x), static_cast<T &&>(y));
+            return parser_(static_cast<T &&>(x), static_cast<U &&>(y));
         }
 
         template<
@@ -4310,6 +4310,8 @@ namespace boost { namespace parser {
             "Unsupported radix.");
 
         constexpr uint_parser() {}
+        explicit constexpr uint_parser(Expected expected) : expected_(expected)
+        {}
 
         template<
             bool UseCallbacks,
@@ -4391,6 +4393,8 @@ namespace boost { namespace parser {
     struct int_parser
     {
         constexpr int_parser() {}
+        explicit constexpr int_parser(Expected expected) : expected_(expected)
+        {}
 
         template<
             bool UseCallbacks,
