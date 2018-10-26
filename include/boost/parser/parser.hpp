@@ -4080,6 +4080,7 @@ namespace boost { namespace parser {
 
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
     inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
+    inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
 
