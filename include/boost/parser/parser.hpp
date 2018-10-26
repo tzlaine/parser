@@ -3810,7 +3810,10 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            success = predicate_(context);
+            range const where(first, first);
+            auto const predicate_context =
+                hana::insert(context, hana::make_pair(where_, &where));
+            success = predicate_(predicate_context);
             return {};
         }
 
@@ -3831,7 +3834,10 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
-            success = predicate_(context);
+            range const where(first, first);
+            auto const predicate_context =
+                hana::insert(context, hana::make_pair(where_, &where));
+            success = predicate_(predicate_context);
         }
 
         template<typename Predicate2>
