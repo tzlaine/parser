@@ -186,6 +186,9 @@ namespace boost { namespace yaml {
 
     bp::rule<class one_time_eoi> const one_time_eoi = "end of input";
 
+    bp::rule<class blank_string> const blank_string = "blank_string";
+    auto const blank_string_def = +bp::ascii::blank;
+
 
 
     // 5.2. Character Encodings
@@ -254,6 +257,9 @@ namespace boost { namespace yaml {
     bp::rule<class l_empty, uint32_t> const l_empty = "l_empty";
 
     // 6.5 Line Folding
+
+    // [71]
+    bp::rule<class b_l_trimmed, std::string> const b_l_trimmed = "b_l_trimmed";
 
     // [73]
     bp::rule<class b_l_folded, std::string> const b_l_folded = "b_l_folded";
@@ -876,12 +882,14 @@ namespace boost { namespace yaml {
         return !_globals(ctx).stop_at_document_delimiter_;
     };
 
+    // [71]
+    auto const b_l_trimmed_def = +l_empty;
+
     // [73]
     auto const b_l_folded_def = bp::eol >>
                                 (bp::eps(dont_stop_at_doc_delimiter) |
                                  !(bp::lit("...") | "---")) >>
-                                (+l_empty /* b-l-trimmed [71] */
-                                 | bp::attr(" "));
+                                (b_l_trimmed | bp::attr(std::string(" ")));
 
     auto set_context = [](context c) {
         return [c](auto & ctx) {
@@ -976,8 +984,7 @@ namespace boost { namespace yaml {
                         s_l_comments;
 
     // [83]
-    auto const reserved_directive_def = +ns_char >>
-                                        *(+bp::ascii::blank >> +ns_char);
+    auto const reserved_directive_def = +ns_char >> *(blank_string >> +ns_char);
 
     auto record_yaml_directive = [](auto & ctx) {
         _globals(ctx).latest_yaml_directive_it_ = _where(ctx).begin();
@@ -1538,7 +1545,8 @@ namespace boost { namespace yaml {
 
 
     // Helper rules.
-    BOOST_PARSER_DEFINE_RULES(x_escape_seq, u_escape_seq, U_escape_seq);
+    BOOST_PARSER_DEFINE_RULES(
+        x_escape_seq, u_escape_seq, U_escape_seq, one_time_eoi, blank_string);
 
     // Characters.
     BOOST_PARSER_DEFINE_RULES(
@@ -1562,6 +1570,7 @@ namespace boost { namespace yaml {
         separate_in_line,
         line_prefix,
         l_empty,
+        b_l_trimmed,
         b_l_folded,
         flow_folded,
         comment_text,
@@ -1579,8 +1588,7 @@ namespace boost { namespace yaml {
         properties,
         shorthand_tag_name,
         tag_property,
-        anchor_property,
-        one_time_eoi);
+        anchor_property);
 #if 0 // TODO: Appears to be unused.
         anchor_name,
 #endif
@@ -1658,12 +1666,12 @@ namespace boost { namespace yaml {
             x_escape_seq | u_escape_seq | U_escape_seq | printable | nb_json |
             bom | nb_char | ns_char | raw_ns_char | word_char | uri_char |
             tag_char | single_escaped_char | esc_char | indent | indent_lt |
-            indent_le | separate_in_line | line_prefix | l_empty |
-            /*b_l_folded | flow_folded | TODO*/ comment_text | s_b_comment |
-            l_comment | s_l_comments | separate | separate_lines | /*directive
-            | reserved_directive | TODO*/ yaml_directive |
-            tag_directive | tag_handle | tag_prefix | properties |
-            tag_property | anchor_property | one_time_eoi;
+            indent_le | separate_in_line | line_prefix | l_empty | b_l_folded |
+            flow_folded | comment_text | s_b_comment | l_comment |
+            s_l_comments | separate | separate_lines | directive |
+            reserved_directive | yaml_directive | tag_directive | tag_handle |
+            tag_prefix | properties | tag_property | anchor_property |
+            one_time_eoi;
         global_state<iter_t> globals{first, max_recursion};
         auto const parser = bp::with_globals(test_parser, globals);
 #endif
