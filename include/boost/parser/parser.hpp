@@ -4032,8 +4032,9 @@ namespace boost { namespace parser {
         }
 
         template<typename T>
-        constexpr detail::non_range_t<T, parser_interface<char_parser<T>>>
-        operator()(T x) const noexcept
+        constexpr detail::
+            non_range_t<T, parser_interface<char_parser<T, AttributeType>>>
+            operator()(T x) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
@@ -4075,7 +4076,8 @@ namespace boost { namespace parser {
         operator()(Range const & r) const noexcept -> detail::range_t<
             Range,
             parser_interface<char_parser<
-                detail::char_range<decltype(make_range(r.begin(), r.end()))>>>>
+                detail::char_range<decltype(make_range(r.begin(), r.end()))>,
+                AttributeType>>>
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
