@@ -2993,11 +2993,28 @@ namespace boost { namespace parser {
         {}
 
         template<typename Context>
+        trie::optional_ref<T>
+        find(Context const & context, std::string_view str) const
+        {
+            trie::trie<std::vector<uint32_t>, T> & trie_ =
+                detail::get_trie(context, ref());
+            return trie_[text::make_to_utf32_range(str)];
+        }
+
+        template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
             trie::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
             trie_.insert(text::make_to_utf32_range(str), std::move(x));
+        }
+
+        template<typename Context>
+        void erase(Context const & context, std::string_view str) const
+        {
+            trie::trie<std::vector<uint32_t>, T> & trie_ =
+                detail::get_trie(context, ref());
+            trie_.erase(text::make_to_utf32_range(str));
         }
 
         template<
@@ -3479,7 +3496,7 @@ namespace boost { namespace parser {
         using parser_interface<symbol_parser<T>>::operator();
 
         // TODO: Document that this is for initial population, and that
-        // insert() is for during-parse updates.
+        // insert() et al are for during-parse updates.
         symbols & add(std::string_view str, T x)
         {
             this->parser_.initial_elements_.push_back(
@@ -3492,9 +3509,22 @@ namespace boost { namespace parser {
         }
 
         template<typename Context>
+        trie::optional_ref<T>
+        find(Context const & context, std::string_view str) const
+        {
+            return this->parser_.find(context, str);
+        }
+
+        template<typename Context>
         void insert(Context const & context, std::string_view str, T x) const
         {
             this->parser_.insert(context, str, std::move(x));
+        }
+
+        template<typename Context>
+        void erase(Context const & context, std::string_view str) const
+        {
+            this->parser_.erase(context, str);
         }
     };
 
