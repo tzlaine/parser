@@ -87,13 +87,6 @@ namespace boost { namespace yaml {
         any anchor_; // iterator range
     };
 
-    template<typename Range>
-    inline std::string range_to_string(Range const & range)
-    {
-        // TODO: Needs transcoding.
-        return std::string(range.begin(), range.end());
-    }
-
     inline std::ostream &
     operator<<(std::ostream & out, parser_properties const & p)
     {
@@ -119,7 +112,7 @@ namespace boost { namespace yaml {
     struct global_state
     {
         using iterator = Iter;
-        using iterator_range = boost::iterator_range<Iter>;
+        using iterator_range = parser::range<Iter>;
 
         global_state(iterator first, int max_recursion) :
             first_(first),
@@ -171,7 +164,8 @@ namespace boost { namespace yaml {
         iterator first_yaml_directive_it_;
         iterator latest_yaml_directive_it_;
 
-        iterator_range tag_handle_;
+        std::string tag_handle_;
+        iterator tag_handle_it_;
 
         std::string tag_property_;
         iterator_range anchor_property_;
@@ -189,6 +183,8 @@ namespace boost { namespace yaml {
     bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
         "'0', 'a', 'b', 't', 'n', 'v', 'f', 'r', 'e', '\"', '/', '\\', 'N', "
         "'_', 'L', 'P', SPACE or TAB";
+
+    bp::rule<class one_time_eoi> const one_time_eoi = "end of input";
 
 
 
@@ -307,14 +303,13 @@ namespace boost { namespace yaml {
 
     // [88]
     // any as iterator_range
-    bp::rule<class tag_directive, bp::no_attribute, any> const tag_directive =
-        "tag_directive";
+    bp::rule<class tag_directive> const tag_directive = "tag_directive";
 
     // [89]
-    bp::rule<class tag_handle> const tag_handle = "tag_handle";
+    bp::rule<class tag_handle, std::string> const tag_handle = "tag_handle";
 
     // [93]
-    bp::rule<class tag_prefix> const tag_prefix = "tag_prefix";
+    bp::rule<class tag_prefix, std::string> const tag_prefix = "tag_prefix";
 
     // 6.9 Node Properties
 
@@ -328,6 +323,8 @@ namespace boost { namespace yaml {
         properties = "properties";
 
     // [97]
+    bp::rule<class shorthand_tag_name, std::string> const shorthand_tag_name =
+        "shorthand_tag_name";
     bp::rule<class tag_property, std::string> const tag_property =
         "tag_property";
 
@@ -335,8 +332,7 @@ namespace boost { namespace yaml {
     // auto indicator = cp("-?:,[]{}#&*!|>'\"%@`");
 
     // [101]
-    bp::rule<class anchor_property, any> const anchor_property =
-        "anchor_property";
+    bp::rule<class anchor_property> const anchor_property = "anchor_property";
 
     // [102]
     // auto anchor_char = ns_char - cp(",[]{}");
@@ -842,7 +838,7 @@ namespace boost { namespace yaml {
 
     auto at_start_of_line = [](auto & ctx) {
         auto const iter_range = _where(ctx);
-        if (iter_range.begin() == _globals(ctx).first_it)
+        if (iter_range.begin() == _globals(ctx).first_)
             return true;
         auto const cp = *std::prev(iter_range.begin());
         return std::find(
@@ -960,11 +956,6 @@ namespace boost { namespace yaml {
 
     // 6.8 Directives
 
-    // [82]
-    auto const directive_def =
-        '%' >>
-        (yaml_directive | tag_directive | reserved_directive) >> s_l_comments;
-
     auto reserved_directive_warning = [](auto & ctx) {
         auto const & error_handler = _error_handler(ctx);
         auto const where = _where(ctx);
@@ -977,17 +968,23 @@ namespace boost { namespace yaml {
             _globals(ctx).first_, where.begin(), where.end(), oss.str());
     };
 
+    // [82]
+    auto const
+        directive_def = '%' >>
+                        (yaml_directive | tag_directive |
+                         reserved_directive[reserved_directive_warning]) >>
+                        s_l_comments;
+
     // [83]
-    auto const reserved_directive_def =
-        (+ns_char >>
-         *(+bp::ascii::blank >> +ns_char))[reserved_directive_warning];
+    auto const reserved_directive_def = +ns_char >>
+                                        *(+bp::ascii::blank >> +ns_char);
 
     auto record_yaml_directive = [](auto & ctx) {
         _globals(ctx).latest_yaml_directive_it_ = _where(ctx).begin();
     };
 
     auto check_yaml_version = [](auto & ctx) {
-        auto const & globals = _globals(ctx);
+        auto & globals = _globals(ctx);
         auto const & error_handler = _error_handler(ctx);
 
         if (globals.yaml_directive_seen_) {
@@ -1024,16 +1021,15 @@ namespace boost { namespace yaml {
 #endif
                 _pass(ctx) = false;
             } else if (minor != 2) {
-#if 0 // TODO
                 std::ostringstream oss;
                 oss << "The current document has a %YAML " << major << '.'
                     << minor
                     << " directive.  This parser recognizes "
                        "YAML 1.2, and so might not work.  "
                        "Trying anyway...";
-                error_handler.impl().report_warning_at(
-                    state.first_yaml_directive_it_, oss.str());
-#endif
+                auto const where = _where(ctx);
+                error_handler.warn(
+                    globals.first_, where.begin(), where.end(), oss.str());
             }
             globals.yaml_directive_seen_ = true;
         }
@@ -1053,44 +1049,32 @@ namespace boost { namespace yaml {
         bool default_;
     };
 
-    bp::symbols<tag> tags = {{"!!", tag{"tag:yaml.org,2002:", any(), true}},
-                             {"!", tag{"!", any(), true}}};
+    bp::symbols<tag> const tags = {
+        {"!!", tag{"tag:yaml.org,2002:", any(), true}},
+        {"!", tag{"!", any(), true}}};
 
-#if 0
     auto record_tag_handle = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        state.tag_handle_ = _attr(ctx);
+        _globals(ctx).tag_handle_ = _attr(ctx);
+        _globals(ctx).tag_handle_it_ = _where(ctx).begin();
     };
 
     auto record_tag = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-#if 0 // TODO
-        auto const & error_handler =
-            bp::get<yaml::error_handler_tag>(ctx).get();
-#endif
+        auto const & globals = _globals(ctx);
 
-        using state_t = typename std::remove_reference<decltype(state)>::type;
-        using cp_range = typename state_t::iterator_range;
-        cp_range const handle_cp_range = state.tag_handle_;
-        cp_range const prefix_cp_range = _attr(ctx);
-
-        auto const handle_char_range =
-            text::make_from_utf32_range(handle_cp_range);
-        std::string const handle(
-            handle_char_range.begin(), handle_char_range.end());
-
-        auto existing_tag = tags.find(handle);
+        trie::optional_ref<tag> existing_tag =
+            tags.find(ctx, globals.tag_handle_);
         if (existing_tag && existing_tag->default_) {
-            tags.remove(handle);
-            existing_tag = nullptr;
+            tags.erase(ctx, globals.tag_handle_);
+            existing_tag = trie::optional_ref<tag>{};
         }
 
         if (existing_tag) {
 #if 0 // TODO
+            auto const & error_handler = _error_handler(ctx);
             scoped_multipart_error_t multipart(error_handler.impl());
             std::ostringstream oss;
             oss << "The current document has more than one %TAG "
-                << "directive using the handle " << handle << ".  "
+                << "directive using the handle " << globals.tag_handle_ << ".  "
                 << "Only one is allowed.  The latest one is here";
             error_handler.impl().report_error_at(
                 handle_range.begin(), oss.str(), multipart);
@@ -1101,29 +1085,25 @@ namespace boost { namespace yaml {
 #endif
             _pass(ctx) = false;
         } else {
-            auto const prefix_char_range =
-                text::make_from_utf32_range(prefix_cp_range);
-            std::string prefix(
-                prefix_char_range.begin(), prefix_char_range.end());
-
-            tags.add(
-                handle,
-                tag{std::move(prefix), any(handle_cp_range.begin()), false});
+            tags.insert(
+                ctx,
+                globals.tag_handle_,
+                tag{std::move(_attr(ctx)), any(globals.tag_handle_it_), false});
         }
     };
 
     // [88]
-    auto const tag_directive_def = "TAG" >> +bp::omit[bp::blank] >>
-                                   bp::raw[tag_handle][record_tag_handle] >>
-                                   +bp::omit[bp::blank] >>
-                                   bp::raw[tag_prefix][record_tag];
+    auto const tag_directive_def = "TAG" >> +bp::ascii::blank >>
+                                   tag_handle[record_tag_handle] >>
+                                   +bp::ascii::blank >> tag_prefix[record_tag];
 
     // [89]
     auto const tag_handle_def =
-        // "alnum..." below is  word_char [38]
-        '!' >> +(bp::alnum | bp::char_("-")) >> '!' // named_tag_handle [92]
-        | "!!"                                      // secondary_tag_handle [91]
-        | '!'                                       // primary_tag_handle [90]
+        // "alnum..." below is word_char [38]
+        '!' >> +(bp::ascii::alnum | bp::char_('-')) >>
+            '!' // named_tag_handle [92]
+        | "!!"  // secondary_tag_handle [91]
+        | '!'   // primary_tag_handle [90]
         ;
 
     // [93]
@@ -1133,75 +1113,63 @@ namespace boost { namespace yaml {
     // 6.9 Node Properties
 
     auto assign_tag_property = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        state.tag_property_ = _attr(ctx);
-    };
-    auto assign_optional_tag_property = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        state.tag_property_ = *_attr(ctx);
+        _globals(ctx).tag_property_ = _attr(ctx);
     };
     auto assign_anchor_property = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        state.anchor_property_ = _attr(ctx);
-    };
-    auto assign_optional_anchor_property = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        state.anchor_property_ = *_attr(ctx);
+        _globals(ctx).anchor_property_ = _attr(ctx);
     };
 
     auto make_parser_properties = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        _val(ctx) = parser_properties{std::move(state.tag_property_),
-                                      std::move(state.anchor_property_)};
+        auto const & globals = _globals(ctx);
+        _val(ctx) = parser_properties{std::move(globals.tag_property_),
+                                      globals.anchor_property_};
     };
 
     // [96]
     auto const properties_def =
-        (tag_property[assign_tag_property] >>
-             -(separate >> anchor_property[assign_optional_anchor_property]) |
-         anchor_property[assign_anchor_property] >>
-             -(separate >> tag_property[assign_optional_tag_property]))
-            [make_parser_properties];
+        (tag_property[assign_tag_property] >> -(separate >> anchor_property) |
+         anchor_property >>
+             -(separate >>
+               tag_property[assign_tag_property]))[make_parser_properties];
+
+    auto shorthand_tag_str = [](auto & ctx) {
+        using namespace hana::literals;
+        auto & val = _val(ctx);
+        val = std::move(_attr(ctx)[1_c]);
+        tag const & tag_ = _attr(ctx)[0_c];
+        val.insert(val.begin(), tag_.prefix_.begin(), tag_.prefix_.end());
+    };
 
     // [97]
+    auto const shorthand_tag_name_def = +tag_char;
     auto const tag_property_def =
-        "!<" > +uri_char[append_utf8] > '>' // verbatim_tag [98]
-        | (tags >> +tag_char[append_utf8])  // shorthand_tag [99]
-        | bp::lit('!') >> bp::attr("!")     // non_specific_tag [100]
+        "!<" > +uri_char > '>'                            // verbatim_tag [98]
+        | (tags >> shorthand_tag_name)[shorthand_tag_str] // shorthand_tag [99]
+        | '!'_l >> "!" // non_specific_tag [100]
         ;
 
     // [22]
     // auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
 
-    auto make_iterator_range_any = [](auto & ctx) {
-        any & result = _val(ctx);
-        using state_t = typename std::remove_reference<decltype(
-            bp::get<parser_state_tag>(ctx).get())>::type;
-        typename state_t::iterator_range range = _attr(ctx);
-        result = range;
-    };
-
     // [101]
     auto const anchor_property_def =
-        '&' >>
-        bp::raw[+(ns_char - bp::char_(",[]{}"))][make_iterator_range_any];
+        '&' >> bp::raw[+(ns_char - bp::char_(",[]{}"))][assign_anchor_property];
 
     // [102]
     // auto anchor_char = ns_char - char_(",[]{}");
 
+#if 0 // TODO: Appears to be unused.
     // [103]
     auto const anchor_name_def =
         bp::raw[+(ns_char - bp::char_(",[]{}"))][make_iterator_range_any];
+#endif
 
     auto const one_time_eoi_def = bp::eoi >> bp::eps(first_time_eoi);
 
+#if 0
     // 7.1 Alias Nodes
 
-    struct anchors_t : bp::symbols<anchor>
-    {};
-
-    // TODO: -> context
-    anchors_t anchors;
+    bp::symbols<anchor> anchors;
 
     auto alias_from_anchor = [](auto&ctx) {
         _val(ctx) = _attr(ctx).alias_;
@@ -1586,7 +1554,6 @@ namespace boost { namespace yaml {
         single_escaped_char,
         esc_char);
 
-#if 0
     // Basic structures.
     BOOST_PARSER_DEFINE_RULES(
         indent,
@@ -1610,11 +1577,15 @@ namespace boost { namespace yaml {
         tag_handle,
         tag_prefix,
         properties,
+        shorthand_tag_name,
         tag_property,
         anchor_property,
-        anchor_name,
         one_time_eoi);
+#if 0 // TODO: Appears to be unused.
+        anchor_name,
+#endif
 
+#if 0
     // Flow styles.
     BOOST_PARSER_DEFINE_RULES(
         alias_node,
@@ -1682,6 +1653,21 @@ namespace boost { namespace yaml {
         if (max_recursion <= 0)
             max_recursion = INT_MAX;
 
+#if 1
+        auto test_parser =
+            x_escape_seq | u_escape_seq | U_escape_seq | printable | nb_json |
+            bom | nb_char | ns_char | raw_ns_char | word_char | uri_char |
+            tag_char | single_escaped_char | esc_char | indent | indent_lt |
+            indent_le | separate_in_line | line_prefix | l_empty |
+            /*b_l_folded | flow_folded | TODO*/ comment_text | s_b_comment |
+            l_comment | s_l_comments | separate | separate_lines | /*directive
+            | reserved_directive | TODO*/ yaml_directive |
+            tag_directive | tag_handle | tag_prefix | properties |
+            tag_property | anchor_property | one_time_eoi;
+        global_state<iter_t> globals{first, max_recursion};
+        auto const parser = bp::with_globals(test_parser, globals);
+#endif
+
 #if 0
         global_state<iter_t> globals{first, max_recursion};
         auto const parser = bp::with_globals(value_p, globals);
@@ -1694,14 +1680,7 @@ namespace boost { namespace yaml {
             bool const success =
                 bp::parse(first, last, parser, error_handler, val);
 #else
-            auto const success = bp::parse(
-                first,
-                last,
-                x_escape_seq | u_escape_seq | U_escape_seq | printable |
-                    nb_json | bom | nb_char | ns_char | raw_ns_char |
-                    word_char | uri_char | tag_char | single_escaped_char |
-                    esc_char,
-                error_handler);
+            auto const success = bp::parse(first, last, parser, error_handler);
 #endif
             if (!success || first != last)
                 return {};
