@@ -4026,8 +4026,8 @@ namespace boost { namespace parser {
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a')('b')'.  Quit it!'");
-            return parser_interface<char_parser<T>>{
-                char_parser<T>{std::move(x)}};
+            return parser_interface<char_parser<T, AttributeType>>{
+                char_parser<T, AttributeType>{std::move(x)}};
         }
 
         // TODO: Document this conversion to string_view.
@@ -4039,7 +4039,7 @@ namespace boost { namespace parser {
                 "like 'char_(\"chars\")(\"chars\")'.  Quit it!'");
             std::string_view const range(s);
             using char_range_t = detail::char_range<std::string_view>;
-            using char_parser_t = char_parser<char_range_t>;
+            using char_parser_t = char_parser<char_range_t, AttributeType>;
             return parser_interface<char_parser_t>(
                 char_parser_t(char_range_t(range.begin(), range.end())));
         }
@@ -4051,10 +4051,10 @@ namespace boost { namespace parser {
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
-            using pair_type = detail::char_pair<LoType, HiType>;
-            return parser_interface<char_parser<pair_type>>(
-                char_parser<pair_type>(
-                    pair_type{std::move(lo), std::move(hi)}));
+            using char_pair_t = detail::char_pair<LoType, HiType>;
+            using char_parser_t = char_parser<char_pair_t, AttributeType>;
+            return parser_interface<char_parser_t>(
+                char_parser_t(char_pair_t{std::move(lo), std::move(hi)}));
         }
 
         template<typename Range>
@@ -4070,7 +4070,7 @@ namespace boost { namespace parser {
                 "like 'char_(char-set)(char-set)'.  Quit it!'");
             auto range = make_range(r.begin(), r.end());
             using char_range_t = detail::char_range<decltype(range)>;
-            using char_parser_t = char_parser<char_range_t>;
+            using char_parser_t = char_parser<char_range_t, AttributeType>;
             return parser_interface<char_parser_t>(
                 char_parser_t(char_range_t(range.begin(), range.end())));
         }

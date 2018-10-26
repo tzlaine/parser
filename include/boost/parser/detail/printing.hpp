@@ -182,24 +182,24 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Expected>
+    template<typename Context, typename Expected, typename AttributeType>
     void parser_name(
         Context const & context,
-        char_parser<Expected> const & parser,
+        char_parser<Expected, AttributeType> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context>
+    template<typename Context, typename AttributeType>
     void parser_name(
         Context const & context,
-        char_parser<nope> const & parser,
+        char_parser<nope, AttributeType> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Expected>
+    template<typename Context, typename Expected, typename AttributeType>
     void parser_name(
         Context const & context,
-        omit_parser<char_parser<Expected>> const & parser,
+        omit_parser<char_parser<Expected, AttributeType>> const & parser,
         std::ostream & os,
         int components = 0);
 
