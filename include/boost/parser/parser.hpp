@@ -4783,7 +4783,7 @@ namespace boost { namespace parser {
     constexpr auto parser_interface<Parser, GlobalState>::
     operator|(char rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
+        if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
         } else {
             return *this | lit(rhs);
@@ -4794,7 +4794,7 @@ namespace boost { namespace parser {
     constexpr auto parser_interface<Parser, GlobalState>::
     operator|(char32_t rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
+        if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
         } else {
             return *this | lit(rhs);
@@ -4805,7 +4805,7 @@ namespace boost { namespace parser {
     constexpr auto parser_interface<Parser, GlobalState>::
     operator|(std::string_view rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
+        if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
         } else {
             return *this | lit(rhs);
