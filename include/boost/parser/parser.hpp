@@ -685,7 +685,15 @@ namespace boost { namespace parser {
                 c, std::forward<T>(x), gen_attrs);
         }
 
-        inline void append(nope &, nope &&, bool gen_attrs) {}
+        template<typename Container>
+        void append(Container & c, nope &&, bool)
+        {}
+
+        template<typename T>
+        void append(nope &, T &&, bool)
+        {}
+
+        inline void append(nope &, nope &&, bool) {}
 
         template<
             typename Container,
