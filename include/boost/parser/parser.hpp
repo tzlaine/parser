@@ -2161,6 +2161,9 @@ namespace boost { namespace parser {
                     done = true;
             };
             hana::for_each(parsers_, try_parser);
+
+            if (!done)
+                success = false;
         }
 
         template<typename Parser>
