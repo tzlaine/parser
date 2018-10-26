@@ -1041,6 +1041,16 @@ namespace boost { namespace parser {
         constexpr void assign(T &, nope)
         {}
 
+        template<typename T, typename U>
+        constexpr void assign_copy(T & t, U const & u)
+        {
+            t = u;
+        }
+
+        template<typename T>
+        constexpr void assign_copy(T &, nope)
+        {}
+
 #ifdef BOOST_NO_CXX17_IF_CONSTEXPR
 
         template<typename Attr>
@@ -3943,7 +3953,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             if (gen_attrs(flags))
-                detail::assign(retval, detail::resolve(context, attr_));
+                detail::assign_copy(retval, detail::resolve(context, attr_));
         }
 
         Attribute attr_;
