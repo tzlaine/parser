@@ -385,7 +385,7 @@ namespace boost { namespace parser {
             if (a.empty()) {
                 a = trie_t{};
                 trie_ptr = any_cast<trie_t>(&a);
-                for (auto const & e : symbol_parser.elements()) {
+                for (auto const & e : symbol_parser.initial_elements()) {
                     trie_ptr->insert(
                         text::make_to_utf32_range(e.first), e.second);
                 }
@@ -3057,8 +3057,8 @@ namespace boost { namespace parser {
                 return *copied_from_;
             return *this;
         }
-        std::vector<std::pair<std::string_view, T>> const & elements() const
-            noexcept
+        std::vector<std::pair<std::string_view, T>> const &
+        initial_elements() const noexcept
         {
             return ref().initial_elements_;
         }
