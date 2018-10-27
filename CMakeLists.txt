@@ -87,7 +87,7 @@ add_library(
     src/yaml.cpp
 )
 target_compile_features(yaml PUBLIC cxx_generic_lambdas)
-target_compile_options(yaml PUBLIC ${cxx_defs} -ftemplate-backtrace-limit=0) # TODO
+target_compile_options(yaml PUBLIC ${cxx_defs} -ftemplate-backtrace-limit=0 -ftemplate-depth=1024) # TODO
 target_compile_features(yaml PUBLIC cxx_std_17)
 target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml PUBLIC boost)
