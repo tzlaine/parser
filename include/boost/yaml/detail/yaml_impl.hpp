@@ -13,6 +13,22 @@
 namespace boost { namespace yaml { namespace detail {
 
     template<typename T>
+    using to_yamlable = decltype(
+        to_yaml(std::declval<std::ostream &>(), std::declval<T const &>()));
+
+    template<typename T>
+    std::ostream & call_to_yaml(std::ostream & os, T const & x, std::true_type)
+    {
+        return to_yaml(os, x);
+    }
+
+    template<typename T>
+    std::ostream & call_to_yaml(std::ostream & os, T const & x, std::false_type)
+    {
+        return os << "[[UNPRINTABLE]]";
+    }
+
+    template<typename T>
     struct value_impl : value_impl_base
     {
         value_impl(T && x) : value_(std::move(x)) {}
@@ -35,7 +51,7 @@ namespace boost { namespace yaml { namespace detail {
         virtual std::ostream & to_yaml_impl(std::ostream & os) const
             noexcept override
         {
-            return to_yaml(os, value_);
+            return call_to_yaml(os, value_, is_detected<to_yamlable, T>{});
         }
 
         virtual typeindex::type_index type_id() const noexcept override
