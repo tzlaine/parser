@@ -184,10 +184,39 @@ namespace boost { namespace yaml {
         "'0', 'a', 'b', 't', 'n', 'v', 'f', 'r', 'e', '\"', '/', '\\', 'N', "
         "'_', 'L', 'P', SPACE or TAB";
 
-    bp::rule<class one_time_eoi> const one_time_eoi = "end of input";
+    // HACK!  This is a dirty, dirty hack that bears explaining.  Many
+    // productions in the YAML 1.2 spec include "newline | end-of-input"
+    // (e.g. b-comment).  This poses a problem, since many of the uses of this
+    // construct (say, using b-comment) are repeated via Kleene star.  The
+    // parser consumes a character when parsing a newline (bp::eol), but *not*
+    // when parsing end-of-input (bp::eoi).
+    //
+    // So, when a rule contains, say, *b-comment, infinite looping results,
+    // since bp::eoi succeeds without advancing the parser's read position.
+    //
+    // The natural inclination is to create a consuming version of eoi -- and
+    // since eoi is unique, that state can be shared across all rules in the
+    // parser.  Sadly, this does not work, because some (transitive) uses of
+    // eoi in this YAML parser may need to backtrack back to before the eoi
+    // was seen and try some other productions.
+    //
+    // As a workaround, I've created a repetition-detecting eoi.  The state is
+    // passed in, and the first time eoi is seen, the state changes.
+    // Subsequent eoi detections will fail.
+    auto first_time_eoi = [](auto & ctx) {
+        auto & state = _globals(ctx).eoi_state_;
+        bool const retval = state == eoi_state::not_at_end;
+        state = eoi_state::at_end;
+        return retval;
+    };
 
-    bp::rule<class blank_string> const blank_string = "blank_string";
-    auto const blank_string_def = +bp::ascii::blank;
+    bp::rule<class one_time_eoi> const one_time_eoi = "end of input";
+    auto const one_time_eoi_def = bp::eoi >> bp::eps(first_time_eoi);
+
+    bp::rule<class blank_string_0> const blank_string_0 = "blank_string_0";
+    auto const blank_string_0_def = *bp::ascii::blank;
+    bp::rule<class blank_string_1> const blank_string_1 = "blank_string_1";
+    auto const blank_string_1_def = +bp::ascii::blank;
 
 
 
@@ -211,7 +240,6 @@ namespace boost { namespace yaml {
 
     // [34]
     bp::rule<class ns_char, std::string> const ns_char = "ns_char";
-    bp::rule<class raw_ns_char, std::string> const raw_ns_char = "ns_char";
 
     // 5.6. Miscellaneous Characters
 
@@ -356,11 +384,11 @@ namespace boost { namespace yaml {
     // 7.3.1 Double Quoted Style
 
     // [107]
-    bp::rule<class nb_double_char, std::string> const nb_double_char =
+    bp::rule<class nb_double_char, uint32_t> const nb_double_char =
         "nb_double_char";
 
     // [108]
-    bp::rule<class ns_double_char, std::string> const ns_double_char =
+    bp::rule<class ns_double_char, uint32_t> const ns_double_char =
         "ns_double_char";
 
     // [109]
@@ -393,11 +421,11 @@ namespace boost { namespace yaml {
     // 7.3.2 Single Quoted Style
 
     // [118]
-    bp::rule<class nb_single_char, std::string> const nb_single_char =
+    bp::rule<class nb_single_char, uint32_t> const nb_single_char =
         "nb_single_char";
 
     // [119]
-    bp::rule<class ns_single_char, std::string> const ns_single_char =
+    bp::rule<class ns_single_char, uint32_t> const ns_single_char =
         "ns_single_char";
 
     // [120]
@@ -429,7 +457,6 @@ namespace boost { namespace yaml {
 
     // [127]
     bp::rule<class plain_safe, std::string> const plain_safe = "plain_safe";
-    bp::rule<class not_plain_safe> const not_plain_safe = "not_plain_safe";
 
     // [130]
     bp::rule<class plain_char, std::string> const plain_char = "plain_char";
@@ -460,7 +487,7 @@ namespace boost { namespace yaml {
     bp::rule<class flow_sequence, value> const flow_sequence = "flow_sequence";
 
     // [138]
-    bp::rule<class flow_seq_entries, value> const flow_seq_entries =
+    bp::rule<class flow_seq_entries> const flow_seq_entries =
         "flow_seq_entries";
 
     // [139]
@@ -473,7 +500,7 @@ namespace boost { namespace yaml {
     bp::rule<class flow_mapping, value> const flow_mapping = "flow_mapping";
 
     // [141]
-    bp::rule<class flow_map_entries, value> const flow_map_entries =
+    bp::rule<class flow_map_entries> const flow_map_entries =
         "flow_map_entries";
 
     // [142]
@@ -489,11 +516,11 @@ namespace boost { namespace yaml {
         flow_map_implicit_entry = "flow_map_implicit_entry";
 
     // [145]
-    bp::rule<class flow_map_yaml_key_entry, map_element> const
+    bp::rule<class flow_map_yaml_key_entry, map_element, value> const
         flow_map_yaml_key_entry = "flow_map_yaml_key_entry";
 
     // [146]
-    bp::rule<class flow_map_empty_key_entry, map_element> const
+    bp::rule<class flow_map_empty_key_entry, map_element, value> const
         flow_map_empty_key_entry = "flow_map_empty_key_entry";
 
     // [147]
@@ -501,7 +528,7 @@ namespace boost { namespace yaml {
         flow_map_separate_value = "flow_map_separate_value";
 
     // [148]
-    bp::rule<class flow_map_json_key_entry, map_element> const
+    bp::rule<class flow_map_json_key_entry, map_element, value> const
         flow_map_json_key_entry = "flow_map_json_key_entry";
 
     // [149]
@@ -516,11 +543,11 @@ namespace boost { namespace yaml {
         "flow_pair_entry";
 
     // [152]
-    bp::rule<class flow_pair_yaml_key_entry, map_element> const
+    bp::rule<class flow_pair_yaml_key_entry, map_element, value> const
         flow_pair_yaml_key_entry = "flow_pair_yaml_key_entry";
 
     // [153]
-    bp::rule<class flow_pair_json_key_entry, map_element> const
+    bp::rule<class flow_pair_json_key_entry, map_element, value> const
         flow_pair_json_key_entry = "flow_pair_json_key_entry";
 
     // [154]
@@ -534,7 +561,8 @@ namespace boost { namespace yaml {
     // 7.5 Flow Nodes
 
     // [156]
-    // flow_yaml_content = plain
+    bp::rule<class flow_yaml_content, value> const flow_yaml_content =
+        "flow_yaml_content";
 
     // [157]
     bp::rule<class flow_json_content, value> const flow_json_content =
@@ -784,7 +812,6 @@ namespace boost { namespace yaml {
 
     // [34]
     auto const ns_char_def = nb_char_def - bp::ascii::blank;
-    auto const raw_ns_char_def = nb_char_def - bp::ascii::blank;
 
     // 5.6. Miscellaneous Characters
 
@@ -907,32 +934,6 @@ namespace boost { namespace yaml {
     // [75]
     auto const comment_text_def = '#' >> +nb_char;
 
-    // HACK!  This is a dirty, dirty hack that bears explaining.  Many
-    // productions in the YAML 1.2 spec include "newline | end-of-input"
-    // (e.g. b-comment).  This poses a problem, since many of the uses of this
-    // construct (say, using b-comment) are repeated via Kleene star.  The
-    // parser consumes a character when parsing a newline (bp::eol), but *not*
-    // when parsing end-of-input (bp::eoi).
-    //
-    // So, when a rule contains, say, *b-comment, infinite looping results,
-    // since bp::eoi succeeds without advancing the parser's read position.
-    //
-    // The natural inclination is to create a consuming version of eoi -- and
-    // since eoi is unique, that state can be shared across all rules in the
-    // parser.  Sadly, this does not work, because some (transitive) uses of
-    // eoi in this YAML parser may need to backtrack back to before the eoi
-    // was seen and try some other productions.
-    //
-    // As a workaround, I've created a repetition-detecting eoi.  The state is
-    // passed in, and the first time eoi is seen, the state changes.
-    // Subsequent eoi detections will fail.
-    auto first_time_eoi = [](auto & ctx) {
-        auto & state = _globals(ctx).eoi_state_;
-        bool const retval = state == eoi_state::not_at_end;
-        state = eoi_state::at_end;
-        return retval;
-    };
-
     // [77]
     auto const s_b_comment_def =
         -(separate_in_line >> -comment_text) >>
@@ -984,7 +985,8 @@ namespace boost { namespace yaml {
                         s_l_comments;
 
     // [83]
-    auto const reserved_directive_def = +ns_char >> *(blank_string >> +ns_char);
+    auto const reserved_directive_def = +ns_char >>
+                                        *(blank_string_1 >> +ns_char);
 
     auto record_yaml_directive = [](auto & ctx) {
         _globals(ctx).latest_yaml_directive_it_ = _where(ctx).begin();
@@ -1171,16 +1173,11 @@ namespace boost { namespace yaml {
         bp::raw[+(ns_char - bp::char_(",[]{}"))][make_iterator_range_any];
 #endif
 
-    auto const one_time_eoi_def = bp::eoi >> bp::eps(first_time_eoi);
-
-#if 0
     // 7.1 Alias Nodes
 
-    bp::symbols<anchor> anchors;
+    bp::symbols<anchor> const anchors;
 
-    auto alias_from_anchor = [](auto&ctx) {
-        _val(ctx) = _attr(ctx).alias_;
-    };
+    auto alias_from_anchor = [](auto & ctx) { _val(ctx) = _attr(ctx).alias_; };
 
     // [104]
     auto const alias_node_def = '*' > anchors[alias_from_anchor];
@@ -1190,31 +1187,34 @@ namespace boost { namespace yaml {
     // 7.3.1 Double Quoted Style
 
     // [107]
-    auto const nb_double_char_def =
-        esc_char[append_utf8] | (nb_json - bp::char_("\"\\"))[append_utf8];
+    auto const nb_double_char_def = esc_char | (nb_json - bp::char_("\"\\"));
 
     // [108]
-    auto const ns_double_char_def = nb_double_char - bp::blank;
+    auto const ns_double_char_def = nb_double_char - bp::ascii::blank;
 
     // [109]
-    auto const double_quoted_def = '"' >> double_text >> '"';
+    auto const double_quoted_def = '"' >> *nb_json /*double_text*/ >> '"';
 
     // [110]
-    auto const double_text_def =
-        bp::eps(flow_context) >> double_multi_line |
-        bp::eps(key_context) >> *nb_double_char // double-one-line [111]
+    // clang-format off
+    auto const double_text_def = bp::switch_(context_)
+        (context::flow_out, double_multi_line)
+        (context::flow_in, double_multi_line)
+        (context::block_key, *nb_double_char) // double-one-line [111]
+        (context::flow_key, *nb_double_char)  // double-one-line [111]
         ;
+    // clang-format on
 
     // [112]
     // TODO: A hold[] was removed here; this may need a fix somewhere else.
-    // TODO: Prolly need to push the context here, not set it.
-    auto const double_escaped_def = *bp::blank >> '\\' >> bp::omit[bp::eol] >>
+    auto const double_escaped_def = *bp::ascii::blank >> '\\' >>
+                                    bp::omit[bp::eol] >>
                                     bp::eps(set_context(context::flow_in)) >>
                                     *l_empty >> line_prefix;
 
     auto set_stop_at_doc_delimiter = [](bool b) {
-        return [b](auto & rule_ctx) {
-            rule_ctx.get().stop_at_document_delimiter_ = b;
+        return [b](auto & ctx) {
+            _globals(ctx).stop_at_document_delimiter_ = b;
             return true;
         };
     };
@@ -1225,84 +1225,99 @@ namespace boost { namespace yaml {
         bp::eps(set_stop_at_doc_delimiter(false)) >> flow_folded;
 
     // [114]
-    auto const double_in_line_def = *(*bp::blank >> ns_double_char);
+    auto const double_in_line_def = *(*bp::ascii::blank >> ns_double_char);
+
+    auto append_utf8 = [](auto & ctx) {
+        std::array<uint32_t, 1> const cps = {{_attr(ctx)}};
+        auto const r = text::make_from_utf32_range(cps);
+        _val(ctx).insert(_val(ctx).end(), r.begin(), r.end());
+    };
 
     // [115]
     auto const double_next_line_def = double_break >>
-                                      -(ns_double_char >> double_in_line >>
-                                        (double_next_line | *bp::blank));
+                                      -(ns_double_char[append_utf8] >>
+                                        double_in_line >>
+                                        (double_next_line | blank_string_0));
 
     // [116]
     auto const double_multi_line_def = double_in_line >>
-                                       (double_next_line | *bp::blank);
+                                       (double_next_line | blank_string_0);
 
     // 7.3.2 Single Quoted Style
 
     // [118]
-    auto const nb_single_char_def = "''" >> bp::attr('\'') |
-                                    (nb_json - '\'')[append_utf8];
+    auto const nb_single_char_def = "''" >> bp::attr(uint32_t('\'')) |
+                                    (nb_json - '\'');
 
     // [119]
-    auto const ns_single_char_def = nb_single_char - bp::blank;
+    auto const ns_single_char_def = nb_single_char - bp::ascii::blank;
 
     // [120]
     auto const single_quoted_def = '\'' >> single_text >> '\'';
 
     // [121]
-    auto const single_text_def = bp::eps(flow_context) >> single_multi_line |
-                                 bp::eps(key_context) >> *nb_single_char;
+    // clang-format off
+    auto const single_text_def = bp::switch_(context_)
+        (context::flow_out, single_multi_line)
+        (context::flow_in, single_multi_line)
+        (context::block_key, *nb_single_char)
+        (context::flow_key, *nb_single_char)
+        ;
+    // clang-format on
 
     // [123]
-    auto const single_in_line_def = *(*bp::blank >> ns_single_char);
+    auto const single_in_line_def = *(*bp::ascii::blank >> ns_single_char);
 
     // [124]
     auto const single_next_line_def =
         bp::eps(set_stop_at_doc_delimiter(false)) >> flow_folded >>
-        -(ns_single_char >> single_in_line >> (single_next_line | *bp::blank));
+        -(ns_single_char[append_utf8] >> single_in_line >>
+          (single_next_line | blank_string_0));
 
     // [125]
     auto const single_multi_line_def = single_in_line >>
-                                       (single_next_line | *bp::blank);
+                                       (single_next_line | blank_string_0);
 
     // 7.3.3 Plain Style
 
     // [22]
     // auto indicator = char_("-?:,[]{}#&*!|>'\"%@`");
 
+    auto const assign_to_val = [](auto & ctx) { _val(ctx) = _attr(ctx); };
+
     // [126]
-    auto const plain_first_def = (ns_char - bp::char_("-?:,[]{}#&*!|>'\"%@`")) |
-                                 (bp::char_("?:-") >> plain_safe);
-
-    auto flow_out_block_key_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_() == context::flow_out ||
-               rule_ctx.get().context_() == context::block_key;
-    };
-
-    auto flow_in_key_context = [](auto & rule_ctx) {
-        return rule_ctx.get().context_() == context::flow_in ||
-               rule_ctx.get().context_() == context::flow_key;
-    };
+    auto const plain_first_def =
+        (ns_char - bp::char_("-?:,[]{}#&*!|>'\"%@`"))[assign_to_val] |
+        (bp::cp("?:-")[append_utf8] >> plain_safe);
 
     // [127]
-    auto const plain_safe_def = bp::eps(flow_out_block_key_context) >> ns_char |
-                                bp::eps(flow_in_key_context) >>
-                                    (ns_char - bp::char_(",[]{}"));
-    auto const not_plain_safe_def =
-        !(bp::eps(flow_out_block_key_context) >> raw_ns_char |
-          bp::eps(flow_in_key_context) >> (raw_ns_char - bp::char_(",[]{}")));
+    // clang-format off
+    auto const plain_safe_def = bp::switch_(context_)
+        (context::flow_out, ns_char)
+        (context::block_key, ns_char)
+        (context::flow_in, ns_char - bp::char_(",[]{}"))
+        (context::flow_key, ns_char - bp::char_(",[]{}"))
+        ;
+    // clang-format on
 
     // [130]
-    auto const plain_char_def =
-        ns_char >> bp::char_('#') | bp::char_(':') >> plain_safe
-        | plain_safe - bp::char_(":#");
+    auto const
+        plain_char_def = ns_char >> bp::cu('#') | bp::cu(':') >> plain_safe
+                         | plain_safe - bp::char_(":#");
 
     // [131]
-    auto const plain_def = bp::eps(flow_context) >> plain_multi_line |
-                           bp::eps(key_context) >> plain_one_line;
+    // clang-format off
+    auto const plain_def = bp::switch_(context_)
+        (context::flow_out, plain_multi_line)
+        (context::flow_in, plain_multi_line)
+        (context::block_key, plain_one_line)
+        (context::flow_key, plain_one_line)
+        ;
+    // clang-format on
 
     // [132]
     // TODO: Removed hold[].
-    auto const plain_in_line_def = *(*bp::blank >> plain_char);
+    auto const plain_in_line_def = *(blank_string_0 >> plain_char);
 
     // [133]
     // TODO: Removed hold[].
@@ -1321,8 +1336,8 @@ namespace boost { namespace yaml {
     // 7.4.1 Flow Sequences
 
     auto seq_init = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        if (state.max_recursive_open_count_ < ++state.recursive_open_count_)
+        auto & globals = _globals(ctx);
+        if (globals.max_recursive_open_count_ < ++globals.recursive_open_count_)
             _pass(ctx) = false;
         else
             _val(ctx) = seq();
@@ -1333,144 +1348,140 @@ namespace boost { namespace yaml {
     };
 
     // [137]
-    auto const flow_sequence_def = // !
-        '[' >> -separate >> push_in_flow_context >>
-        (flow_seq_entries | bp::attr(value(seq()))) >> pop_context >> -separate
-        >> ']';
+    auto const flow_sequence_def = '[' >> bp::eps[seq_init] >> -separate >>
+                                   flow_seq_entries >> -separate >>
+                                   ']'; // TODO: > instead of >> ?  Elsewhere?
 
     // [138]
-    auto const flow_seq_entries_def = bp::eps[seq_init] >> // !
-                                      flow_seq_entry[seq_append] %
+    auto const flow_seq_entries_def = flow_seq_entry[seq_append] %
                                           (-separate >> ',' >> -separate) >>
                                       -(-separate >> ',');
 
     // [139]
-    auto const flow_seq_entry_def = flow_pair | flow_node; // !
+    auto const flow_seq_entry_def = flow_pair | flow_node;
 
     // 7.4.2 Flow Mappings
 
     auto map_init = [](auto & ctx) {
-        auto & state = bp::get<parser_state_tag>(ctx).get();
-        if (state.max_recursive_open_count_ < ++state.recursive_open_count_)
+        auto & globals = _globals(ctx);
+        if (globals.max_recursive_open_count_ < ++globals.recursive_open_count_)
             _pass(ctx) = false;
         else
             _val(ctx) = map();
     };
     auto map_insert = [](auto & ctx) {
         value & v = _val(ctx);
-        get<map>(v).insert(std::make_pair(
-            std::move(fusion::at_c<0>(_attr(ctx))),
-            std::move(fusion::at_c<1>(_attr(ctx)))));
+        get<map>(v).insert(_attr(ctx));
     };
 
     // [140]
-    auto const flow_mapping_def = '{' >> -separate >> push_in_flow_context >> // !
-                                  (flow_map_entries | bp::attr(value(map()))) >>
-                                  pop_context >> -separate >> '}';
+    auto const flow_mapping_def = '{' >> bp::eps[map_init] >> -separate >>
+                                  flow_map_entries >> -separate >> '}';
 
     // [141]
-    auto const flow_map_entries_def = bp::eps[map_init] >> // !
-                                      flow_map_entry[map_insert] %
+    auto const flow_map_entries_def = flow_map_entry[map_insert] %
                                           (-separate >> ',' >> -separate) >>
                                       -(-separate >> ',');
 
     // [142]
-    auto const flow_map_entry_def = // !
+    auto const flow_map_entry_def =
         '?' >> separate >> flow_map_explicit_entry | flow_map_implicit_entry;
 
     // [143]
-    auto const flow_map_explicit_entry_def = // !
+    auto const flow_map_explicit_entry_def =
         flow_map_implicit_entry | bp::attr(map_element());
 
     // [144]
-    auto const flow_map_implicit_entry_def = flow_map_json_key_entry | // !
+    auto const flow_map_implicit_entry_def = flow_map_json_key_entry |
                                              flow_map_yaml_key_entry |
                                              flow_map_empty_key_entry;
 
+    auto map_entry_key = [](auto & ctx) { _locals(ctx) = _attr(ctx); };
+    auto make_map_entry = [](auto & ctx) {
+        _val(ctx) =
+            std::make_pair(std::move(_locals(ctx)), std::move(_attr(ctx)));
+    };
+
     // [145]
-    auto const flow_map_yaml_key_entry_def = // !
-        flow_yaml_node >>
-        (-separate >> flow_map_separate_value |
-         bp::attr(value()));
+    auto const
+        flow_map_yaml_key_entry_def = flow_yaml_node[map_entry_key] >>
+                                      (-separate >> flow_map_separate_value |
+                                       bp::attr(value()))[make_map_entry];
 
     // [146]
-    auto const flow_map_empty_key_entry_def = // !
-        bp::attr(value()) >> flow_map_separate_value;
+    auto const flow_map_empty_key_entry_def =
+        flow_map_separate_value[make_map_entry];
 
     // [147]
-    auto const flow_map_separate_value_def = ':' >> not_plain_safe >> // !
+    auto const flow_map_separate_value_def = ':' >> !plain_safe >>
                                              (separate >> flow_node |
                                               bp::attr(value()));
 
     // [148]
-    auto const flow_map_json_key_entry_def = flow_json_node >> // !
-                                             (-separate >>
-                                                  flow_map_adjacent_value |
-                                              bp::attr(value()));
+    auto const
+        flow_map_json_key_entry_def = flow_json_node[map_entry_key] >>
+                                      (-separate >> flow_map_adjacent_value |
+                                       bp::attr(value()))[make_map_entry];
 
     // [149]
-    auto const flow_map_adjacent_value_def = ':' >>
-                                             (-separate >> flow_node | // !
-                                              bp::attr(value()));
+    auto const flow_map_adjacent_value_def = ':' >> (-separate >> flow_node |
+                                                     bp::attr(value()));
 
     auto value_from_map_from_element = [](auto & ctx) {
-        _val(ctx) = map();
+        auto & val = _val(ctx);
+        val = map();
         map_element & element = _attr(ctx);
-        get<map>(_val(ctx)).emplace(
+        get<map>(val).emplace(
             std::move(element.first), std::move(element.second));
     };
 
     // [150]
-    auto const
-        flow_pair_def = '?' >> separate >> // !
-                            flow_map_explicit_entry[value_from_map_from_element] |
-                        flow_pair_entry[value_from_map_from_element];
+    auto const flow_pair_def =
+        '?' >> separate >>
+            flow_map_explicit_entry[value_from_map_from_element] |
+        flow_pair_entry[value_from_map_from_element];
 
     // [151]
-    auto const flow_pair_entry_def = flow_pair_yaml_key_entry | // !
+    auto const flow_pair_entry_def = flow_pair_yaml_key_entry |
                                      flow_map_empty_key_entry |
                                      flow_pair_json_key_entry;
 
     // [152]
-    auto const flow_pair_yaml_key_entry_def = // !
-        implicit_yaml_key >> flow_map_separate_value;
+    auto const flow_pair_yaml_key_entry_def =
+        implicit_yaml_key[map_entry_key] >>
+        flow_map_separate_value[make_map_entry];
 
     // [153]
-    auto const flow_pair_json_key_entry_def = // !
-        implicit_json_key >> flow_map_adjacent_value;
+    auto const flow_pair_json_key_entry_def =
+        implicit_json_key[map_entry_key] >>
+        flow_map_adjacent_value[make_map_entry];
 
-    auto push_indent = [](int i) {
-        return [i](auto & rule_ctx) {
-            rule_ctx.get().indent_stack_.push_back(i);
+    auto set_indent = [](int i) {
+        return [i](auto & ctx) {
+            _globals(ctx).indent_ = i;
             return true;
         };
     };
 
     // [154]
-    auto const implicit_yaml_key_def = // TODO: Limit to 1024 characters. // !
-        bp::eps(push_indent(0)) >> flow_yaml_node >> -separate_in_line >>
-        pop_indent;
+    auto const implicit_yaml_key_def = // TODO: Limit to 1024 characters.
+        bp::eps(set_indent(0)) >> flow_yaml_node >> -separate_in_line;
 
     // [155]
-    auto const implicit_json_key_def = // TODO: Limit to 1024 characters. // !
-        bp::eps(push_indent(0)) >> flow_json_node >> -separate_in_line >>
-        pop_indent;
+    auto const implicit_json_key_def = // TODO: Limit to 1024 characters.
+        bp::eps(set_indent(0)) >> flow_json_node >> -separate_in_line;
 
     // 7.5 Flow Nodes
 
     // [156]
-    // flow_yaml_content = plain;
-
-#define BOOST_YAML_FLOW_YAML_CONTENT plain
+    auto const flow_yaml_content_def = plain;
 
     // [157]
     auto const flow_json_content_def =
-        flow_sequence | flow_mapping |
-        single_quoted | double_quoted;
+        flow_sequence | flow_mapping | single_quoted | double_quoted;
 
     // [158]
-    auto const flow_content_def =
-        flow_json_content | BOOST_YAML_FLOW_YAML_CONTENT;
+    auto const flow_content_def = flow_json_content | flow_yaml_content;
 
     // TODO: Use Niabelek trick to perform a typesafe parse after properties.
 
@@ -1503,50 +1514,41 @@ namespace boost { namespace yaml {
             anchors.add(properties.anchor_, anchor);
         }
 
-        if (properties)
+        if (properties) {
             return ast::value_t(
                 ast::properties_node_t(properties, ast::value_t(x)));
+        }
 
         return ast::value_t(x);
 #endif
     };
 
     // [159]
-    auto const flow_yaml_node_def = bp::attr(value());
-#if 0 // TODO
-        alias_node | BOOST_YAML_FLOW_YAML_CONTENT |
-        (properties >> (separate >> BOOST_YAML_FLOW_YAML_CONTENT |
+    auto const flow_yaml_node_def =
+        alias_node | flow_yaml_content |
+        (properties >> (separate >> flow_yaml_content |
                         bp::attr(value())))[handle_properties];
-#endif
-
-#undef BOOST_YAML_FLOW_YAML_CONTENT
-
-    auto handle_optional_properties = [](auto & ctx) {
-        // TODO
-    };
 
     // [160]
-    auto const flow_json_node_def = bp::attr(value());
-#if 0 // TODO
-        (-(properties >> separate) >>
-         flow_json_content)[handle_optional_properties];
-#endif
+    auto const flow_json_node_def =
+        (-(properties >> separate) >> flow_json_content)[handle_properties];
 
     // [161]
-    auto const flow_node_def = bp::attr(value());
-#if 0 // TODO
+    auto const flow_node_def =
         alias_node | flow_content |
         (properties >>
          (separate >> flow_content | bp::attr(value())))[handle_properties];
-#endif
-
-#endif
 
 
 
     // Helper rules.
     BOOST_PARSER_DEFINE_RULES(
-        x_escape_seq, u_escape_seq, U_escape_seq, one_time_eoi, blank_string);
+        x_escape_seq,
+        u_escape_seq,
+        U_escape_seq,
+        one_time_eoi,
+        blank_string_0,
+        blank_string_1);
 
     // Characters.
     BOOST_PARSER_DEFINE_RULES(
@@ -1555,7 +1557,6 @@ namespace boost { namespace yaml {
         bom,
         nb_char,
         ns_char,
-        raw_ns_char,
         word_char,
         uri_char,
         tag_char,
@@ -1593,7 +1594,6 @@ namespace boost { namespace yaml {
         anchor_name,
 #endif
 
-#if 0
     // Flow styles.
     BOOST_PARSER_DEFINE_RULES(
         alias_node,
@@ -1615,7 +1615,6 @@ namespace boost { namespace yaml {
         single_multi_line,
         plain_first,
         plain_safe,
-        not_plain_safe,
         plain_char,
         plain,
         plain_in_line,
@@ -1641,12 +1640,12 @@ namespace boost { namespace yaml {
         flow_pair_json_key_entry,
         implicit_yaml_key,
         implicit_json_key,
+        flow_yaml_content,
         flow_json_content,
         flow_content,
         flow_yaml_node,
         flow_json_node,
         flow_node);
-#endif
 
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
@@ -1663,17 +1662,47 @@ namespace boost { namespace yaml {
 
 #if 1
         auto test_parser =
+#if 0
             x_escape_seq | u_escape_seq | U_escape_seq | printable | nb_json |
-            bom | nb_char | ns_char | raw_ns_char | word_char | uri_char |
+            bom | nb_char | ns_char | word_char | uri_char |
             tag_char | single_escaped_char | esc_char | indent | indent_lt |
             indent_le | separate_in_line | line_prefix | l_empty | b_l_folded |
             flow_folded | comment_text | s_b_comment | l_comment |
             s_l_comments | separate | separate_lines | directive |
             reserved_directive | yaml_directive | tag_directive | tag_handle |
             tag_prefix | properties | tag_property | anchor_property |
-            one_time_eoi;
+            one_time_eoi
+
+            alias_node | nb_double_char | ns_double_char | double_quoted |
+            double_text | double_escaped | double_break | double_in_line |
+            double_next_line | double_multi_line | nb_single_char |
+            ns_single_char | single_quoted | single_text | single_in_line |
+            single_next_line | single_multi_line | plain_first | plain_safe |
+            plain_char | plain | plain_in_line | plain_one_line |
+
+            plain_next_line | plain_multi_line | flow_sequence |
+            /* flow_seq_entries | */ flow_seq_entry | flow_mapping |
+            /*flow_map_entries | */flow_map_entry | flow_map_explicit_entry |
+            flow_map_implicit_entry | flow_map_yaml_key_entry |
+            flow_map_empty_key_entry | flow_map_separate_value |
+            flow_map_json_key_entry | flow_map_adjacent_value | flow_pair |
+            flow_pair_entry | flow_pair_yaml_key_entry |
+            flow_pair_json_key_entry | implicit_yaml_key | implicit_json_key |
+
+#else
+
+            flow_yaml_content | flow_json_content | flow_content |
+            flow_yaml_node | flow_json_node | flow_node
+#endif
+            ;
         global_state<iter_t> globals{first, max_recursion};
         auto const parser = bp::with_globals(test_parser, globals);
+
+#if 0
+        std::string s_result;
+        int * i =
+            parse(first, last, bp::with_globals(plain_char_def, globals));
+#endif
 #endif
 
 #if 0
