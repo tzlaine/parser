@@ -240,6 +240,27 @@ namespace boost { namespace parser {
             return {};
         }
 
+        template<typename LocalsType, typename Context>
+        LocalsType make_locals_impl(Context const & context, std::true_type)
+        {
+            return LocalsType(context);
+        }
+
+        template<typename LocalsType, typename Context>
+        LocalsType make_locals_impl(Context const & context, std::false_type)
+        {
+            return LocalsType();
+        }
+
+        template<typename LocalsType, typename Context>
+        LocalsType make_locals(Context const & context)
+        {
+            return make_locals_impl<LocalsType>(
+                context,
+                typename std::is_convertible<Context const &, LocalsType>::
+                    type{});
+        }
+
         template<
             typename Context,
             typename AttributeType,
@@ -3128,7 +3149,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             attr_type retval;
-            locals_type locals;
+            locals_type locals = detail::make_locals<locals_type>(context);
             auto params = detail::resolve_rule_params(context, params_);
             auto const rule_context =
                 make_rule_context(context, retval, locals, params);
@@ -3208,7 +3229,7 @@ namespace boost { namespace parser {
                     use_cbs, first, last, context, skip, flags, success);
             } else {
                 attr_type retval;
-                locals_type locals;
+                locals_type locals = detail::make_locals<locals_type>(context);
                 auto params = detail::resolve_rule_params(context, params_);
                 auto const rule_context =
                     make_rule_context(context, retval, locals, params);
