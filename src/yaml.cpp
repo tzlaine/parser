@@ -680,32 +680,35 @@ namespace boost { namespace yaml {
     // [175]
     bp::rule<class folded_text, std::string> const folded_text = "folded_text";
 
+    struct folded_lines_locals : scoped_context, scoped_stop_at_doc_delim
+    {};
+
     // [176]
-    bp::rule<class folded_lines, std::string> const folded_lines =
-        "folded_lines";
+    bp::rule<class folded_lines, std::string, folded_lines_locals> const
+        folded_lines = "folded_lines";
 
     // [177]
     bp::rule<class spaced_text, std::string> const spaced_text = "spaced_text";
 
     // [178]
-    bp::rule<class spaced, std::string> const spaced = "spaced";
+    bp::rule<class spaced, std::string, scoped_context> const spaced = "spaced";
 
     // [179]
     bp::rule<class spaced_lines, std::string> const spaced_lines =
         "spaced_lines";
 
     // [180]
-    bp::rule<class same_lines, std::string> const same_lines = "same_lines";
+    bp::rule<class same_lines, std::string, std::string> const same_lines =
+        "same_lines";
 
     // [181]
     bp::rule<class diff_lines, std::string> const diff_lines = "diff_lines";
 
-    bp::rule<class folded_content_optional, std::string> const
+    bp::rule<class folded_content_optional, std::string, scoped_indent> const
         folded_content_optional = "folded_content_optional";
 
     // [182]
-    bp::rule<class folded_content, std::string> const folded_content =
-        "folded_content";
+    bp::rule<class folded_content> const folded_content = "folded_content";
 
     // 8.2.1. Block Sequences
 
@@ -1719,33 +1722,84 @@ namespace boost { namespace yaml {
     // 8.1.3. Folded Style
 
     // [174]
-    auto const folded_def = bp::eps;
+    // clang-format off
+    auto const folded_def =
+            '>'
+        >>  block_header
+        >>  (
+                bp::eps(local_indent_zero)
+            >>  scalar_auto_detect_indent[set_local_indent]
+                // This parenthesized expression is a modified version of
+                // folded_content that only expects the optional portion if
+                // positive indentation is detected.
+            >>  (
+                    (
+                        bp::eps(local_indent_greater_than_global)
+                    >   folded_content_optional.with(
+                            local_indent, local_chomping
+                        )[append_str]
+                    |   bp::eps
+                    )
+                >>  chomped_empty.with(local_indent, local_chomping)
+                    [append_str]
+                )
+            |   bp::eps(local_indent_nonzero)
+            >>  folded_content.with(summed_indent, local_chomping)
+            )
+        ;
+    // clang-format on
 
     // [175]
-    auto const folded_text_def = bp::eps;
+    auto const folded_text_def = indent >> ns_char >> *nb_char;
 
     // [176]
-    auto const folded_lines_def = bp::eps;
+    auto const folded_lines_def = folded_text >>
+                                  bp::eps[set_context(context::block_in)] >>
+                                  bp::eps[set_stop_at_doc_delimiter(true)] >>
+                                  *(b_l_folded >> folded_text);
 
     // [177]
-    auto const spaced_text_def = bp::eps;
+    auto const spaced_text_def =
+        indent >> bp::ascii::blank[append_str] >> *nb_char;
 
     // [178]
-    auto const spaced_def = bp::eps;
+    auto const spaced_def =
+        bp::eol >> bp::attr('\n') >> bp::eps[set_context(context::block_in)] >>
+        *(l_empty >> bp::attr('\n'));
 
     // [179]
-    auto const spaced_lines_def = bp::eps;
+    auto const spaced_lines_def = spaced_text >> *(spaced >> spaced_text);
+
+    auto const append_to_locals = [](auto & ctx) {
+        _locals(ctx) += _attr(ctx);
+    };
+    auto const append_local_and_attr = [](auto & ctx) {
+        _val(ctx) += _locals(ctx);
+        _val(ctx) += _attr(ctx);
+    };
 
     // [180]
-    auto const same_lines_def = bp::eps;
+    auto const same_lines_def = bp::eps[set_context(context::block_in)] >>
+                                *l_empty[append_to_locals] >>
+                                (folded_lines |
+                                 spaced_lines)[append_local_and_attr];
 
     // [181]
-    auto const diff_lines_def = bp::eps;
+    auto const diff_lines_def = same_lines[append_str] >>
+                                *(bp::eol >>
+                                  same_lines[append_newline_and_str]);
 
-    auto const folded_content_optional_def = bp::eps;
+    // TODO: hold[] removed.
+    auto const
+        folded_content_optional_def = bp::eps[set_indent_from_param] >>
+                                      diff_lines >>
+                                      chomped_last.with(0, chomping_param);
 
     // [182]
-    auto const folded_content_def = bp::eps;
+    auto const folded_content_def =
+        -folded_content_optional.with(
+            indent_param, chomping_param)[append_str] >>
+        chomped_empty.with(indent_param, chomping_param)[append_str];
 
     // 8.2.1. Block Sequences
 
