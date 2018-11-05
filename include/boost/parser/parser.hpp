@@ -1442,7 +1442,7 @@ namespace boost { namespace parser {
                     error_handler_result::rethrow) {
                     throw;
                 }
-                attr_t attr_;
+                attr_t attr_{};
                 return detail::make_parse_result(attr_, false);
             }
         }
@@ -1585,7 +1585,7 @@ namespace boost { namespace parser {
                     error_handler_result::rethrow) {
                     throw;
                 }
-                attr_t attr_;
+                attr_t attr_{};
                 return detail::make_parse_result(attr_, false);
             }
         }
@@ -1840,7 +1840,7 @@ namespace boost { namespace parser {
                     }
                 }
             } else {
-                attr_t attr;
+                attr_t attr{};
                 int64_t count = 0;
 
                 for (int64_t end = detail::resolve(context, min_); count != end;
@@ -2841,7 +2841,7 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            attr_t retval;
+            attr_t retval{};
             call(
                 use_cbs,
                 first,
@@ -2905,7 +2905,7 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            attr_t retval;
+            attr_t retval{};
             call(
                 use_cbs,
                 first,
@@ -3148,7 +3148,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            attr_type retval;
+            attr_type retval{};
             locals_type locals = detail::make_locals<locals_type>(context);
             auto params = detail::resolve_rule_params(context, params_);
             auto const rule_context =
@@ -3228,7 +3228,7 @@ namespace boost { namespace parser {
                 return without_callbacks.call(
                     use_cbs, first, last, context, skip, flags, success);
             } else {
-                attr_type retval;
+                attr_type retval{};
                 locals_type locals = detail::make_locals<locals_type>(context);
                 auto params = detail::resolve_rule_params(context, params_);
                 auto const rule_context =
@@ -4661,7 +4661,7 @@ namespace boost { namespace parser {
                 "parser_1)(value_2, parser_2)...");
             using attr_t = decltype(or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            attr_t attr;
+            attr_t attr{};
             auto _ = scoped_trace(*this, first, last, context, flags, attr);
             attr = or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success);
