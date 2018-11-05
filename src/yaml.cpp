@@ -179,17 +179,21 @@ namespace boost { namespace yaml {
         context const prev_context_;
     };
 
-    struct scoped_chomping
+    struct scoped_stop_at_doc_delim
     {
         template<typename Context>
-        scoped_chomping(Context const & context) :
-            global_chomping_(_globals(context).chomping_),
-            prev_chomping_(global_chomping_)
+        scoped_stop_at_doc_delim(Context const & context) :
+            global_stop_at_document_delimiter_(
+                _globals(context).stop_at_document_delimiter_),
+            prev_stop_at_document_delimiter_(global_stop_at_document_delimiter_)
         {}
-        ~scoped_chomping() { global_chomping_ = prev_chomping_; }
+        ~scoped_stop_at_doc_delim() {
+            global_stop_at_document_delimiter_ =
+                prev_stop_at_document_delimiter_;
+        }
 
-        chomping & global_chomping_;
-        chomping const prev_chomping_;
+        bool & global_stop_at_document_delimiter_;
+        bool const prev_stop_at_document_delimiter_;
     };
 
 
@@ -681,7 +685,13 @@ namespace boost { namespace yaml {
     bp::rule<class folded_text, std::string> const folded_text = "folded_text";
 
     struct folded_lines_locals : scoped_context, scoped_stop_at_doc_delim
-    {};
+    {
+        template<typename Context>
+        folded_lines_locals(Context const & context) :
+            scoped_context(context),
+            scoped_stop_at_doc_delim(context)
+        {}
+    };
 
     // [176]
     bp::rule<class folded_lines, std::string, folded_lines_locals> const
@@ -715,7 +725,7 @@ namespace boost { namespace yaml {
     bp::rule<class auto_detect_indent, int> const auto_detect_indent =
         "auto_detect_indent";
 
-    bp::rule<class scalar_auto_detect_indent, int> const
+    bp::rule<class scalar_auto_detect_indent, int, int> const
         scalar_auto_detect_indent = "scalar_auto_detect_indent";
 
     // [183]
@@ -775,15 +785,26 @@ namespace boost { namespace yaml {
     // [196]
     bp::rule<class block_node, value> const block_node = "block_node";
 
+    struct in_block_locals : scoped_context, scoped_indent
+    {
+        template<typename Context>
+        in_block_locals(Context const & context) :
+            scoped_context(context),
+            scoped_indent(context)
+        {}
+    };
+
     // [197]
-    bp::rule<class flow_in_block, value> const flow_in_block = "flow_in_block";
+    bp::rule<class flow_in_block, value, in_block_locals> const flow_in_block =
+        "flow_in_block";
 
     // [198]
-    bp::rule<class block_in_block, value> const block_in_block =
-        "block_in_block";
+    bp::rule<class block_in_block, value, in_block_locals> const
+        block_in_block = "block_in_block";
 
     // [199]
-    bp::rule<class block_scalar, value> const block_scalar = "block_scalar";
+    bp::rule<class block_scalar, value, parser_properties> const block_scalar =
+        "block_scalar";
 
     // [200]
     bp::rule<class block_collection, value> const block_collection =
@@ -984,8 +1005,9 @@ namespace boost { namespace yaml {
                                (bp::eol | bp::eoi >> bp::eps(first_time_eoi));
 
     // [79]
-    auto const s_l_comments_def =
-        (s_b_comment | bp::eps(at_start_of_line)) >> *l_comment;
+    auto const s_l_comments_def = bp::eps[reset_eoi_state] >>
+                                  (s_b_comment | bp::eps(at_start_of_line)) >>
+                                  *l_comment;
 
     // 6.7 Separation Lines
 
@@ -1750,7 +1772,7 @@ namespace boost { namespace yaml {
     // clang-format on
 
     // [175]
-    auto const folded_text_def = indent >> ns_char >> *nb_char;
+    auto const folded_text_def = indent >> ns_char >> *nb_char[append_utf8];
 
     // [176]
     auto const folded_lines_def = folded_text >>
@@ -1762,10 +1784,12 @@ namespace boost { namespace yaml {
     auto const spaced_text_def =
         indent >> bp::ascii::blank[append_str] >> *nb_char;
 
+    auto const append_newline = [](auto & ctx) { _val(ctx) += '\n'; };
+
     // [178]
-    auto const spaced_def =
-        bp::eol >> bp::attr('\n') >> bp::eps[set_context(context::block_in)] >>
-        *(l_empty >> bp::attr('\n'));
+    auto const spaced_def = bp::eol[append_newline] >>
+                            bp::eps[set_context(context::block_in)] >>
+                            *l_empty[append_newline];
 
     // [179]
     auto const spaced_lines_def = spaced_text >> *(spaced >> spaced_text);
@@ -1803,21 +1827,58 @@ namespace boost { namespace yaml {
 
     // 8.2.1. Block Sequences
 
-    auto const auto_detect_indent_def = bp::eps;
+    auto const incr = [](auto & ctx) { ++_val(ctx); };
 
-    auto const scalar_auto_detect_indent_def = bp::eps;
+    auto const auto_detect_indent_def = bp::eps >> &(*' '_l[incr]);
+
+    auto const zero_local = [](auto & ctx) { _locals(ctx) = 0; };
+    auto const incr_local = [](auto & ctx) { ++_locals(ctx); };
+    auto const update_max = [](auto & ctx) {
+        _val(ctx) = (std::max)(_val(ctx), _locals(ctx));
+    };
+    auto const check_scalar_indentation = [](auto & ctx) {
+        if (_val(ctx) <= _locals(ctx)) {
+            _val(ctx) = _locals(ctx);
+        } else {
+            auto const where = _where(ctx);
+            (void)where; // TODO
+#if 0
+            scoped_multipart_error_t multipart(error_handler.impl());
+            std::ostringstream oss;
+            oss << "The first non-space character of a block-scalar "
+                << "(text beginning with '|' or '>') must be at least "
+                << "as indented as all its leading empty lines.  "
+                << "This line is indented " << this_line_indent
+                << " spaces, but a previous line was indented " << max_indent
+                << " spaces:\n";
+            error_handler.impl().report_error_at(
+                range.begin(), oss.str(), multipart);
+#endif
+            _pass(ctx) = false;
+        }
+    };
+
+    auto const scalar_auto_detect_indent_def =
+        bp::eps >>
+        &(*(bp::eps[zero_local] >> *' '_l[incr_local] >> bp::eol[update_max]) >>
+          bp::eps[zero_local] >> *' '_l[incr_local] >>
+          bp::eps[check_scalar_indentation]);
 
     // [183]
     auto const block_sequence_def = bp::eps;
+    // auto_detect_indent[_a = _1] >> bp::eps(_r1 < _a) >>
+    //  +(indent(_a) >> block_seq_entry(_a)[pb]);
 
     // [184]
     auto const block_seq_entry_def = bp::eps;
+    // '-' >> !ns_char >> block_indented(_r1, context_t::block_in);
 
     // [185]
     auto const block_indented_def = bp::eps;
 
     // [186]
     auto const compact_sequence_def = bp::eps;
+    // block_seq_entry(_r1) % indent(_r1)
 
     // 8.2.1. Block Mappings
 
@@ -1851,19 +1912,49 @@ namespace boost { namespace yaml {
     // 8.2.3. Block Nodes
 
     // [196]
-    auto const block_node_def = bp::eps;
+    auto const block_node_def = block_in_block | flow_in_block;
+
+    auto const incr_indent = [](auto & ctx) { ++_globals(ctx).indent_; };
 
     // [197]
-    auto const flow_in_block_def = bp::eps;
+    auto const flow_in_block_def = bp::eps[incr_indent] >>
+                                   bp::eps[set_context(context_t::flow_out)] >>
+                                   separate >> flow_node >> s_l_comments;
 
     // [198]
-    auto const block_in_block_def = bp::eps;
+    auto const block_in_block_def = block_scalar | block_collection;
+
+    auto const move_to_local = [](auto & ctx) {
+        _locals(ctx) = std::move(_attr(ctx));
+    };
 
     // [199]
-    auto const block_scalar_def = bp::eps;
+    auto const
+        block_scalar_def = bp::eps[incr_indent] >> separate >>
+                           -omit[properties[move_to_local] >> separate] >>
+                           (literal | folded)[handle_properties];
+
+    auto const seq_spaces = [](auto & ctx) {
+        return indent_(ctx) - (context_(ctx) == context_t::block_out ? 1 : 0);
+    };
 
     // [200]
-    auto const block_collection_def = bp::eps;
+    auto const block_collection_def =
+        // clang-format off
+            s_l_comments
+        >>  (
+                block_sequence.with(seq_spaces)
+            |   block_mapping
+            )
+        |   bp::eps[incr_indent]
+        >>  omit[separate >> properties[_a = _1/*TODO*/]]
+        >>  s_l_comments
+        >>  (
+                block_sequence.with(seq_spaces)
+            |   block_mapping
+            )[handle_properties]
+        // clang-format on
+        ;
 
 
     // 9.1. Documents
@@ -2103,7 +2194,7 @@ namespace boost { namespace yaml {
             flow_yaml_content | flow_json_content | flow_content |
             flow_yaml_node | flow_json_node | flow_node |
 #else
-            literal
+            folded | literal
 #endif
             ;
         global_state<iter_t> globals{first, max_recursion};
@@ -2111,8 +2202,11 @@ namespace boost { namespace yaml {
 
 #if 0
         std::string s_result;
-        int * i =
-            parse(first, last, bp::with_globals(plain_char_def, globals));
+        int * i = parse(
+            first,
+            last,
+            bp::eol >> bp::attr('\n') >> bp::eps >>
+                *(l_empty >> bp::attr('\n')));
 #endif
 #endif
 
