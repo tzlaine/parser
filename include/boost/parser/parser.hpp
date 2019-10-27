@@ -52,6 +52,8 @@ namespace boost { namespace parser {
     }
 
 
+    // TODO: Consider eps(cond) -> ensure(cond).
+
 
     namespace detail {
 
