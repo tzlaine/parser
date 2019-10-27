@@ -1005,7 +1005,7 @@ namespace boost { namespace yaml {
                                (bp::eol | bp::eoi >> bp::eps(first_time_eoi));
 
     // [79]
-    auto const s_l_comments_def = bp::eps[reset_eoi_state] >>
+    auto const s_l_comments_def = bp::eps[reset_eoi_state_] >>
                                   (s_b_comment | bp::eps(at_start_of_line)) >>
                                   *l_comment;
 
@@ -1918,7 +1918,7 @@ namespace boost { namespace yaml {
 
     // [197]
     auto const flow_in_block_def = bp::eps[incr_indent] >>
-                                   bp::eps[set_context(context_t::flow_out)] >>
+                                   bp::eps[set_context(context::flow_out)] >>
                                    separate >> flow_node >> s_l_comments;
 
     // [198]
@@ -1931,11 +1931,11 @@ namespace boost { namespace yaml {
     // [199]
     auto const
         block_scalar_def = bp::eps[incr_indent] >> separate >>
-                           -omit[properties[move_to_local] >> separate] >>
+                           -bp::omit[properties[move_to_local] >> separate] >>
                            (literal | folded)[handle_properties];
 
     auto const seq_spaces = [](auto & ctx) {
-        return indent_(ctx) - (context_(ctx) == context_t::block_out ? 1 : 0);
+        return indent_(ctx) - (context_(ctx) == context::block_out ? 1 : 0);
     };
 
     // [200]
@@ -1947,7 +1947,7 @@ namespace boost { namespace yaml {
             |   block_mapping
             )
         |   bp::eps[incr_indent]
-        >>  omit[separate >> properties[_a = _1/*TODO*/]]
+        >>  bp::omit[separate >> properties]
         >>  s_l_comments
         >>  (
                 block_sequence.with(seq_spaces)
@@ -1955,7 +1955,6 @@ namespace boost { namespace yaml {
             )[handle_properties]
         // clang-format on
         ;
-
 
     // 9.1. Documents
 
