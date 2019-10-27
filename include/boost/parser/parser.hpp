@@ -3750,7 +3750,7 @@ namespace boost { namespace parser {
 
 
 
-    // Diretives.
+    // Directives.
 
     template<template<class> class Parser>
     struct directive
