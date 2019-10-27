@@ -108,6 +108,25 @@ namespace boost { namespace yaml {
             max_recursive_open_count_(max_recursion)
         {}
 
+        void clear_document_state()
+        {
+#if 0 // TODO
+            stream.block_styles_.flow_styles_.anchors.clear();
+
+            auto & tags =
+                stream.block_styles_.flow_styles_.basic_structures_.tags;
+            tags.clear();
+            tags.add(
+                "!!",
+                basic_structures_t::tag_t{
+                    "tag:yaml.org,2002:", iterator_t(), true});
+            tags.add("!", basic_structures_t::tag_t{"!", iterator_t(), true});
+
+            stream.block_styles_.flow_styles_.basic_structures_
+                .yaml_directive_seen_ = false;
+#endif
+        }
+
         iterator const first_;
         int recursive_open_count_ = 0;
         int const max_recursive_open_count_;
@@ -1958,31 +1977,62 @@ namespace boost { namespace yaml {
 
     // 9.1. Documents
 
+    auto not_at_end = [](auto & ctx) {
+        return _globals(ctx).eoi_state_ == eoi_state::not_at_end;
+    };
+
     // [202]
-    auto const document_prefix_def = bp::eps;
+    auto const document_prefix_def = !bom // BOM is read prior to each document.
+                                     >> bp::eps[reset_eoi_state_] >> +l_comment
+                                     >> bp::eps(not_at_end);
 
     // [205]
-    auto const document_suffix_def = bp::eps;
+    auto const document_suffix_def = "..." >> s_l_comments;
 
     // [206]
-    auto const forbidden_def = bp::eps;
+    auto const forbidden_def = bp::eps(at_start_of_line) >>
+                               (-bom >> "---" | "...") >>
+                               (bp::eol | bp::ascii::blank | bp::eoi);
 
     // [207]
-    auto const bare_document_def = bp::eps;
+    auto const
+        bare_document_def = !bom // BOM is read prior to each document.
+                            >>
+                            block_node.with(-1, context::block_in) - forbidden;
 
     // [208]
-    auto const explicit_document_def = bp::eps;
+    auto const explicit_document_def =
+        !bom // BOM is read prior to each document.
+        >> "---" >> (bare_document | bp::attr(yaml::value()) >> s_l_comments);
 
     // [209]
-    auto const directive_document_def = bp::eps;
+    auto const directive_document_def =
+        !bom // BOM is read prior to each document.
+        >> +directive >> explicit_document;
 
     // [210]
-    auto const any_document_def = bp::eps;
+    auto const any_document_def =
+        directive_document | explicit_document | bare_document;
+
+    auto const clear_document_state = [](auto & ctx) {
+        _globals(ctx).clear_document_state();
+    };
+
+    auto const push_document = [](auto & ctx) {
+        _val(ctx).push_back(std::move(_attr(ctx)));
+        _globals(ctx).clear_document_state();
+    };
 
     // [211]
-    auto const yaml_stream_def = bp::eps;
-
-
+    auto const yaml_stream_def = bp::eps[clear_document_state] >>
+                                 *document_prefix >>
+                                 -any_document[push_document] >>
+                                 *(+(document_suffix >> !bom) >>
+                                       *document_prefix >>
+                                       any_document[push_document] |
+                                   *document_prefix >>
+                                       explicit_document[push_document]) >>
+                                 *(document_suffix >> !bom) >> *document_prefix;
 
     // Helper rules.
     BOOST_PARSER_DEFINE_RULES(
@@ -2192,8 +2242,10 @@ namespace boost { namespace yaml {
             flow_pair_json_key_entry | implicit_yaml_key | implicit_json_key |
             flow_yaml_content | flow_json_content | flow_content |
             flow_yaml_node | flow_json_node | flow_node |
-#else
+#elsif
             folded | literal
+#else
+            yaml_stream
 #endif
             ;
         global_state<iter_t> globals{first, max_recursion};
