@@ -193,6 +193,17 @@ namespace boost { namespace parser {
         }
 
 
+        template<unsigned int I>
+        struct param_t
+        {
+            template<typename Context>
+            decltype(auto) operator()(Context const & context) const
+            {
+                return _params(context)[hana::llong<I>{}];
+            }
+        };
+
+
         template<typename T, typename U>
         using callable = decltype(std::declval<T>()(std::declval<U>()));
 
@@ -1692,6 +1703,10 @@ namespace boost { namespace parser {
     {
         return *context[error_handler_];
     }
+
+    /** TODO */
+    template<unsigned int I>
+    inline constexpr detail::param_t<I> param = {};
 
 
 
