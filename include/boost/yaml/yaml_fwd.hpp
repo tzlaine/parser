@@ -2,6 +2,7 @@
 #define BOOST_YAML_YAML_FWD_HPP
 
 #include <boost/yaml/exception.hpp>
+#include <boost/hana/tuple.hpp>
 
 #include <functional>
 #include <string>
