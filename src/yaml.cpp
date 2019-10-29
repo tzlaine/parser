@@ -317,7 +317,7 @@ namespace boost { namespace yaml {
     // [63]
     bp::rule<class indent> const indent = "indent";
 
-    // Convenience variation on indent that indents param<0> spaces instead of
+    // Convenience variation on indent that indents _p<0> spaces instead of
     // global_indent spaces.
     bp::rule<class indent_n> const indent_n = "indent_n";
 
@@ -960,7 +960,7 @@ namespace boost { namespace yaml {
 
     // [63]
     auto const indent_def = bp::repeat(indent_)[' '_l];
-    auto const indent_n_def = bp::repeat(bp::param<0>)[' '_l];
+    auto const indent_n_def = bp::repeat(bp::_p<0>)[' '_l];
 
     // [64]
     auto const indent_lt_def = bp::repeat(0, indent_minus_1)[' '_l];
@@ -1919,11 +1919,12 @@ namespace boost { namespace yaml {
         +(indent >> block_seq_entry.with(global_indent)[seq_append]);
 
     // [184]
-    auto const block_seq_entry_def =
-        '-' >> !ns_char >> block_indented.with(bp::param<0>, context::block_in);
+    auto const
+        block_seq_entry_def = '-' >> !ns_char >>
+                              block_indented.with(bp::_p<0>, context::block_in);
 
     auto const block_compact_indent = [](auto & ctx) {
-        return bp::param<0>(ctx) + 1 + _globals(ctx).indent_;
+        return bp::_p<0>(ctx) + 1 + _globals(ctx).indent_;
     };
 
     // [185]
@@ -1931,14 +1932,13 @@ namespace boost { namespace yaml {
         block_indented_def = auto_detect_indent[set_global_indent] >> indent >>
                                  (compact_sequence.with(block_compact_indent) |
                                   compact_mapping.with(block_compact_indent)) |
-                             block_node.with(bp::param<0>, bp::param<1>) |
+                             block_node.with(bp::_p<0>, bp::_p<1>) |
                              bp::attr(yaml::value()) >> s_l_comments;
 
     // [186]
     auto const compact_sequence_def =
         bp::eps[seq_init] >>
-        block_seq_entry.with(bp::param<0>)[seq_append] % indent_n.with(
-                                                             bp::param<0>);
+        block_seq_entry.with(bp::_p<0>)[seq_append] % indent_n.with(bp::_p<0>);
 
     // 8.2.1. Block Mappings
 
@@ -1949,28 +1949,27 @@ namespace boost { namespace yaml {
         +(indent >> block_map_entry.with(global_indent)[map_insert]);
 
     // [188]
-    auto const block_map_entry_def =
-        block_map_explicit_entry.with(bp::param<0>) |
-        block_map_implicit_entry.with(bp::param<0>);
+    auto const block_map_entry_def = block_map_explicit_entry.with(bp::_p<0>) |
+                                     block_map_implicit_entry.with(bp::_p<0>);
 
     // [189]
     auto const block_map_explicit_entry_def =
-        block_map_explicit_key.with(bp::param<0>) >>
-        (block_map_explicit_value.with(bp::param<0>) | bp::attr(yaml::value()));
+        block_map_explicit_key.with(bp::_p<0>) >>
+        (block_map_explicit_value.with(bp::_p<0>) | bp::attr(yaml::value()));
 
     // [190]
     auto const block_map_explicit_key_def =
-        '?' >> block_indented.with(bp::param<0>, context::block_out);
+        '?' >> block_indented.with(bp::_p<0>, context::block_out);
 
     // [191]
     auto const block_map_explicit_value_def =
-        indent_n.with(bp::param<0>) >> ':' >>
-        block_indented.with(bp::param<0>, context::block_out);
+        indent_n.with(bp::_p<0>) >> ':' >>
+        block_indented.with(bp::_p<0>, context::block_out);
 
     // [192]
     auto const block_map_implicit_entry_def =
         (block_map_implicit_key | bp::attr(yaml::value())) >>
-        block_map_implicit_value.with(bp::param<0>);
+        block_map_implicit_value.with(bp::_p<0>);
 
     // [193]
     auto const block_map_implicit_key_def =
@@ -1979,14 +1978,13 @@ namespace boost { namespace yaml {
 
     // [194]
     auto const block_map_implicit_value_def =
-        ':' >> (block_node.with(bp::param<0>, context::block_out) |
+        ':' >> (block_node.with(bp::_p<0>, context::block_out) |
                 bp::attr(yaml::value()) >> s_l_comments);
 
     // [195]
     auto const compact_mapping_def =
         bp::eps[map_init] >>
-        block_map_entry.with(bp::param<0>)[map_insert] % indent.with(
-                                                             bp::param<0>);
+        block_map_entry.with(bp::_p<0>)[map_insert] % indent.with(bp::_p<0>);
 
     // 8.2.3. Block Nodes
 

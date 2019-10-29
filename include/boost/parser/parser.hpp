@@ -1706,7 +1706,7 @@ namespace boost { namespace parser {
 
     /** TODO */
     template<unsigned int I>
-    inline constexpr detail::param_t<I> param = {};
+    inline constexpr detail::param_t<I> _p = {};
 
 
 
