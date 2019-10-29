@@ -72,36 +72,6 @@ namespace boost { namespace json { namespace detail {
         array value_;
     };
 
-    template<>
-    struct value_impl<double> : value_impl_base
-    {
-        value_impl(double d) : value_(d) {}
-
-        virtual std::unique_ptr<value_impl_base> copy_impl() const override
-        {
-            return std::unique_ptr<value_impl_base>(
-                new value_impl<double>(*this));
-        }
-
-        virtual value_kind kind() const noexcept override
-        {
-            return value_kind::number;
-        }
-
-        virtual bool equal_impl(value const & rhs) const noexcept override
-        {
-            return value_ == get<double>(rhs);
-        }
-
-        virtual std::ostream & to_json(std::ostream & os) const
-            noexcept override
-        {
-            return os << value_;
-        }
-
-        double value_;
-    };
-
     template<typename CPSubRange>
     std::ostream &
     write_escaped_cps(std::ostream & os, CPSubRange subr) noexcept
@@ -190,67 +160,6 @@ namespace boost { namespace json { namespace detail {
         }
 
         std::string value_;
-    };
-
-    template<>
-    struct value_impl<bool> : value_impl_base
-    {
-        value_impl(bool b) : value_(b) {}
-
-        virtual std::unique_ptr<value_impl_base> copy_impl() const override
-        {
-            return std::unique_ptr<value_impl_base>(
-                new value_impl<bool>(*this));
-        }
-
-        virtual value_kind kind() const noexcept override
-        {
-            return value_kind::boolean;
-        }
-
-        virtual bool equal_impl(value const & rhs) const noexcept override
-        {
-            return value_ == get<bool>(rhs);
-        }
-
-        virtual std::ostream & to_json(std::ostream & os) const
-            noexcept override
-        {
-            return os << (value_ ? "true" : "false");
-        }
-
-        bool value_;
-    };
-
-    template<>
-    struct value_impl<null_t> : value_impl_base
-    {
-        value_impl() {}
-        value_impl(null_t) {}
-
-        virtual std::unique_ptr<value_impl_base> copy_impl() const override
-        {
-            return std::unique_ptr<value_impl_base>(
-                new value_impl<null_t>(*this));
-        }
-
-        virtual value_kind kind() const noexcept override
-        {
-            return value_kind::null;
-        }
-
-        virtual bool equal_impl(value const &) const noexcept override
-        {
-            return true;
-        }
-
-        virtual std::ostream & to_json(std::ostream & os) const
-            noexcept override
-        {
-            return os << "null";
-        }
-
-        null_t value_;
     };
 
 }}}
