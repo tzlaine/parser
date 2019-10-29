@@ -31,13 +31,6 @@ namespace boost { namespace json { namespace detail {
     template<typename T>
     struct value_impl;
 
-    // TODO: Use this, and put objects (unordered_maps) on the heap, in
-    // the implementation of jason_value_impl below.
-    constexpr int value_buffer_size()
-    {
-        return (std::max)(sizeof(std::vector<int>), sizeof(std::string));
-    }
-
     template<typename T>
     struct is_object : yaml::detail::is_range_of<
                            T,

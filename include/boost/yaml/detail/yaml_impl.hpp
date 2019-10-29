@@ -59,7 +59,8 @@ namespace boost { namespace yaml { namespace detail {
             return typeindex::type_id<T>();
         }
 
-        virtual std::size_t hash_append_impl(std::size_t seed) const noexcept
+        virtual std::size_t hash_append_impl(std::size_t seed) const
+            noexcept override
         {
             return hash_append(seed, value_);
         }

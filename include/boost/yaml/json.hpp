@@ -12,21 +12,26 @@
 
 namespace boost { namespace json {
 
+    // TODO: Needs tests.
     struct value
     {
-        value();
+        value() = default;
 
-        value(value const & other)
-        {
-            if (other.ptr_)
-                ptr_ = other.ptr_->copy_impl();
-        }
+        value(value const & other) { copy_impl(other); }
+
+        value(value && other) { move_impl(std::move(other)); }
 
         value & operator=(value const & other)
         {
-            ptr_.reset();
-            if (other.ptr_)
-                ptr_ = other.ptr_->copy_impl();
+            destroy();
+            copy_impl(other);
+            return *this;
+        }
+
+        value & operator=(value && other)
+        {
+            destroy();
+            move_impl(std::move(other));
             return *this;
         }
 
@@ -50,7 +55,7 @@ namespace boost { namespace json {
             typename std::enable_if<detail::is_string<String>::value>::type **
                 enable = nullptr);
         value(std::string && str);
-        value(char const * c_str);
+        value(std::string_view str);
 
         value(bool b);
 
@@ -72,49 +77,50 @@ namespace boost { namespace json {
         typename std::enable_if<detail::is_string<String>::value, value &>::type
         operator=(String const & str);
         value & operator=(std::string && str);
-        value & operator=(char const * c_str);
+        value & operator=(std::string_view str);
 
         value & operator=(bool b);
 
         value & operator=(null_t);
 
-        value_kind kind() const noexcept { return ptr_->kind(); }
-
-        bool is_object() const noexcept
+        value_kind kind() const noexcept
         {
-            return ptr_->kind() == value_kind::object;
+            auto k = storage_.local_.kind_;
+            if (k == remote_string_k)
+                return value_kind::string;
+            return static_cast<value_kind>(k);
         }
 
-        bool is_array() const noexcept
-        {
-            return ptr_->kind() == value_kind::array;
-        }
-
-        bool is_number() const noexcept
-        {
-            return ptr_->kind() == value_kind::number;
-        }
-
-        bool is_string() const noexcept
-        {
-            return ptr_->kind() == value_kind::string;
-        }
-
+        bool is_null() const noexcept { return kind() == value_kind::null; }
         bool is_boolean() const noexcept
         {
-            return ptr_->kind() == value_kind::boolean;
+            return kind() == value_kind::boolean;
         }
-
-        bool is_null() const noexcept
-        {
-            return ptr_->kind() == value_kind::null;
-        }
+        bool is_number() const noexcept { return kind() == value_kind::number; }
+        bool is_string() const noexcept { return kind() == value_kind::string; }
+        bool is_object() const noexcept { return kind() == value_kind::object; }
+        bool is_array() const noexcept { return kind() == value_kind::array; }
 
         bool operator==(value const & rhs) const noexcept
         {
             if (rhs.kind() != kind())
                 return false;
-            return ptr_->equal_impl(rhs);
+            switch (storage_.local_.kind_) {
+            case value::null_k: return true;
+            case value::boolean_k:
+                return storage_.local_.bytes_[3] ==
+                       rhs.storage_.local_.bytes_[3];
+            case value::number_k: return *double_ptr() == *rhs.double_ptr();
+            case value::local_string_k:
+                return strcmp(
+                           storage_.local_.bytes_.data(),
+                           rhs.storage_.local_.bytes_.data()) == 0;
+            case value::object_k:
+            case value::array_k:
+            case value::remote_string_k:
+            default: return storage_.remote_.ptr_->equal_impl(rhs);
+            }
+            return false;
         }
 
         bool operator!=(value const & rhs) const noexcept
@@ -122,17 +128,98 @@ namespace boost { namespace json {
             return !(*this == rhs);
         }
 
-        friend std::ostream & operator<<(std::ostream & os, value const & value)
-        {
-            return value.ptr_->to_json(os);
-        }
+        friend std::ostream &
+        operator<<(std::ostream & os, value const & value);
 
     private:
-        std::unique_ptr<detail::value_impl_base> ptr_;
+        void copy_impl(value const & other)
+        {
+            if (other.is_local()) {
+                storage_.local_ = other.storage_.local_;
+            } else {
+                storage_.remote_ = remote{other.storage_.remote_.kind_};
+                storage_.remote_.ptr_ =
+                    other.storage_.remote_.ptr_->copy_impl();
+            }
+        }
+
+        void move_impl(value && other)
+        {
+            if (other.is_local())
+                storage_.local_ = other.storage_.local_;
+            else
+                storage_.remote_ = std::move(other.storage_.remote_);
+        }
+
+        void destroy() noexcept
+        {
+            if (is_local())
+                storage_.local_.~local();
+            else
+                storage_.remote_.~remote();
+        }
+
+        bool is_local() const noexcept
+        {
+            return storage_.local_.kind_ < object_k;
+        }
+
+        double const * double_ptr() const noexcept
+        {
+            double const * retval =
+                reinterpret_cast<double const *>(
+                storage_.local_.bytes_.data() + 7);
+            BOOST_ASSERT(std::uintptr_t(retval) % alignof(double) == 0);
+            return retval;
+        }
+        double * double_ptr() noexcept
+        {
+            double * retval =
+                reinterpret_cast<double *>(storage_.local_.bytes_.data() + 7);
+            BOOST_ASSERT(std::uintptr_t(retval) % alignof(double) == 0);
+            return retval;
+        }
+
+        enum value_impl_kind {
+            null_k,
+            boolean_k,
+            number_k,
+            local_string_k,
+            object_k,
+            array_k,
+            remote_string_k
+        };
+
+        struct local
+        {
+            uint8_t kind_;
+            std::array<char, 15> bytes_;
+        };
+        struct remote
+        {
+            uint8_t kind_;
+            std::unique_ptr<detail::value_impl_base> ptr_;
+        };
+        union storage
+        {
+            storage() : local_{null_k} {}
+            ~storage()
+            {
+                if (local_.kind_ < object_k)
+                    local_.~local();
+                else
+                    remote_.~remote();
+            }
+            local local_;
+            remote remote_;
+        };
+        storage storage_;
 
         template<typename T>
         friend struct detail::get_impl;
     };
+
+    static_assert(sizeof(value) == 16);
 
     using error_function = std::function<void(std::string const &)>;
 
@@ -147,82 +234,20 @@ namespace boost { namespace json {
 
 namespace boost { namespace json {
 
-    inline value::value() { *this = null_t{}; }
-
-    template<typename JSONObject>
-    value::value(
-        JSONObject const & o,
-        typename std::enable_if<detail::is_object<JSONObject>::value>::type **
-            enable) :
-        ptr_(new detail::value_impl<object>(o.begin(), o.end()))
-    {}
-
-    template<typename JSONArray>
-    value::value(
-        JSONArray const & a,
-        typename std::enable_if<detail::is_array<JSONArray>::value>::type **
-            enable) :
-        ptr_(new detail::value_impl<array>(a.begin(), a.end()))
-    {}
-
-    inline value::value(double d) : ptr_(new detail::value_impl<double>(d)) {}
-
-    template<typename String>
-    value::value(
-        String const & str,
-        typename std::enable_if<detail::is_string<String>::value>::type **
-            enable) :
-        value(std::string(std::begin(str), std::end(str)))
-    {}
-
-    inline value::value(std::string && s) :
-        ptr_(new detail::value_impl<std::string>{std::move(s)})
-    {}
-
-    inline value::value(char const * c_str) : value(std::string(c_str)) {}
-
-    inline value::value(bool b) : ptr_(new detail::value_impl<bool>(b)) {}
-
-    inline value::value(null_t) : ptr_(new detail::value_impl<null_t>) {}
-
-    template<typename JSONObject>
-    typename std::enable_if<detail::is_object<JSONObject>::value, value &>::type
-    value::operator=(JSONObject const & o)
-    {
-        return *this = value(o);
-    }
-
-    template<typename JSONArray>
-    typename std::enable_if<detail::is_array<JSONArray>::value, value &>::type
-    value::operator=(JSONArray const & a)
-    {
-        return *this = value(a);
-    }
-
-    inline value & value::operator=(double d) { return *this = value(d); }
-
-    template<typename String>
-    typename std::enable_if<detail::is_string<String>::value, value &>::type
-    value::operator=(String const & str)
-    {
-        return *this = value(std::string(std::begin(str), std::end(str)));
-    }
-
-    inline value & value::operator=(std::string && s)
-    {
-        return *this = value(std::move(s));
-    }
-
-    inline value & value::operator=(char const * c_str)
-    {
-        return *this = value(std::string(c_str));
-    }
-
-    inline value & value::operator=(bool b) { return *this = value(b); }
-
-    inline value & value::operator=(null_t) { return *this = value(null_t{}); }
-
     namespace detail {
+        template<typename Iter, typename Sentinel, typename CategoryTag>
+        std::ptrdiff_t
+        fast_distance_or_1000(Iter f, Sentinel l, CategoryTag tag)
+        {
+            return 1000;
+        }
+
+        template<typename Iter>
+        std::ptrdiff_t
+        fast_distance_or_1000(Iter f, Iter l, std::random_access_iterator_tag)
+        {
+            return l - f;
+        }
 
         inline std::ostream &
         value_impl<object>::to_json(std::ostream & os) const noexcept
@@ -262,12 +287,16 @@ namespace boost { namespace json {
             static object const & call(value const & v) noexcept
             {
                 assert(v.is_object());
-                return static_cast<value_impl<object> *>(v.ptr_.get())->value_;
+                return static_cast<value_impl<object> *>(
+                           v.storage_.remote_.ptr_.get())
+                    ->value_;
             }
             static object & call(value & v) noexcept
             {
                 assert(v.is_object());
-                return static_cast<value_impl<object> *>(v.ptr_.get())->value_;
+                return static_cast<value_impl<object> *>(
+                           v.storage_.remote_.ptr_.get())
+                    ->value_;
             }
         };
 
@@ -277,88 +306,256 @@ namespace boost { namespace json {
             static array const & call(value const & v) noexcept
             {
                 assert(v.is_array());
-                return static_cast<value_impl<array> *>(v.ptr_.get())->value_;
+                return static_cast<value_impl<array> *>(
+                           v.storage_.remote_.ptr_.get())
+                    ->value_;
             }
             static array & call(value & v) noexcept
             {
                 assert(v.is_array());
-                return static_cast<value_impl<array> *>(v.ptr_.get())->value_;
+                return static_cast<value_impl<array> *>(
+                           v.storage_.remote_.ptr_.get())
+                    ->value_;
             }
         };
 
         template<>
         struct get_impl<double>
         {
-            static double const & call(value const & v) noexcept
+            static double call(value const & v) noexcept
             {
                 assert(v.is_number());
-                return static_cast<value_impl<double> *>(v.ptr_.get())->value_;
-            }
-            static double & call(value & v) noexcept
-            {
-                assert(v.is_number());
-                return static_cast<value_impl<double> *>(v.ptr_.get())->value_;
+                return *v.double_ptr();
             }
         };
 
         template<>
-        struct get_impl<std::string>
+        struct get_impl<std::string_view>
         {
-            static std::string const & call(value const & v) noexcept
+            static std::string_view call(value const & v) noexcept
             {
                 assert(v.is_string());
-                return static_cast<value_impl<std::string> *>(v.ptr_.get())
-                    ->value_;
-            }
-            static std::string & call(value & v) noexcept
-            {
-                assert(v.is_string());
-                return static_cast<value_impl<std::string> *>(v.ptr_.get())
-                    ->value_;
+                if (v.storage_.local_.kind_ == value::local_string_k) {
+                    return std::string_view(v.storage_.local_.bytes_.data());
+                } else {
+                    return static_cast<value_impl<std::string> *>(
+                               v.storage_.remote_.ptr_.get())
+                        ->value_;
+                }
             }
         };
 
         template<>
         struct get_impl<bool>
         {
-            static bool const & call(value const & v) noexcept
+            static bool call(value const & v) noexcept
             {
                 assert(v.is_boolean());
-                return static_cast<value_impl<bool> *>(v.ptr_.get())->value_;
-            }
-            static bool & call(value & v) noexcept
-            {
-                assert(v.is_boolean());
-                return static_cast<value_impl<bool> *>(v.ptr_.get())->value_;
+                return v.storage_.local_.bytes_[3];
             }
         };
 
         template<>
         struct get_impl<null_t>
         {
-            static null_t const & call(value const & v) noexcept
+            static null_t call(value const & v) noexcept
             {
                 assert(v.is_null());
-                return static_cast<value_impl<null_t> *>(v.ptr_.get())->value_;
-            }
-            static null_t & call(value & v) noexcept
-            {
-                assert(v.is_null());
-                return static_cast<value_impl<null_t> *>(v.ptr_.get())->value_;
+                return {};
             }
         };
     }
 
     template<typename T>
-    T const & get(value const & v) noexcept
+    detail::get_result_t<T, true> get(value const & v) noexcept
     {
         return detail::get_impl<T>::call(v);
     }
 
     template<typename T>
-    T & get(value & v) noexcept
+    detail::get_result_t<T, false> get(value & v) noexcept
     {
         return detail::get_impl<T>::call(v);
+    }
+
+    template<typename JSONObject>
+    value::value(
+        JSONObject const & o,
+        typename std::enable_if<detail::is_object<JSONObject>::value>::type **
+            enable)
+    {
+        storage_.remote_ = remote{
+            object_k,
+            std::make_unique<detail::value_impl<object>>(o.begin(), o.end())};
+    }
+
+    template<typename JSONArray>
+    value::value(
+        JSONArray const & a,
+        typename std::enable_if<detail::is_array<JSONArray>::value>::type **
+            enable)
+    {
+        storage_.remote_ = remote{
+            array_k,
+            std::make_unique<detail::value_impl<array>>(a.begin(), a.end())};
+    }
+
+    inline value::value(double d)
+    {
+        storage_.local_ = local{number_k};
+        *double_ptr() = d;
+    }
+
+    template<typename String>
+    value::value(
+        String const & str,
+        typename std::enable_if<detail::is_string<String>::value>::type **
+            enable)
+    {
+        auto const f = std::begin(str);
+        auto const l = std::end(str);
+        typename std::iterator_traits<decltype(f)>::iterator_category tag;
+        if (detail::fast_distance_or_1000(f, l, tag) <= 14) {
+            storage_.local_ = local{local_string_k};
+            std::copy(f, l, storage_.local_.bytes_.data()) = 0;
+        } else {
+            storage_.remote_ = remote{remote_string_k};
+            storage_.remote_.ptr_ =
+                std::make_unique<detail::value_impl<std::string>>(f, l);
+        }
+    }
+
+    inline value::value(std::string && s)
+    {
+        auto const f = std::begin(s);
+        auto const l = std::end(s);
+        typename std::iterator_traits<decltype(f)>::iterator_category tag;
+        if (detail::fast_distance_or_1000(f, l, tag) <= 14) {
+            storage_.local_ = local{local_string_k};
+            *std::copy(f, l, storage_.local_.bytes_.data()) = 0;
+        } else {
+            storage_.remote_ = remote{remote_string_k};
+            storage_.remote_.ptr_ =
+                std::make_unique<detail::value_impl<std::string>>(std::move(s));
+        }
+    }
+
+    inline value::value(std::string_view s)
+    {
+        auto const f = std::begin(s);
+        auto const l = std::end(s);
+        if (l - f <= 14) {
+            storage_.local_ = local{local_string_k};
+            *std::copy(f, l, storage_.local_.bytes_.data()) = 0;
+        } else {
+            storage_.remote_ = remote{remote_string_k};
+            storage_.remote_.ptr_ =
+                std::make_unique<detail::value_impl<std::string>>(s);
+        }
+    }
+
+    inline value::value(bool b)
+    {
+        storage_.local_ = local{boolean_k, {0, 0, 0, b}};
+    }
+
+    inline value::value(null_t) : value() {}
+
+    template<typename JSONObject>
+    typename std::enable_if<detail::is_object<JSONObject>::value, value &>::type
+    value::operator=(JSONObject const & o)
+    {
+        if (is_object()) {
+            get<object>(*this) = object(o.begin(), o.end());
+            return *this;
+        }
+        return *this = value(o);
+    }
+
+    template<typename JSONArray>
+    typename std::enable_if<detail::is_array<JSONArray>::value, value &>::type
+    value::operator=(JSONArray const & a)
+    {
+        if (is_array()) {
+            get<array>(*this).assign(a.begin(), a.end());
+            return *this;
+        }
+        return *this = value(a);
+    }
+
+    inline value & value::operator=(double d) { return *this = value(d); }
+
+    template<typename String>
+    typename std::enable_if<detail::is_string<String>::value, value &>::type
+    value::operator=(String const & str)
+    {
+        if (is_string()) {
+            auto const f = std::begin(str);
+            auto const l = std::end(str);
+            typename std::iterator_traits<decltype(f)>::iterator_category tag;
+            if (is_local() && detail::fast_distance_or_1000(f, l, tag) <= 14) {
+                *std::copy(f, l, storage_.local_.bytes_.data()) = 0;
+            } else {
+                return static_cast<detail::value_impl<std::string> *>(
+                           storage_.remote_.ptr_.get())
+                    ->value_.assign(f, l);
+            }
+            return *this;
+        }
+        return *this = value(str);
+    }
+
+    inline value & value::operator=(std::string && s)
+    {
+        if (is_string()) {
+            if (is_local() && s.size() <= 14u) {
+                *std::copy(
+                    s.begin(), s.end(), storage_.local_.bytes_.data()) = 0;
+            } else {
+                static_cast<detail::value_impl<std::string> *>(
+                    storage_.remote_.ptr_.get())
+                    ->value_ = std::move(s);
+            }
+            return *this;
+        }
+        return *this = value(std::move(s));
+    }
+
+    inline value & value::operator=(std::string_view s)
+    {
+        if (is_string()) {
+            if (is_local() && s.size() <= 14u) {
+                *std::copy(s.begin(), s.end(), storage_.local_.bytes_.data()) =
+                    0;
+            } else {
+                static_cast<detail::value_impl<std::string> *>(
+                    storage_.remote_.ptr_.get())
+                    ->value_ = s;
+            }
+            return *this;
+        }
+        return *this = value(s);
+    }
+
+    inline value & value::operator=(bool b) { return *this = value(b); }
+
+    inline value & value::operator=(null_t n) { return *this = value(n); }
+
+    inline std::ostream & operator<<(std::ostream & os, value const & value)
+    {
+        switch (value.storage_.local_.kind_) {
+        case value::null_k: return os << "null";
+        case value::boolean_k:
+            return os << (value.storage_.local_.bytes_[3] ? "true" : "false");
+        case value::number_k: return os << *value.double_ptr();
+        case value::local_string_k:
+            return detail::to_json(os, value.storage_.local_.bytes_.data());
+        case value::object_k:
+        case value::array_k:
+        case value::remote_string_k:
+        default: return value.storage_.remote_.ptr_->to_json(os);
+        }
+        return os;
     }
 
     inline std::size_t hash_append(std::size_t seed, value const & v)
@@ -374,7 +571,8 @@ namespace boost { namespace json {
                 kind_hash, std::hash<double>{}(get<double>(v)));
         case value_kind::string:
             return hash_combine_(
-                kind_hash, std::hash<std::string>{}(get<std::string>(v)));
+                kind_hash,
+                std::hash<std::string_view>{}(get<std::string_view>(v)));
         case value_kind::boolean:
             return hash_combine_(kind_hash, std::hash<bool>{}(get<bool>(v)));
         case value_kind::null: return kind_hash;

@@ -10,7 +10,7 @@ namespace boost { namespace json {
 
     struct value;
 
-    enum class value_kind { object, array, number, string, boolean, null };
+    enum class value_kind { null, boolean, number, string, object, array };
 
     struct null_t
     {
@@ -24,10 +24,41 @@ namespace boost { namespace json {
     using array = std::vector<value>;
     using object = std::unordered_map<std::string, value>;
 
+    namespace detail {
+        template<typename T, bool Const>
+        struct get_result
+        {
+            using type = T;
+        };
+        template<>
+        struct get_result<array, true>
+        {
+            using type = array const &;
+        };
+        template<>
+        struct get_result<array, false>
+        {
+            using type = array &;
+        };
+        template<>
+        struct get_result<object, true>
+        {
+            using type = object const &;
+        };
+        template<>
+        struct get_result<object, false>
+        {
+            using type = object &;
+        };
+
+        template<typename T, bool Const>
+        using get_result_t = typename get_result<T, Const>::type;
+    }
+
     template<typename T>
-    T const & get(value const & v) noexcept;
+    detail::get_result_t<T, true> get(value const & v) noexcept;
     template<typename T>
-    T & get(value & v) noexcept;
+    detail::get_result_t<T, false> get(value & v) noexcept;
 
     std::size_t hash_append(std::size_t seed, value const & v);
     std::size_t hash_append(std::size_t seed, array const & v);
