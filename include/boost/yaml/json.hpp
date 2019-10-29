@@ -23,14 +23,14 @@ namespace boost { namespace json {
 
         value & operator=(value const & other)
         {
-            destroy();
+            storage_ = storage();
             copy_impl(other);
             return *this;
         }
 
         value & operator=(value && other)
         {
-            destroy();
+            storage_ = storage();
             move_impl(std::move(other));
             return *this;
         }
@@ -41,11 +41,15 @@ namespace boost { namespace json {
             typename std::enable_if<detail::is_object<JSONObject>::value>::
                 type ** enable = nullptr);
 
+        value(object && o);
+
         template<typename JSONArray>
         value(
             JSONArray const & a,
             typename std::enable_if<detail::is_array<JSONArray>::value>::type **
                 enable = nullptr);
+
+        value(array && a);
 
         value(double d);
 
@@ -66,10 +70,14 @@ namespace boost { namespace json {
             type
             operator=(JSONObject const & o);
 
+        value & operator=(object && o);
+
         template<typename JSONArray>
         typename std::enable_if<detail::is_array<JSONArray>::value, value &>::
             type
             operator=(JSONArray const & a);
+
+        value & operator=(array && a);
 
         value & operator=(double d);
 
@@ -151,14 +159,6 @@ namespace boost { namespace json {
                 storage_.remote_ = std::move(other.storage_.remote_);
         }
 
-        void destroy() noexcept
-        {
-            if (is_local())
-                storage_.local_.~local();
-            else
-                storage_.remote_.~remote();
-        }
-
         bool is_local() const noexcept
         {
             return storage_.local_.kind_ < object_k;
@@ -203,13 +203,23 @@ namespace boost { namespace json {
         union storage
         {
             storage() : local_{null_k} {}
-            ~storage()
+            storage & operator=(storage const & other)
+            {
+                destroy();
+                BOOST_ASSERT(other.local_.kind_ < object_k);
+                local_ = other.local_;
+                return *this;
+            }
+            ~storage() { destroy(); }
+
+            void destroy() noexcept
             {
                 if (local_.kind_ < object_k)
                     local_.~local();
                 else
                     remote_.~remote();
             }
+
             local local_;
             remote remote_;
         };
@@ -389,6 +399,13 @@ namespace boost { namespace json {
             std::make_unique<detail::value_impl<object>>(o.begin(), o.end())};
     }
 
+    inline value::value(object && o)
+    {
+        storage_.remote_ =
+            remote{object_k,
+                   std::make_unique<detail::value_impl<object>>(std::move(o))};
+    }
+
     template<typename JSONArray>
     value::value(
         JSONArray const & a,
@@ -398,6 +415,12 @@ namespace boost { namespace json {
         storage_.remote_ = remote{
             array_k,
             std::make_unique<detail::value_impl<array>>(a.begin(), a.end())};
+    }
+
+    inline value::value(array && a)
+    {
+        storage_.remote_ = remote{
+            array_k, std::make_unique<detail::value_impl<array>>(std::move(a))};
     }
 
     inline value::value(double d)
@@ -417,7 +440,7 @@ namespace boost { namespace json {
         typename std::iterator_traits<decltype(f)>::iterator_category tag;
         if (detail::fast_distance_or_1000(f, l, tag) <= 14) {
             storage_.local_ = local{local_string_k};
-            std::copy(f, l, storage_.local_.bytes_.data()) = 0;
+            *std::copy(f, l, storage_.local_.bytes_.data()) = 0;
         } else {
             storage_.remote_ = remote{remote_string_k};
             storage_.remote_.ptr_ =
@@ -472,12 +495,30 @@ namespace boost { namespace json {
         return *this = value(o);
     }
 
+    inline value & value::operator=(object && o)
+    {
+        if (is_object()) {
+            get<object>(*this) = std::move(o);
+            return *this;
+        }
+        return *this = value(o);
+    }
+
     template<typename JSONArray>
     typename std::enable_if<detail::is_array<JSONArray>::value, value &>::type
     value::operator=(JSONArray const & a)
     {
         if (is_array()) {
             get<array>(*this).assign(a.begin(), a.end());
+            return *this;
+        }
+        return *this = value(a);
+    }
+
+    inline value & value::operator=(array && a)
+    {
+        if (is_array()) {
+            get<array>(*this) = std::move(a);
             return *this;
         }
         return *this = value(a);

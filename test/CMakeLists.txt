@@ -48,6 +48,12 @@ add_test_executable(parser_action_with_params)
 add_test_executable(parser_symbol_table)
 
 ##################################################
+# Parser tests
+##################################################
+
+add_test_executable(json_value)
+
+##################################################
 # Header-only build test
 ##################################################
 if (BUILD_HEADER_ONLY_TEST)

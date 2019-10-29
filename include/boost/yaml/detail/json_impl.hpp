@@ -18,6 +18,7 @@ namespace boost { namespace json { namespace detail {
         template<typename Iter>
         value_impl(Iter first, Iter last) : value_(first, last)
         {}
+        value_impl(object && o) : value_(std::move(o)) {}
 
         virtual std::unique_ptr<value_impl_base> copy_impl() const override
         {
@@ -47,6 +48,7 @@ namespace boost { namespace json { namespace detail {
         template<typename Iter>
         value_impl(Iter first, Iter last) : value_(first, last)
         {}
+        value_impl(array && a) : value_(std::move(a)) {}
 
         virtual std::unique_ptr<value_impl_base> copy_impl() const override
         {
