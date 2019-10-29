@@ -242,9 +242,8 @@ namespace boost { namespace parser {
         inline auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
-            return hana::transform(params, [&](auto const & x) {
-                return resolve(context, x);
-            });
+            return hana::transform(
+                params, [&](auto const & x) { return resolve(context, x); });
         }
 
         template<typename Context>
@@ -455,8 +454,7 @@ namespace boost { namespace parser {
 
         template<typename T>
         struct is_container : is_detected<insert_range_insert_begin_and_end, T>
-        {
-        };
+        {};
 
         template<typename T>
         using value_type = std::decay_t<decltype(*std::declval<T>().begin())>;
@@ -467,72 +465,57 @@ namespace boost { namespace parser {
                   bool,
                   (is_detected<insert_range_insert_begin_and_end, T>{} &&
                    std::is_same<detected_t<value_type, T>, U>{})>
-        {
-        };
+        {};
 
         template<typename T>
         struct is_hana_tuple : std::false_type
-        {
-        };
+        {};
 
         template<typename... T>
         struct is_hana_tuple<hana::tuple<T...>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_zero_plus_p : std::false_type
-        {
-        };
+        {};
         template<typename T>
         struct is_zero_plus_p<zero_plus_parser<T>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_or_p : std::false_type
-        {
-        };
+        {};
         template<typename T>
         struct is_or_p<or_parser<T>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_seq_p : std::false_type
-        {
-        };
+        {};
         template<typename T, typename U>
         struct is_seq_p<seq_parser<T, U>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_one_plus_p : std::false_type
-        {
-        };
+        {};
         template<typename T>
         struct is_one_plus_p<one_plus_parser<T>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_optional : std::false_type
-        {
-        };
+        {};
         template<typename T>
         struct is_optional<optional<T>> : std::true_type
-        {
-        };
+        {};
 
         template<typename T>
         struct is_variant : std::false_type
-        {
-        };
+        {};
         template<typename... T>
         struct is_variant<variant<T...>> : std::true_type
-        {
-        };
+        {};
 
         template<typename Callbacks, typename TagType>
         using overloaded_callback_1 =
@@ -540,8 +523,7 @@ namespace boost { namespace parser {
         template<typename Callbacks, typename TagType>
         struct has_overloaded_callback_1
             : is_detected<overloaded_callback_1, Callbacks, TagType>
-        {
-        };
+        {};
 
         template<typename Callbacks, typename TagType, typename ResultType>
         using overloaded_callback_2 = decltype(std::declval<Callbacks>()(
@@ -549,8 +531,7 @@ namespace boost { namespace parser {
         template<typename Callbacks, typename TagType, typename ResultType>
         struct has_overloaded_callback_2
             : is_detected<overloaded_callback_2, Callbacks, TagType, ResultType>
-        {
-        };
+        {};
 
 
 
@@ -2218,8 +2199,7 @@ namespace boost { namespace parser {
         using backtracking = BacktrackingTuple;
 
         constexpr seq_parser(ParserTuple parsers) :
-            parsers_(parsers),
-            in_apply_parser_(false)
+            parsers_(parsers), in_apply_parser_(false)
         {}
 
         template<
@@ -3340,16 +3320,16 @@ namespace boost { namespace parser {
 
     // Parser interface.
 
-    template<typename Parser, typename GlobalState>
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
     struct parser_interface
     {
         using parser_type = Parser;
 
         constexpr parser_interface() {}
         constexpr parser_interface(Parser parser) : parser_(parser) {}
-        constexpr parser_interface(Parser parser, GlobalState & globals) :
-            parser_(parser),
-            globals_(globals)
+        constexpr parser_interface(
+            Parser parser, GlobalState globals, ErrorHandler error_handler) :
+            parser_(parser), globals_(globals), error_handler_(error_handler)
         {}
 
         constexpr auto operator!() const noexcept
@@ -3531,15 +3511,27 @@ namespace boost { namespace parser {
 
         Parser parser_;
         GlobalState globals_;
+        ErrorHandler error_handler_;
     };
 
 
-    template<typename Parser, typename GlobalState>
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_globals(
-        parser_interface<Parser, detail::nope> const & parser,
+        parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
         GlobalState & globals)
     {
-        return parser_interface<Parser, GlobalState &>{parser.parser_, globals};
+        return parser_interface<Parser, GlobalState &, ErrorHandler>{
+            parser.parser_, globals, parser.error_handler_};
+    }
+
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    auto with_error_handler(
+        parser_interface<Parser, GlobalState, default_error_handler> const &
+            parser,
+        ErrorHandler & error_handler)
+    {
+        return parser_interface<Parser, GlobalState, ErrorHandler &>{
+            parser.parser_, parser.globals_, error_handler};
     }
 
 
@@ -4638,8 +4630,7 @@ namespace boost { namespace parser {
         template<typename Context>
         bool operator()(Context & context) const
         {
-            auto const switch_value =
-                detail::resolve(context, switch_value_);
+            auto const switch_value = detail::resolve(context, switch_value_);
             auto const value = detail::resolve(context, value_);
             return value == switch_value;
         }
@@ -4653,8 +4644,7 @@ namespace boost { namespace parser {
         switch_parser() {}
         switch_parser(SwitchValue switch_value) : switch_value_(switch_value) {}
         switch_parser(SwitchValue switch_value, OrParser or_parser) :
-            switch_value_(switch_value),
-            or_parser_(or_parser)
+            switch_value_(switch_value), or_parser_(or_parser)
         {}
 
         template<
@@ -4749,9 +4739,10 @@ namespace boost { namespace parser {
     }
 
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>>(char rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+        char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<true>(lit(rhs));
@@ -4760,9 +4751,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>>(char32_t rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+        char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<true>(lit(rhs));
@@ -4771,9 +4763,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>>(std::string_view rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+        std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<true>(lit(rhs));
@@ -4813,9 +4806,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>(char rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+        char rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<false>(lit(rhs));
@@ -4824,9 +4818,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>(char32_t rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+        char32_t rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<false>(lit(rhs));
@@ -4835,9 +4830,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator>(std::string_view rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+        std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return parser_.template append<false>(lit(rhs));
@@ -4877,9 +4873,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator|(char rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+        char rhs) const noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
@@ -4888,9 +4885,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator|(char32_t rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+        char32_t rhs) const noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
@@ -4899,9 +4897,10 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator|(std::string_view rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+        std::string_view rhs) const noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_.append(lit(rhs));
@@ -4941,23 +4940,26 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator-(char rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+        char rhs) const noexcept
     {
         return !lit(rhs) >> *this;
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator-(char32_t rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+        char32_t rhs) const noexcept
     {
         return !lit(rhs) >> *this;
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator-(std::string_view rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+        std::string_view rhs) const noexcept
     {
         return !lit(rhs) >> *this;
     }
@@ -4981,23 +4983,26 @@ namespace boost { namespace parser {
         return !rhs >> lit(str);
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator%(char rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+        char rhs) const noexcept
     {
         return *this % lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator%(char32_t rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+        char32_t rhs) const noexcept
     {
         return *this % lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState>
-    constexpr auto parser_interface<Parser, GlobalState>::
-    operator%(std::string_view rhs) const noexcept
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    constexpr auto
+    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+        std::string_view rhs) const noexcept
     {
         return *this % lit(rhs);
     }
@@ -5041,99 +5046,66 @@ namespace boost { namespace parser {
 
 namespace boost { namespace parser {
 
+    enum class trace { on, off };
+
     // Parse API.
 
-    template<
-        typename Iter,
-        typename Parser,
-        typename Attr,
-        typename ErrorHandler>
+    // TODO: These should take a parser_interface, not an unconstrained Parser
+    // type.
+    template<typename Iter, typename Parser, typename Attr>
     bool parse(
         Iter & first,
         Iter last,
         Parser const & parser,
-        ErrorHandler const & error_handler,
-        Attr & attr)
+        Attr & attr,
+        trace trace_mode = trace::off)
     {
-        return detail::parse_impl<false>(
-            first, last, parser, error_handler, attr);
-    }
-
-    template<typename Iter, typename Parser, typename Attr>
-    bool parse(Iter & first, Iter last, Parser const & parser, Attr & attr)
-    {
-        return parse(first, last, parser, default_error_handler{}, attr);
+        if (trace_mode == trace::on) {
+            return detail::parse_impl<true>(
+                first, last, parser, parser.error_handler_, attr);
+        } else {
+            return detail::parse_impl<false>(
+                first, last, parser, parser.error_handler_, attr);
+        }
     }
 
     template<typename Parser, typename Attr>
-    bool parse(std::string_view str, Parser const & parser, Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return parse(first, last, parser, default_error_handler{}, attr);
-    }
-
-    template<typename Parser, typename Attr, typename ErrorHandler>
     bool parse(
         std::string_view str,
         Parser const & parser,
-        ErrorHandler const & error_handler,
-        Attr & attr)
+        Attr & attr,
+        trace trace_mode = trace::off)
     {
         auto first = str.begin();
         auto const last = str.end();
-        return parse(first, last, parser, error_handler, attr);
-    }
-
-    template<typename Iter, typename Parser, typename ErrorHandler>
-    auto parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        ErrorHandler const & error_handler)
-    {
-        return detail::parse_impl<false>(first, last, parser, error_handler);
+        return parser::parse(first, last, parser, attr, trace_mode);
     }
 
     template<typename Iter, typename Parser>
-    auto parse(Iter & first, Iter last, Parser const & parser)
-    {
-        return parse(first, last, parser, default_error_handler{});
-    }
-
-    template<typename Parser>
-    auto parse(std::string_view str, Parser const & parser)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return parse(first, last, parser, default_error_handler{});
-    }
-
-    template<typename Parser, typename ErrorHandler>
     auto parse(
-        std::string_view str,
-        Parser const & parser,
-        ErrorHandler const & error_handler)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return parse(first, last, parser, error_handler);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool callback_parse(
         Iter & first,
         Iter last,
         Parser const & parser,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
+        trace trace_mode = trace::off)
     {
-        return detail::callback_parse_impl<false>(
-            first, last, parser, error_handler, callbacks);
+        if (trace_mode == trace::on) {
+            return detail::parse_impl<true>(
+                first, last, parser, parser.error_handler_);
+        } else {
+            return detail::parse_impl<false>(
+                first, last, parser, parser.error_handler_);
+        }
+    }
+
+    template<typename Parser>
+    auto parse(
+        std::string_view str,
+        Parser const & parser,
+        trace trace_mode = trace::off)
+    {
+        auto first = str.begin();
+        auto const last = str.end();
+        return parser::parse(first, last, parser, trace_mode);
     }
 
     template<typename Iter, typename Parser, typename Callbacks>
@@ -5141,52 +5113,28 @@ namespace boost { namespace parser {
         Iter & first,
         Iter last,
         Parser const & parser,
-        Callbacks const & callbacks)
+        Callbacks const & callbacks,
+        trace trace_mode = trace::off)
     {
-        return callback_parse(
-            first, last, parser, default_error_handler{}, callbacks);
+        if (trace_mode == trace::on) {
+            return detail::callback_parse_impl<true>(
+                first, last, parser, parser.error_handler_, callbacks);
+        } else {
+            return detail::callback_parse_impl<false>(
+                first, last, parser, parser.error_handler_, callbacks);
+        }
     }
 
     template<typename Parser, typename Callbacks>
     bool callback_parse(
         std::string_view str,
         Parser const & parser,
-        Callbacks const & callbacks)
+        Callbacks const & callbacks,
+        trace trace_mode = trace::off)
     {
         auto first = str.begin();
         auto const last = str.end();
-        return callback_parse(
-            first, last, parser, default_error_handler{}, callbacks);
-    }
-
-    template<typename Parser, typename ErrorHandler, typename Callbacks>
-    bool callback_parse(
-        std::string_view str,
-        Parser const & parser,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return callback_parse(first, last, parser, error_handler, callbacks);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename Attr,
-        typename ErrorHandler>
-    bool skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        return detail::skip_parse_impl<false>(
-            first, last, parser, skip, error_handler, attr);
+        return parser::callback_parse(first, last, parser, callbacks);
     }
 
     template<typename Iter, typename Parser, typename SkipParser, typename Attr>
@@ -5195,27 +5143,16 @@ namespace boost { namespace parser {
         Iter last,
         Parser const & parser,
         SkipParser const & skip,
-        Attr & attr)
+        Attr & attr,
+        trace trace_mode = trace::off)
     {
-        return skip_parse(
-            first, last, parser, skip, default_error_handler{}, attr);
-    }
-
-    template<
-        typename Parser,
-        typename SkipParser,
-        typename Attr,
-        typename ErrorHandler>
-    bool skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return skip_parse(first, last, parser, skip, error_handler, attr);
+        if (trace_mode == trace::on) {
+            return detail::skip_parse_impl<true>(
+                first, last, parser, skip, parser.error_handler_, attr);
+        } else {
+            return detail::skip_parse_impl<false>(
+                first, last, parser, skip, parser.error_handler_, attr);
+        }
     }
 
     template<typename Parser, typename SkipParser, typename Attr>
@@ -5223,106 +5160,63 @@ namespace boost { namespace parser {
         std::string_view str,
         Parser const & parser,
         SkipParser const & skip,
-        Attr & attr)
+        Attr & attr,
+        trace trace_mode = trace::off)
     {
         auto first = str.begin();
         auto const last = str.end();
-        return skip_parse(first, last, parser, skip, attr);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler>
-    auto skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler)
-    {
-        return detail::skip_parse_impl<false>(
-            first, last, parser, skip, error_handler);
+        return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
     }
 
     template<typename Iter, typename Parser, typename SkipParser>
     auto skip_parse(
-        Iter & first, Iter last, Parser const & parser, SkipParser const & skip)
-    {
-        return skip_parse(first, last, parser, skip, default_error_handler{});
-    }
-
-    template<typename Parser, typename SkipParser, typename ErrorHandler>
-    auto skip_parse(
-        std::string_view str,
+        Iter & first,
+        Iter last,
         Parser const & parser,
         SkipParser const & skip,
-        ErrorHandler const & error_handler)
+        trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
-        return skip_parse(first, last, parser, skip, error_handler);
+        if (trace_mode == trace::on) {
+            return detail::skip_parse_impl<true>(
+                first, last, parser, skip, parser.error_handler_);
+        } else {
+            return detail::skip_parse_impl<false>(
+                first, last, parser, skip, parser.error_handler_);
+        }
     }
 
     template<typename Parser, typename SkipParser>
     auto skip_parse(
-        std::string_view str, Parser const & parser, SkipParser const & skip)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return skip_parse(first, last, parser, skip, default_error_handler{});
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool callback_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        return detail::callback_skip_parse_impl<false>(
-            first, last, parser, skip, error_handler, callbacks);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename Callbacks>
-    bool callback_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        Callbacks const & callbacks)
-    {
-        return skip_parse(
-            first, last, parser, skip, default_error_handler{}, callbacks);
-    }
-
-    template<
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool callback_skip_parse(
         std::string_view str,
         Parser const & parser,
         SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
+        trace trace_mode = trace::off)
     {
         auto first = str.begin();
         auto const last = str.end();
-        return skip_parse(first, last, parser, skip, error_handler, callbacks);
+        return parser::skip_parse(first, last, parser, skip, trace_mode);
+    }
+
+    template<
+        typename Iter,
+        typename Parser,
+        typename SkipParser,
+        typename Callbacks>
+    bool callback_skip_parse(
+        Iter & first,
+        Iter last,
+        Parser const & parser,
+        SkipParser const & skip,
+        Callbacks const & callbacks,
+        trace trace_mode = trace::off)
+    {
+        if (trace_mode == trace::on) {
+            return detail::callback_skip_parse_impl<true>(
+                first, last, parser, skip, parser.error_handler_, callbacks);
+        } else {
+            return detail::callback_skip_parse_impl<false>(
+                first, last, parser, skip, parser.error_handler_, callbacks);
+        }
     }
 
     template<typename Parser, typename SkipParser, typename Callbacks>
@@ -5330,312 +5224,13 @@ namespace boost { namespace parser {
         std::string_view str,
         Parser const & parser,
         SkipParser const & skip,
-        Callbacks const & callbacks)
+        Callbacks const & callbacks,
+        trace trace_mode = trace::off)
     {
         auto first = str.begin();
         auto const last = str.end();
-        return skip_parse(
-            first, last, parser, skip, default_error_handler{}, callbacks);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename Attr,
-        typename ErrorHandler>
-    bool debug_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        return detail::parse_impl<true>(
-            first, last, parser, error_handler, attr);
-    }
-
-    template<typename Iter, typename Parser, typename Attr>
-    bool
-    debug_parse(Iter & first, Iter last, Parser const & parser, Attr & attr)
-    {
-        return debug_parse(first, last, parser, default_error_handler{}, attr);
-    }
-
-    template<typename Parser, typename Attr, typename ErrorHandler>
-    bool debug_parse(
-        std::string_view str,
-        Parser const & parser,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(first, last, parser, error_handler, attr);
-    }
-
-    template<typename Parser, typename Attr>
-    bool debug_parse(std::string_view str, Parser const & parser, Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(first, last, parser, default_error_handler{}, attr);
-    }
-
-    template<typename Iter, typename Parser, typename ErrorHandler>
-    auto debug_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        ErrorHandler const & error_handler)
-    {
-        return detail::parse_impl<true>(first, last, parser, error_handler);
-    }
-
-    template<typename Iter, typename Parser>
-    auto debug_parse(Iter & first, Iter last, Parser const & parser)
-    {
-        return debug_parse(first, last, parser, default_error_handler{});
-    }
-
-    template<typename Parser, typename ErrorHandler>
-    auto debug_parse(
-        std::string_view str,
-        Parser const & parser,
-        ErrorHandler const & error_handler)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(first, last, parser, error_handler);
-    }
-
-    template<typename Parser>
-    auto debug_parse(std::string_view str, Parser const & parser)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(first, last, parser, default_error_handler{});
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool debug_callback_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        return detail::callback_parse_impl<true>(
-            first, last, parser, error_handler, callbacks);
-    }
-
-    template<typename Iter, typename Parser, typename Callbacks>
-    bool debug_callback_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        Callbacks const & callbacks)
-    {
-        return debug_parse(
-            first, last, parser, default_error_handler{}, callbacks);
-    }
-
-    template<typename Parser, typename ErrorHandler, typename Callbacks>
-    bool debug_callback_parse(
-        std::string_view str,
-        Parser const & parser,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(first, last, parser, error_handler, callbacks);
-    }
-
-    template<typename Parser, typename Callbacks>
-    bool debug_callback_parse(
-        std::string_view str,
-        Parser const & parser,
-        Callbacks const & callbacks)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_parse(
-            first, last, parser, default_error_handler{}, callbacks);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename Attr,
-        typename ErrorHandler>
-    bool debug_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        return detail::skip_parse_impl<true>(
-            first, last, parser, skip, error_handler, attr);
-    }
-
-    template<typename Iter, typename Parser, typename SkipParser, typename Attr>
-    bool debug_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        Attr & attr)
-    {
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{}, attr);
-    }
-
-    template<
-        typename Parser,
-        typename SkipParser,
-        typename Attr,
-        typename ErrorHandler>
-    bool debug_skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(first, last, parser, skip, error_handler, attr);
-    }
-
-    template<typename Parser, typename SkipParser, typename Attr>
-    bool debug_skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        Attr & attr)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{}, attr);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler>
-    auto debug_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler)
-    {
-        return detail::skip_parse_impl<true>(
-            first, last, parser, skip, error_handler);
-    }
-
-    template<typename Iter, typename Parser, typename SkipParser>
-    auto debug_skip_parse(
-        Iter & first, Iter last, Parser const & parser, SkipParser const & skip)
-    {
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{});
-    }
-
-    template<typename Parser, typename SkipParser, typename ErrorHandler>
-    auto debug_skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(first, last, parser, skip, error_handler);
-    }
-
-    template<typename Parser, typename SkipParser>
-    auto debug_skip_parse(
-        std::string_view str, Parser const & parser, SkipParser const & skip)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{});
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool debug_callback_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        return detail::callback_skip_parse_impl<false>(
-            first, last, parser, skip, error_handler);
-    }
-
-    template<
-        typename Iter,
-        typename Parser,
-        typename SkipParser,
-        typename Callbacks>
-    bool debug_callback_skip_parse(
-        Iter & first,
-        Iter last,
-        Parser const & parser,
-        SkipParser const & skip,
-        Callbacks const & callbacks)
-    {
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{}, callbacks);
-    }
-
-    template<
-        typename Parser,
-        typename SkipParser,
-        typename ErrorHandler,
-        typename Callbacks>
-    bool debug_callback_skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        ErrorHandler const & error_handler,
-        Callbacks const & callbacks)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(
-            first, last, parser, skip, error_handler, callbacks);
-    }
-
-    template<typename Parser, typename SkipParser, typename Callbacks>
-    bool debug_callback_skip_parse(
-        std::string_view str,
-        Parser const & parser,
-        SkipParser const & skip,
-        Callbacks const & callbacks)
-    {
-        auto first = str.begin();
-        auto const last = str.end();
-        return debug_skip_parse(
-            first, last, parser, skip, default_error_handler{}, callbacks);
+        return parser::skip_parse(
+            first, last, parser, skip, callbacks, trace_mode);
     }
 
 }}

@@ -2272,18 +2272,17 @@ namespace boost { namespace yaml {
             max_recursion = INT_MAX;
 
         global_state<iter_t> globals{first, max_recursion};
-        // TODO: Install the error handler just like we install the globals,
-        // to reduce the parse API by 2x.
-        auto const parser = bp::with_globals(yaml_stream, globals);
-
         bp::callback_error_handler const error_handler(parse_error);
+        auto const parser = bp::with_error_handler(
+            bp::with_globals(yaml_stream, globals), error_handler);
+
         try {
             value val;
 #if 0
             bool const success =
                 bp::parse(first, last, parser, error_handler, val);
 #else
-            auto const success = bp::parse(first, last, parser, error_handler);
+            auto const success = bp::parse(first, last, parser);
 #endif
             if (!success || first != last)
                 return {};

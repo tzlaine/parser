@@ -184,13 +184,13 @@ namespace boost { namespace json {
             max_recursion = INT_MAX;
 
         global_state globals{0, max_recursion};
-        auto const parser = bp::with_globals(value_p, globals);
-
         bp::callback_error_handler const error_handler(parse_error);
+        auto const parser = bp::with_error_handler(
+            bp::with_globals(value_p, globals), error_handler);
+
         try {
             value val;
-            bool const success =
-                bp::skip_parse(first, last, parser, ws, error_handler, val);
+            bool const success = bp::skip_parse(first, last, parser, ws, val);
             if (!success || first != last)
                 return {};
             return optional<value>(std::move(val));

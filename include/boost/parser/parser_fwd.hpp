@@ -1,6 +1,8 @@
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
 
+#include <boost/parser/error_handling_fwd.hpp>
+
 #include <cstdint>
 
 
@@ -87,7 +89,10 @@ namespace boost { namespace parser {
     template<typename T>
     struct ref_parser;
 
-    template<typename Parser, typename GlobalState = detail::nope>
+    template<
+        typename Parser,
+        typename GlobalState = detail::nope,
+        typename ErrorHandler = default_error_handler>
     struct parser_interface;
 
     template<typename Predicate>
@@ -128,8 +133,6 @@ namespace boost { namespace parser {
 
     template<typename SwitchValue, typename OrParser = detail::nope>
     struct switch_parser;
-
-    enum class error_handler_result { fail, rethrow };
 
 }}
 

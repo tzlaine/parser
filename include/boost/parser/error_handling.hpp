@@ -1,6 +1,7 @@
 #ifndef BOOST_PARSER_ERROR_HANDLING_HPP
 #define BOOST_PARSER_ERROR_HANDLING_HPP
 
+#include <boost/parser/error_handling_fwd.hpp>
 #include <boost/parser/detail/printing.hpp>
 
 #include <boost/text/utf8.hpp>
@@ -23,31 +24,6 @@ namespace boost { namespace parser {
         constexpr int eol_cp_mask =
             0x000a | 0x000b | 0x000c | 0x000d | 0x0085 | 0x2028 | 0x2029;
     }
-
-
-
-    // Contains an iterator to the point of failure, and the name of the
-    // failed parser or rule in what().
-    template<typename Iter>
-    struct parse_error : std::runtime_error
-    {
-        parse_error(Iter it, std::string const & msg) :
-            runtime_error(msg),
-            iter(it)
-        {}
-
-        Iter iter;
-    };
-
-
-
-    template<typename Iter>
-    struct line_position
-    {
-        Iter line_start;
-        int64_t line_number;
-        int64_t column_number;
-    };
 
     template<typename Iter>
     line_position<Iter> find_line_position(Iter first, Iter it)
@@ -92,8 +68,8 @@ namespace boost { namespace parser {
         Iter it,
         Iter last,
         std::string_view message,
-        int64_t preferred_max_line_length = 80,
-        int64_t max_after_caret = 40)
+        int64_t preferred_max_line_length,
+        int64_t max_after_caret)
     {
         if (!filename.empty())
             os << filename << ':';
@@ -134,8 +110,8 @@ namespace boost { namespace parser {
         Iter first,
         Iter last,
         parse_error<Iter> const & e,
-        int64_t preferred_max_line_length = 80,
-        int64_t max_after_caret = 40)
+        int64_t preferred_max_line_length,
+        int64_t max_after_caret)
     {
         std::string message = "error: Expected ";
         message += e.what();
@@ -149,31 +125,6 @@ namespace boost { namespace parser {
             preferred_max_line_length,
             max_after_caret);
     }
-
-    struct default_error_handler
-    {
-        default_error_handler() : os_(std::cerr) {}
-        default_error_handler(std::string_view filename) :
-            filename_(filename),
-            os_(std::cerr)
-        {}
-        default_error_handler(std::string_view filename, std::ostream & os) :
-            filename_(filename),
-            os_(os)
-        {}
-
-        template<typename Iter>
-        error_handler_result
-        operator()(Iter first, Iter last, parse_error<Iter> const & e) const
-        {
-            write_formatted_expectation_failure_error_message(
-                os_, filename_, first, last, e);
-            return error_handler_result::fail;
-        }
-
-        std::string_view filename_;
-        std::ostream & os_;
-    };
 
     struct callback_error_handler
     {

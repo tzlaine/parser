@@ -1358,8 +1358,8 @@ TEST(parser, combined_seq_and_or)
         {
             std::string str = "abz";
             std::string chars;
-            EXPECT_ANY_THROW(
-                parse(str, parser, rethrow_error_handler{}, chars));
+            rethrow_error_handler eh;
+            EXPECT_ANY_THROW(parse(str, with_error_handler(parser, eh), chars));
         }
 
         {
@@ -1371,21 +1371,15 @@ TEST(parser, combined_seq_and_or)
         {
             std::string str = "abz";
             std::string chars;
-            EXPECT_TRUE(!parse(
-                str,
-                parser,
-                default_error_handler("simple_parser.cpp"),
-                chars));
+            default_error_handler eh("simple_parser.cpp");
+            EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
         }
 
         {
             std::string str = "ab";
             std::string chars;
-            EXPECT_TRUE(!parse(
-                str,
-                parser,
-                default_error_handler("simple_parser.cpp"),
-                chars));
+            default_error_handler eh("simple_parser.cpp");
+            EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
         }
     }
 
@@ -1409,7 +1403,7 @@ TEST(parser, combined_seq_and_or)
         {
             std::string str = "xyz";
             std::string chars;
-            EXPECT_TRUE(debug_parse(str, parser, chars));
+            EXPECT_TRUE(parse(str, parser, chars, trace::on));
             EXPECT_EQ(chars, "xyz");
         }
     }
