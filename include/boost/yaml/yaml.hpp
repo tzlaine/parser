@@ -159,6 +159,15 @@ namespace boost { namespace yaml {
         template<typename T>
         bool is() const noexcept
         {
+            switch (storage_.local_.kind_) {
+            case value::null_k: return std::is_same<T, null_t>::value;
+            case value::boolean_k: return std::is_same<T, bool>::value;
+            case value::int_k: return std::is_same<T, int>::value;
+            case value::double_k: return std::is_same<T, double>::value;
+            case value::local_string_k:
+                return std::is_same<T, std::string>::value;
+            default: break;
+            }
             return storage_.remote_.ptr_->type_id() == typeindex::type_id<T>();
         }
 

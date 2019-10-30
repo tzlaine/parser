@@ -68,6 +68,15 @@ namespace boost { namespace yaml {
 
         explicit operator bool() const { return tag_ != "" || anchor_ != ""; }
 
+        bool operator==(properties const & rhs) const noexcept
+        {
+            return tag_ == rhs.tag_ && anchor_ == rhs.anchor_;
+        }
+        bool operator!=(properties const & rhs) const noexcept
+        {
+            return !(*this == rhs);
+        }
+
         std::string tag_;
         std::string anchor_;
     };

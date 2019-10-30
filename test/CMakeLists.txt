@@ -48,10 +48,11 @@ add_test_executable(parser_action_with_params)
 add_test_executable(parser_symbol_table)
 
 ##################################################
-# Parser tests
+# YAML/JSON datA type tests
 ##################################################
 
 add_test_executable(json_value)
+add_test_executable(yaml_value)
 
 ##################################################
 # Header-only build test
