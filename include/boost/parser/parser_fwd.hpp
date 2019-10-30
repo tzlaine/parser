@@ -15,7 +15,8 @@ namespace boost { namespace parser {
         enum class flags : unsigned int {
             gen_attrs = 1 << 0,
             use_skip = 1 << 1,
-            trace = 1 << 2
+            trace = 1 << 2,
+            in_apply_parser = 1 << 3
         };
 
         // Built-in tags for use with the context.

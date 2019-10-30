@@ -1155,6 +1155,17 @@ namespace boost { namespace yaml {
         std::string prefix_;
         any position_;
         bool default_;
+
+        bool operator==(tag const & rhs) const noexcept
+        {
+            return prefix_ == rhs.prefix_ && default_ == rhs.default_ &&
+                   position_.type() == rhs.position_.type();
+        }
+
+        bool operator!=(tag const & rhs) const noexcept
+        {
+            return !(*this == rhs);
+        }
     };
 
     bp::symbols<tag> const tags = {
@@ -2272,7 +2283,7 @@ namespace boost { namespace yaml {
             max_recursion = INT_MAX;
 
         global_state<iter_t> globals{first, max_recursion};
-        bp::callback_error_handler const error_handler(parse_error);
+        bp::callback_error_handler error_handler(parse_error);
         auto const parser = bp::with_error_handler(
             bp::with_globals(yaml_stream, globals), error_handler);
 

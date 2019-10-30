@@ -5,11 +5,11 @@
 #include <boost/hana/tuple.hpp>
 
 #include <functional>
+#include <memory>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
-
-#include <memory>
 
 
 namespace boost { namespace yaml {
@@ -33,13 +33,13 @@ namespace boost { namespace yaml {
     struct value;
 
     enum class value_kind {
-        map,
-        seq,
-        double_,
-        int_,
-        string,
-        boolean,
         null,
+        boolean,
+        int_,
+        double_,
+        string,
+        seq,
+        map,
         alias,
         property_node,
         user_defined
@@ -76,9 +76,9 @@ namespace boost { namespace yaml {
     using property_node = std::pair<properties, value>;
 
     template<typename T>
-    T const & get(value const & v) noexcept;
+    decltype(auto) get(value const & v) noexcept;
     template<typename T>
-    T & get(value & v) noexcept;
+    decltype(auto) get(value & v) noexcept;
 
     std::size_t hash_append(std::size_t seed, value const & v);
     std::size_t hash_append(std::size_t seed, seq const & v);

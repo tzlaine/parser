@@ -184,7 +184,7 @@ namespace boost { namespace json {
             max_recursion = INT_MAX;
 
         global_state globals{0, max_recursion};
-        bp::callback_error_handler const error_handler(parse_error);
+        bp::callback_error_handler error_handler(parse_error);
         auto const parser = bp::with_error_handler(
             bp::with_globals(value_p, globals), error_handler);
 

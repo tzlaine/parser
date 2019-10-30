@@ -67,15 +67,14 @@ namespace boost { namespace parser {
         error_handler_result
         operator()(Iter first, Iter last, parse_error<Iter> const & e) const
         {
-            if (!os_)
-                os_ = &std::cout;
+            std::ostream & os = os_ ? *os_ : std::cout;
             write_formatted_expectation_failure_error_message(
-                *os_, filename_, first, last, e);
+                os, filename_, first, last, e);
             return error_handler_result::fail;
         }
 
         std::string_view filename_;
-        mutable std::ostream * os_;
+        std::ostream * os_;
     };
 
 }}

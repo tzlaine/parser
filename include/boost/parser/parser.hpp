@@ -785,6 +785,10 @@ namespace boost { namespace parser {
         {
             return flags(uint32_t(f) & ~uint32_t(flags::trace));
         }
+        constexpr inline flags set_in_apply_parser(flags f)
+        {
+            return flags(uint32_t(f) | uint32_t(flags::in_apply_parser));
+        }
         constexpr inline bool gen_attrs(flags f)
         {
             return (uint32_t(f) & uint32_t(flags::gen_attrs)) ==
@@ -794,6 +798,11 @@ namespace boost { namespace parser {
         {
             return (uint32_t(f) & uint32_t(flags::use_skip)) ==
                    uint32_t(flags::use_skip);
+        }
+        constexpr inline bool in_apply_parser(flags f)
+        {
+            return (uint32_t(f) & uint32_t(flags::in_apply_parser)) ==
+                   uint32_t(flags::in_apply_parser);
         }
 
         struct null_parser
@@ -1710,8 +1719,7 @@ namespace boost { namespace parser {
             parser_(parser),
             delimiter_parser_(delimiter_parser),
             min_(_min),
-            max_(_max),
-            in_apply_parser_(false)
+            max_(_max)
         {}
 
         template<
@@ -1756,7 +1764,7 @@ namespace boost { namespace parser {
                 first,
                 last,
                 context,
-                in_apply_parser_ ? disable_trace(flags) : flags,
+                in_apply_parser(flags) ? disable_trace(flags) : flags,
                 retval);
 
             using attr_t = decltype(parser_.call(
@@ -1764,7 +1772,6 @@ namespace boost { namespace parser {
             if constexpr (
                 detail::is_variant<Attribute>{} ||
                 detail::is_optional<Attribute>{}) {
-                in_apply_parser_ = true;
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -1772,10 +1779,9 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip,
-                    flags,
+                    set_in_apply_parser(flags),
                     success,
                     retval);
-                in_apply_parser_ = false;
             } else if constexpr (detail::is_container<attr_t>{}) {
                 int64_t count = 0;
 
@@ -1925,7 +1931,6 @@ namespace boost { namespace parser {
         DelimiterParser delimiter_parser_;
         MinType min_;
         MaxType max_;
-        mutable bool in_apply_parser_;
     };
 
     template<typename Parser>
@@ -2198,9 +2203,7 @@ namespace boost { namespace parser {
     {
         using backtracking = BacktrackingTuple;
 
-        constexpr seq_parser(ParserTuple parsers) :
-            parsers_(parsers), in_apply_parser_(false)
-        {}
+        constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
 
         template<
             bool UseCallbacks,
@@ -2397,7 +2400,7 @@ namespace boost { namespace parser {
                 first_,
                 last,
                 context,
-                in_apply_parser_ ? disable_trace(flags) : flags,
+                in_apply_parser(flags) ? disable_trace(flags) : flags,
                 retval);
 
             std::decay_t<decltype(hana::second(make_temp_result(
@@ -2447,7 +2450,7 @@ namespace boost { namespace parser {
                 first_,
                 last,
                 context,
-                in_apply_parser_ ? disable_trace(flags) : flags,
+                in_apply_parser(flags) ? disable_trace(flags) : flags,
                 retval);
 
             Iter first = first_;
@@ -2456,7 +2459,6 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success)))>
                 indices;
             if constexpr (detail::is_variant<Attribute>{}) {
-                in_apply_parser_ = true;
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -2464,10 +2466,9 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip,
-                    flags,
+                    set_in_apply_parser(flags),
                     success,
                     retval);
-                in_apply_parser_ = false;
             } else if constexpr (detail::is_optional<Attribute>{}) {
                 typename Attribute::value_type attr;
                 call(
@@ -2624,7 +2625,6 @@ namespace boost { namespace parser {
         constexpr auto append(parser_interface<Parser> parser) const noexcept;
 
         ParserTuple parsers_;
-        mutable bool in_apply_parser_;
     };
 
     // Wraps a parser, applying a semantic action to it.

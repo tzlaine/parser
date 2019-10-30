@@ -24,6 +24,7 @@ namespace boost { namespace json {
     using array = std::vector<value>;
     using object = std::unordered_map<std::string, value>;
 
+    // TODO: Make get<>() more like the one YAML uses.
     namespace detail {
         template<typename T, bool Const>
         struct get_result

@@ -37,13 +37,6 @@ namespace boost { namespace yaml { namespace detail {
     template<typename T>
     struct value_impl;
 
-    // TODO: Use this, and put objects (unordered_maps) on the heap, in
-    // the implementation of value_impl below.
-    constexpr int value_buffer_size()
-    {
-        return (std::max)(sizeof(std::vector<int>), sizeof(std::string));
-    }
-
     template<typename T>
     struct is_map
         : is_range_of<T, std::pair<value, value>, std::pair<value const, value>>
