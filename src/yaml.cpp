@@ -2353,7 +2353,6 @@ namespace boost { namespace yaml {
         diagnostic_function errors_callback,
         int max_recursion)
     {
-#if 1
         optional<std::vector<value>> retval;
 
         auto const range = text::make_to_utf32_range(str);
@@ -2443,45 +2442,6 @@ namespace boost { namespace yaml {
             }
         }
         return retval;
-#else
-        auto const range = text::make_to_utf32_range(str);
-        using iter_t = decltype(range.begin());
-        auto first = range.begin();
-        auto const last = range.end();
-
-        if (max_recursion <= 0)
-            max_recursion = INT_MAX;
-
-        global_state<iter_t> globals{first, max_recursion};
-        bp::callback_error_handler error_handler(errors_callback);
-        auto const parser = bp::with_error_handler(
-            bp::with_globals(yaml_stream, globals), error_handler);
-
-        try {
-            value val;
-#if 0
-            bool const success =
-                bp::parse(first, last, parser, error_handler, val);
-#else
-            auto const success = bp::parse(first, last, parser);
-#endif
-            if (!success || first != last)
-                return {};
-            return optional<value>(std::move(val));
-        } catch (excessive_nesting<iter_t> const & e) {
-            if (errors_callback) {
-                std::string const message = "error: Exceeded maximum number (" +
-                                            std::to_string(max_recursion) +
-                                            ") of open arrays and/or objects";
-                std::stringstream ss;
-                bp::write_formatted_message(
-                    ss, "", range.begin(), e.iter, last, message);
-                errors_callback(ss.str());
-            }
-        }
-
-        return {};
-#endif
     }
 
 }}
