@@ -6,7 +6,6 @@
 #include <boost/parser/detail/printing.hpp>
 
 #include <boost/any.hpp>
-#include <boost/variant.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -18,6 +17,7 @@
 
 #include <map>
 #include <type_traits>
+#include <variant>
 #include <vector>
 
 
@@ -514,7 +514,7 @@ namespace boost { namespace parser {
         struct is_variant : std::false_type
         {};
         template<typename... T>
-        struct is_variant<variant<T...>> : std::true_type
+        struct is_variant<std::variant<T...>> : std::true_type
         {};
 
         template<typename Callbacks, typename TagType>
@@ -544,14 +544,14 @@ namespace boost { namespace parser {
         struct hana_tuple_to_or_type<
             hana::pair<hana::tuple<T...>, std::true_type>>
         {
-            using type = optional<variant<T...>>;
+            using type = optional<std::variant<T...>>;
         };
 
         template<typename... T>
         struct hana_tuple_to_or_type<
             hana::pair<hana::tuple<T...>, std::false_type>>
         {
-            using type = variant<T...>;
+            using type = std::variant<T...>;
         };
 
         template<typename T>
@@ -1096,17 +1096,17 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<variant<T...>> & retval)
+                optional<std::variant<T...>> & retval)
             {
                 Attr attr = parser.call(
                     use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    assign(retval, variant<T...>(std::move(attr)));
+                    assign(retval, std::variant<T...>(std::move(attr)));
             }
         };
 
         template<typename... T>
-        struct apply_opt_var_parser_impl<optional<variant<T...>>>
+        struct apply_opt_var_parser_impl<optional<std::variant<T...>>>
         {
             template<
                 typename Parser,
@@ -1124,7 +1124,7 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<variant<U...>> & retval)
+                optional<std::variant<U...>> & retval)
             {
                 parser.call(
                     use_cbs,
@@ -1157,7 +1157,7 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<variant<T...>> & retval)
+                optional<std::variant<T...>> & retval)
             {
                 parser.call(
                     use_cbs, first, last, context, skip, flags, success);
@@ -1182,7 +1182,7 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             flags flags,
             bool & success,
-            optional<variant<T...>> & retval)
+            optional<std::variant<T...>> & retval)
         {
             using attr_t = decltype(parser.call(
                 use_cbs, first, last, context, skip, flags, success));
@@ -1198,7 +1198,8 @@ namespace boost { namespace parser {
                 success,
                 retval);
 #else
-            if constexpr (std::is_same<attr_t, optional<variant<T...>>>{}) {
+            if constexpr (std::
+                              is_same<attr_t, optional<std::variant<T...>>>{}) {
                 parser.call(
                     use_cbs,
                     first,
@@ -1215,7 +1216,7 @@ namespace boost { namespace parser {
                 auto attr = parser.call(
                     use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    assign(retval, variant<T...>(std::move(attr)));
+                    assign(retval, std::variant<T...>(std::move(attr)));
             }
 #endif
         }
@@ -1236,7 +1237,7 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             flags flags,
             bool & success,
-            variant<T...> & retval)
+            std::variant<T...> & retval)
         {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);

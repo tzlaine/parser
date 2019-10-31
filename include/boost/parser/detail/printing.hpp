@@ -6,7 +6,6 @@
 
 #include <boost/hana.hpp>
 #include <boost/optional.hpp>
-#include <boost/variant.hpp>
 #include <boost/text/utf8.hpp>
 #include <boost/text/utility.hpp>
 
@@ -14,6 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <variant>
 
 
 namespace boost { namespace parser { namespace detail {
@@ -569,7 +569,7 @@ namespace boost { namespace parser { namespace detail {
     inline void print(std::ostream & os, hana::tuple<T...> const & attr);
 
     template<typename... T>
-    inline void print(std::ostream & os, variant<T...> const & attr);
+    inline void print(std::ostream & os, std::variant<T...> const & attr);
 
     template<typename T>
     inline void print(std::ostream & os, optional<T> const & attr);
@@ -592,7 +592,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename... T>
-    inline void print(std::ostream & os, variant<T...> const & attr)
+    inline void print(std::ostream & os, std::variant<T...> const & attr)
     {
         os << "<<variant>>";
     }
