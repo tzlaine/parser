@@ -226,11 +226,11 @@ namespace boost { namespace json {
 
     static_assert(sizeof(value) == 16);
 
-    using error_function = std::function<void(std::string const &)>;
+    using diagnostic_function = std::function<void(std::string const &)>;
 
     optional<value> parse(
         string_view str,
-        error_function parse_error = error_function(),
+        diagnostic_function errors_callback = diagnostic_function(),
         int max_recursion = 512);
 
 }}

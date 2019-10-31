@@ -172,8 +172,8 @@ namespace boost { namespace json {
 
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
-    optional<value>
-    parse(string_view str, error_function parse_error, int max_recursion)
+    optional<value> parse(
+        string_view str, diagnostic_function errors_callback, int max_recursion)
     {
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
@@ -184,7 +184,7 @@ namespace boost { namespace json {
             max_recursion = INT_MAX;
 
         global_state globals{0, max_recursion};
-        bp::callback_error_handler error_handler(parse_error);
+        bp::callback_error_handler error_handler(errors_callback);
         auto const parser = bp::with_error_handler(
             bp::with_globals(value_p, globals), error_handler);
 
@@ -195,14 +195,14 @@ namespace boost { namespace json {
                 return {};
             return optional<value>(std::move(val));
         } catch (yaml::excessive_nesting<iter_t> const & e) {
-            if (parse_error) {
+            if (errors_callback) {
                 std::string const message = "error: Exceeded maximum number (" +
                                             std::to_string(max_recursion) +
                                             ") of open arrays and/or objects";
                 std::stringstream ss;
                 bp::write_formatted_message(
                     ss, "", range.begin(), e.iter, last, message);
-                parse_error(ss.str());
+                errors_callback(ss.str());
             }
         }
 

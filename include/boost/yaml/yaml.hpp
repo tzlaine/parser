@@ -308,11 +308,11 @@ namespace boost { namespace yaml {
         friend std::size_t hash_append(std::size_t seed, value const & v);
     };
 
-    using error_function = std::function<void(std::string const &)>;
+    using diagnostic_function = std::function<void(std::string const &)>;
 
-    optional<value> parse(
+    optional<std::vector<value>> parse(
         string_view str,
-        error_function parse_error = error_function(),
+        diagnostic_function errors_callback = diagnostic_function(),
         int max_recursion = 512);
 
 }}

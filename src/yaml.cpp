@@ -2268,12 +2268,182 @@ namespace boost { namespace yaml {
         any_document,
         yaml_stream);
 
+    namespace detail {
+        inline encoding read_bom_8(char const * buf, int & size)
+        {
+            auto retval = encoding::utf8;
+
+            /*   */
+            if (size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
+                buf[2] == '\xfe' && buf[3] == '\xff') {
+                size = 4;
+                retval = encoding::utf32_be;
+            } else if (
+                size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
+                buf[2] == '\x00' /* anything */) {
+                size = 4;
+                retval = encoding::utf32_be;
+            } else if (
+                size == 4 && buf[0] == '\xff' && buf[1] == '\xfe' &&
+                buf[2] == '\x00' && buf[3] == '\x00') {
+                size = 4;
+                retval = encoding::utf32_le;
+            } else if (
+                size == 4 && /* anything */ buf[1] == '\x00' &&
+                buf[2] == '\x00' && buf[3] == '\x00') {
+                size = 4;
+                retval = encoding::utf32_le;
+            } else if (size >= 2 && buf[0] == '\xfe' && buf[1] == '\xff') {
+                size = 2;
+                retval = encoding::utf16_be;
+            } else if (size >= 2 && buf[0] == '\x00' /* anything */) {
+                size = 2;
+                retval = encoding::utf16_be;
+            } else if (size >= 2 && buf[0] == '\xff' && buf[1] == '\xfe') {
+                size = 2;
+                retval = encoding::utf16_le;
+            } else if (size >= 2 && /* anything */ buf[1] == '\x00') {
+                size = 2;
+                retval = encoding::utf16_le;
+            } else if (
+                size >= 3 && buf[0] == '\xef' && buf[1] == '\xbb' &&
+                buf[2] == '\xbf') {
+                size = 3;
+                retval = encoding::utf8;
+            } else {
+                size = 0;
+            }
+
+            return retval;
+        }
+
+        template<typename ErrorFn>
+        bool check_encoding(encoding encoding, ErrorFn const & error_fn)
+        {
+            if (encoding != encoding::utf8) {
+                std::stringstream oss;
+                oss << "BOM for encoding " << encoding
+                    << " was encountered in the stream, but only "
+                    << encoding::utf8 << " encoding is supported.\n";
+                error_fn(oss.str());
+                return false;
+            }
+            return true;
+        }
+
+        encoding read_bom(
+            text::utf8::to_utf32_iterator<char const *> & cp_first,
+            text::utf8::to_utf32_iterator<char const *> cp_last)
+        {
+            char const * first = cp_first.base();
+            char const * last = cp_last.base();
+            int size = std::min<int>(last - first, 4);
+            auto const retval = detail::read_bom_8(first, size);
+            first += size;
+            cp_first = text::utf8::make_to_utf32_iterator(
+                cp_first.base(), first, last);
+            return retval;
+        }
+    }
 
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
-    optional<value> parse(
-        string_view const & str, error_function parse_error, int max_recursion)
+    optional<std::vector<value>> parse(
+        string_view const & str,
+        diagnostic_function errors_callback,
+        int max_recursion)
     {
+#if 1
+        optional<std::vector<value>> retval;
+
+        auto const range = text::make_to_utf32_range(str);
+        using iter_t = decltype(range.begin());
+        auto first = range.begin();
+        auto const last = range.end();
+
+        if (max_recursion <= 0)
+            max_recursion = INT_MAX;
+
+        try {
+            auto const first_encoding = detail::read_bom(first, last);
+            auto const encoding_ok =
+                detail::check_encoding(first_encoding, errors_callback);
+            if (!encoding_ok)
+                return retval;
+
+            global_state<iter_t> globals{first, max_recursion};
+            bp::callback_error_handler error_handler(errors_callback);
+            auto const parser = bp::with_error_handler(
+                bp::with_globals(yaml_stream, globals), error_handler);
+
+            std::vector<value> documents;
+            std::vector<value> temp_documents;
+            bool success = true;
+            do {
+                auto initial = first;
+                bool success = bp::parse(first, last, parser, temp_documents);
+
+                if (!success || first == initial)
+                    break;
+
+                auto const prev_size = documents.size();
+                documents.resize(prev_size + temp_documents.size());
+                std::move(
+                    temp_documents.begin(),
+                    temp_documents.end(),
+                    documents.begin() + prev_size);
+                temp_documents.clear();
+
+                bool doc_boundary = bp::parse(
+                    first, last, bp::with_globals(+document_suffix, globals));
+
+                auto const encoding = detail::read_bom(first, last);
+                auto const encoding_ok =
+                    detail::check_encoding(encoding, errors_callback);
+
+                if (!encoding_ok)
+                    success = false;
+
+                if (!doc_boundary) {
+                    doc_boundary = bp::parse(first, last, &bp::lit("---"));
+                }
+
+                // If there's not a ... or --- separator, don't keep reading
+                // documents.  However, this is not an error by itself.
+                if (!doc_boundary)
+                    break;
+            } while (success);
+
+            if (success) {
+                success = bp::parse(first, last, end_of_input);
+
+                if (!success) {
+                    error_handler(
+                        first,
+                        last,
+                        bp::parse_error<iter_t>(
+                            first,
+                            "Expected end of input, next map element, or next "
+                            "seq "
+                            "element here:\n"));
+                }
+            }
+
+            if (success)
+                retval = std::move(documents);
+        } catch (excessive_nesting<iter_t> const & e) {
+            if (errors_callback) {
+                std::string const message = "error: Exceeded maximum number (" +
+                                            std::to_string(max_recursion) +
+                                            ") of open arrays and/or objects";
+                std::stringstream ss;
+                bp::write_formatted_message(
+                    ss, "", range.begin(), e.iter, last, message);
+                errors_callback(ss.str());
+            }
+        }
+        return retval;
+#else
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
@@ -2283,7 +2453,7 @@ namespace boost { namespace yaml {
             max_recursion = INT_MAX;
 
         global_state<iter_t> globals{first, max_recursion};
-        bp::callback_error_handler error_handler(parse_error);
+        bp::callback_error_handler error_handler(errors_callback);
         auto const parser = bp::with_error_handler(
             bp::with_globals(yaml_stream, globals), error_handler);
 
@@ -2299,18 +2469,19 @@ namespace boost { namespace yaml {
                 return {};
             return optional<value>(std::move(val));
         } catch (excessive_nesting<iter_t> const & e) {
-            if (parse_error) {
+            if (errors_callback) {
                 std::string const message = "error: Exceeded maximum number (" +
                                             std::to_string(max_recursion) +
                                             ") of open arrays and/or objects";
                 std::stringstream ss;
                 bp::write_formatted_message(
                     ss, "", range.begin(), e.iter, last, message);
-                parse_error(ss.str());
+                errors_callback(ss.str());
             }
         }
 
         return {};
+#endif
     }
 
 }}
