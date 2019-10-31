@@ -6,6 +6,7 @@
 
 #include <boost/utility/string_view.hpp>
 
+#include <functional>
 #include <memory>
 #include <optional>
 
