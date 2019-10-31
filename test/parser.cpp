@@ -124,15 +124,15 @@ TEST(parser, basic)
     }
     {
         std::string str = "a";
-        boost::optional<char> c;
+        std::optional<char> c;
         EXPECT_TRUE(parse(str, parser_5, c));
         EXPECT_EQ(c, 'a');
     }
     {
         std::string str = "z";
-        boost::optional<char> c;
+        std::optional<char> c;
         EXPECT_TRUE(parse(str, parser_5, c));
-        EXPECT_EQ(c, boost::none);
+        EXPECT_EQ(c, std::nullopt);
     }
 }
 
@@ -526,7 +526,7 @@ TEST(parser, star_as_string_or_vector)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "");
             }
@@ -538,7 +538,7 @@ TEST(parser, star_as_string_or_vector)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "");
             }
@@ -550,7 +550,7 @@ TEST(parser, star_as_string_or_vector)
             EXPECT_EQ(chars, "zs");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "zs");
             }
@@ -562,7 +562,7 @@ TEST(parser, star_as_string_or_vector)
             EXPECT_EQ(chars, "zszs");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "zszs");
             }
@@ -679,7 +679,7 @@ TEST(parser, repeat)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -690,7 +690,7 @@ TEST(parser, repeat)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -701,7 +701,7 @@ TEST(parser, repeat)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -712,7 +712,7 @@ TEST(parser, repeat)
             EXPECT_EQ(chars, "zszs");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "zszs");
             }
@@ -752,25 +752,25 @@ TEST(parser, raw)
         }
         {
             std::string str = "";
-            boost::optional<range_t> result = parse(str, parser);
+            std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(*result, range_t(&*str.begin(), &*str.begin()));
         }
         {
             std::string str = "z";
-            boost::optional<range_t> result = parse(str, parser);
+            std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(*result, range_t(&*str.begin(), &*str.begin()));
         }
         {
             std::string str = "zs";
-            boost::optional<range_t> result = parse(str, parser);
+            std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(*result, range_t(&*str.begin(), &*str.end()));
         }
         {
             std::string str = "zszs";
-            boost::optional<range_t> result = parse(str, parser);
+            std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(*result, range_t(&*str.begin(), &*str.end()));
         }
@@ -789,7 +789,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -800,7 +800,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -811,7 +811,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -822,7 +822,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(!chars);
             }
         }
@@ -833,7 +833,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "yay");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -845,7 +845,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "yay");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -857,7 +857,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "yay");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -869,7 +869,7 @@ TEST(parser, delimited)
             EXPECT_EQ(chars, "yayyayyay");
 
             {
-                boost::optional<std::string> const chars = parse(str, parser);
+                std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yayyayyay");
             }
@@ -887,7 +887,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -899,7 +899,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "z";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -911,7 +911,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = ",";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -923,7 +923,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = " ,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -935,7 +935,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = ", yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -947,7 +947,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = ",yay ";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -960,7 +960,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = " , yay ";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
@@ -972,7 +972,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
@@ -985,7 +985,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yayyay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
@@ -998,7 +998,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yay,";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
@@ -1011,7 +1011,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yay,yay,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1024,7 +1024,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = " yay,yay,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1038,7 +1038,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "yay ,yay,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1051,7 +1051,7 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yay, yay,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1065,7 +1065,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "yay,yay ,yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1079,7 +1079,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "yay,yay, yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1093,7 +1093,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "yay,yay,yay ";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1107,7 +1107,7 @@ TEST(parser, delimited)
 
         {
             std::string str = " yay , yay , yay ";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1121,7 +1121,7 @@ TEST(parser, delimited)
 
         {
             std::string str = "yay, yay, yay";
-            boost::optional<std::string> const chars =
+            std::optional<std::string> const chars =
                 skip_parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
@@ -1142,7 +1142,7 @@ TEST(parser, lexeme)
 
             {
                 std::string str = "yay, yay, yay";
-                boost::optional<std::string> const chars =
+                std::optional<std::string> const chars =
                     skip_parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
@@ -1156,7 +1156,7 @@ TEST(parser, lexeme)
 
             {
                 std::string str = " yay, yay, yay";
-                boost::optional<std::string> const chars =
+                std::optional<std::string> const chars =
                     skip_parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
@@ -1175,7 +1175,7 @@ TEST(parser, lexeme)
 
             {
                 std::string str = "yay, yay, yay";
-                boost::optional<std::string> const chars =
+                std::optional<std::string> const chars =
                     skip_parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yayyayyay");
@@ -1189,7 +1189,7 @@ TEST(parser, lexeme)
 
             {
                 std::string str = " yay, yay, yay";
-                boost::optional<std::string> const chars =
+                std::optional<std::string> const chars =
                     skip_parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yayyayyay");
@@ -1211,7 +1211,7 @@ TEST(parser, skip)
         }
         {
             std::string str = "yay, yay, yay";
-            boost::optional<std::string> const chars = parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
@@ -1223,7 +1223,7 @@ TEST(parser, skip)
         }
         {
             std::string str = " yay, yay, yay";
-            boost::optional<std::string> const chars = parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
@@ -1244,7 +1244,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             std::string str = "abc";
-            boost::optional<std::vector<char>> const chars = parse(str, parser);
+            std::optional<std::vector<char>> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, std::vector<char>({'a', 'b', 'c'}));
         }
@@ -1269,7 +1269,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             std::string str = "abc";
-            boost::optional<std::string> const chars = parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "abc");
         }
@@ -1343,7 +1343,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             std::string str = "abc";
-            boost::optional<std::string> const chars = parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "abc");
         }
@@ -1395,7 +1395,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             std::string str = "abc";
-            boost::optional<std::string> const chars = parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "abc");
         }

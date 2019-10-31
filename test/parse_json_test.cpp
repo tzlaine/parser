@@ -36,7 +36,7 @@ TEST(parse, test_parse_yaml)
         errors.push_back(error);
     };
 
-    boost::optional<boost::json::value> result =
+    std::optional<boost::json::value> result =
         boost::json::parse(str, report_error);
 
     for (auto const & error : errors) {

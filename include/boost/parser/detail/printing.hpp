@@ -5,12 +5,12 @@
 #include <boost/parser/detail/detection.hpp>
 
 #include <boost/hana.hpp>
-#include <boost/optional.hpp>
 #include <boost/text/utf8.hpp>
 #include <boost/text/utility.hpp>
 
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <variant>
@@ -572,7 +572,7 @@ namespace boost { namespace parser { namespace detail {
     inline void print(std::ostream & os, std::variant<T...> const & attr);
 
     template<typename T>
-    inline void print(std::ostream & os, optional<T> const & attr);
+    inline void print(std::ostream & os, std::optional<T> const & attr);
 
     template<typename Attribute>
     inline void print(std::ostream & os, Attribute const & attr);
@@ -598,7 +598,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename T>
-    inline void print(std::ostream & os, optional<T> const & attr)
+    inline void print(std::ostream & os, std::optional<T> const & attr)
     {
         if (!attr)
             os << "<<empty>>";

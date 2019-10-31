@@ -2348,12 +2348,12 @@ namespace boost { namespace yaml {
 
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
-    optional<std::vector<value>> parse(
+    std::optional<std::vector<value>> parse(
         string_view const & str,
         diagnostic_function errors_callback,
         int max_recursion)
     {
-        optional<std::vector<value>> retval;
+        std::optional<std::vector<value>> retval;
 
         auto const range = text::make_to_utf32_range(str);
         using iter_t = decltype(range.begin());

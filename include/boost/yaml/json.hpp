@@ -4,10 +4,10 @@
 #include <boost/yaml/json_fwd.hpp>
 #include <boost/yaml/detail/json.hpp>
 
-#include <boost/optional.hpp>
 #include <boost/utility/string_view.hpp>
 
 #include <memory>
+#include <optional>
 
 
 namespace boost { namespace json {
@@ -228,7 +228,7 @@ namespace boost { namespace json {
 
     using diagnostic_function = std::function<void(std::string const &)>;
 
-    optional<value> parse(
+    std::optional<value> parse(
         string_view str,
         diagnostic_function errors_callback = diagnostic_function(),
         int max_recursion = 512);

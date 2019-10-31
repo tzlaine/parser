@@ -172,7 +172,7 @@ namespace boost { namespace json {
 
     // TODO: This needs to change; it cannot parse a rope; there should also
     // be interfaces that accept CPIters and CPRanges.
-    optional<value> parse(
+    std::optional<value> parse(
         string_view str, diagnostic_function errors_callback, int max_recursion)
     {
         auto const range = text::make_to_utf32_range(str);
@@ -193,7 +193,7 @@ namespace boost { namespace json {
             bool const success = bp::skip_parse(first, last, parser, ws, val);
             if (!success || first != last)
                 return {};
-            return optional<value>(std::move(val));
+            return std::optional<value>(std::move(val));
         } catch (yaml::excessive_nesting<iter_t> const & e) {
             if (errors_callback) {
                 std::string const message = "error: Exceeded maximum number (" +

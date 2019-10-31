@@ -11,7 +11,6 @@
 
 using namespace boost::parser;
 using boost::is_same;
-using boost::optional;
 using boost::hana::tuple;
 
 void compile_or_attribute()
@@ -24,79 +23,86 @@ void compile_or_attribute()
     {
         constexpr auto parser = int_ | eps;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<int>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<int>>>));
     }
     {
         constexpr auto parser = eps | int_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<int>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<int>>>));
     }
 
     // scalar | scalar
     {
         constexpr auto parser = char_ | char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<char>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<char>>));
     }
     {
         constexpr auto parser = eps | char_ | char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = char_ | eps | char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = char_ | char_ | eps;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = int_ | char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::variant<int, char>>>));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<std::variant<int, char>>>));
     }
     {
         constexpr auto parser = eps | int_ | char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::variant<int, char>>>>));
+            (is_same<
+                attr_t,
+                std::optional<std::optional<std::variant<int, char>>>>));
     }
     {
         constexpr auto parser = int_ | eps | char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::variant<int, char>>>>));
+            (is_same<
+                attr_t,
+                std::optional<std::optional<std::variant<int, char>>>>));
     }
     {
         constexpr auto parser = int_ | char_ | eps;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::variant<int, char>>>>));
+            (is_same<
+                attr_t,
+                std::optional<std::optional<std::variant<int, char>>>>));
     }
 
     // -scalar | -scalar
     {
         constexpr auto parser = -char_ | -char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = eps | -char_ | -char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = -char_ | eps | -char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = -char_ | -char_ | eps;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::optional<char>>>));
     }
     {
         constexpr auto parser = -int_ | -char_;
@@ -104,7 +110,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<optional<int>, optional<char>>>>));
+                std::optional<
+                    std::variant<std::optional<int>, std::optional<char>>>>));
     }
     {
         constexpr auto parser = eps | -int_ | -char_;
@@ -112,8 +119,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<int>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<int>, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = -int_ | eps | -char_;
@@ -121,8 +128,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<int>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<int>, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = -int_ | -char_ | eps;
@@ -130,53 +137,56 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<int>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<int>, std::optional<char>>>>>));
     }
 
     // seq<T> | seq<T>
     {
         constexpr auto parser = *char_ | *char_;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::vector<char>>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::vector<char>>>));
     }
     {
         constexpr auto parser = eps | *char_ | *char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::vector<char>>>>));
+            (is_same<attr_t, std::optional<std::optional<std::vector<char>>>>));
     }
     {
         constexpr auto parser = *char_ | eps | *char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::vector<char>>>>));
+            (is_same<attr_t, std::optional<std::optional<std::vector<char>>>>));
     }
     {
         constexpr auto parser = *char_ | *char_ | eps;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<optional<std::vector<char>>>>));
+            (is_same<attr_t, std::optional<std::optional<std::vector<char>>>>));
     }
     {
         constexpr auto parser = *string("str") | *string("str");
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<std::string>>));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
     }
     {
         constexpr auto parser = eps | *string("str") | *string("str");
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<std::string>>>));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<std::optional<std::string>>>));
     }
     {
         constexpr auto parser = *string("str") | eps | *string("str");
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<std::string>>>));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<std::optional<std::string>>>));
     }
     {
         constexpr auto parser = *string("str") | *string("str") | eps;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<attr_t, optional<optional<std::string>>>));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<std::optional<std::string>>>));
     }
 
     // seq<T> | seq<U>
@@ -186,34 +196,31 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<std::vector<char>, std::string>>>));
+                std::optional<std::variant<std::vector<char>, std::string>>>));
     }
     {
         constexpr auto parser = eps | *char_ | *string("str");
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT(
-            (is_same<
-                attr_t,
-                optional<
-                    optional<std::variant<std::vector<char>, std::string>>>>));
+        BOOST_MPL_ASSERT((is_same<
+                          attr_t,
+                          std::optional<std::optional<
+                              std::variant<std::vector<char>, std::string>>>>));
     }
     {
         constexpr auto parser = *char_ | eps | *string("str");
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT(
-            (is_same<
-                attr_t,
-                optional<
-                    optional<std::variant<std::vector<char>, std::string>>>>));
+        BOOST_MPL_ASSERT((is_same<
+                          attr_t,
+                          std::optional<std::optional<
+                              std::variant<std::vector<char>, std::string>>>>));
     }
     {
         constexpr auto parser = *char_ | *string("str") | eps;
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT(
-            (is_same<
-                attr_t,
-                optional<
-                    optional<std::variant<std::vector<char>, std::string>>>>));
+        BOOST_MPL_ASSERT((is_same<
+                          attr_t,
+                          std::optional<std::optional<
+                              std::variant<std::vector<char>, std::string>>>>));
     }
 
     // seq<T> | T
@@ -221,7 +228,9 @@ void compile_or_attribute()
         constexpr auto parser = *char_ | char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<std::variant<std::vector<char>, char>>>));
+            (is_same<
+                attr_t,
+                std::optional<std::variant<std::vector<char>, char>>>));
     }
     {
         constexpr auto parser = eps | *char_ | char_;
@@ -229,7 +238,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::vector<char>, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::vector<char>, char>>>>));
     }
     {
         constexpr auto parser = *char_ | eps | char_;
@@ -237,7 +247,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::vector<char>, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::vector<char>, char>>>>));
     }
     {
         constexpr auto parser = *char_ | char_ | eps;
@@ -245,13 +256,14 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::vector<char>, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::vector<char>, char>>>>));
     }
     {
         constexpr auto parser = *string("str") | char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<std::variant<std::string, char>>>));
+            (is_same<attr_t, std::optional<std::variant<std::string, char>>>));
     }
     {
         constexpr auto parser = eps | *string("str") | char_;
@@ -259,7 +271,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::string, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::string, char>>>>));
     }
     {
         constexpr auto parser = *string("str") | eps | char_;
@@ -267,7 +280,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::string, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::string, char>>>>));
     }
     {
         constexpr auto parser = *string("str") | char_ | eps;
@@ -275,7 +289,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<std::string, char>>>>));
+                std::optional<
+                    std::optional<std::variant<std::string, char>>>>));
     }
 
     // T | seq<T>
@@ -283,7 +298,9 @@ void compile_or_attribute()
         constexpr auto parser = char_ | *char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<std::variant<char, std::vector<char>>>>));
+            (is_same<
+                attr_t,
+                std::optional<std::variant<char, std::vector<char>>>>));
     }
     {
         constexpr auto parser = eps | char_ | *char_;
@@ -291,7 +308,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::vector<char>>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = char_ | eps | *char_;
@@ -299,7 +317,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::vector<char>>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = char_ | *char_ | eps;
@@ -307,13 +326,14 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::vector<char>>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = char_ | *string("str");
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
-            (is_same<attr_t, optional<std::variant<char, std::string>>>));
+            (is_same<attr_t, std::optional<std::variant<char, std::string>>>));
     }
     {
         constexpr auto parser = eps | char_ | *string("str");
@@ -321,7 +341,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::string>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::string>>>>));
     }
     {
         constexpr auto parser = char_ | eps | *string("str");
@@ -329,7 +350,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::string>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::string>>>>));
     }
     {
         constexpr auto parser = char_ | *string("str") | eps;
@@ -337,17 +359,19 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<std::variant<char, std::string>>>>));
+                std::optional<
+                    std::optional<std::variant<char, std::string>>>>));
     }
 
-    // seq<T> | optional<T>
+    // seq<T> | std::optional<T>
     {
         constexpr auto parser = *char_ | -char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<std::vector<char>, optional<char>>>>));
+                std::optional<
+                    std::variant<std::vector<char>, std::optional<char>>>>));
     }
     {
         constexpr auto parser = eps | *char_ | -char_;
@@ -355,8 +379,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<std::vector<char>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::vector<char>, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = *char_ | eps | -char_;
@@ -364,8 +388,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<std::vector<char>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::vector<char>, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = *char_ | -char_ | eps;
@@ -373,8 +397,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<std::vector<char>, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::vector<char>, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = *string("str") | -char_;
@@ -382,7 +406,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<std::string, optional<char>>>>));
+                std::optional<
+                    std::variant<std::string, std::optional<char>>>>));
     }
     {
         constexpr auto parser = eps | *string("str") | -char_;
@@ -390,8 +415,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<std::string, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::string, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = *string("str") | eps | -char_;
@@ -399,8 +424,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<std::string, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::string, std::optional<char>>>>>));
     }
     {
         constexpr auto parser = *string("str") | -char_ | eps;
@@ -408,18 +433,19 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<std::string, optional<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::string, std::optional<char>>>>>));
     }
 
-    // optional<T> | seq<T>
+    // std::optional<T> | seq<T>
     {
         constexpr auto parser = -char_ | *char_;
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<optional<char>, std::vector<char>>>>));
+                std::optional<
+                    std::variant<std::optional<char>, std::vector<char>>>>));
     }
     {
         constexpr auto parser = eps | -char_ | *char_;
@@ -427,8 +453,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<optional<char>, std::vector<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = -char_ | eps | *char_;
@@ -436,8 +462,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<optional<char>, std::vector<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = -char_ | *char_ | eps;
@@ -445,8 +471,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<optional<
-                    std::variant<optional<char>, std::vector<char>>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::vector<char>>>>>));
     }
     {
         constexpr auto parser = -char_ | *string("str");
@@ -454,7 +480,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<std::variant<optional<char>, std::string>>>));
+                std::optional<
+                    std::variant<std::optional<char>, std::string>>>));
     }
     {
         constexpr auto parser = eps | -char_ | *string("str");
@@ -462,8 +489,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
     {
         constexpr auto parser = -char_ | eps | *string("str");
@@ -471,8 +498,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
     {
         constexpr auto parser = -char_ | *string("str") | eps;
@@ -480,8 +507,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
 
     // or grouping
@@ -491,17 +518,17 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
     {
         constexpr auto parser = -char_ | (*string("str") | eps);
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT(
-            (is_same<
-                attr_t,
-                optional<
-                    std::variant<optional<char>, optional<std::string>>>>));
+        BOOST_MPL_ASSERT((is_same<
+                          attr_t,
+                          std::optional<std::variant<
+                              std::optional<char>,
+                              std::optional<std::string>>>>));
     }
     {
         constexpr auto parser = eps | (-char_ | *string("str") | eps);
@@ -509,8 +536,8 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
     {
         constexpr auto parser = eps | (-char_ | *string("str") | eps) | eps;
@@ -518,7 +545,7 @@ void compile_or_attribute()
         BOOST_MPL_ASSERT(
             (is_same<
                 attr_t,
-                optional<
-                    optional<std::variant<optional<char>, std::string>>>>));
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
 }

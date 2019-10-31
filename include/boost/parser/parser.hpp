@@ -69,7 +69,7 @@ namespace boost { namespace parser {
             }
 
             // Convertible to optional.
-            operator none_t() const noexcept { return none; }
+            operator std::nullopt_t() const noexcept { return std::nullopt; }
 
             // Also acts as a dummy predicate.
             template<typename Context>
@@ -507,7 +507,7 @@ namespace boost { namespace parser {
         struct is_optional : std::false_type
         {};
         template<typename T>
-        struct is_optional<optional<T>> : std::true_type
+        struct is_optional<std::optional<T>> : std::true_type
         {};
 
         template<typename T>
@@ -544,7 +544,7 @@ namespace boost { namespace parser {
         struct hana_tuple_to_or_type<
             hana::pair<hana::tuple<T...>, std::true_type>>
         {
-            using type = optional<std::variant<T...>>;
+            using type = std::optional<std::variant<T...>>;
         };
 
         template<typename... T>
@@ -557,7 +557,7 @@ namespace boost { namespace parser {
         template<typename T>
         struct hana_tuple_to_or_type<hana::pair<hana::tuple<T>, std::true_type>>
         {
-            using type = optional<T>;
+            using type = std::optional<T>;
         };
 
         template<typename T>
@@ -569,9 +569,9 @@ namespace boost { namespace parser {
 
         template<typename T>
         struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<optional<T>>, std::true_type>>
+            hana::pair<hana::tuple<std::optional<T>>, std::true_type>>
         {
-            using type = optional<T>;
+            using type = std::optional<T>;
         };
 
         template<>
@@ -619,13 +619,13 @@ namespace boost { namespace parser {
         template<typename T>
         struct optional_of_impl
         {
-            using type = optional<T>;
+            using type = std::optional<T>;
         };
 
         template<typename T>
-        struct optional_of_impl<optional<T>>
+        struct optional_of_impl<std::optional<T>>
         {
-            using type = optional<T>;
+            using type = std::optional<T>;
         };
 
         template<>
@@ -643,7 +643,7 @@ namespace boost { namespace parser {
             using type = T;
         };
         template<typename T>
-        struct unwrapped_optional<optional<T>>
+        struct unwrapped_optional<std::optional<T>>
         {
             using type = T;
         };
@@ -876,9 +876,9 @@ namespace boost { namespace parser {
         enum : int64_t { unbounded = -1 };
 
         template<typename T>
-        optional<T> make_parse_result(T & x, bool success)
+        std::optional<T> make_parse_result(T & x, bool success)
         {
-            optional<T> retval;
+            std::optional<T> retval;
             if (success)
                 retval = x;
             return retval;
@@ -1031,21 +1031,21 @@ namespace boost { namespace parser {
         }
 
         template<typename Container>
-        constexpr void move_back(Container & c, optional<Container> & x)
+        constexpr void move_back(Container & c, std::optional<Container> & x)
         {
             if (x)
                 c.insert(c.end(), x->begin(), x->end());
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, optional<T> & x)
+        constexpr void move_back(Container & c, std::optional<T> & x)
         {
             if (x)
                 c.insert(c.end(), std::move(*x));
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, optional<T> && x)
+        constexpr void move_back(Container & c, std::optional<T> && x)
         {
             if (x)
                 c.insert(c.end(), std::move(*x));
@@ -1096,7 +1096,7 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<std::variant<T...>> & retval)
+                std::optional<std::variant<T...>> & retval)
             {
                 Attr attr = parser.call(
                     use_cbs, first, last, context, skip, flags, success);
@@ -1106,7 +1106,7 @@ namespace boost { namespace parser {
         };
 
         template<typename... T>
-        struct apply_opt_var_parser_impl<optional<std::variant<T...>>>
+        struct apply_opt_var_parser_impl<std::optional<std::variant<T...>>>
         {
             template<
                 typename Parser,
@@ -1124,7 +1124,7 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<std::variant<U...>> & retval)
+                std::optional<std::variant<U...>> & retval)
             {
                 parser.call(
                     use_cbs,
@@ -1157,7 +1157,7 @@ namespace boost { namespace parser {
                 SkipParser const & skip,
                 flags flags,
                 bool & success,
-                optional<std::variant<T...>> & retval)
+                std::optional<std::variant<T...>> & retval)
             {
                 parser.call(
                     use_cbs, first, last, context, skip, flags, success);
@@ -1182,7 +1182,7 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             flags flags,
             bool & success,
-            optional<std::variant<T...>> & retval)
+            std::optional<std::variant<T...>> & retval)
         {
             using attr_t = decltype(parser.call(
                 use_cbs, first, last, context, skip, flags, success));
@@ -1198,8 +1198,9 @@ namespace boost { namespace parser {
                 success,
                 retval);
 #else
-            if constexpr (std::
-                              is_same<attr_t, optional<std::variant<T...>>>{}) {
+            if constexpr (std::is_same<
+                              attr_t,
+                              std::optional<std::variant<T...>>>{}) {
                 parser.call(
                     use_cbs,
                     first,
@@ -1261,7 +1262,7 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             flags flags,
             bool & success,
-            optional<T> & retval)
+            std::optional<T> & retval)
         {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
