@@ -153,15 +153,30 @@ namespace boost { namespace parser {
             return error_handler_result::fail;
         }
 
-        template<typename Iter>
-        void
-        warn(Iter first, Iter it, Iter last, std::string_view message) const
+        template<typename Context, typename Iter>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context,
+            Iter it) const
         {
-            if (!warning_)
+            callback_type const & cb =
+                kind == diagnostic_kind::error ? error_ : warning_;
+            if (!cb)
                 return;
             std::stringstream ss;
-            write_formatted_message(ss, filename_, first, it, last, message);
-            warning_(ss.str());
+            parser::write_formatted_message(
+                ss, filename_, _begin(context), it, _end(context), message);
+            cb(ss.str());
+        }
+
+        template<typename Context>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context) const
+        {
+            diagnose(kind, message, context, _where(context).begin());
         }
 
         callback_type error_;

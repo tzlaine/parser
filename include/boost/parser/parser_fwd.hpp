@@ -23,6 +23,8 @@ namespace boost { namespace parser {
         struct val_tag;
         struct attr_tag;
         struct where_tag;
+        struct begin_tag;
+        struct end_tag;
         struct pass_tag;
         struct locals_tag;
         struct rule_params_tag;

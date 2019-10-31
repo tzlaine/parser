@@ -50,6 +50,9 @@ namespace boost { namespace parser {
         int64_t preferred_max_line_length = 80,
         int64_t max_after_caret = 40);
 
+    // TODO: Add info kind as well?
+    enum class diagnostic_kind { error, warning };
+
     struct default_error_handler
     {
         constexpr default_error_handler() : os_(nullptr) {}
@@ -68,9 +71,30 @@ namespace boost { namespace parser {
         operator()(Iter first, Iter last, parse_error<Iter> const & e) const
         {
             std::ostream & os = os_ ? *os_ : std::cout;
-            write_formatted_expectation_failure_error_message(
+            parser::write_formatted_expectation_failure_error_message(
                 os, filename_, first, last, e);
             return error_handler_result::fail;
+        }
+
+        template<typename Context, typename Iter>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context,
+            Iter it) const
+        {
+            std::ostream & os = os_ ? *os_ : std::cout;
+            parser::write_formatted_message(
+                os, filename_, _begin(context), it, _end(context), message);
+        }
+
+        template<typename Context>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context) const
+        {
+            diagnose(kind, message, context, _where(context).begin());
         }
 
         std::string_view filename_;

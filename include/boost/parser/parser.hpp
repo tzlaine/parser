@@ -95,8 +95,10 @@ namespace boost { namespace parser {
 
         using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
 
-        template<typename ErrorHandler>
+        template<typename Iter, typename ErrorHandler>
         inline auto make_context(
+            Iter first,
+            Iter last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -104,6 +106,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
+                hana::make_pair(hana::type_c<begin_tag>, first),
+                hana::make_pair(hana::type_c<end_tag>, last),
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
@@ -118,8 +122,10 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
-        template<typename ErrorHandler, typename GlobalState>
+        template<typename Iter, typename ErrorHandler, typename GlobalState>
         inline auto make_context(
+            Iter first,
+            Iter last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -127,6 +133,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
+                hana::make_pair(hana::type_c<begin_tag>, first),
+                hana::make_pair(hana::type_c<end_tag>, last),
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
@@ -141,8 +149,10 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
-        template<typename ErrorHandler, typename Callbacks>
+        template<typename Iter, typename ErrorHandler, typename Callbacks>
         inline auto make_context(
+            Iter first,
+            Iter last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -151,6 +161,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
+                hana::make_pair(hana::type_c<begin_tag>, first),
+                hana::make_pair(hana::type_c<end_tag>, last),
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
@@ -166,10 +178,13 @@ namespace boost { namespace parser {
         }
 
         template<
+            typename Iter,
             typename ErrorHandler,
             typename Callbacks,
             typename GlobalState>
         inline auto make_context(
+            Iter first,
+            Iter last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -178,6 +193,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return hana::make_map(
+                hana::make_pair(hana::type_c<begin_tag>, first),
+                hana::make_pair(hana::type_c<end_tag>, last),
                 hana::make_pair(hana::type_c<pass_tag>, &success),
                 hana::make_pair(hana::type_c<val_tag>, global_nope),
                 hana::make_pair(hana::type_c<attr_tag>, global_nope),
@@ -859,8 +876,8 @@ namespace boost { namespace parser {
             rethrow_error_handler eh;
             nope n;
             symbol_table_tries_t symbol_table_tries;
-            auto const context =
-                make_context(success, indent, eh, n, symbol_table_tries);
+            auto const context = make_context(
+                first, last, success, indent, eh, n, symbol_table_tries);
             while (success) {
                 skip_(
                     hana::false_c,
@@ -1370,6 +1387,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1415,6 +1434,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1470,6 +1491,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1519,6 +1542,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1568,6 +1593,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1615,6 +1642,8 @@ namespace boost { namespace parser {
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
             auto context = detail::make_context(
+                first,
+                last,
                 success,
                 trace_indent,
                 error_handler,
@@ -1649,6 +1678,8 @@ namespace boost { namespace parser {
     inline constexpr auto val_ = tag<detail::val_tag>;
     inline constexpr auto attr_ = tag<detail::attr_tag>;
     inline constexpr auto where_ = tag<detail::where_tag>;
+    inline constexpr auto begin_ = tag<detail::begin_tag>;
+    inline constexpr auto end_ = tag<detail::end_tag>;
     inline constexpr auto pass_ = tag<detail::pass_tag>;
     inline constexpr auto locals_ = tag<detail::locals_tag>;
     inline constexpr auto params_ = tag<detail::rule_params_tag>;
@@ -1669,6 +1700,17 @@ namespace boost { namespace parser {
     inline decltype(auto) _where(Context const & context)
     {
         return *context[where_];
+    }
+    // TODO: Document that this is a lie within a skipper.
+    template<typename Context>
+    inline decltype(auto) _begin(Context const & context)
+    {
+        return context[begin_];
+    }
+    template<typename Context>
+    inline decltype(auto) _end(Context const & context)
+    {
+        return context[end_];
     }
     template<typename Context>
     inline decltype(auto) _pass(Context const & context)
@@ -1694,6 +1736,42 @@ namespace boost { namespace parser {
     inline decltype(auto) _error_handler(Context const & context)
     {
         return *context[error_handler_];
+    }
+
+    /** Report that the error described in `message` occurred at `location`,
+        using the context's error handler. */
+    template<typename Iter, typename Context>
+    inline void _report_error(
+        Context const & context, std::string_view message, Iter location)
+    {
+        return context[error_handler_]->diagnose(
+            diagnostic_kind::error, message, context, location);
+    }
+    /** Report that the error described in `message` occurred at
+        `_where(context).begin()`, using the context's error handler. */
+    template<typename Context>
+    inline void _report_error(Context const & context, std::string_view message)
+    {
+        return context[error_handler_]->diagnose(
+            diagnostic_kind::error, message, context);
+    }
+    /** Report that the warning described in `message` occurred at `location`,
+        using the context's error handler. */
+    template<typename Iter, typename Context>
+    inline void _report_warning(
+        Context const & context, std::string_view message, Iter location)
+    {
+        return context[error_handler_]->diagnose(
+            diagnostic_kind::warning, message, context, location);
+    }
+    /** Report that the warning described in `message` occurred at
+        `_where(context).begin()`, using the context's error handler. */
+     template<typename Context>
+    inline void
+    _report_warning(Context const & context, std::string_view message)
+    {
+        return context[error_handler_]->diagnose(
+            diagnostic_kind::warning, message, context);
     }
 
     /** TODO */

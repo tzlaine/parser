@@ -110,24 +110,7 @@ namespace boost { namespace yaml {
             max_recursive_open_count_(max_recursion)
         {}
 
-        void clear_document_state()
-        {
-#if 0 // TODO
-            stream.block_styles_.flow_styles_.anchors.clear();
-
-            auto & tags =
-                stream.block_styles_.flow_styles_.basic_structures_.tags;
-            tags.clear();
-            tags.add(
-                "!!",
-                basic_structures_t::tag_t{
-                    "tag:yaml.org,2002:", iterator_t(), true});
-            tags.add("!", basic_structures_t::tag_t{"!", iterator_t(), true});
-
-            stream.block_styles_.flow_styles_.basic_structures_
-                .yaml_directive_seen_ = false;
-#endif
-        }
+        void clear_document_state() { yaml_directive_seen_ = false; }
 
         iterator const first_;
         int recursive_open_count_ = 0;
@@ -1065,15 +1048,12 @@ namespace boost { namespace yaml {
     // 6.8 Directives
 
     auto reserved_directive_warning = [](auto & ctx) {
-        auto const & error_handler = _error_handler(ctx);
-        auto const where = _where(ctx);
         std::string const & directive = _attr(ctx);
         std::ostringstream oss;
         oss << "All directives except %YAML and %TAG are "
             << "reserved for future use.  The directive '%" << directive
             << "' will be ignored";
-        error_handler.warn(
-            _globals(ctx).first_, where.begin(), where.end(), oss.str());
+        _report_warning(ctx, oss.str());
     };
 
     // [82]
@@ -1093,7 +1073,6 @@ namespace boost { namespace yaml {
 
     auto check_yaml_version = [](auto & ctx) {
         auto & globals = _globals(ctx);
-        auto const & error_handler = _error_handler(ctx);
 
         if (globals.yaml_directive_seen_) {
 #if 0 // TODO
@@ -1135,9 +1114,7 @@ namespace boost { namespace yaml {
                     << " directive.  This parser recognizes "
                        "YAML 1.2, and so might not work.  "
                        "Trying anyway...";
-                auto const where = _where(ctx);
-                error_handler.warn(
-                    globals.first_, where.begin(), where.end(), oss.str());
+                _report_warning(ctx, oss.str());
             }
             globals.yaml_directive_seen_ = true;
         }
