@@ -58,7 +58,9 @@ void {1} (benchmark::State & state)
 for test in tests:
     contents = open(test, 'r').read()
     test_name = 'BM_' + os.path.split(test)[1].replace('.', '_').replace('-', '_')
-    test_functions += function_form.format(test, test_name, contents)
+    test_rel = test.index('/test/')
+    test_rel = '..' + test[test_rel:]
+    test_functions += function_form.format(test_rel, test_name, contents)
     test_function_names += 'BENCHMARK({});\n'.format(test_name)
 
 full_test = '''
