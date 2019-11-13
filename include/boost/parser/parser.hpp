@@ -1672,9 +1672,19 @@ namespace boost { namespace parser {
 
 
 
+    // TODO: Document term of art: semantic action.
+    // TODO: Document term of art: innermost parser/rule.
+
+
+    // TODO: Are _val() and _attr() redundant?
+
+
+
+    // TODO: -> detail
     template<typename T>
     constexpr hana::type<T> tag{};
 
+    // TODO: -> detail
     inline constexpr auto val_ = tag<detail::val_tag>;
     inline constexpr auto attr_ = tag<detail::attr_tag>;
     inline constexpr auto where_ = tag<detail::where_tag>;
@@ -1686,52 +1696,84 @@ namespace boost { namespace parser {
     inline constexpr auto globals_ = tag<detail::globals_tag>;
     inline constexpr auto error_handler_ = tag<detail::error_handler_tag>;
 
+    /** Returns a reference to the attribute(s) (i.e. return value) of the
+        innermost parser; multiple attributes will be stored within a
+        `hana::tuple`.  You may write to this value in a semantic action to
+        control what attribute value(s) the associated parser produces.
+        Returns `nope` if the innermost parser does produce an attribute. */
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
         return *context[val_];
     }
+    /** Returns a reference to the attribute or attributes already produced by
+        the innermost parser; multiple attributes will be stored within a
+        `hana::tuple`.  Returns `nope` if the innermost parser does produce an
+        attribute. */
     template<typename Context>
     inline decltype(auto) _attr(Context const & context)
     {
         return *context[attr_];
     }
+    /** Returns a `range` that describes the boundaries of the innermost
+        parser. */
     template<typename Context>
     inline decltype(auto) _where(Context const & context)
     {
         return *context[where_];
     }
-    // TODO: Document that this is a lie within a skipper.
+    /** Returns an iterator to the beginning of the entire sequence being
+        parsed.  The effect of calling this within a semantic action
+        associated with a skip-parser is undefined */
     template<typename Context>
     inline decltype(auto) _begin(Context const & context)
     {
         return context[begin_];
     }
+    /** Returns an iterator to the end of the entire sequence being parsed. */
     template<typename Context>
     inline decltype(auto) _end(Context const & context)
     {
         return context[end_];
     }
+    /** Returns a reference to a `bool` that represents the success or failure
+        of the innermost parser.  You can set this to `false` within a
+        semantic action to force a parser to fail its parse. */
     template<typename Context>
     inline decltype(auto) _pass(Context const & context)
     {
         return *context[pass_];
     }
+    /** Returns a reference to one or more local values that the innermost
+        rule is declared to have; multiple values will be stored within a
+        `hana::tuple`.  Returns `nope` if there is no innermost rule, or if
+        that rule has no locals. */
     template<typename Context>
     inline decltype(auto) _locals(Context const & context)
     {
         return *context[locals_];
     }
+    /** Returns a reference to one or more parameter passed to the innermost
+        rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
+        multiple values will be stored within a `hana::tuple`.  Returns `nope`
+        if there is no innermost rule, or if that rule was not given any
+        parameters. */
     template<typename Context>
     inline decltype(auto) _params(Context const & context)
     {
         return *context[params_];
     }
+    /** Returns a reference to the globals object associated with the
+        innermost parser.  Returns `nope` if there is no associated
+        globals object. */
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
     {
         return *context[globals_];
     }
+    /** Returns a reference to the error handler object associated with the
+        innermost parser.  Returns `nope` if there is no associated error
+        handler. */
     template<typename Context>
     inline decltype(auto) _error_handler(Context const & context)
     {
@@ -1774,7 +1816,8 @@ namespace boost { namespace parser {
             diagnostic_kind::warning, message, context);
     }
 
-    /** TODO */
+    /** An invocable that returns the `I`th parameter to the innermost rule.
+        This is useful for forwarding parameters to sub-rules. */
     template<unsigned int I>
     inline constexpr detail::param_t<I> _p = {};
 
@@ -1782,6 +1825,7 @@ namespace boost { namespace parser {
 
     // Second order parsers.
 
+    /** A very large sentinel value used to represent pseudo-infinity. */
     int64_t const Inf = detail::unbounded;
 
     template<
@@ -3595,6 +3639,8 @@ namespace boost { namespace parser {
     };
 
 
+    /** .  The resut of passing any non-top-level parser for the
+        `parser` argument is undefined. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_globals(
         parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
@@ -3604,6 +3650,7 @@ namespace boost { namespace parser {
             parser.parser_, globals, parser.error_handler_};
     }
 
+    /** TODO */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_error_handler(
         parser_interface<Parser, GlobalState, default_error_handler> const &
@@ -3615,6 +3662,7 @@ namespace boost { namespace parser {
     }
 
 
+    /** TODO */
     template<typename T>
     struct symbols : parser_interface<symbol_parser<T>>
     {
@@ -3663,6 +3711,7 @@ namespace boost { namespace parser {
     using no_local_state = detail::nope;
     using no_params = detail::nope;
 
+    /** TODO */
     template<
         typename TagType,
         typename Attribute = no_attribute,
@@ -3695,6 +3744,7 @@ namespace boost { namespace parser {
         }
     };
 
+    /** TODO */
     template<
         typename TagType,
         typename Attribute = no_attribute,
@@ -3777,6 +3827,9 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);  \
     }
 
+    /** For each given token `t`, defines a pair of `parse_rule()` overloads,
+        used internally within Boost.Parser.  Each such pair implements the
+        parsing behavior rule `t`, using the parser `t_def`. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PP_SEQ_FOR_EACH(                                                     \
         BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
@@ -3813,7 +3866,7 @@ namespace boost { namespace parser {
     {
         using backtracking = decltype(hana::prepend(
             hana::prepend(
-                hana::drop_front(backtracking{}),
+                hana::drop_front(BacktrackingTuple{}),
                 hana::bool_c<AllowBacktracking>),
             hana::true_c));
         using parser_t = seq_parser<
@@ -3829,7 +3882,7 @@ namespace boost { namespace parser {
         parser_interface<Parser> parser) const noexcept
     {
         using backtracking = decltype(
-            hana::append(backtracking{}, hana::bool_c<AllowBacktracking>));
+            hana::append(BacktrackingTuple{}, hana::bool_c<AllowBacktracking>));
         using parser_t = seq_parser<
             decltype(hana::append(parsers_, parser.parser_)),
             backtracking>;
@@ -3841,6 +3894,8 @@ namespace boost { namespace parser {
 
     // Directives.
 
+    /** Represents a unparameterized higher-order parser (e.g. `omit_parser`)
+        as a directive (e.g. `omit[other_parser]`). */
     template<template<class> class Parser>
     struct directive
     {
@@ -3852,10 +3907,23 @@ namespace boost { namespace parser {
         }
     };
 
+    /** The omit directive, whose `operator[]` returns an
+        `parser_interface<omit_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
     inline constexpr directive<omit_parser> omit;
+
+    /** The raw directive, whose `operator[]` returns an
+        `parser_interface<raw_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
+
+    /** The lexeme directive, whose `operator[]` returns an
+        `parser_interface<lexeme_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;
 
+    /** Represents a repeat_parser as a directive
+        (e.g. `omit[other_parser]`). */
     template<typename MinType, typename MaxType>
     struct repeat_directive
     {
@@ -3872,12 +3940,18 @@ namespace boost { namespace parser {
         MaxType max_;
     };
 
+    /** Returns a repeat directive that repeats exactly `n` times, whose
+        `operator[]` returns an `parser_interface<omit_parser<P>>` from a
+        given parser of type `parser_interface<P>`. */
     template<typename T>
     constexpr repeat_directive<T, T> repeat(T n) noexcept
     {
         return repeat_directive<T, T>{n, n};
     }
 
+    /** Returns a repeat directive that repeats `[min_, max_]` times, whose
+        `operator[]` returns an `parser_interface<omit_parser<P>>` from a
+        given parser of type `parser_interface<P>`. */
     template<typename MinType, typename MaxType>
     constexpr repeat_directive<MinType, MaxType>
     repeat(MinType min_, MaxType max_) noexcept
@@ -3885,6 +3959,7 @@ namespace boost { namespace parser {
         return repeat_directive<MinType, MaxType>{min_, max_};
     }
 
+    /** Represents a skip_parser as a directive (e.g. `skip[skip_parser]`). */
     template<typename SkipParser = detail::nope>
     struct skip_directive
     {
@@ -3908,6 +3983,9 @@ namespace boost { namespace parser {
         SkipParser skip_parser_;
     };
 
+    /** The skip directive, whose `operator[]` returns an
+        `parser_interface<skip_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
     inline constexpr skip_directive<> skip;
 
 
