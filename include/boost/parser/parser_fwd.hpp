@@ -145,17 +145,21 @@ namespace boost { namespace parser {
     template<typename T>
     struct symbol_parser;
 
-    /** TODO */
+    /** Applies another parser, associated with this parser via `TagType`.
+        The attribute produced is `Attribute`.  Both a default-constructed
+        object of type `LocalState`, and a default-constructed object of type
+        `ParamsTuple`, are added to the parse context before the associated
+        parser is applied.  The failure or success of the parse is that of the
+        applied parser.  If `UseCallbacks` is `true`, the attribute is
+        produced via callback; otherwise, the attribute is produced as normal
+        (as a return value, or as an out-param). */
     template<
         bool UseCallbacks,
-        typename Parser,
+        typename TagType,
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
     struct rule_parser;
-
-    template<typename T>
-    struct ref_parser;
 
     /** Matches anything, and consumes no input.  If `Predicate` is anything
         other than `detail::nope`, and `predicate_(ctx)` evaluates to false,
@@ -171,7 +175,12 @@ namespace boost { namespace parser {
     template<typename Attribute>
     struct attr_parser;
 
-    /** TODO */
+    /** Matches a single code point.  If `AttributeType` is not `void`,
+        `AttributeType` is the attribute type produced; otherwise, the
+        attribute type is the decayed type of the matched code point.  The
+        parse fails only if the parser is constructed with a specific set of
+        expected code point values that does not include the matched code
+        point `CP`. */
     template<typename Expected, typename AttributeType = void>
     struct char_parser;
 
@@ -219,7 +228,11 @@ namespace boost { namespace parser {
     template<typename T>
     struct float_parser;
 
-    /** TODO */
+    /** Applies at most one of the parsers in `OrParser`.  If `switch_value_`
+        matches one or more of the values in the parsers in `OrParser`, the
+        first such parser is applied, and the success or failure and attribute
+        of the parse are those of the applied parser.  Otherwise, the parse
+        fails. */
     template<typename SwitchValue, typename OrParser = detail::nope>
     struct switch_parser;
 

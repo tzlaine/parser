@@ -23,6 +23,7 @@
 
 namespace boost { namespace parser {
 
+    /** A simple range type used throughout the rest of the library. */
     template<typename Iter>
     struct range
     {
@@ -45,6 +46,7 @@ namespace boost { namespace parser {
         Iter last_;
     };
 
+    /** Makes a `range<Iter>` from two `Iter`s. */
     template<typename Iter>
     constexpr range<Iter> make_range(Iter first, Iter last) noexcept
     {
@@ -2147,6 +2149,8 @@ namespace boost { namespace parser {
     {
         constexpr or_parser(ParserTuple parsers) : parsers_(parsers) {}
 
+#ifndef BOOST_PARSER_DOXYGEN
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2209,6 +2213,8 @@ namespace boost { namespace parser {
             detail::flags flags_;
             bool & success_;
         };
+
+#endif
 
         template<
             bool UseCallbacks,
@@ -2314,10 +2320,14 @@ namespace boost { namespace parser {
                 success = false;
         }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
         template<typename Parser>
         constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
         template<typename Parser>
         constexpr auto append(parser_interface<Parser> parser) const noexcept;
+
+#endif
 
         ParserTuple parsers_;
     };
@@ -2328,6 +2338,8 @@ namespace boost { namespace parser {
         using backtracking = BacktrackingTuple;
 
         constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
+
+#ifndef BOOST_PARSER_DOXYGEN
 
         template<
             bool UseCallbacks,
@@ -2499,6 +2511,8 @@ namespace boost { namespace parser {
                 result_type(), hana::second(combined_types{}));
         }
 
+#endif
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2635,6 +2649,8 @@ namespace boost { namespace parser {
                 first_ = first;
         }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
         // Invokes each parser, placing the resulting values (if any) into
         // retval, using the index mapping in indices.  The case of a tulple
         // containing only a single value is handled elsewhere.
@@ -2747,6 +2763,8 @@ namespace boost { namespace parser {
         constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
         template<bool AllowBacktracking, typename Parser>
         constexpr auto append(parser_interface<Parser> parser) const noexcept;
+
+#endif
 
         ParserTuple parsers_;
     };
@@ -3780,6 +3798,8 @@ namespace boost { namespace parser {
         }
     };
 
+#ifndef BOOST_PARSER_DOXYGEN
+
 #define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
     template<                                                                  \
         bool UseCallbacks,                                                     \
@@ -3827,6 +3847,8 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);  \
     }
 
+#endif
+
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
         parsing behavior rule `t`, using the parser `t_def`. */
@@ -3834,6 +3856,8 @@ namespace boost { namespace parser {
     BOOST_PP_SEQ_FOR_EACH(                                                     \
         BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename ParserTuple>
     template<typename Parser>
@@ -3890,6 +3914,8 @@ namespace boost { namespace parser {
             parser_t{hana::append(parsers_, parser.parser_)}};
     }
 
+#endif
+
 
 
     // Directives.
@@ -3922,7 +3948,7 @@ namespace boost { namespace parser {
         `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;
 
-    /** Represents a repeat_parser as a directive
+    /** Represents a `repeat_parser` as a directive
         (e.g. `omit[other_parser]`). */
     template<typename MinType, typename MaxType>
     struct repeat_directive
@@ -3940,7 +3966,7 @@ namespace boost { namespace parser {
         MaxType max_;
     };
 
-    /** Returns a repeat directive that repeats exactly `n` times, whose
+    /** Returns a `repeat_directive` that repeats exactly `n` times, whose
         `operator[]` returns an `parser_interface<omit_parser<P>>` from a
         given parser of type `parser_interface<P>`. */
     template<typename T>
@@ -3949,7 +3975,7 @@ namespace boost { namespace parser {
         return repeat_directive<T, T>{n, n};
     }
 
-    /** Returns a repeat directive that repeats `[min_, max_]` times, whose
+    /** Returns a `repeat_directive` that repeats `[min_, max_]` times, whose
         `operator[]` returns an `parser_interface<omit_parser<P>>` from a
         given parser of type `parser_interface<P>`. */
     template<typename MinType, typename MaxType>
@@ -3959,7 +3985,7 @@ namespace boost { namespace parser {
         return repeat_directive<MinType, MaxType>{min_, max_};
     }
 
-    /** Represents a skip_parser as a directive (e.g. `skip[skip_parser]`). */
+    /** Represents a `skip_parser` as a directive (e.g. `skip[skip_parser]`). */
     template<typename SkipParser = detail::nope>
     struct skip_directive
     {
@@ -3983,7 +4009,7 @@ namespace boost { namespace parser {
         SkipParser skip_parser_;
     };
 
-    /** The skip directive, whose `operator[]` returns an
+    /** The `skip_directive`, whose `operator[]` returns an
         `parser_interface<skip_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr skip_directive<> skip;
@@ -4286,12 +4312,34 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+    /** The literal code point parser.  The produced attribute is the type of
+        the matched code point.  This parser can be used to create code point
+        parsers that match one or more specific code point values, by calling
+        it with: a single value comparable to a code point; a set of code
+        point values in a string; a half-open range of code point values `[lo,
+        hi)`, or a set of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
+
+    /** The literal code point parser.  It produces a 32-bit unsigned integer
+        attribute.  This parser can be used to create code point parsers that
+        match one or more specific code point values, by calling it with: a
+        single value comparable to a code point; a set of code point values in
+        a string; a half-open range of code point values `[lo, hi)`, or a set
+        of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
+
+    /** The literal code unit parser.  It produces a `char` attribute.  This
+        parser can be used to create code point parsers that match one or more
+        specific code point values, by calling it with: a single value
+        comparable to a code point; a set of code point values in a string; a
+        half-open range of code point values `[lo, hi)`, or a set of code
+        point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
+    /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
 
+    /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
 
     struct string_parser
@@ -4373,13 +4421,13 @@ namespace boost { namespace parser {
         std::string_view expected_;
     };
 
-    /** Returns a parser that matches `str`. */
+    /** Returns a parser that matches `str` that produces no attribute. */
     inline constexpr auto string(std::string_view str) noexcept
     {
         return parser_interface<string_parser>{string_parser{str}};
     }
 
-    /** Returns a parser that matches `str`. */
+    /** Returns a parser that matches `str` that produces no attribute. */
     inline constexpr auto lit(std::string_view str) noexcept
     {
         return omit[string(str)];
@@ -4815,6 +4863,9 @@ namespace boost { namespace parser {
     inline constexpr parser_interface<float_parser<double>> double_;
 
 
+    /** Represents a sequence parser, the first parser of which is an
+        `epsilon_parser` with predicate, as a directive
+        (e.g. `if(pred)[p]`). */
     template<typename Predicate>
     struct if_directive
     {
@@ -4827,25 +4878,31 @@ namespace boost { namespace parser {
         Predicate predicate_;
     };
 
+    /** Returns an `if_directive` that fails if the given predicate `x` is
+        `false`, and otherwise, applies another parser.  For instance, in
+        `if_(pred)[p]`, `p` is only applied if `pred` is true. */
     template<typename T>
     constexpr auto if_(T x) noexcept
     {
         return if_directive<T>{x};
     }
 
-    template<typename SwitchValue, typename Value>
-    struct switch_parser_equal
-    {
-        template<typename Context>
-        bool operator()(Context & context) const
+    namespace detail {
+        template<typename SwitchValue, typename Value>
+        struct switch_parser_equal
         {
-            auto const switch_value = detail::resolve(context, switch_value_);
-            auto const value = detail::resolve(context, value_);
-            return value == switch_value;
-        }
-        SwitchValue switch_value_;
-        Value value_;
-    };
+            template<typename Context>
+            bool operator()(Context & context) const
+            {
+                auto const switch_value =
+                    detail::resolve(context, switch_value_);
+                auto const value = detail::resolve(context, value_);
+                return value == switch_value;
+            }
+            SwitchValue switch_value_;
+            Value value_;
+        };
+    }
 
     template<typename SwitchValue, typename OrParser>
     struct switch_parser
@@ -4914,39 +4971,53 @@ namespace boost { namespace parser {
         constexpr auto
         operator()(Value value_, parser_interface<Parser2> rhs) const noexcept
         {
-            auto const match =
-                switch_parser_equal<SwitchValue, Value>{switch_value_, value_};
-            auto or_parser = new_or_parser(or_parser_, eps(match) >> rhs);
+            auto const match = detail::switch_parser_equal<SwitchValue, Value>{
+                switch_value_, value_};
+            auto or_parser = make_or_parser(or_parser_, eps(match) >> rhs);
             using switch_parser_type =
                 switch_parser<SwitchValue, decltype(or_parser)>;
             return parser_interface<switch_parser_type>{
                 switch_parser_type{switch_value_, or_parser}};
         }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
         template<typename Parser1, typename Parser2>
         static constexpr auto
-        new_or_parser(Parser1 parser1, parser_interface<Parser2> parser2)
+        make_or_parser(Parser1 parser1, parser_interface<Parser2> parser2)
         {
             return (parser_interface<Parser1>{parser1} | parser2).parser_;
         }
 
         template<typename Parser>
         static constexpr auto
-        new_or_parser(detail::nope, parser_interface<Parser> parser)
+        make_or_parser(detail::nope, parser_interface<Parser> parser)
         {
             return parser.parser_;
         }
+
+#endif
 
         SwitchValue switch_value_;
         OrParser or_parser_;
     };
 
+    /** Returns a `switch`-like parser.  The resulting parser uses the given
+        value `x` to select one of the following value/parser pairs, and to
+        apply the selected parser.  `x` may be a value to be used directly, or
+        a unary invocable that takes a reference to the parse context, and
+        returns the value to use.  You can add more value/parser cases to the
+        returned parser, using its call operator, e.g. `switch_(x)(y1, p1)(y2,
+        p2)`.  As with the `x` passed to this function, each `yN` value can be
+        a value or a unary invocable. */
     template<typename T>
     constexpr auto switch_(T x) noexcept
     {
         return switch_parser<T>{x};
     }
 
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     constexpr auto
@@ -4984,6 +5055,9 @@ namespace boost { namespace parser {
         }
     }
 
+#endif
+
+    /** Returns a parser equivalent to `lit(c) >> rhs`. */
     template<typename Parser>
     constexpr auto operator>>(char c, parser_interface<Parser> rhs) noexcept
     {
@@ -4994,6 +5068,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(c) >> rhs`. */
     template<typename Parser>
     constexpr auto operator>>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
@@ -5004,6 +5079,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(str) >> rhs`. */
     template<typename Parser>
     constexpr auto
     operator>>(std::string_view str, parser_interface<Parser> rhs) noexcept
@@ -5015,6 +5091,8 @@ namespace boost { namespace parser {
         }
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
@@ -5051,6 +5129,9 @@ namespace boost { namespace parser {
         }
     }
 
+#endif
+
+    /** Returns a parser equivalent to `lit(c) > rhs`. */
     template<typename Parser>
     constexpr auto operator>(char c, parser_interface<Parser> rhs) noexcept
     {
@@ -5061,6 +5142,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(c) > rhs`. */
     template<typename Parser>
     constexpr auto operator>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
@@ -5071,6 +5153,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(str) > rhs`. */
     template<typename Parser>
     constexpr auto
     operator>(std::string_view str, parser_interface<Parser> rhs) noexcept
@@ -5082,6 +5165,8 @@ namespace boost { namespace parser {
         }
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
@@ -5118,6 +5203,9 @@ namespace boost { namespace parser {
         }
     }
 
+#endif
+
+    /** Returns a parser equivalent to `lit(c) | rhs`. */
     template<typename Parser>
     constexpr auto operator|(char c, parser_interface<Parser> rhs) noexcept
     {
@@ -5128,6 +5216,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(c) | rhs`. */
     template<typename Parser>
     constexpr auto operator|(char32_t c, parser_interface<Parser> rhs) noexcept
     {
@@ -5138,6 +5227,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** Returns a parser equivalent to `lit(str) | rhs`. */
     template<typename Parser>
     constexpr auto
     operator|(std::string_view str, parser_interface<Parser> rhs) noexcept
@@ -5149,6 +5239,8 @@ namespace boost { namespace parser {
         }
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
@@ -5173,18 +5265,23 @@ namespace boost { namespace parser {
         return !lit(rhs) >> *this;
     }
 
+#endif
+
+    /** Returns a parser equivalent to `!rhs >> lit(c)`. */
     template<typename Parser>
     constexpr auto operator-(char c, parser_interface<Parser> rhs) noexcept
     {
         return !rhs >> lit(c);
     }
 
+    /** Returns a parser equivalent to `!rhs >> lit(c)`. */
     template<typename Parser>
     constexpr auto operator-(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         return !rhs >> lit(c);
     }
 
+    /** Returns a parser equivalent to `!rhs >> lit(str)`. */
     template<typename Parser>
     constexpr auto
     operator-(std::string_view str, parser_interface<Parser> rhs) noexcept
@@ -5192,6 +5289,8 @@ namespace boost { namespace parser {
         return !rhs >> lit(str);
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
@@ -5216,18 +5315,23 @@ namespace boost { namespace parser {
         return *this % lit(rhs);
     }
 
+#endif
+
+    /** Returns a parser equivalent to `lit(c) % rhs`. */
     template<typename Parser>
     constexpr auto operator%(char c, parser_interface<Parser> rhs) noexcept
     {
         return lit(c) % rhs;
     }
 
+    /** Returns a parser equivalent to `lit(c) % rhs`. */
     template<typename Parser>
     constexpr auto operator%(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         return lit(c) % rhs;
     }
 
+    /** Returns a parser equivalent to `lit(str) % rhs`. */
     template<typename Parser>
     constexpr auto
     operator%(std::string_view str, parser_interface<Parser> rhs) noexcept
@@ -5236,13 +5340,18 @@ namespace boost { namespace parser {
     }
 
     namespace literals {
-
+        /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char c) { return lit(c); }
+        /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char32_t c) { return lit(c); }
+        /** Returns a literal parser equivalent to `lit(c_str)`. */
         constexpr auto operator""_l(char const * c_str) { return lit(c_str); }
 
+        /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_p(char c) { return char_(c); }
+        /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_p(char32_t c) { return char_(c); }
+        /** Returns a literal parser equivalent to `lit(c_str)`. */
         constexpr auto operator""_p(char const * c_str)
         {
             return string(c_str);
@@ -5255,6 +5364,8 @@ namespace boost { namespace parser {
 
 namespace boost { namespace parser {
 
+    /** An enumeration used for parameters to enable and disable trace in the
+        `*parse()` functions. */
     enum class trace { on, off };
 
     // Parse API.
