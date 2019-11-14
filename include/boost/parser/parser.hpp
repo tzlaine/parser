@@ -4055,6 +4055,9 @@ namespace boost { namespace parser {
         Predicate predicate_;
     };
 
+    /** The epsilon parser.  This matches anything, and consumes no input.  If
+        used with an optional predicate, like `eps(pred)`, it matches iff
+        `pred(ctx)` evaluates to true, where `ctx` is the parser context. */
     inline constexpr parser_interface<eps_parser<detail::nope>> eps;
 
     struct eoi_parser
@@ -4102,6 +4105,7 @@ namespace boost { namespace parser {
         }
     };
 
+    /** The end-of-input parser.  It matches only the end of input. */
     inline constexpr parser_interface<eoi_parser> eoi;
 
     template<typename Attribute>
@@ -4150,6 +4154,7 @@ namespace boost { namespace parser {
         Attribute attr_;
     };
 
+    /** Returns an `attr_parser` that produces `a` as its attribute. */
     template<typename Attribute>
     inline constexpr auto attr(Attribute a) noexcept
     {
@@ -4364,14 +4369,17 @@ namespace boost { namespace parser {
             }
         }
 
+        // TODO: Variant of this and UTF-16, throughout?
         std::string_view expected_;
     };
 
+    /** Returns a parser that matches `str`. */
     inline constexpr auto string(std::string_view str) noexcept
     {
         return parser_interface<string_parser>{string_parser{str}};
     }
 
+    /** Returns a parser that matches `str`. */
     inline constexpr auto lit(std::string_view str) noexcept
     {
         return omit[string(str)];
@@ -4435,54 +4443,69 @@ namespace boost { namespace parser {
         }
     };
 
+    /** The end-of-line parser.  This matches "\r\n", or any one of the line
+        break code points from the Unicode Line Break Algorithm, described in
+        https://unicode.org/reports/tr14.  Produces no attribute. */
     inline constexpr parser_interface<eol_parser> eol;
 
     namespace ascii {
 
+        /** Matches the characters for which `std::isalnum()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::alnum>>>
             alnum;
 
+        /** Matches the characters for which `std::alpha()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::alpha>>>
             alpha;
 
+        /** Matches the characters for which `std::isblank()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::blank>>>
             blank;
 
+        /** Matches the characters for which `std::iscntrl()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::cntrl>>>
             cntrl;
 
+        /** Matches the characters for which `std::isdigit()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::digit>>>
             digit;
 
+        /** Matches the characters for which `std::isgraph()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::graph>>>
             graph;
 
+        /** Matches the characters for which `std::isprint()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::print>>>
             print;
 
+        /** Matches the characters for which `std::ispunct()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::punct>>>
             punct;
 
+        /** Matches the characters for which `std::isspace()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::space>>>
             space;
 
+        /** Matches the characters for which `std::isxdigit()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::xdigit>>>
             xdigit;
 
+        /** Matches the characters for which `std::islower()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::lower>>>
             lower;
 
+        /** Matches the characters for which `std::isupper()` is true. */
         inline constexpr parser_interface<char_parser<
             detail::ascii_char_class<detail::ascii_char_class_t::upper>>>
             upper;
@@ -4543,6 +4566,8 @@ namespace boost { namespace parser {
         }
     };
 
+    /** The Boolean parser.  Parses "true" amd "false", producing attributes
+        `true` and `false`, repsectively, and fails on any other input. */
     inline constexpr parser_interface<bool_parser> bool_;
 
     template<
@@ -4622,13 +4647,29 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+    /** The binary unsigned integer parser.  Produces an `unsigned int`
+        attribute. TODO: describe operation of `bin(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 2>> bin;
+
+    /** The octal unsigned integer parser.  Produces an `unsigned int`
+        attribute. */
     inline constexpr parser_interface<uint_parser<unsigned int, 8>> oct;
+
+    /** The hexidecimal unsigned integer parser.  Produces an `unsigned int`
+        attribute. */
     inline constexpr parser_interface<uint_parser<unsigned int, 16>> hex;
 
+    /** The `unsigned short` parser.  Produces an `unsigned short` attribute. */
     inline constexpr parser_interface<uint_parser<unsigned short>> ushort_;
+
+    /** The `unsigned int` parser.  Produces an `unsigned int` attribute. */
     inline constexpr parser_interface<uint_parser<unsigned int>> uint_;
+
+    /** The `unsigned long` parser.  Produces an `unsigned long` attribute. */
     inline constexpr parser_interface<uint_parser<unsigned long>> ulong_;
+
+    /** The `unsigned long long` parser.  Produces an `unsigned long long`
+        attribute. */
     inline constexpr parser_interface<uint_parser<unsigned long long>>
         ulong_long;
 
@@ -4705,9 +4746,16 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+    /** The `short` parser.  Produces a `short` attribute. */
     inline constexpr parser_interface<int_parser<short>> short_;
+
+    /** The `int` parser.  Produces an `int` attribute. */
     inline constexpr parser_interface<int_parser<int>> int_;
+
+    /** The `long` parser.  Produces a `long` attribute. */
     inline constexpr parser_interface<int_parser<long>> long_;
+
+    /** The `long long` parser.  Produces a `long long` attribute. */
     inline constexpr parser_interface<int_parser<long long>> long_long;
 
     template<typename T>
@@ -4760,7 +4808,10 @@ namespace boost { namespace parser {
         }
     };
 
+    /** The `float` parser.  Produces a `float` attribute. */
     inline constexpr parser_interface<float_parser<float>> float_;
+
+    /** The `double` parser.  Produces a `double` attribute. */
     inline constexpr parser_interface<float_parser<double>> double_;
 
 
