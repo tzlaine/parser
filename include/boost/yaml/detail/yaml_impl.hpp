@@ -4,7 +4,7 @@
 #include <boost/yaml/yaml_fwd.hpp>
 
 #include <boost/text/algorithm.hpp>
-#include <boost/text/utility.hpp>
+#include <boost/text/transcode_view.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -169,7 +169,7 @@ namespace boost { namespace yaml { namespace detail {
     to_yaml_impl(std::ostream & os, std::string_view s) noexcept
     {
         os << '"';
-        auto const r = text::make_to_utf32_range(s);
+        auto const r = text::as_utf32(s);
         char const * last_written_it = &*s.begin();
         text::foreach_subrange_if(
             r.begin(),

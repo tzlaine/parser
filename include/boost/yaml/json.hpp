@@ -4,6 +4,7 @@
 #include <boost/yaml/json_fwd.hpp>
 #include <boost/yaml/detail/json.hpp>
 
+#include <boost/assert.hpp>
 #include <boost/utility/string_view.hpp>
 
 #include <functional>

@@ -13,7 +13,6 @@
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
 #include <boost/text/trie.hpp>
-#include <boost/text/utility.hpp>
 
 #include <map>
 #include <type_traits>
@@ -444,8 +443,7 @@ namespace boost { namespace parser {
                 a = trie_t{};
                 trie_ptr = any_cast<trie_t>(&a);
                 for (auto const & e : symbol_parser.initial_elements()) {
-                    trie_ptr->insert(
-                        text::make_to_utf32_range(e.first), e.second);
+                    trie_ptr->insert(text::as_utf32(e.first), e.second);
                 }
             } else {
                 trie_ptr = any_cast<trie_t>(&a);
@@ -712,7 +710,7 @@ namespace boost { namespace parser {
             {
                 if (gen_attrs) {
                     std::array<uint32_t, 1> cps = {{(uint32_t)x}};
-                    auto const r = text::make_from_utf32_range(cps);
+                    auto const r = text::as_utf8(cps);
                     c.insert(c.end(), r.begin(), r.end());
                 }
             }
@@ -761,11 +759,8 @@ namespace boost { namespace parser {
             call(Container & c, Iter first_, Iter last_, bool gen_attrs)
             {
                 if (gen_attrs) {
-                    auto const first = text::utf8::make_from_utf32_iterator(
-                        first_, first_, last_);
-                    auto const last = text::utf8::make_from_utf32_iterator(
-                        first_, last_, last_);
-                    c.insert(c.end(), first, last);
+                    auto const r = text::as_utf8(first_, last_);
+                    c.insert(c.end(), r.begin(), r.end());
                 }
             }
         };
@@ -929,7 +924,7 @@ namespace boost { namespace parser {
             friend bool operator!=(T c, char_range<Range> const & chars)
             {
                 if (sizeof(c) == 4) {
-                    auto const cps = text::make_to_utf32_range(chars.chars_);
+                    auto const cps = text::as_utf32(chars.chars_);
                     return std::find(cps.begin(), cps.end(), c) == cps.end();
                 } else {
                     return std::find(
@@ -3196,7 +3191,7 @@ namespace boost { namespace parser {
         {
             trie::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            return trie_[text::make_to_utf32_range(str)];
+            return trie_[text::as_utf32(str)];
         }
 
         /** Inserts an entry consisting of a string to match, and an
@@ -3207,7 +3202,7 @@ namespace boost { namespace parser {
         {
             trie::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.insert(text::make_to_utf32_range(str), std::move(x));
+            trie_.insert(text::as_utf32(str), std::move(x));
         }
 
         /** Erases the entry consisting of a string to match `str` from a copy
@@ -3217,7 +3212,7 @@ namespace boost { namespace parser {
         {
             trie::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.erase(text::make_to_utf32_range(str));
+            trie_.erase(text::as_utf32(str));
         }
 
         template<
@@ -4555,7 +4550,7 @@ namespace boost { namespace parser {
             }
 
             if constexpr (sizeof(*first) == 4) {
-                auto const cps = text::make_to_utf32_range(expected_);
+                auto const cps = text::as_utf32(expected_);
                 auto const mismatch =
                     std::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {

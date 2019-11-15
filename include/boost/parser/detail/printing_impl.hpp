@@ -336,7 +336,7 @@ namespace boost { namespace parser { namespace detail {
         call(Context const & context, std::ostream & os, Expected expected)
         {
             std::array<uint32_t, 1> cps = {{(uint32_t)expected}};
-            auto const r = text::make_from_utf32_range(cps);
+            auto const r = text::as_utf8(cps);
             for (auto c : r) {
                 os << c;
             }

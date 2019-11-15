@@ -14,7 +14,7 @@
 
 #include <boost/functional/hash.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/text/utf8.hpp>
+#include <boost/text/transcode_view.hpp>
 
 #include <algorithm>
 #include <map>
@@ -142,14 +142,12 @@ namespace boost { namespace yaml { namespace ast {
                     out_ << '"';
 
                 using uchar_t = ::boost::uint32_t;
-                using iter_t = text::utf8::
-                    to_utf32_iterator<char const *, text::utf8::null_sentinel>;
-                iter_t first(
-                    utf.c_str(), utf.c_str(), text::utf8::null_sentinel{});
-                text::utf8::null_sentinel last;
+                auto const r = text::as_utf32(utf);
+                auto first = r.begin();
+                auto const last = r.end();
 
                 while (first != last) {
-                    char const * cp_first = first.base();
+                    auto const cp_first = &*first.base();
                     uchar_t const c[2] = {*first, 0};
                     ++first;
                     switch (c[0]) {
@@ -170,7 +168,7 @@ namespace boost { namespace yaml { namespace ast {
                     case 0x2029: out_ << "\\P"; break;
 
                     default:
-                        out_.write(cp_first, first.base() - cp_first);
+                        out_.write(cp_first, &*first.base() - cp_first);
                         break;
                     }
                 }

@@ -5,7 +5,6 @@
 #include <boost/yaml/detail/common.hpp>
 
 #include <boost/text/algorithm.hpp>
-#include <boost/text/utility.hpp>
 
 #include <iomanip>
 #include <iostream>

@@ -5,8 +5,7 @@
 #include <boost/parser/detail/detection.hpp>
 
 #include <boost/hana.hpp>
-#include <boost/text/utf8.hpp>
-#include <boost/text/utility.hpp>
+#include <boost/text/transcode_view.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -422,10 +421,9 @@ namespace boost { namespace parser { namespace detail {
             static_assert(
                 std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
             static_assert(SizeofValueType == 4, "");
-            auto first =
-                text::utf8::make_from_utf32_iterator(first_, first_, last_);
-            auto last =
-                text::utf8::make_from_utf32_iterator(first_, last_, last_);
+            auto utf8 = text::as_utf8(first_, last_);
+            auto first = utf8.begin();
+            auto last = utf8.end();
             if (quote)
                 os << '"';
             for (int64_t i = 0; i < trace_input_cps && first != last;
@@ -447,10 +445,9 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            auto first =
-                text::utf8::make_to_utf32_iterator(first_, first_, last_);
-            auto last =
-                text::utf8::make_to_utf32_iterator(first_, last_, last_);
+            auto utf32 = text::as_utf32(first_, last_);
+            auto first = utf32.begin();
+            auto const last = utf32.end();
             static_assert(sizeof(*first_) == 1);
             for (int64_t i = 0; i < trace_input_cps && first != last; ++i) {
                 ++first;

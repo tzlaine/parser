@@ -75,7 +75,7 @@ namespace boost { namespace json {
     auto first_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!text::utf8::high_surrogate(cu))
+        if (!text::high_surrogate(cu))
             _pass(ctx) = false;
         else
             locals.first_surrogate = cu;
@@ -83,7 +83,7 @@ namespace boost { namespace json {
     auto second_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!text::utf8::low_surrogate(cu)) {
+        if (!text::low_surrogate(cu)) {
             _pass(ctx) = false;
         } else {
             uint32_t const high_surrogate_min = 0xd800;
@@ -175,7 +175,7 @@ namespace boost { namespace json {
     std::optional<value> parse(
         string_view str, diagnostic_function errors_callback, int max_recursion)
     {
-        auto const range = text::make_to_utf32_range(str);
+        auto const range = text::as_utf32(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
         auto const last = range.end();

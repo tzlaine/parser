@@ -1313,7 +1313,7 @@ namespace boost { namespace yaml {
 
     auto append_utf8 = [](auto & ctx) {
         std::array<uint32_t, 1> const cps = {{_attr(ctx)}};
-        auto const r = text::make_from_utf32_range(cps);
+        auto const r = text::as_utf8(cps);
         _val(ctx).insert(_val(ctx).end(), r.begin(), r.end());
     };
 
@@ -2246,45 +2246,48 @@ namespace boost { namespace yaml {
         yaml_stream);
 
     namespace detail {
-        inline encoding read_bom_8(char const * buf, int & size)
+        template<typename Iter>
+        encoding read_bom_8(Iter it, int & size)
         {
             auto retval = encoding::utf8;
 
-            /*   */
-            if (size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
-                buf[2] == '\xfe' && buf[3] == '\xff') {
+            if (size == 4 && *it == '\x00' && *std::next(it, 1) == '\x00' &&
+                *std::next(it, 2) == '\xfe' && *std::next(it, 3) == '\xff') {
                 size = 4;
                 retval = encoding::utf32_be;
             } else if (
-                size == 4 && buf[0] == '\x00' && buf[1] == '\x00' &&
-                buf[2] == '\x00' /* anything */) {
+                size == 4 && *it == '\x00' && *std::next(it, 1) == '\x00' &&
+                *std::next(it, 2) == '\x00' /* anything */) {
                 size = 4;
                 retval = encoding::utf32_be;
             } else if (
-                size == 4 && buf[0] == '\xff' && buf[1] == '\xfe' &&
-                buf[2] == '\x00' && buf[3] == '\x00') {
+                size == 4 && *it == '\xff' && *std::next(it, 1) == '\xfe' &&
+                *std::next(it, 2) == '\x00' && *std::next(it, 3) == '\x00') {
                 size = 4;
                 retval = encoding::utf32_le;
             } else if (
-                size == 4 && /* anything */ buf[1] == '\x00' &&
-                buf[2] == '\x00' && buf[3] == '\x00') {
+                size == 4 && /* anything */ *std::next(it, 1) == '\x00' &&
+                *std::next(it, 2) == '\x00' && *std::next(it, 3) == '\x00') {
                 size = 4;
                 retval = encoding::utf32_le;
-            } else if (size >= 2 && buf[0] == '\xfe' && buf[1] == '\xff') {
+            } else if (
+                size >= 2 && *it == '\xfe' && *std::next(it, 1) == '\xff') {
                 size = 2;
                 retval = encoding::utf16_be;
-            } else if (size >= 2 && buf[0] == '\x00' /* anything */) {
+            } else if (size >= 2 && *it == '\x00' /* anything */) {
                 size = 2;
                 retval = encoding::utf16_be;
-            } else if (size >= 2 && buf[0] == '\xff' && buf[1] == '\xfe') {
-                size = 2;
-                retval = encoding::utf16_le;
-            } else if (size >= 2 && /* anything */ buf[1] == '\x00') {
+            } else if (
+                size >= 2 && *it == '\xff' && *std::next(it, 1) == '\xfe') {
                 size = 2;
                 retval = encoding::utf16_le;
             } else if (
-                size >= 3 && buf[0] == '\xef' && buf[1] == '\xbb' &&
-                buf[2] == '\xbf') {
+                size >= 2 && /* anything */ *std::next(it, 1) == '\x00') {
+                size = 2;
+                retval = encoding::utf16_le;
+            } else if (
+                size >= 3 && *it == '\xef' && *std::next(it, 1) == '\xbb' &&
+                *std::next(it, 2) == '\xbf') {
                 size = 3;
                 retval = encoding::utf8;
             } else {
@@ -2308,17 +2311,22 @@ namespace boost { namespace yaml {
             return true;
         }
 
-        encoding read_bom(
-            text::utf8::to_utf32_iterator<char const *> & cp_first,
-            text::utf8::to_utf32_iterator<char const *> cp_last)
+        template<typename Iter>
+        encoding read_bom(Iter & cp_first, Iter cp_last)
         {
-            char const * first = cp_first.base();
-            char const * last = cp_last.base();
-            int size = std::min<int>(last - first, 4);
+            auto const r = text::as_utf8(cp_first, cp_last);
+            auto first = r.begin();
+            auto const last = r.end();
+            int size = 0;
+            {
+                auto cu_first = r.begin();
+                while (cu_first != last && size < 4) {
+                    ++cu_first;
+                }
+            }
             auto const retval = detail::read_bom_8(first, size);
             first += size;
-            cp_first = text::utf8::make_to_utf32_iterator(
-                cp_first.base(), first, last);
+            cp_first = text::make_utf_8_to_32_iterator(first, first, last);
             return retval;
         }
     }
@@ -2332,7 +2340,7 @@ namespace boost { namespace yaml {
     {
         std::optional<std::vector<value>> retval;
 
-        auto const range = text::make_to_utf32_range(str);
+        auto const range = text::as_utf32(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
         auto const last = range.end();

@@ -4,7 +4,7 @@
 #include <boost/parser/error_handling_fwd.hpp>
 #include <boost/parser/detail/printing.hpp>
 
-#include <boost/text/utf8.hpp>
+#include <boost/text/transcode_iterator.hpp>
 
 #include <array>
 #include <functional>

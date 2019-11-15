@@ -4,7 +4,6 @@
 #include <boost/yaml/json_fwd.hpp>
 
 #include <boost/text/algorithm.hpp>
-#include <boost/text/utility.hpp>
 
 #include <iomanip>
 #include <iostream>

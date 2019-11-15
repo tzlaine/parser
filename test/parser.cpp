@@ -185,7 +185,7 @@ TEST(parser, bool_)
     }
     {
         std::string str = "true ";
-        auto r = boost::text::make_to_utf32_range(str);
+        auto r = boost::text::as_utf32(str);
         bool b = false;
         auto first = r.begin();
         auto const last = r.end();
@@ -194,7 +194,7 @@ TEST(parser, bool_)
     }
     {
         std::string str = "false";
-        auto r = boost::text::make_to_utf32_range(str);
+        auto r = boost::text::as_utf32(str);
         bool b = true;
         auto first = r.begin();
         auto const last = r.end();
