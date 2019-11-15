@@ -377,13 +377,13 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Context, typename Range>
-    struct char_parser_name_impl<Context, char_range<Range>>
+    template<typename Context, typename Iter, typename Sentinel>
+    struct char_parser_name_impl<Context, char_range<Iter, Sentinel>>
     {
         static void call(
             Context const & context,
             std::ostream & os,
-            char_range<Range> expected)
+            char_range<Iter, Sentinel> expected)
         {
             os << "char_(";
             for (auto c : expected.chars_) {

@@ -12,6 +12,7 @@
 #include <boost/spirit/home/x3/numeric/real_policies.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
+#include <boost/text/algorithm.hpp>
 #include <boost/text/trie.hpp>
 
 #include <map>
@@ -86,9 +87,10 @@ namespace boost { namespace parser {
             {
                 return true;
             }
+
+            friend constexpr bool operator==(nope, nope) { return true; }
+            friend constexpr bool operator!=(nope, nope) { return false; }
         };
-        constexpr bool operator==(nope, nope) { return true; }
-        constexpr bool operator!=(nope, nope) { return false; }
         template<typename T>
         constexpr bool operator==(T, nope)
         {
@@ -460,13 +462,17 @@ namespace boost { namespace parser {
         using begin_and_end =
             decltype(std::declval<T>().begin(), std::declval<T>().end());
 
-        template<typename T, typename U>
-        using range_t =
-            typename std::enable_if<is_detected<begin_and_end, T>{}, U>::type;
+        template<typename T>
+        using range_t = typename std::enable_if_t<
+            is_detected<begin_and_end, T>{} ||
+            (std::is_pointer<std::decay_t<T>>::value &&
+             std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value)>;
 
-        template<typename T, typename U>
-        using non_range_t =
-            typename std::enable_if<!is_detected<begin_and_end, T>{}, U>::type;
+        template<typename T>
+        using non_range_t = typename std::enable_if_t<
+            !is_detected<begin_and_end, T>{} &&
+            !(std::is_pointer<std::decay_t<T>>::value &&
+              std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value)>;
 
         template<typename T>
         using insert_range_insert_begin_and_end = decltype(
@@ -915,28 +921,42 @@ namespace boost { namespace parser {
             HiType hi_;
         };
 
-        template<typename Range>
+        template<typename Iter, typename Sentinel>
         struct char_range
         {
-            template<typename RangeIter>
-            char_range(RangeIter first, RangeIter last) : chars_(first, last)
-            {}
-
             template<typename T>
-            friend bool operator!=(T c, char_range<Range> const & chars)
+            friend bool
+            operator!=(T c, char_range<Iter, Sentinel> const & chars)
             {
                 if (sizeof(c) == 4) {
                     auto const cps = text::as_utf32(chars.chars_);
-                    return std::find(cps.begin(), cps.end(), c) == cps.end();
+                    return text::find(cps.begin(), cps.end(), c) == cps.end();
                 } else {
-                    return std::find(
+                    return text::find(
                                chars.chars_.begin(), chars.chars_.end(), c) ==
                            chars.chars_.end();
                 }
             }
 
-            range<std::decay_t<decltype(std::declval<Range>().begin())>> chars_;
+            range<Iter, Sentinel> chars_;
         };
+
+        template<typename Iter, typename Sentinel>
+        auto make_char_range(Iter first, Sentinel last)
+        {
+            return char_range<Iter, Sentinel>{
+                range<Iter, Sentinel>{first, last}};
+        }
+
+        template<typename Range>
+        constexpr auto make_char_range(Range && r) noexcept
+        {
+            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                return detail::make_char_range(r, text::null_sentinel{});
+            } else {
+                return detail::make_char_range(r.begin(), r.end());
+            }
+        }
 
         template<
             typename Context,
@@ -1684,6 +1704,18 @@ namespace boost { namespace parser {
         inline constexpr auto params_ = tag<rule_params_tag>;
         inline constexpr auto globals_ = tag<globals_tag>;
         inline constexpr auto error_handler_ = tag<error_handler_tag>;
+
+#if 0
+        template<typename Range>
+        constexpr auto make_range(Range && r) noexcept
+        {
+            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                return parser::make_range(r, text::null_sentinel{});
+            } else {
+                return parser::make_range(r.begin(), r.end());
+            }
+        }
+#endif
     }
 
 
@@ -1702,6 +1734,9 @@ namespace boost { namespace parser {
     // TODO: C++20 concepts.
 
     // TODO: Are _val() and _attr() redundant?
+
+    // TODO: Constrain Range function params as a begin()/end() pair over
+    // integral types, or a pointer to an integral type.
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
@@ -3707,7 +3742,8 @@ namespace boost { namespace parser {
 
         /** Returns `parser_((Arg &&)arg, (Args &&)args...)`.  This is useful
             for those parsers that have `operator()` overloads,
-            e.g. `char_('x')`.
+            e.g. `char_('x')`.  By convention, parsers' `operator()`s return
+            `parser_interface`s.
 
             This function does not participate in overload resolution unless
             `parser_((Arg &&)arg, (Args &&)args...)` is well-formed. */
@@ -4208,8 +4244,8 @@ namespace boost { namespace parser {
             success = pred_(predicate_context);
         }
 
-        /** Returns an `eps_parser` that will fail if `pred` evaluates to
-            false. */
+        /** Returns a `parser_interface` containing an `eps_parser` that will
+            fail if `pred` evaluates to false. */
         template<typename Predicate2>
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
@@ -4393,11 +4429,10 @@ namespace boost { namespace parser {
             ++first;
         }
 
-        /** TODO */
-        template<typename T>
-        constexpr detail::
-            non_range_t<T, parser_interface<char_parser<T, AttributeType>>>
-            operator()(T x) const noexcept
+        /** Returns a `parser_interface` containing a `char_parser` that
+            matches `x`. */
+        template<typename T, typename Enable = detail::non_range_t<T>>
+        constexpr auto operator()(T x) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
@@ -4407,22 +4442,8 @@ namespace boost { namespace parser {
                 char_parser<T, AttributeType>{std::move(x)}};
         }
 
-        /** TODO */
-        // TODO: Document this conversion to string_view.
-        auto operator()(char const * s) const noexcept
-        {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_(\"chars\")(\"chars\")'.  Quit it!'");
-            std::string_view const range(s);
-            using char_range_t = detail::char_range<std::string_view>;
-            using char_parser_t = char_parser<char_range_t, AttributeType>;
-            return parser_interface<char_parser_t>(
-                char_parser_t(char_range_t(range.begin(), range.end())));
-        }
-
-        /** TODO */
+        /** Returns a `parser_interface` containing a `char_parser` that
+            matches any value in `[lo, hi)`. */
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
@@ -4436,25 +4457,25 @@ namespace boost { namespace parser {
                 char_parser_t(char_pair_t{std::move(lo), std::move(hi)}));
         }
 
-        /** TODO */
-        // TODO: Unify with char * (or even T *) here and elsewhere.
-        template<typename Range>
-        constexpr auto
-        operator()(Range const & r) const noexcept -> detail::range_t<
-            Range,
-            parser_interface<char_parser<
-                detail::char_range<decltype(make_range(r.begin(), r.end()))>,
-                AttributeType>>>
+        /** Returns a `parser_interface` containing a `char_parser` that
+            matches one of the values in `r`.  If the character being matched
+            during the parse is a 4-byte value, the elements of `r` are
+            transcoded from their presumed encoding to UTF-32 during the
+            comparison.  Otherwise, the character begin matched is directly
+            compared to the elements of `r`.  The presumed encoding of `r` is
+            considered UTF-8, UTF-16, or UTF-32, if the size of the elements
+            of `r` are `-, 2- or 4-bytes in size, respectively. */
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator()(Range const & r) const noexcept
         {
             static_assert(
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_(char-set)(char-set)'.  Quit it!'");
-            auto range = make_range(r.begin(), r.end());
-            using char_range_t = detail::char_range<decltype(range)>;
+            auto range = detail::make_char_range(r);
+            using char_range_t = decltype(range);
             using char_parser_t = char_parser<char_range_t, AttributeType>;
-            return parser_interface<char_parser_t>(
-                char_parser_t(char_range_t(range.begin(), range.end())));
+            return parser_interface<char_parser_t>(char_parser_t(range));
         }
 
         Expected expected_;
@@ -4828,7 +4849,8 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
-        /** Returns a `uint_parser` that matches the exact value `expected`. */
+        /** Returns a `parser_interface` containing a `uint_parser` that
+            matches the exact value `expected`. */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -4931,7 +4953,8 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
-        /** Returns an `int_parser` that matches the exact value `expected`. */
+        /** Returns a `parser_interface` containing an `int_parser` that
+            matches the exact value `expected`. */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -5120,8 +5143,8 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
 
-        /** Returns a `switch_parser`, with the case `value_`/`rhs` appended
-            to its `or_parser_`. */
+        /** Returns a `parser_interface` containing a `switch_parser`, with
+            the case `value_`/`rhs` appended to its `or_parser_`. */
         template<typename Value, typename Parser2>
         constexpr auto
         operator()(Value value_, parser_interface<Parser2> rhs) const noexcept
