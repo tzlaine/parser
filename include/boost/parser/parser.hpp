@@ -23,16 +23,17 @@
 namespace boost { namespace parser {
 
     /** A simple range type used throughout the rest of the library. */
-    template<typename Iter>
+    template<typename Iter, typename Sentinel = Iter>
     struct range
     {
         using iterator = Iter;
+        using sentinel = Sentinel;
 
         range() {}
-        range(Iter first, Iter last) : first_(first), last_(last) {}
+        range(iterator first, sentinel last) : first_(first), last_(last) {}
 
         iterator begin() const noexcept { return first_; }
-        iterator end() const noexcept { return last_; }
+        sentinel end() const noexcept { return last_; }
 
         bool operator==(range rhs) const noexcept
         {
@@ -41,15 +42,16 @@ namespace boost { namespace parser {
         bool operator!=(range rhs) const noexcept { return !(*this == rhs); }
 
     private:
-        Iter first_;
-        Iter last_;
+        iterator first_;
+        sentinel last_;
     };
 
     /** Makes a `range<Iter>` from two `Iter`s. */
-    template<typename Iter>
-    constexpr range<Iter> make_range(Iter first, Iter last) noexcept
+    template<typename Iter, typename Sentinel>
+    constexpr range<Iter, Sentinel>
+    make_range(Iter first, Sentinel last) noexcept
     {
-        return range<Iter>(first, last);
+        return range<Iter, Sentinel>(first, last);
     }
 
 
