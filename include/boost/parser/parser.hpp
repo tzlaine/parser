@@ -54,7 +54,7 @@ namespace boost { namespace parser {
     }
 
 
-    // TODO: Consider eps(cond) -> ensure(cond).
+    // TODO: Consider eps(cond) -> precondition(cond).
 
 
     namespace detail {
@@ -1677,25 +1677,51 @@ namespace boost { namespace parser {
     // TODO: Document term of art: semantic action.
     // TODO: Document term of art: innermost parser/rule.
 
-
     // TODO: Are _val() and _attr() redundant?
 
-
-
-    // TODO: -> detail
+    /** A tag type used to create tag objects that can be used as keys usable
+        to access values in the parse context. */
     template<typename T>
     constexpr hana::type<T> tag{};
 
-    // TODO: -> detail
+    /** The tag-object to use to access the current parse value in the parse
+        context. */
     inline constexpr auto val_ = tag<detail::val_tag>;
+
+    /** The tag-object to use to access the current parse attribute in the
+        parse context. */
     inline constexpr auto attr_ = tag<detail::attr_tag>;
+
+    /** The tag-object to use to access the current parse location in the
+        parse context. */
     inline constexpr auto where_ = tag<detail::where_tag>;
+
+    /** The tag-object to use to access the beginning of the sequence being
+        parsed in the parse context. */
     inline constexpr auto begin_ = tag<detail::begin_tag>;
+
+    /** The tag-object to use to access the end of the sequence being parsed
+        in the parse context. */
     inline constexpr auto end_ = tag<detail::end_tag>;
+
+    /** The tag-object to use to access the pass/fail variable in the parse
+        context. */
     inline constexpr auto pass_ = tag<detail::pass_tag>;
+
+    /** The tag-object to use to access the local state variable in the parse
+        context. */
     inline constexpr auto locals_ = tag<detail::locals_tag>;
+
+    /** The tag-object to use to access the rule parameters tuple in the parse
+        context. */
     inline constexpr auto params_ = tag<detail::rule_params_tag>;
+
+    /** The tag-object to use to access the global state variable in the parse
+        context. */
     inline constexpr auto globals_ = tag<detail::globals_tag>;
+
+    /** The tag-object to use to access the error handler in the parse
+        context. */
     inline constexpr auto error_handler_ = tag<detail::error_handler_tag>;
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
@@ -2059,6 +2085,8 @@ namespace boost { namespace parser {
         MaxType max_;
     };
 
+    /** A simplified `repeat_parser` that applies `parser` zero or more
+        times.  */
     template<typename Parser>
     struct zero_plus_parser : repeat_parser<Parser>
     {
@@ -2067,6 +2095,8 @@ namespace boost { namespace parser {
         {}
     };
 
+    /** A simplified `repeat_parser` that applies `parser` one or more
+        times.  */
     template<typename Parser>
     struct one_plus_parser : repeat_parser<Parser>
     {
@@ -2075,6 +2105,9 @@ namespace boost { namespace parser {
         {}
     };
 
+    /** A simplified `repeat_parser` that applies `parser` zero or more times,
+        with `delimiter_parser` applied before each application of `parser`
+        after the first.  */
     template<typename Parser, typename DelimiterParser>
     struct delimited_seq_parser : repeat_parser<Parser, DelimiterParser>
     {
@@ -2769,7 +2802,6 @@ namespace boost { namespace parser {
         ParserTuple parsers_;
     };
 
-    // Wraps a parser, applying a semantic action to it.
     template<typename Parser, typename Action>
     struct action_parser
     {
@@ -3173,6 +3205,9 @@ namespace boost { namespace parser {
             copied_from_(other.copied_from_ ? other.copied_from_ : &other)
         {}
 
+        /** Uses `str` to look up an attribute in the table during parsing,
+            returning it as an optional reference.  The lookup is done on a
+            copy of the symbol table in the parse context `context`.*/
         template<typename Context>
         trie::optional_ref<T>
         find(Context const & context, std::string_view str) const
@@ -3182,6 +3217,9 @@ namespace boost { namespace parser {
             return trie_[text::make_to_utf32_range(str)];
         }
 
+        /** Inserts an entry consisting of a string to match, and an
+            associtated attribute `x`, to a copy of the symbol table in the
+            parse context `context`. */
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
@@ -3190,6 +3228,8 @@ namespace boost { namespace parser {
             trie_.insert(text::make_to_utf32_range(str), std::move(x));
         }
 
+        /** Erases the entry consisting of a string to match `str` from a copy
+            of the symbol table in the parse context `context`. */
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
@@ -3462,6 +3502,16 @@ namespace boost { namespace parser {
 
     // Parser interface.
 
+    /** A wrapper for parsers that provides the operations that must be
+        supported by all parsers (e.g. `operator>>()`).  `GlobalState` is an
+        optional state object that can be accessed within semantic actions
+        with a call to `_globals()`.  This global state object is ignored for
+        all but the topmost parser; the topmost global state object is
+        available in the semantic actions of all nested parsers.
+        `ErrorHandler` is the type of the error handler to be used on parse
+        failure.  This handler is ignored on all but the topmost parser; the
+        topmost parser's error handler is used for all errors encountered
+        during parsing. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     struct parser_interface
     {
@@ -3474,16 +3524,26 @@ namespace boost { namespace parser {
             parser_(parser), globals_(globals), error_handler_(error_handler)
         {}
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `expect_parser` containing `parser_`, with `FailOnMatch ==
+            true`. */
         constexpr auto operator!() const noexcept
         {
             return parser_interface<expect_parser<Parser, true>>{
                 expect_parser<Parser, true>{parser_}};
         }
+
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `expect_parser` containing `parser_`, with `FailOnMatch ==
+            false`. */
         constexpr auto operator&() const noexcept
         {
             return parser_interface<expect_parser<Parser, false>>{
                 expect_parser<Parser, false>{parser_}};
         }
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `zero_plus_parser` containing `parser_`. */
         constexpr auto operator*() const noexcept
         {
             if constexpr (detail::is_zero_plus_p<Parser>{}) {
@@ -3497,6 +3557,9 @@ namespace boost { namespace parser {
                     zero_plus_parser<Parser>(parser_)};
             }
         }
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `one_plus_parser` containing `parser_`. */
         constexpr auto operator+() const noexcept
         {
             if constexpr (detail::is_zero_plus_p<Parser>{}) {
@@ -3510,12 +3573,17 @@ namespace boost { namespace parser {
                     one_plus_parser<Parser>(parser_)};
             }
         }
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `opt_parser` containing `parser_`. */
         constexpr auto operator-() const noexcept
         {
             return parser_interface<opt_parser<Parser>>{
                 opt_parser<Parser>{parser_}};
         }
 
+        /** Returns a `parser_interface` containing parser equivalent to a
+            `seq_parser` containing `parser_` followed by `rhs.parser_`. */
         template<typename Parser2>
         constexpr auto operator>>(parser_interface<Parser2> rhs) const noexcept
         {
@@ -3530,10 +3598,19 @@ namespace boost { namespace parser {
             }
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator>>(char rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator>>(char32_t rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator>>(std::string_view rhs) const noexcept;
 
+        /** TODO */
         template<typename Parser2>
         constexpr auto operator>(parser_interface<Parser2> rhs) const noexcept
         {
@@ -3613,6 +3690,8 @@ namespace boost { namespace parser {
             return parser_(static_cast<T &&>(x), static_cast<U &&>(y));
         }
 
+        /** Applies `parser_`, returning the parsed attribute, if any, unless
+            the attribute is reported via callback. */
         template<
             bool UseCallbacks,
             typename Iter,
@@ -3631,6 +3710,8 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success);
         }
 
+        /** Applies `parser_`, assiging the parsed attribute, if any, to
+            `attr`, unless the attribute is reported via callback. */
         template<
             bool UseCallbacks,
             typename Iter,
@@ -3657,8 +3738,9 @@ namespace boost { namespace parser {
     };
 
 
-    /** .  The resut of passing any non-top-level parser for the
-        `parser` argument is undefined. */
+    /** Returns a `parser_interface` with the same parser and error handler,
+        with `globals` added.  The resut of passing any non-top-level parser
+        for the `parser` argument is undefined. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_globals(
         parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
@@ -3668,7 +3750,9 @@ namespace boost { namespace parser {
             parser.parser_, globals, parser.error_handler_};
     }
 
-    /** TODO */
+    /** Returns a `parser_interface` with the same parser and globals, with
+        `error_handler` added.  The resut of passing any non-top-level parser
+        for the `parser` argument is undefined. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_error_handler(
         parser_interface<Parser, GlobalState, default_error_handler> const &
@@ -3680,7 +3764,13 @@ namespace boost { namespace parser {
     }
 
 
-    /** TODO */
+    /** A `symbols<T>` represents the initial state of a symbol table parser
+        that produces attributes of type `T`.  The entries in the symbol table
+        can be changed during parsing, but those mutations to not affect the
+        `symbols<T>` object itself; all mutations happen to a copy of the
+        symbol table in the parse context.  For table entries that should be
+        used during every parse, add entries via `add()` or `operator()`.  For
+        mid-parse mutations, use `insert()` and `erase()`. */
     template<typename T>
     struct symbols : parser_interface<symbol_parser<T>>
     {
@@ -3692,19 +3782,26 @@ namespace boost { namespace parser {
 
         using parser_interface<symbol_parser<T>>::operator();
 
-        // TODO: Document that this is for initial population, and that
-        // insert() et al are for during-parse updates.
+        /** Adds an entry consisting of a string to match, and an associated
+            attribute `x`, to `*this`.  The entry is added for use in all
+            subsequent parsing. */
         symbols & add(std::string_view str, T x)
         {
             this->parser_.initial_elements_.push_back(
                 std::pair<std::string_view, T>(str, std::move(x)));
             return *this;
         }
+
+        /** Returns `add(str, std::move(x))`. */
         symbols & operator()(std::string_view str, T x)
         {
             return add(str, std::move(x));
         }
 
+        /** Uses `str` to look up an attribute in the table during parsing,
+            returning it as an optional reference.  The lookup is done on a
+            copy of the symbol table in the parse context `context`, not
+            `*this`.*/
         template<typename Context>
         trie::optional_ref<T>
         find(Context const & context, std::string_view str) const
@@ -3712,12 +3809,17 @@ namespace boost { namespace parser {
             return this->parser_.find(context, str);
         }
 
+        /** Inserts an entry consisting of a string to match, and an
+            associtated attribute `x`, to a copy of the symbol table in the
+            parse context `context`. */
         template<typename Context>
         void insert(Context const & context, std::string_view str, T x) const
         {
             this->parser_.insert(context, str, std::move(x));
         }
 
+        /** Erases the entry consisting of a string to match `str` from a copy
+            of the symbol table in the parse context `context`. */
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
@@ -3729,7 +3831,9 @@ namespace boost { namespace parser {
     using no_local_state = detail::nope;
     using no_params = detail::nope;
 
-    /** TODO */
+    /** A type used to declare named parsing rules.  The `TagType` template
+        parameter is used to associate a particular `rule` with the
+        `rule_parser` used during parsing. */
     template<
         typename TagType,
         typename Attribute = no_attribute,
@@ -3762,7 +3866,10 @@ namespace boost { namespace parser {
         }
     };
 
-    /** TODO */
+    /** A type used to declare named parsing rules that support reporting of
+        attributes via callback.  The `TagType` template parameter is used to
+        associate a particular `rule` with the `rule_parser` used during
+        parsing. */
     template<
         typename TagType,
         typename Attribute = no_attribute,
@@ -3996,6 +4103,7 @@ namespace boost { namespace parser {
                 skip_parser<Parser, SkipParser>{rhs.parser_, skip_parser_}};
         }
 
+        /** TODO What does this do anyway? */
         template<typename SkipParser2>
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
@@ -4067,6 +4175,7 @@ namespace boost { namespace parser {
             success = predicate_(predicate_context);
         }
 
+        /** TODO */
         template<typename Predicate2>
         constexpr auto operator()(Predicate2 predicate) const noexcept
         {
@@ -4250,6 +4359,7 @@ namespace boost { namespace parser {
             ++first;
         }
 
+        /** TODO */
         template<typename T>
         constexpr detail::
             non_range_t<T, parser_interface<char_parser<T, AttributeType>>>
@@ -4263,6 +4373,7 @@ namespace boost { namespace parser {
                 char_parser<T, AttributeType>{std::move(x)}};
         }
 
+        /** TODO */
         // TODO: Document this conversion to string_view.
         auto operator()(char const * s) const noexcept
         {
@@ -4277,6 +4388,7 @@ namespace boost { namespace parser {
                 char_parser_t(char_range_t(range.begin(), range.end())));
         }
 
+        /** TODO */
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
@@ -4290,6 +4402,8 @@ namespace boost { namespace parser {
                 char_parser_t(char_pair_t{std::move(lo), std::move(hi)}));
         }
 
+        /** TODO */
+        // TODO: Unify with char * (or even T *) here and elsewhere.
         template<typename Range>
         constexpr auto
         operator()(Range const & r) const noexcept -> detail::range_t<
@@ -4614,7 +4728,7 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The Boolean parser.  Parses "true" amd "false", producing attributes
+    /** The Boolean parser.  Parses "true" and "false", producing attributes
         `true` and `false`, repsectively, and fails on any other input. */
     inline constexpr parser_interface<bool_parser> bool_;
 
@@ -4680,6 +4794,7 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
+        /** TODO */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -4696,28 +4811,31 @@ namespace boost { namespace parser {
     };
 
     /** The binary unsigned integer parser.  Produces an `unsigned int`
-        attribute. TODO: describe operation of `bin(x)`. */
+        attribute.  To parse a particular value `x`, use `bin(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 2>> bin;
 
     /** The octal unsigned integer parser.  Produces an `unsigned int`
-        attribute. */
+        attribute.  To parse a particular value `x`, use `oct(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 8>> oct;
 
     /** The hexidecimal unsigned integer parser.  Produces an `unsigned int`
-        attribute. */
+        attribute.  To parse a particular value `x`, use `hex(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 16>> hex;
 
-    /** The `unsigned short` parser.  Produces an `unsigned short` attribute. */
+    /** The `unsigned short` parser.  Produces an `unsigned short` attribute.
+        To parse a particular value `x`, use `ushort_(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned short>> ushort_;
 
-    /** The `unsigned int` parser.  Produces an `unsigned int` attribute. */
+    /** The `unsigned int` parser.  Produces an `unsigned int` attribute.  To
+        parse a particular value `x`, use `uint_(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int>> uint_;
 
-    /** The `unsigned long` parser.  Produces an `unsigned long` attribute. */
+    /** The `unsigned long` parser.  Produces an `unsigned long` attribute.
+        To parse a particular value `x`, use `ulong_(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned long>> ulong_;
 
     /** The `unsigned long long` parser.  Produces an `unsigned long long`
-        attribute. */
+        attribute.  To parse a particular value `x`, use `ulong_long(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned long long>>
         ulong_long;
 
@@ -4779,6 +4897,7 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
+        /** TODO */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -4967,6 +5086,7 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
 
+        /** TODO */
         template<typename Value, typename Parser2>
         constexpr auto
         operator()(Value value_, parser_interface<Parser2> rhs) const noexcept
@@ -5372,6 +5492,8 @@ namespace boost { namespace parser {
 
     // TODO: These should take a parser_interface, not an unconstrained Parser
     // type.
+
+    /** TODO */
     template<typename Iter, typename Parser, typename Attr>
     bool parse(
         Iter & first,
@@ -5389,6 +5511,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser, typename Attr>
     bool parse(
         std::string_view str,
@@ -5401,6 +5524,7 @@ namespace boost { namespace parser {
         return parser::parse(first, last, parser, attr, trace_mode);
     }
 
+    /** TODO */
     template<typename Iter, typename Parser>
     auto parse(
         Iter & first,
@@ -5417,6 +5541,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser>
     auto parse(
         std::string_view str,
@@ -5428,6 +5553,7 @@ namespace boost { namespace parser {
         return parser::parse(first, last, parser, trace_mode);
     }
 
+    /** TODO */
     template<typename Iter, typename Parser, typename Callbacks>
     bool callback_parse(
         Iter & first,
@@ -5445,6 +5571,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser, typename Callbacks>
     bool callback_parse(
         std::string_view str,
@@ -5457,6 +5584,7 @@ namespace boost { namespace parser {
         return parser::callback_parse(first, last, parser, callbacks);
     }
 
+    /** TODO */
     template<typename Iter, typename Parser, typename SkipParser, typename Attr>
     bool skip_parse(
         Iter & first,
@@ -5475,6 +5603,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser, typename SkipParser, typename Attr>
     bool skip_parse(
         std::string_view str,
@@ -5488,6 +5617,7 @@ namespace boost { namespace parser {
         return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
     }
 
+    /** TODO */
     template<typename Iter, typename Parser, typename SkipParser>
     auto skip_parse(
         Iter & first,
@@ -5505,6 +5635,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser, typename SkipParser>
     auto skip_parse(
         std::string_view str,
@@ -5517,6 +5648,7 @@ namespace boost { namespace parser {
         return parser::skip_parse(first, last, parser, skip, trace_mode);
     }
 
+    /** TODO */
     template<
         typename Iter,
         typename Parser,
@@ -5539,6 +5671,7 @@ namespace boost { namespace parser {
         }
     }
 
+    /** TODO */
     template<typename Parser, typename SkipParser, typename Callbacks>
     bool callback_skip_parse(
         std::string_view str,
