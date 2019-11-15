@@ -3705,30 +3705,18 @@ namespace boost { namespace parser {
                 action_parser_t{parser_, action}};
         }
 
-        // TODO: Make a single variadic that does what these two overloads do.
-
-        /** Returns `parser_((T &&)x)`.  This is useful for those parsers that
-            have `operator()` overloads, e.g. `char_('x')`.
-
-            This function does not participate in overload resolution unless
-            `parser_((T &&)x)` is well-formed. */
-        template<typename T>
-        constexpr auto operator()(T && x) const noexcept
-            -> decltype(std::declval<Parser>()(static_cast<T &&>(x)))
-        {
-            return parser_(static_cast<T &&>(x));
-        }
-
-        /** Returns `parser_((T &&)x)`.  This is useful for those parsers that
-            have `operator()` overloads, e.g. `char_('x', 'y')`.
+        /** Returns `parser_((Arg &&)arg, (Args &&)args...)`.  This is useful
+            for those parsers that have `operator()` overloads,
+            e.g. `char_('x')`.
 
             This function does not participate in overload resolution unless
-            `parser_((T &&)x)` is well-formed. */
-        template<typename T, typename U>
-        constexpr auto operator()(T && x, U && y) const noexcept -> decltype(
-            std::declval<Parser>()(static_cast<T &&>(x), static_cast<U &&>(y)))
+            `parser_((Arg &&)arg, (Args &&)args...)` is well-formed. */
+        template<typename Arg, typename... Args>
+        constexpr auto operator()(Arg && arg, Args &&... args) const noexcept
+            -> decltype(
+                std::declval<Parser const &>()((Arg &&) arg, (Args &&) args...))
         {
-            return parser_(static_cast<T &&>(x), static_cast<U &&>(y));
+            return parser_((Arg &&) arg, (Args &&) args...);
         }
 
         /** Applies `parser_`, returning the parsed attribute, if any, unless
