@@ -1692,7 +1692,17 @@ namespace boost { namespace parser {
 
 
     // TODO: Document term of art: semantic action.
+    // TODO: Document term of art: topmost parser/rule.
     // TODO: Document term of art: innermost parser/rule.
+    // TODO: Document term of art: top-level parse.
+
+    // TODO: Document the convention that a parser's operator() always returns
+    // a parser_interface.
+
+    // TODO: Document what a pred/pred_ is (value or invocable), and what any
+    // other value is (value or invocable).
+
+    // TODO: C++20 concepts.
 
     // TODO: Are _val() and _attr() redundant?
 
@@ -3554,7 +3564,7 @@ namespace boost { namespace parser {
                 opt_parser<Parser>{parser_}};
         }
 
-        /** Returns a `parser_interface` containing parser equivalent to a
+        /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`. */
         template<typename Parser2>
         constexpr auto operator>>(parser_interface<Parser2> rhs) const noexcept
@@ -3582,7 +3592,11 @@ namespace boost { namespace parser {
             `seq_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator>>(std::string_view rhs) const noexcept;
 
-        /** TODO */
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `rhs.parser_`.  No
+            back-tracking is allowed after `parser_` succeeds; if
+            `rhs.parser_` fails after `parser_` succeeds, the top-level parse
+            fails. */
         template<typename Parser2>
         constexpr auto operator>(parser_interface<Parser2> rhs) const noexcept
         {
@@ -3596,10 +3610,27 @@ namespace boost { namespace parser {
                     hana::tuple<Parser, Parser2>{parser_, rhs.parser_}}};
             }
         }
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
+            back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
+            fails after `parser_` succeeds, the top-level parse fails. */
         constexpr auto operator>(char rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
+            back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
+            fails after `parser_` succeeds, the top-level parse fails. */
         constexpr auto operator>(char32_t rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
+            back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
+            fails after `parser_` succeeds, the top-level parse fails. */
         constexpr auto operator>(std::string_view rhs) const noexcept;
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `or_parser` containing `parser_` followed by `rhs.parser_`. */
         template<typename Parser2>
         constexpr auto operator|(parser_interface<Parser2> rhs) const noexcept
         {
@@ -3613,20 +3644,40 @@ namespace boost { namespace parser {
             }
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `or_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator|(char rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `or_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator|(char32_t rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to an
+            `or_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator|(std::string_view rhs) const noexcept;
 
+        /** Returns a `parser_interface` containing a parser equivalent to
+            `!rhs >> *this`. */
         template<typename Parser2>
         constexpr auto operator-(parser_interface<Parser2> rhs) const noexcept
         {
             return !rhs >> *this;
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to
+            `!lit(rhs) >> *this`. */
         constexpr auto operator-(char rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to
+            `!lit(rhs) >> *this`. */
         constexpr auto operator-(char32_t rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to
+            `!lit(rhs) >> *this`. */
         constexpr auto operator-(std::string_view rhs) const noexcept;
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+           `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
         template<typename Parser2>
         constexpr auto operator%(parser_interface<Parser2> rhs) const noexcept
         {
@@ -3634,10 +3685,21 @@ namespace boost { namespace parser {
                 delimited_seq_parser<Parser, Parser2>(parser_, rhs.parser_)};
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+           `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
         constexpr auto operator%(char rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to an
+           `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
         constexpr auto operator%(char32_t rhs) const noexcept;
+
+        /** Returns a `parser_interface` containing a parser equivalent to an
+           `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
         constexpr auto operator%(std::string_view rhs) const noexcept;
 
+        /** Returns a `parser_interface` containing a parser equivalent to an
+           `action_parser` containing `parser_`, with semantic action
+           `action`. */
         template<typename Action>
         constexpr auto operator[](Action action) const
         {
@@ -3646,7 +3708,13 @@ namespace boost { namespace parser {
                 action_parser_t{parser_, action}};
         }
 
-        // For parsers that can be used like "char_('x')".
+        // TODO: Make a single variadic that does what these two overloads do.
+
+        /** Returns `parser_((T &&)x)`.  This is useful for those parsers that
+            have `operator()` overloads, e.g. `char_('x')`.
+
+            This function does not participate in overload resolution unless
+            `parser_((T &&)x)` is well-formed. */
         template<typename T>
         constexpr auto operator()(T && x) const noexcept
             -> decltype(std::declval<Parser>()(static_cast<T &&>(x)))
@@ -3654,7 +3722,11 @@ namespace boost { namespace parser {
             return parser_(static_cast<T &&>(x));
         }
 
-        // For parsers that can be used like "char_('x', 'y')".
+        /** Returns `parser_((T &&)x)`.  This is useful for those parsers that
+            have `operator()` overloads, e.g. `char_('x', 'y')`.
+
+            This function does not participate in overload resolution unless
+            `parser_((T &&)x)` is well-formed. */
         template<typename T, typename U>
         constexpr auto operator()(T && x, U && y) const noexcept -> decltype(
             std::declval<Parser>()(static_cast<T &&>(x), static_cast<U &&>(y)))
@@ -3764,7 +3836,7 @@ namespace boost { namespace parser {
             return *this;
         }
 
-        /** Returns `add(str, std::move(x))`. */
+        /** Equivalent to `add(str, std::move(x))`. */
         symbols & operator()(std::string_view str, T x)
         {
             return add(str, std::move(x));
@@ -4064,7 +4136,11 @@ namespace boost { namespace parser {
         return repeat_directive<MinType, MaxType>{min_, max_};
     }
 
-    /** Represents a `skip_parser` as a directive (e.g. `skip[skip_parser]`). */
+    /** Represents a `skip_parser` as a directive.  When used without a skip
+        parser, e.g. `skip[parser_in_which_to_do_skipping]`, the skipper for
+        the entire parse is used.  When given another parser, e.g.
+        `skip(skip_parser)[parser_in_which_to_do_skipping]`, that other parser
+        is used as the skipper within the directive. */
     template<typename SkipParser = detail::nope>
     struct skip_directive
     {
@@ -4075,7 +4151,7 @@ namespace boost { namespace parser {
                 skip_parser<Parser, SkipParser>{rhs.parser_, skip_parser_}};
         }
 
-        /** TODO What does this do anyway? */
+        /** Returns a `skip_directive` with `skip_parser` as its skipper. */
         template<typename SkipParser2>
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
@@ -4120,7 +4196,7 @@ namespace boost { namespace parser {
             range const where(first, first);
             auto const predicate_context =
                 hana::insert(context, hana::make_pair(detail::where_, &where));
-            success = predicate_(predicate_context);
+            success = pred_(predicate_context);
             return {};
         }
 
@@ -4144,22 +4220,23 @@ namespace boost { namespace parser {
             range const where(first, first);
             auto const predicate_context =
                 hana::insert(context, hana::make_pair(detail::where_, &where));
-            success = predicate_(predicate_context);
+            success = pred_(predicate_context);
         }
 
-        /** TODO */
+        /** Returns an `eps_parser` that will fail if `pred` evaluates to
+            false. */
         template<typename Predicate2>
-        constexpr auto operator()(Predicate2 predicate) const noexcept
+        constexpr auto operator()(Predicate2 pred) const noexcept
         {
             static_assert(
                 std::is_same<Predicate, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on eps, "
                 "like 'eps(foo)(bar)'.  Quit it!'");
             return parser_interface<eps_parser<Predicate2>>{
-                eps_parser<Predicate2>{std::move(predicate)}};
+                eps_parser<Predicate2>{std::move(pred)}};
         }
 
-        Predicate predicate_;
+        Predicate pred_;
     };
 
     /** The epsilon parser.  This matches anything, and consumes no input.  If
@@ -4766,7 +4843,7 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
-        /** TODO */
+        /** Returns a `uint_parser` that matches the exact value `expected`. */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -4869,7 +4946,7 @@ namespace boost { namespace parser {
                 detail::assign(retval, attr);
         }
 
-        /** TODO */
+        /** Returns an `int_parser` that matches the exact value `expected`. */
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
@@ -4956,26 +5033,26 @@ namespace boost { namespace parser {
 
     /** Represents a sequence parser, the first parser of which is an
         `epsilon_parser` with predicate, as a directive
-        (e.g. `if(pred)[p]`). */
+        (e.g. `if_(pred)[p]`). */
     template<typename Predicate>
     struct if_directive
     {
         template<typename Parser2>
         constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
         {
-            return eps(predicate_) >> rhs;
+            return eps(pred_) >> rhs;
         }
 
-        Predicate predicate_;
+        Predicate pred_;
     };
 
-    /** Returns an `if_directive` that fails if the given predicate `x` is
+    /** Returns an `if_directive` that fails if the given predicate `pred` is
         `false`, and otherwise, applies another parser.  For instance, in
         `if_(pred)[p]`, `p` is only applied if `pred` is true. */
-    template<typename T>
-    constexpr auto if_(T x) noexcept
+    template<typename Predicate>
+    constexpr auto if_(Predicate pred) noexcept
     {
-        return if_directive<T>{x};
+        return if_directive<Predicate>{pred};
     }
 
     namespace detail {
@@ -5058,7 +5135,8 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
 
-        /** TODO */
+        /** Returns a `switch_parser`, with the case `value_`/`rhs` appended
+            to its `or_parser_`. */
         template<typename Value, typename Parser2>
         constexpr auto
         operator()(Value value_, parser_interface<Parser2> rhs) const noexcept
@@ -5462,15 +5540,20 @@ namespace boost { namespace parser {
 
     // Parse API.
 
-    // TODO: These should take a parser_interface, not an unconstrained Parser
-    // type.
-
-    /** TODO */
-    template<typename Iter, typename Parser, typename Attr>
+    /** Parses `[first, last)` using `parser`, and returns whether the parse
+        was successful.  On success, `attr` will be assigned the value of the
+        attribute produced by `parser`.  If `trace_mode == trace::on`, a
+        verbose trace of the parse will be streamed to `std::cout`. */
+    template<
+        typename Iter,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Attr>
     bool parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
     {
@@ -5483,11 +5566,18 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser, typename Attr>
+    /** Parses `str` using `parser`, and returns whether the parse was
+        successful.  On success, `attr` will be assigned the value of the
+        attribute produced by `parser`.  If `trace_mode == trace::on`, a
+        verbose trace of the parse will be streamed to `std::cout`. */
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Attr>
     bool parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
     {
@@ -5496,12 +5586,19 @@ namespace boost { namespace parser {
         return parser::parse(first, last, parser, attr, trace_mode);
     }
 
-    /** TODO */
-    template<typename Iter, typename Parser>
+    /** Parses `[first, last)` using `parser`.  Returns a `std::optional`
+        containing the attribute produced by `parser` on parse success, and
+        `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
+        verbose trace of the parse will be streamed to `std::cout`. */
+    template<
+        typename Iter,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler>
     auto parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
         if (trace_mode == trace::on) {
@@ -5513,11 +5610,14 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser>
+    /** Parses `str` using `parser`.  Returns a `std::optional` containing the
+        attribute produced by `parser` on parse success, and `std::nullopt` on
+        parse failure.  If `trace_mode == trace::on`, a verbose trace of the
+        parse will be streamed to `std::cout`. */
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
         auto first = str.begin();
@@ -5525,12 +5625,30 @@ namespace boost { namespace parser {
         return parser::parse(first, last, parser, trace_mode);
     }
 
-    /** TODO */
-    template<typename Iter, typename Parser, typename Callbacks>
+    /** Parses `[first, last)` using `parser`, and returns whether the parse
+        was successful.  When a callback rule `r` is successful during the
+        parse, one of two things happens: 1) if `r` has an attribute,
+        `callbacks(tag, x)` will be called (where `tag` is
+        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
+        produced by `r`), if that call is well-formed; otherwise,
+        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
+        `callbacks(tag)` will be called, if that call is well-formed;
+        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
+        either be an invocable with the correct overloads required to support
+        all successful rule parses that might occur, or a `boost::hana::map`
+        that contains an invocable for each `boost::hana::type` that might
+        occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
+        will be streamed to `std::cout`. */
+    template<
+        typename Iter,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Callbacks>
     bool callback_parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
@@ -5543,11 +5661,28 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser, typename Callbacks>
+    /** Parses `str` using `parser`, and returns whether the parse was
+        successful.  When a callback rule `r` is successful during the parse,
+        one of two things happens: 1) if `r` has an attribute, `callbacks(tag,
+        x)` will be called (where `tag` is
+        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
+        produced by `r`), if that call is well-formed; otherwise,
+        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
+        `callbacks(tag)` will be called, if that call is well-formed;
+        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
+        either be an invocable with the correct overloads required to support
+        all successful rule parses that might occur, or a `boost::hana::map`
+        that contains an invocable for each `boost::hana::type` that might
+        occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
+        will be streamed to `std::cout`. */
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Callbacks>
     bool callback_parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
@@ -5556,12 +5691,23 @@ namespace boost { namespace parser {
         return parser::callback_parse(first, last, parser, callbacks);
     }
 
-    /** TODO */
-    template<typename Iter, typename Parser, typename SkipParser, typename Attr>
+    /** Parses `[first, last)` using `parser`, skipping all input recognized
+        by `skip` between the application of any two parsers, and returns
+        whether the parse was successful.  On success, `attr` will be assigned
+        the value of the attribute produced by `parser`.  If `trace_mode ==
+        trace::on`, a verbose trace of the parse will be streamed to
+        `std::cout`. */
+    template<
+        typename Iter,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Attr>
     bool skip_parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
@@ -5575,11 +5721,20 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser, typename SkipParser, typename Attr>
+    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+        between the application of any two parsers, and returns whether the
+        parse was successful.  On success, `attr` will be assigned the value
+        of the attribute produced by `parser`.  If `trace_mode == trace::on`,
+        a verbose trace of the parse will be streamed to `std::cout`. */
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Attr>
     bool skip_parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
@@ -5589,12 +5744,22 @@ namespace boost { namespace parser {
         return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
     }
 
-    /** TODO */
-    template<typename Iter, typename Parser, typename SkipParser>
+    /** Parses `[first, last)` using `parser`, skipping all input recognized
+        by `skip` between the application of any two parsers.  Returns a
+        `std::optional` containing the attribute produced by `parser` on parse
+        success, and `std::nullopt` on parse failure.  If `trace_mode ==
+        trace::on`, a verbose trace of the parse will be streamed to
+        `std::cout`. */
+    template<
+        typename Iter,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser>
     auto skip_parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
@@ -5607,11 +5772,19 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser, typename SkipParser>
+    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+        between the application of any two parsers.  Returns a `std::optional`
+        containing the attribute produced by `parser` on parse success, and
+        `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
+        verbose trace of the parse will be streamed to `std::cout`. */
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser>
     auto skip_parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
@@ -5620,16 +5793,32 @@ namespace boost { namespace parser {
         return parser::skip_parse(first, last, parser, skip, trace_mode);
     }
 
-    /** TODO */
+    /** Parses `[first, last)` using `parser`, skipping all input recognized
+        by `skip` between the application of any two parsers, and returns
+        whether the parse was successful.  When a callback rule `r` is
+        successful during the parse, one of two things happens: 1) if `r` has
+        an attribute, `callbacks(tag, x)` will be called (where `tag` is
+        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
+        produced by `r`), if that call is well-formed; otherwise,
+        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
+        `callbacks(tag)` will be called, if that call is well-formed;
+        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
+        either be an invocable with the correct overloads required to support
+        all successful rule parses that might occur, or a `boost::hana::map`
+        that contains an invocable for each `boost::hana::type` that might
+        occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
+        will be streamed to `std::cout`. */
     template<
         typename Iter,
         typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
         typename SkipParser,
         typename Callbacks>
     bool callback_skip_parse(
         Iter & first,
         Iter last,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
@@ -5643,11 +5832,30 @@ namespace boost { namespace parser {
         }
     }
 
-    /** TODO */
-    template<typename Parser, typename SkipParser, typename Callbacks>
+    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+        between the application of any two parsers, and returns whether the
+        parse was successful.  When a callback rule `r` is successful during
+        the parse, one of two things happens: 1) if `r` has an attribute,
+        `callbacks(tag, x)` will be called (where `tag` is
+        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
+        produced by `r`), if that call is well-formed; otherwise,
+        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
+        `callbacks(tag)` will be called, if that call is well-formed;
+        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
+        either be an invocable with the correct overloads required to support
+        all successful rule parses that might occur, or a `boost::hana::map`
+        that contains an invocable for each `boost::hana::type` that might
+        occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
+        will be streamed to `std::cout`. */
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Callbacks>
     bool callback_skip_parse(
         std::string_view str,
-        Parser const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)

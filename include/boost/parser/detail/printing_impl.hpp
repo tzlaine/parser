@@ -707,7 +707,7 @@ namespace boost { namespace parser { namespace detail {
     {
         using namespace hana::literals;
 
-        os << "(" << resolve(context, parser.parsers_[0_c].predicate_.value_)
+        os << "(" << resolve(context, parser.parsers_[0_c].pred_.value_)
            << ", ";
         parser_name(context, parser.parsers_[1_c], os, components);
         os << ")";

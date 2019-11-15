@@ -162,8 +162,8 @@ namespace boost { namespace parser {
     struct rule_parser;
 
     /** Matches anything, and consumes no input.  If `Predicate` is anything
-        other than `detail::nope`, and `predicate_(ctx)` evaluates to false,
-        where `ctx` is the parser context, the parse fails. */
+        other than `detail::nope`, and `pred_(ctx)` evaluates to false, where
+        `ctx` is the parser context, the parse fails. */
     template<typename Predicate>
     struct eps_parser;
 
