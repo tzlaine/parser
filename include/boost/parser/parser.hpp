@@ -1117,97 +1117,6 @@ namespace boost { namespace parser {
         constexpr void assign_copy(T &, nope)
         {}
 
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
-
-        template<typename Attr>
-        struct apply_opt_var_parser_impl
-        {
-            template<
-                typename Parser,
-                bool UseCallbacks,
-                typename Iter,
-                typename Context,
-                typename SkipParser,
-                typename... T>
-            static void call(
-                Parser const & parser,
-                hana::bool_<UseCallbacks> use_cbs,
-                Iter & first,
-                Iter last,
-                Context const & context,
-                SkipParser const & skip,
-                flags flags,
-                bool & success,
-                std::optional<std::variant<T...>> & retval)
-            {
-                Attr attr = parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
-                if (success)
-                    assign(retval, std::variant<T...>(std::move(attr)));
-            }
-        };
-
-        template<typename... T>
-        struct apply_opt_var_parser_impl<std::optional<std::variant<T...>>>
-        {
-            template<
-                typename Parser,
-                bool UseCallbacks,
-                typename Iter,
-                typename Context,
-                typename SkipParser,
-                typename... U>
-            static void call(
-                Parser const & parser,
-                hana::bool_<UseCallbacks> use_cbs,
-                Iter & first,
-                Iter last,
-                Context const & context,
-                SkipParser const & skip,
-                flags flags,
-                bool & success,
-                std::optional<std::variant<U...>> & retval)
-            {
-                parser.call(
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-            }
-        };
-
-        template<>
-        struct apply_opt_var_parser_impl<nope>
-        {
-            template<
-                typename Parser,
-                bool UseCallbacks,
-                typename Iter,
-                typename Context,
-                typename SkipParser,
-                typename... T>
-            static void call(
-                Parser const & parser,
-                hana::bool_<UseCallbacks> use_cbs,
-                Iter & first,
-                Iter last,
-                Context const & context,
-                SkipParser const & skip,
-                flags flags,
-                bool & success,
-                std::optional<std::variant<T...>> & retval)
-            {
-                parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
-            }
-        };
-
-#endif
-
         template<
             typename Parser,
             bool UseCallbacks,
@@ -1228,18 +1137,6 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser.call(
                 use_cbs, first, last, context, skip, flags, success));
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
-            apply_opt_var_parser_impl<attr_t>::call(
-                parser,
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                flags,
-                success,
-                retval);
-#else
             if constexpr (std::is_same<
                               attr_t,
                               std::optional<std::variant<T...>>>{}) {
@@ -1261,7 +1158,6 @@ namespace boost { namespace parser {
                 if (success)
                     assign(retval, std::variant<T...>(std::move(attr)));
             }
-#endif
         }
 
         template<
@@ -1704,18 +1600,6 @@ namespace boost { namespace parser {
         inline constexpr auto params_ = tag<rule_params_tag>;
         inline constexpr auto globals_ = tag<globals_tag>;
         inline constexpr auto error_handler_ = tag<error_handler_tag>;
-
-#if 0
-        template<typename Range>
-        constexpr auto make_range(Range && r) noexcept
-        {
-            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
-                return parser::make_range(r, text::null_sentinel{});
-            } else {
-                return parser::make_range(r.begin(), r.end());
-            }
-        }
-#endif
     }
 
 
