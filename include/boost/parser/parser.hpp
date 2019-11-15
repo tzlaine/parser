@@ -57,6 +57,12 @@ namespace boost { namespace parser {
     // TODO: Consider eps(cond) -> precondition(cond).
 
 
+    /** A tag type used to create tag objects that can be used as keys usable
+        to access values in the parse context. */
+    template<typename T>
+    constexpr hana::type<T> tag{};
+
+
     namespace detail {
 
         // Utility types.
@@ -1670,6 +1676,17 @@ namespace boost { namespace parser {
                 return false;
             }
         }
+
+        inline constexpr auto val_ = tag<val_tag>;
+        inline constexpr auto attr_ = tag<attr_tag>;
+        inline constexpr auto where_ = tag<where_tag>;
+        inline constexpr auto begin_ = tag<begin_tag>;
+        inline constexpr auto end_ = tag<end_tag>;
+        inline constexpr auto pass_ = tag<pass_tag>;
+        inline constexpr auto locals_ = tag<locals_tag>;
+        inline constexpr auto params_ = tag<rule_params_tag>;
+        inline constexpr auto globals_ = tag<globals_tag>;
+        inline constexpr auto error_handler_ = tag<error_handler_tag>;
     }
 
 
@@ -1679,51 +1696,6 @@ namespace boost { namespace parser {
 
     // TODO: Are _val() and _attr() redundant?
 
-    /** A tag type used to create tag objects that can be used as keys usable
-        to access values in the parse context. */
-    template<typename T>
-    constexpr hana::type<T> tag{};
-
-    /** The tag-object to use to access the current parse value in the parse
-        context. */
-    inline constexpr auto val_ = tag<detail::val_tag>;
-
-    /** The tag-object to use to access the current parse attribute in the
-        parse context. */
-    inline constexpr auto attr_ = tag<detail::attr_tag>;
-
-    /** The tag-object to use to access the current parse location in the
-        parse context. */
-    inline constexpr auto where_ = tag<detail::where_tag>;
-
-    /** The tag-object to use to access the beginning of the sequence being
-        parsed in the parse context. */
-    inline constexpr auto begin_ = tag<detail::begin_tag>;
-
-    /** The tag-object to use to access the end of the sequence being parsed
-        in the parse context. */
-    inline constexpr auto end_ = tag<detail::end_tag>;
-
-    /** The tag-object to use to access the pass/fail variable in the parse
-        context. */
-    inline constexpr auto pass_ = tag<detail::pass_tag>;
-
-    /** The tag-object to use to access the local state variable in the parse
-        context. */
-    inline constexpr auto locals_ = tag<detail::locals_tag>;
-
-    /** The tag-object to use to access the rule parameters tuple in the parse
-        context. */
-    inline constexpr auto params_ = tag<detail::rule_params_tag>;
-
-    /** The tag-object to use to access the global state variable in the parse
-        context. */
-    inline constexpr auto globals_ = tag<detail::globals_tag>;
-
-    /** The tag-object to use to access the error handler in the parse
-        context. */
-    inline constexpr auto error_handler_ = tag<detail::error_handler_tag>;
-
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
         `hana::tuple`.  You may write to this value in a semantic action to
@@ -1732,7 +1704,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
-        return *context[val_];
+        return *context[detail::val_];
     }
     /** Returns a reference to the attribute or attributes already produced by
         the innermost parser; multiple attributes will be stored within a
@@ -1741,14 +1713,14 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _attr(Context const & context)
     {
-        return *context[attr_];
+        return *context[detail::attr_];
     }
     /** Returns a `range` that describes the boundaries of the innermost
         parser. */
     template<typename Context>
     inline decltype(auto) _where(Context const & context)
     {
-        return *context[where_];
+        return *context[detail::where_];
     }
     /** Returns an iterator to the beginning of the entire sequence being
         parsed.  The effect of calling this within a semantic action
@@ -1756,13 +1728,13 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _begin(Context const & context)
     {
-        return context[begin_];
+        return context[detail::begin_];
     }
     /** Returns an iterator to the end of the entire sequence being parsed. */
     template<typename Context>
     inline decltype(auto) _end(Context const & context)
     {
-        return context[end_];
+        return context[detail::end_];
     }
     /** Returns a reference to a `bool` that represents the success or failure
         of the innermost parser.  You can set this to `false` within a
@@ -1770,7 +1742,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _pass(Context const & context)
     {
-        return *context[pass_];
+        return *context[detail::pass_];
     }
     /** Returns a reference to one or more local values that the innermost
         rule is declared to have; multiple values will be stored within a
@@ -1779,7 +1751,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _locals(Context const & context)
     {
-        return *context[locals_];
+        return *context[detail::locals_];
     }
     /** Returns a reference to one or more parameter passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
@@ -1789,7 +1761,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _params(Context const & context)
     {
-        return *context[params_];
+        return *context[detail::params_];
     }
     /** Returns a reference to the globals object associated with the
         innermost parser.  Returns `nope` if there is no associated
@@ -1797,7 +1769,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
     {
-        return *context[globals_];
+        return *context[detail::globals_];
     }
     /** Returns a reference to the error handler object associated with the
         innermost parser.  Returns `nope` if there is no associated error
@@ -1805,7 +1777,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _error_handler(Context const & context)
     {
-        return *context[error_handler_];
+        return *context[detail::error_handler_];
     }
 
     /** Report that the error described in `message` occurred at `location`,
@@ -1814,7 +1786,7 @@ namespace boost { namespace parser {
     inline void _report_error(
         Context const & context, std::string_view message, Iter location)
     {
-        return context[error_handler_]->diagnose(
+        return context[detail::error_handler_]->diagnose(
             diagnostic_kind::error, message, context, location);
     }
     /** Report that the error described in `message` occurred at
@@ -1822,7 +1794,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline void _report_error(Context const & context, std::string_view message)
     {
-        return context[error_handler_]->diagnose(
+        return context[detail::error_handler_]->diagnose(
             diagnostic_kind::error, message, context);
     }
     /** Report that the warning described in `message` occurred at `location`,
@@ -1831,7 +1803,7 @@ namespace boost { namespace parser {
     inline void _report_warning(
         Context const & context, std::string_view message, Iter location)
     {
-        return context[error_handler_]->diagnose(
+        return context[detail::error_handler_]->diagnose(
             diagnostic_kind::warning, message, context, location);
     }
     /** Report that the warning described in `message` occurred at
@@ -1840,7 +1812,7 @@ namespace boost { namespace parser {
     inline void
     _report_warning(Context const & context, std::string_view message)
     {
-        return context[error_handler_]->diagnose(
+        return context[detail::error_handler_]->diagnose(
             diagnostic_kind::warning, message, context);
     }
 
@@ -2857,9 +2829,9 @@ namespace boost { namespace parser {
                 // where to the context.
                 auto const action_context = hana::insert(
                     hana::insert(
-                        hana::erase_key(context, attr_),
-                        hana::make_pair(attr_, &attr)),
-                    hana::make_pair(where_, &where));
+                        hana::erase_key(context, detail::attr_),
+                        hana::make_pair(detail::attr_, &attr)),
+                    hana::make_pair(detail::where_, &where));
                 action_(action_context);
             }
         }
@@ -4147,7 +4119,7 @@ namespace boost { namespace parser {
                 *this, first, last, context, flags, detail::global_nope);
             range const where(first, first);
             auto const predicate_context =
-                hana::insert(context, hana::make_pair(where_, &where));
+                hana::insert(context, hana::make_pair(detail::where_, &where));
             success = predicate_(predicate_context);
             return {};
         }
@@ -4171,7 +4143,7 @@ namespace boost { namespace parser {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             range const where(first, first);
             auto const predicate_context =
-                hana::insert(context, hana::make_pair(where_, &where));
+                hana::insert(context, hana::make_pair(detail::where_, &where));
             success = predicate_(predicate_context);
         }
 
