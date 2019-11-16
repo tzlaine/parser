@@ -39,25 +39,25 @@ namespace boost { namespace parser {
 
     /** Writes a formatted message (meaning prefixed with the file name, line,
         and column number) to `os`. */
-    template<typename Iter>
+    template<typename Iter, typename Sentinel>
     std::ostream & write_formatted_message(
         std::ostream & os,
         std::string_view filename,
         Iter first,
         Iter it,
-        Iter last,
+        Sentinel last,
         std::string_view message,
         int64_t preferred_max_line_length = 80,
         int64_t max_after_caret = 40);
 
     /** Writes a formatted parse-expectation failure (meaning prefixed with
         the file name, line, and column number) to `os`. */
-    template<typename Iter>
+    template<typename Iter, typename Sentinel>
     std::ostream & write_formatted_expectation_failure_error_message(
         std::ostream & os,
         std::string_view filename,
         Iter first,
-        Iter last,
+        Sentinel last,
         parse_error<Iter> const & e,
         int64_t preferred_max_line_length = 80,
         int64_t max_after_caret = 40);
@@ -70,8 +70,7 @@ namespace boost { namespace parser {
         warning /// A warning diagnostic.
     };
 
-    // TODO: error_handler concept.
-#if 0
+#if 0 // TODO: error_handler concept.
 #if defined(__cpp_lib_concepts) && defined(__cpp_lib_ranges)
     template<typename T>
     BOOST_PARSER_CONCEPT cp_iterator =
@@ -105,9 +104,9 @@ namespace boost { namespace parser {
             formatted parse-expectation failure is printed to `*os_` when
             `os_` is non-null, or `std::cout` otherwise.  Always returns
             `error_handler_result::fail`. */
-        template<typename Iter>
+        template<typename Iter, typename Sentinel>
         error_handler_result
-        operator()(Iter first, Iter last, parse_error<Iter> const & e) const
+        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
         {
             std::ostream & os = os_ ? *os_ : std::cout;
             parser::write_formatted_expectation_failure_error_message(

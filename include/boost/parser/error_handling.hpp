@@ -53,8 +53,8 @@ namespace boost { namespace parser {
 
     /** Returns the iterator to the end of the line in which `it` is
         found.  */
-    template<typename Iter>
-    Iter find_line_end(Iter it, Iter last)
+    template<typename Iter, typename Sentinel>
+    Iter find_line_end(Iter it, Sentinel last)
     {
         return std::find_if(it, last, [](auto c) {
             return (c & detail::eol_cp_mask) == c &&
@@ -64,13 +64,13 @@ namespace boost { namespace parser {
         });
     }
 
-    template<typename Iter>
+    template<typename Iter, typename Sentinel>
     std::ostream & write_formatted_message(
         std::ostream & os,
         std::string_view filename,
         Iter first,
         Iter it,
-        Iter last,
+        Sentinel last,
         std::string_view message,
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
@@ -107,12 +107,12 @@ namespace boost { namespace parser {
     }
 
 
-    template<typename Iter>
+    template<typename Iter, typename Sentinel>
     std::ostream & write_formatted_expectation_failure_error_message(
         std::ostream & os,
         std::string_view filename,
         Iter first,
-        Iter last,
+        Sentinel last,
         parse_error<Iter> const & e,
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
@@ -148,9 +148,9 @@ namespace boost { namespace parser {
             filename_(filename)
         {}
 
-        template<typename Iter>
+        template<typename Iter, typename Sentinel>
         error_handler_result
-        operator()(Iter first, Iter last, parse_error<Iter> const & e) const
+        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
         {
             if (error_) {
                 std::stringstream ss;
@@ -196,9 +196,9 @@ namespace boost { namespace parser {
         parse. */
     struct rethrow_error_handler
     {
-        template<typename Iter>
+        template<typename Iter, typename Sentinel>
         error_handler_result
-        operator()(Iter first, Iter last, parse_error<Iter> const & e) const
+        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
         {
             return error_handler_result::rethrow;
         }

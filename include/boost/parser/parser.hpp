@@ -106,10 +106,10 @@ namespace boost { namespace parser {
 
         using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
 
-        template<typename Iter, typename ErrorHandler>
+        template<typename Iter, typename Sentinel, typename ErrorHandler>
         inline auto make_context(
             Iter first,
-            Iter last,
+            Sentinel last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -133,10 +133,14 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
-        template<typename Iter, typename ErrorHandler, typename GlobalState>
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler,
+            typename GlobalState>
         inline auto make_context(
             Iter first,
-            Iter last,
+            Sentinel last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -160,10 +164,14 @@ namespace boost { namespace parser {
                     hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
         }
 
-        template<typename Iter, typename ErrorHandler, typename Callbacks>
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler,
+            typename Callbacks>
         inline auto make_context(
             Iter first,
-            Iter last,
+            Sentinel last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -190,12 +198,13 @@ namespace boost { namespace parser {
 
         template<
             typename Iter,
+            typename Sentinel,
             typename ErrorHandler,
             typename Callbacks,
             typename GlobalState>
         inline auto make_context(
             Iter first,
-            Iter last,
+            Sentinel last,
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
@@ -744,6 +753,7 @@ namespace boost { namespace parser {
         template<
             typename Container,
             typename Iter,
+            typename Sentinel,
             bool BothIntegral = std::is_integral<std::decay_t<decltype(
                                     *std::declval<Container>().begin())>>{} &&
                                 std::is_integral<std::decay_t<decltype(
@@ -753,18 +763,18 @@ namespace boost { namespace parser {
         struct container_range_append
         {
             static void
-            call(Container & c, Iter first, Iter last, bool gen_attrs)
+            call(Container & c, Iter first, Sentinel last, bool gen_attrs)
             {
                 if (gen_attrs)
                     c.insert(c.end(), first, last);
             }
         };
 
-        template<typename Container, typename Iter>
-        struct container_range_append<Container, Iter, true, 1, 4>
+        template<typename Container, typename Iter, typename Sentinel>
+        struct container_range_append<Container, Iter, Sentinel, true, 1, 4>
         {
             static void
-            call(Container & c, Iter first_, Iter last_, bool gen_attrs)
+            call(Container & c, Iter first_, Sentinel last_, bool gen_attrs)
             {
                 if (gen_attrs) {
                     auto const r = text::as_utf8(first_, last_);
@@ -773,15 +783,15 @@ namespace boost { namespace parser {
             }
         };
 
-        template<typename Container, typename Iter>
-        void append(Container & c, Iter first, Iter last, bool gen_attrs)
+        template<typename Container, typename Iter, typename Sentinel>
+        void append(Container & c, Iter first, Sentinel last, bool gen_attrs)
         {
-            container_range_append<Container, Iter>::call(
+            container_range_append<Container, Iter, Sentinel>::call(
                 c, first, last, gen_attrs);
         }
 
-        template<typename Iter>
-        void append(nope &, Iter first, Iter last, bool gen_attrs)
+        template<typename Iter, typename Sentinel>
+        void append(nope &, Iter first, Sentinel last, bool gen_attrs)
         {}
 
         constexpr inline flags default_flags()
@@ -841,12 +851,13 @@ namespace boost { namespace parser {
             template<
                 bool UseCallbacks,
                 typename Iter,
+                typename Sentinel,
                 typename Context,
                 typename SkipParser>
             nope operator()(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 flags flags,
@@ -858,13 +869,14 @@ namespace boost { namespace parser {
             template<
                 bool UseCallbacks,
                 typename Iter,
+                typename Sentinel,
                 typename Context,
                 typename SkipParser,
                 typename Attribute>
             void operator()(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 flags flags,
@@ -873,12 +885,12 @@ namespace boost { namespace parser {
             {}
         };
 
-        template<typename Iter>
-        void skip(Iter & first, Iter last, null_parser const & skip_, flags f)
+        template<typename Iter, typename Sentinel>
+        void skip(Iter & first, Sentinel last, null_parser const & skip_, flags f)
         {}
 
-        template<typename Iter, typename SkipParser>
-        void skip(Iter & first, Iter last, SkipParser const & skip_, flags f)
+        template<typename Iter, typename Sentinel, typename SkipParser>
+        void skip(Iter & first, Sentinel last, SkipParser const & skip_, flags f)
         {
             if (!use_skip(f))
                 return;
@@ -1121,6 +1133,7 @@ namespace boost { namespace parser {
             typename Parser,
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename... T>
@@ -1128,7 +1141,7 @@ namespace boost { namespace parser {
             Parser const & parser,
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             flags flags,
@@ -1164,6 +1177,7 @@ namespace boost { namespace parser {
             typename Parser,
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename... T>
@@ -1171,7 +1185,7 @@ namespace boost { namespace parser {
             Parser const & parser,
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             flags flags,
@@ -1188,6 +1202,7 @@ namespace boost { namespace parser {
             typename Parser,
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename T>
@@ -1195,7 +1210,7 @@ namespace boost { namespace parser {
             Parser const & parser,
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             flags flags,
@@ -1212,6 +1227,7 @@ namespace boost { namespace parser {
             typename Parser,
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
@@ -1219,7 +1235,7 @@ namespace boost { namespace parser {
             Parser const & parser,
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             flags flags,
@@ -1239,12 +1255,13 @@ namespace boost { namespace parser {
             template<
                 bool UseCallbacks,
                 typename Iter,
+                typename Sentinel,
                 typename Context,
                 typename SkipParser>
             auto call(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 detail::flags flags,
@@ -1258,13 +1275,14 @@ namespace boost { namespace parser {
             template<
                 bool UseCallbacks,
                 typename Iter,
+                typename Sentinel,
                 typename Context,
                 typename SkipParser,
                 typename Attribute>
             void call(
                 hana::bool_<UseCallbacks> use_cbs,
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 detail::flags flags,
@@ -1293,12 +1311,13 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename Attr,
             typename ErrorHandler>
         bool parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler,
             Attr & attr)
@@ -1342,11 +1361,12 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename ErrorHandler>
         auto parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler)
         {
@@ -1397,12 +1417,13 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename ErrorHandler,
             typename Callbacks>
         bool callback_parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks)
@@ -1446,13 +1467,14 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename SkipParser,
             typename Attr,
             typename ErrorHandler>
         bool skip_parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler,
@@ -1499,12 +1521,13 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename SkipParser,
             typename ErrorHandler>
         auto skip_parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler)
@@ -1546,13 +1569,14 @@ namespace boost { namespace parser {
         template<
             bool Debug,
             typename Iter,
+            typename Sentinel,
             typename Parser,
             typename SkipParser,
             typename ErrorHandler,
             typename Callbacks>
         bool callback_skip_parse_impl(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler,
@@ -1600,6 +1624,12 @@ namespace boost { namespace parser {
         inline constexpr auto params_ = tag<rule_params_tag>;
         inline constexpr auto globals_ = tag<globals_tag>;
         inline constexpr auto error_handler_ = tag<error_handler_tag>;
+
+        template<typename T, typename U>
+        using eq_comparable = decltype(std::declval<T>() == std::declval<U>());
+
+        template<typename Iter, typename Sentinel>
+        using sentinel_for = is_detected<eq_comparable, Iter, Sentinel>;
     }
 
 
@@ -1775,12 +1805,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -1796,13 +1827,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2022,12 +2054,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2043,13 +2076,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2085,13 +2119,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         struct use_parser_t
         {
             use_parser_t(
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 detail::flags flags,
@@ -2150,18 +2185,24 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
             bool & success) const
         {
-            use_parser_t<UseCallbacks, Iter, Context, SkipParser> const
+            use_parser_t<
+                UseCallbacks,
+                Iter,
+                Sentinel,
+                Context,
+                SkipParser> const
                 use_parser(first, last, context, skip, flags, success);
 
             // A result type for each of the parsers in parsers_.
@@ -2212,13 +2253,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2227,7 +2269,12 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
-            use_parser_t<UseCallbacks, Iter, Context, SkipParser> const
+            use_parser_t<
+                UseCallbacks,
+                Iter,
+                Sentinel,
+                Context,
+                SkipParser> const
                 use_parser(first, last, context, skip, flags, success);
 
             bool done = false;
@@ -2275,13 +2322,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         struct dummy_use_parser_t
         {
             dummy_use_parser_t(
                 Iter & first,
-                Iter last,
+                Sentinel last,
                 Context const & context,
                 SkipParser const & skip,
                 detail::flags flags,
@@ -2402,18 +2450,24 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto make_temp_result(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
             bool & success) const
         {
-            dummy_use_parser_t<UseCallbacks, Iter, Context, SkipParser> const
+            dummy_use_parser_t<
+                UseCallbacks,
+                Iter,
+                Sentinel,
+                Context,
+                SkipParser> const
                 dummy_use_parser(first, last, context, skip, flags, success);
 
             // A result type for each of the parsers in parsers_.
@@ -2447,12 +2501,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first_,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2501,13 +2556,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first_,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2588,6 +2644,7 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute,
@@ -2595,7 +2652,7 @@ namespace boost { namespace parser {
         void call_impl(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2706,12 +2763,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2725,13 +2783,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2772,12 +2831,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2800,13 +2860,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2834,12 +2895,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         range<Iter> call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2861,13 +2923,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2897,12 +2960,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2926,13 +2990,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -2961,12 +3026,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser_>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser_ const & skip,
             detail::flags flags,
@@ -2990,13 +3056,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser_,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser_ const & skip,
             detail::flags flags,
@@ -3036,12 +3103,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3063,13 +3131,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3139,12 +3208,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3158,13 +3228,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3214,12 +3285,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         attr_type call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3251,13 +3323,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute_>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3288,12 +3361,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         attr_type call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3370,13 +3444,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute_>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3644,12 +3719,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto operator()(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3664,13 +3740,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void operator()(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -3860,13 +3937,14 @@ namespace boost { namespace parser {
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
+        typename Sentinel,                                                     \
         typename Context,                                                      \
         typename SkipParser>                                                   \
     auto parse_rule(                                                           \
         decltype(name_)::parser_type::tag_type *,                              \
         boost::hana::bool_<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
-        Iter last,                                                             \
+        Sentinel last,                                                         \
         Context const & context,                                               \
         SkipParser const & skip,                                               \
         boost::parser::detail::flags flags,                                    \
@@ -3879,6 +3957,7 @@ namespace boost { namespace parser {
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
+        typename Sentinel,                                                     \
         typename Context,                                                      \
         typename SkipParser,                                                   \
         typename Attribute>                                                    \
@@ -3886,7 +3965,7 @@ namespace boost { namespace parser {
         decltype(name_)::parser_type::tag_type *,                              \
         boost::hana::bool_<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
-        Iter last,                                                             \
+        Sentinel last,                                                         \
         Context const & context,                                               \
         SkipParser const & skip,                                               \
         boost::parser::detail::flags flags,                                    \
@@ -4085,12 +4164,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4108,13 +4188,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4154,12 +4235,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4175,13 +4257,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4203,12 +4286,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const &,
             detail::flags flags,
@@ -4222,13 +4306,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute_>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4266,12 +4351,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4285,13 +4371,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4405,12 +4492,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         std::string call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4424,13 +4512,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4493,12 +4582,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4512,13 +4602,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4617,12 +4708,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         bool call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4636,13 +4728,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4690,12 +4783,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4709,13 +4803,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4794,12 +4889,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4813,13 +4909,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4874,12 +4971,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4893,13 +4991,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -4976,12 +5075,13 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -5004,13 +5104,14 @@ namespace boost { namespace parser {
         template<
             bool UseCallbacks,
             typename Iter,
+            typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
@@ -5432,19 +5533,24 @@ namespace boost { namespace parser {
 
     // Parse API.
 
+    // TODO: std::string_view -> range/ptr
+
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  On success, `attr` will be assigned the value of the
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename Attr>
+        typename Attr,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     bool parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
@@ -5484,12 +5590,15 @@ namespace boost { namespace parser {
         verbose trace of the parse will be streamed to `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
+        typename ErrorHandler,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     auto parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
@@ -5533,13 +5642,16 @@ namespace boost { namespace parser {
         will be streamed to `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename Callbacks>
+        typename Callbacks,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     bool callback_parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
@@ -5591,14 +5703,17 @@ namespace boost { namespace parser {
         `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser,
-        typename Attr>
+        typename Attr,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     bool skip_parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Attr & attr,
@@ -5644,13 +5759,16 @@ namespace boost { namespace parser {
         `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename SkipParser>
+        typename SkipParser,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     auto skip_parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         trace trace_mode = trace::off)
@@ -5702,14 +5820,17 @@ namespace boost { namespace parser {
         will be streamed to `std::cout`. */
     template<
         typename Iter,
+        typename Sentinel,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser,
-        typename Callbacks>
+        typename Callbacks,
+        typename Enable =
+            std::enable_if_t<detail::sentinel_for<Iter, Sentinel>::value>>
     bool callback_skip_parse(
         Iter & first,
-        Iter last,
+        Sentinel last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Callbacks const & callbacks,

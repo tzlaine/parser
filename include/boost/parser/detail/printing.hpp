@@ -408,13 +408,13 @@ namespace boost { namespace parser { namespace detail {
         }
     }
 
-    template<typename Iter, int SizeofValueType>
+    template<typename Iter, typename Sentinel, int SizeofValueType>
     struct trace_input_impl
     {
         static void call(
             std::ostream & os,
             Iter first_,
-            Iter last_,
+            Sentinel last_,
             bool quote,
             int64_t trace_input_cps)
         {
@@ -435,13 +435,13 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Iter>
-    struct trace_input_impl<Iter, 1>
+    template<typename Iter, typename Sentinel>
+    struct trace_input_impl<Iter, Sentinel, 1>
     {
         static void call(
             std::ostream & os,
             Iter first_,
-            Iter last_,
+            Sentinel last_,
             bool quote,
             int64_t trace_input_cps)
         {
@@ -462,21 +462,21 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Iter>
+    template<typename Iter, typename Sentinel>
     inline void trace_input(
         std::ostream & os,
         Iter first,
-        Iter last,
+        Sentinel last,
         bool quote = true,
         int64_t trace_input_cps = 8)
     {
-        trace_input_impl<Iter, sizeof(*first)>::call(
+        trace_input_impl<Iter, Sentinel, sizeof(*first)>::call(
             os, first, last, quote, trace_input_cps);
     }
 
-    template<typename Iter>
-    inline void
-    trace_begin_match(Iter first, Iter last, int indent, std::string_view name)
+    template<typename Iter, typename Sentinel>
+    inline void trace_begin_match(
+        Iter first, Sentinel last, int indent, std::string_view name)
     {
         trace_indent(indent);
         std::cout << "[begin " << name << "; input=";
@@ -484,9 +484,9 @@ namespace boost { namespace parser { namespace detail {
         std::cout << "]" << std::endl;
     }
 
-    template<typename Iter>
-    inline void
-    trace_end_match(Iter first, Iter last, int indent, std::string_view name)
+    template<typename Iter, typename Sentinel>
+    inline void trace_end_match(
+        Iter first, Sentinel last, int indent, std::string_view name)
     {
         trace_indent(indent);
         std::cout << "[end " << name << "; input=";
@@ -494,18 +494,24 @@ namespace boost { namespace parser { namespace detail {
         std::cout << "]" << std::endl;
     }
 
-    template<typename Iter, typename Context>
+    template<typename Iter, typename Sentinel, typename Context>
     void trace_prefix(
-        Iter first, Iter last, Context const & context, std::string_view name)
+        Iter first,
+        Sentinel last,
+        Context const & context,
+        std::string_view name)
     {
         int & indent = _indent(context);
         trace_begin_match(first, last, indent, name);
         ++indent;
     }
 
-    template<typename Iter, typename Context>
+    template<typename Iter, typename Sentinel, typename Context>
     void trace_suffix(
-        Iter first, Iter last, Context const & context, std::string_view name)
+        Iter first,
+        Sentinel last,
+        Context const & context,
+        std::string_view name)
     {
         int & indent = _indent(context);
         --indent;
@@ -631,12 +637,16 @@ namespace boost { namespace parser { namespace detail {
     template<typename Context>
     auto resolve(Context const &, nope n);
 
-    template<typename Iter, typename Context, typename Attribute>
+    template<
+        typename Iter,
+        typename Sentinel,
+        typename Context,
+        typename Attribute>
     struct scoped_trace_t
     {
         scoped_trace_t(
             Iter & first,
-            Iter last,
+            Sentinel last,
             Context const & context,
             flags f,
             Attribute const & attr,
@@ -672,7 +682,7 @@ namespace boost { namespace parser { namespace detail {
 
         Iter initial_first_;
         Iter & first_;
-        Iter last_;
+        Sentinel last_;
         Context const & context_;
         flags flags_;
         Attribute const & attr_;
@@ -682,19 +692,20 @@ namespace boost { namespace parser { namespace detail {
     template<
         typename Parser,
         typename Iter,
+        typename Sentinel,
         typename Context,
         typename Attribute>
     auto scoped_trace(
         Parser const & parser,
         Iter & first,
-        Iter last,
+        Sentinel last,
         Context const & context,
         flags f,
         Attribute const & attr)
     {
         std::stringstream oss;
         parser_name(context, parser, oss);
-        return scoped_trace_t<Iter, Context, Attribute>(
+        return scoped_trace_t<Iter, Sentinel, Context, Attribute>(
             first, last, context, f, attr, oss.str());
     }
 
