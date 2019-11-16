@@ -2388,9 +2388,8 @@ namespace boost { namespace yaml {
                 if (!encoding_ok)
                     success = false;
 
-                if (!doc_boundary) {
+                if (!doc_boundary)
                     doc_boundary = bp::parse(first, last, &bp::lit("---"));
-                }
 
                 // If there's not a ... or --- separator, don't keep reading
                 // documents.  However, this is not an error by itself.

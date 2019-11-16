@@ -4643,15 +4643,15 @@ namespace boost { namespace parser {
 
     /** Returns a parser that matches `str` that produces the matched string
         as its attribute. */
-    inline constexpr auto
-    string(std::string_view str) noexcept // TODO: Handle ranges of CPs.
+    template<typename Range, typename Enable = detail::range_t<Range>>
+    constexpr auto string(Range && str) noexcept
     {
         return parser_interface{string_parser(str)};
     }
 
     /** Returns a parser that matches `str` that produces no attribute. */
-    inline constexpr auto
-    lit(std::string_view str) noexcept // TODO: Handle ranges of CPs.
+    template<typename Range, typename Enable = detail::range_t<Range>>
+    constexpr auto lit(Range && str) noexcept
     {
         return omit[string(str)];
     }
