@@ -938,12 +938,16 @@ namespace boost { namespace parser {
         {
             template<typename T>
             friend bool
-            operator!=(T c, char_range<Iter, Sentinel> const & chars)
+            operator!=(T c_, char_range<Iter, Sentinel> const & chars)
             {
-                if (sizeof(c) == 4) {
+                if (sizeof(c_) == 4) {
                     auto const cps = text::as_utf32(chars.chars_);
+                    using element_type = decltype(*cps.begin());
+                    element_type const c = c_;
                     return text::find(cps.begin(), cps.end(), c) == cps.end();
                 } else {
+                    using element_type = decltype(*chars.chars_.begin());
+                    element_type const c = c_;
                     return text::find(
                                chars.chars_.begin(), chars.chars_.end(), c) ==
                            chars.chars_.end();
