@@ -446,25 +446,34 @@ namespace boost { namespace parser { namespace detail {
         os << "cp";
     }
 
-    template<typename Context>
+    template<typename Context, typename StrIter, typename StrSentinel>
     void parser_name(
         Context const & context,
-        string_parser const & parser,
+        string_parser<StrIter, StrSentinel> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "string(\"" << parser.expected_ << "\")";
+        os << "string(\"";
+        for (auto c :
+             text::as_utf8(parser.expected_first_, parser.expected_last_)) {
+            os << c;
+        }
+        os << "\")";
     }
 
-    template<typename Context>
+    template<typename Context, typename StrIter, typename StrSentinel>
     void parser_name(
         Context const & context,
-        omit_parser<string_parser> const & parser,
+        omit_parser<string_parser<StrIter, StrSentinel>> const & parser,
         std::ostream & os,
         int components)
     {
         os << "\"";
-        print(os, parser.parser_.expected_);
+        for (auto c : text::as_utf8(
+                 parser.parser_.expected_first_,
+                 parser.parser_.expected_last_)) {
+            os << c;
+        }
         os << "\"";
     }
 

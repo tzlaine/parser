@@ -216,17 +216,17 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    template<typename Context>
+    template<typename Context, typename StrIter, typename StrSentinel>
     void parser_name(
         Context const & context,
-        string_parser const & parser,
+        string_parser<StrIter, StrSentinel> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context>
+    template<typename Context, typename StrIter, typename StrSentinel>
     void parser_name(
         Context const & context,
-        omit_parser<string_parser> const & parser,
+        omit_parser<string_parser<StrIter, StrSentinel>> const & parser,
         std::ostream & os,
         int components = 0);
 

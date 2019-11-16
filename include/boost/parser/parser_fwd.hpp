@@ -186,7 +186,9 @@ namespace boost { namespace parser {
     template<typename Expected, typename AttributeType = void>
     struct char_parser;
 
-    /** Maches a particular string; produces no attribute. */
+    /** Maches a particular string, delimited by an iterator sentinel pair;
+        produces no attribute. */
+    template<typename StrIter, typename StrSentinel>
     struct string_parser;
 
     /** Maches an end-of-line in the input; produces no attribute.

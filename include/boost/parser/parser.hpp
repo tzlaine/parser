@@ -466,8 +466,8 @@ namespace boost { namespace parser {
         // Type traits.
 
         template<typename T>
-        using begin_and_end =
-            decltype(std::declval<T>().begin(), std::declval<T>().end());
+        using begin_and_end = decltype(
+            std::begin(std::declval<T>()), std::end(std::declval<T>()));
 
         template<typename T>
         using range_t = typename std::enable_if_t<
@@ -495,7 +495,8 @@ namespace boost { namespace parser {
         {};
 
         template<typename T>
-        using value_type = std::decay_t<decltype(*std::declval<T>().begin())>;
+        using value_type =
+            std::decay_t<decltype(*std::begin(std::declval<T>()))>;
 
         template<typename T, typename U>
         struct is_container_and_value_type
@@ -1633,14 +1634,55 @@ namespace boost { namespace parser {
         template<typename Iter, typename Sentinel>
         using sentinel_for = is_detected<eq_comparable, Iter, Sentinel>;
 
+        // TODO: is_plain_char_range trait, following below.
+
+        // TODO: if the value_type of Range is char, and Range is not a
+        // specialization of text::utf8_view, return a text::as_utf32() here.
         template<typename Range>
-        constexpr auto make_range(Range && r) noexcept
+        constexpr auto make_input_range(Range && r) noexcept
         {
             if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
                 return parser::make_range(r, text::null_sentinel{});
             } else {
-                return parser::make_range(r.begin(), r.end());
+                return parser::make_range(std::begin(r), std::end(r));
             }
+        }
+
+        template<typename Range>
+        constexpr auto make_range_begin(Range & r) noexcept
+        {
+            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                return r;
+            } else {
+                return std::begin(r);
+            }
+        }
+
+        template<typename Range>
+        constexpr auto make_range_end(Range & r) noexcept
+        {
+            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                return text::null_sentinel{};
+            } else {
+                return std::end(r);
+            }
+        }
+
+        template<
+            typename Iter1,
+            typename Sentinel1,
+            typename Iter2,
+            typename Sentinel2>
+        std::pair<Iter1, Iter2>
+        mismatch(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+        {
+            std::pair<Iter1, Iter2> retval{first1, first2};
+            while (retval.first != last1 && retval.second != last2 &&
+                   *retval.first == *retval.second) {
+                ++retval.first;
+                ++retval.second;
+            }
+            return retval;
         }
     }
 
@@ -4500,11 +4542,14 @@ namespace boost { namespace parser {
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
 
+    template<typename StrIter, typename StrSentinel>
     struct string_parser
     {
-        constexpr string_parser() {}
-        constexpr string_parser(std::string_view expected) : // TODO: Handle ranges of CPs.
-            expected_(std::move(expected))
+        constexpr string_parser() : expected_first_(), expected_last_() {}
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr string_parser(Range && range) :
+            expected_first_(detail::make_range_begin(range)),
+            expected_last_(detail::make_range_end(range))
         {}
 
         template<
@@ -4551,10 +4596,14 @@ namespace boost { namespace parser {
                 return;
             }
 
+            // TODO: -> if constexpr
+            // (std::is_same<std::decay_t<decltype(*first)>, char>::value),
+            // here and elsewhere.
             if constexpr (sizeof(*first) == 4) {
-                auto const cps = text::as_utf32(expected_);
+                auto const cps =
+                    text::as_utf32(expected_first_, expected_last_);
                 auto const mismatch =
-                    std::mismatch(first, last, cps.begin(), cps.end());
+                    detail::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {
                     success = false;
                     return;
@@ -4564,9 +4613,10 @@ namespace boost { namespace parser {
 
                 first = mismatch.first;
             } else {
-                auto const mismatch = std::mismatch(
-                    first, last, expected_.begin(), expected_.end());
-                if (mismatch.second != expected_.end()) {
+                auto const cus = text::as_utf8(expected_first_, expected_last_);
+                auto const mismatch =
+                    detail::mismatch(first, last, cus.begin(), cus.end());
+                if (mismatch.second != cus.end()) {
                     success = false;
                     return;
                 }
@@ -4577,13 +4627,22 @@ namespace boost { namespace parser {
             }
         }
 
-        std::string_view expected_;
+        StrIter expected_first_;
+        StrSentinel expected_last_;
     };
 
-    /** Returns a parser that matches `str` that produces no attribute. */
+    template<typename Range, typename Enable = detail::range_t<Range>>
+    string_parser(Range range)
+        ->string_parser<
+            decltype(detail::make_range_begin(range)),
+            decltype(detail::make_range_end(range))>;
+
+    /** Returns a parser that matches `str` that produces the matched string
+        as its attribute. */
     inline constexpr auto string(std::string_view str) noexcept // TODO: Handle ranges of CPs.
     {
-        return parser_interface<string_parser>{string_parser{str}};
+        string_parser sp(str);
+        return parser_interface<decltype(sp)>{sp};
     }
 
     /** Returns a parser that matches `str` that produces no attribute. */
@@ -5598,7 +5657,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::parse(first, last, parser, attr, trace_mode);
@@ -5646,7 +5705,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::parse(first, last, parser, trace_mode);
@@ -5718,7 +5777,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::callback_parse(first, last, parser, callbacks);
@@ -5777,7 +5836,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
@@ -5832,7 +5891,7 @@ namespace boost { namespace parser {
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::skip_parse(first, last, parser, skip, trace_mode);
@@ -5910,7 +5969,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto r = detail::make_range(range);
+        auto r = detail::make_input_range(range);
         auto first = r.begin();
         auto const last = r.end();
         return parser::skip_parse(
