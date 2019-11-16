@@ -190,6 +190,7 @@ namespace boost { namespace parser {
             error_(error), warning_(warning), filename_(filename)
         {}
 #if defined(_MSC_VER) || defined(BOOST_PARSER_DOXYGEN)
+        /** This overload is Windows-only. */
         callback_error_handler(
             callback_type error,
             callback_type warning = callback_type(),

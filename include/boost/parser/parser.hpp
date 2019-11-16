@@ -3189,9 +3189,10 @@ namespace boost { namespace parser {
             copied_from_(other.copied_from_ ? other.copied_from_ : &other)
         {}
 
-        /** Uses `str` to look up an attribute in the table during parsing,
-            returning it as an optional reference.  The lookup is done on a
-            copy of the symbol table in the parse context `context`.*/
+        /** Uses UTF-8 string `str` to look up an attribute in the table
+            during parsing, returning it as an optional reference.  The lookup
+            is done on the copy of the symbol table inside the parse context
+            `context`. */
         template<typename Context>
         trie::optional_ref<T>
         find(Context const & context, std::string_view str) const
@@ -3201,9 +3202,9 @@ namespace boost { namespace parser {
             return trie_[text::as_utf32(str)];
         }
 
-        /** Inserts an entry consisting of a string to match, and an
-            associtated attribute `x`, to a copy of the symbol table in the
-            parse context `context`. */
+        /** Inserts an entry consisting of a UTF-8 string string to match
+            `str`, and an associtated attribute `x`, to the copy of the symbol
+            table inside the parse context `context`. */
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
@@ -3212,8 +3213,8 @@ namespace boost { namespace parser {
             trie_.insert(text::as_utf32(str), std::move(x));
         }
 
-        /** Erases the entry consisting of a string to match `str` from a copy
-            of the symbol table in the parse context `context`. */
+        /** Erases the entry whose UTF-8 match string is `str` from the copy
+            of the symbol table inside the parse context `context`. */
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
@@ -3598,7 +3599,7 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator>>(std::string_view rhs) const noexcept;
+        constexpr auto operator>>(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`.  No
@@ -3635,7 +3636,7 @@ namespace boost { namespace parser {
             `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
             back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
             fails after `parser_` succeeds, the top-level parse fails. */
-        constexpr auto operator>(std::string_view rhs) const noexcept;
+        constexpr auto operator>(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `rhs.parser_`. */
@@ -3662,7 +3663,7 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator|(std::string_view rhs) const noexcept;
+        constexpr auto operator|(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!rhs >> *this`. */
@@ -3682,7 +3683,7 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!lit(rhs) >> *this`. */
-        constexpr auto operator-(std::string_view rhs) const noexcept;
+        constexpr auto operator-(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
@@ -3703,7 +3704,7 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
-        constexpr auto operator%(std::string_view rhs) const noexcept;
+        constexpr auto operator%(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `action_parser` containing `parser_`, with semantic action
@@ -3825,9 +3826,9 @@ namespace boost { namespace parser {
 
         using parser_interface<symbol_parser<T>>::operator();
 
-        /** Adds an entry consisting of a string to match, and an associated
-            attribute `x`, to `*this`.  The entry is added for use in all
-            subsequent parsing. */
+        /** Adds an entry consisting of a UTF-8 string to match `str`, and an
+            associated attribute `x`, to `*this`.  The entry is added for use
+            in all subsequent parsing. */
         symbols & add(std::string_view str, T x)
         {
             this->parser_.initial_elements_.push_back(
@@ -3841,10 +3842,10 @@ namespace boost { namespace parser {
             return add(str, std::move(x));
         }
 
-        /** Uses `str` to look up an attribute in the table during parsing,
-            returning it as an optional reference.  The lookup is done on a
-            copy of the symbol table in the parse context `context`, not
-            `*this`.*/
+        /** Uses UTF-8 string `str` to look up an attribute in the table
+            during parsing, returning it as an optional reference.  The lookup
+            is done on the copy of the symbol table inside the parse context
+            `context`, not `*this`. */
         template<typename Context>
         trie::optional_ref<T>
         find(Context const & context, std::string_view str) const
@@ -3852,17 +3853,17 @@ namespace boost { namespace parser {
             return this->parser_.find(context, str);
         }
 
-        /** Inserts an entry consisting of a string to match, and an
-            associtated attribute `x`, to a copy of the symbol table in the
-            parse context `context`. */
+        /** Inserts an entry consisting of a UTF-8 string to match `str`, and
+            an associtated attribute `x`, to the copy of the symbol table
+            inside the parse context `context`. */
         template<typename Context>
         void insert(Context const & context, std::string_view str, T x) const
         {
             this->parser_.insert(context, str, std::move(x));
         }
 
-        /** Erases the entry consisting of a string to match `str` from a copy
-            of the symbol table in the parse context `context`. */
+        /** Erases the entry whose UTF-8 match string is `str` from the copy
+            of the symbol table inside the parse context `context`. */
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
@@ -4502,7 +4503,7 @@ namespace boost { namespace parser {
     struct string_parser
     {
         constexpr string_parser() {}
-        constexpr string_parser(std::string_view expected) :
+        constexpr string_parser(std::string_view expected) : // TODO: Handle ranges of CPs.
             expected_(std::move(expected))
         {}
 
@@ -4576,18 +4577,17 @@ namespace boost { namespace parser {
             }
         }
 
-        // TODO: Variant of this and UTF-16, throughout?
         std::string_view expected_;
     };
 
     /** Returns a parser that matches `str` that produces no attribute. */
-    inline constexpr auto string(std::string_view str) noexcept
+    inline constexpr auto string(std::string_view str) noexcept // TODO: Handle ranges of CPs.
     {
         return parser_interface<string_parser>{string_parser{str}};
     }
 
     /** Returns a parser that matches `str` that produces no attribute. */
-    inline constexpr auto lit(std::string_view str) noexcept
+    inline constexpr auto lit(std::string_view str) noexcept // TODO: Handle ranges of CPs.
     {
         return omit[string(str)];
     }
@@ -5264,7 +5264,7 @@ namespace boost { namespace parser {
     /** Returns a parser equivalent to `lit(str) >> rhs`. */
     template<typename Parser>
     constexpr auto
-    operator>>(std::string_view str, parser_interface<Parser> rhs) noexcept
+    operator>>(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return rhs.parser_.template prepend<true>(lit(str));
@@ -5338,7 +5338,7 @@ namespace boost { namespace parser {
     /** Returns a parser equivalent to `lit(str) > rhs`. */
     template<typename Parser>
     constexpr auto
-    operator>(std::string_view str, parser_interface<Parser> rhs) noexcept
+    operator>(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return rhs.parser_.template prepend<false>(lit(str));
@@ -5412,7 +5412,7 @@ namespace boost { namespace parser {
     /** Returns a parser equivalent to `lit(str) | rhs`. */
     template<typename Parser>
     constexpr auto
-    operator|(std::string_view str, parser_interface<Parser> rhs) noexcept
+    operator|(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_or_p<Parser>{}) {
             return rhs.parser_.prepend(lit(str));
@@ -5466,7 +5466,7 @@ namespace boost { namespace parser {
     /** Returns a parser equivalent to `!rhs >> lit(str)`. */
     template<typename Parser>
     constexpr auto
-    operator-(std::string_view str, parser_interface<Parser> rhs) noexcept
+    operator-(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         return !rhs >> lit(str);
     }
@@ -5516,7 +5516,7 @@ namespace boost { namespace parser {
     /** Returns a parser equivalent to `lit(str) % rhs`. */
     template<typename Parser>
     constexpr auto
-    operator%(std::string_view str, parser_interface<Parser> rhs) noexcept
+    operator%(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         return lit(str) % rhs;
     }
