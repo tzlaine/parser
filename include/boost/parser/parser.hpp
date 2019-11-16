@@ -1649,6 +1649,11 @@ namespace boost { namespace parser {
     // TODO: Document what a pred/pred_ is (value or invocable), and what any
     // other value is (value or invocable).
 
+    // TODO: Document that the parse always operates on UTF-8 or UTF-32.
+
+    // TODO: Document the conversions that occur when comparing in char_parser
+    // (uint32_t's compared to ASCII, etc.).
+
     // TODO: C++20 concepts.
 
     // TODO: Are _val() and _attr() redundant?
