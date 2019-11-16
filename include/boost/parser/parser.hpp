@@ -4,14 +4,12 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/error_handling.hpp>
 #include <boost/parser/detail/printing.hpp>
+#include <boost/parser/detail/numeric.hpp>
 
 #include <boost/any.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/spirit/home/x3/numeric/real_policies.hpp>
-#include <boost/spirit/home/x3/support/numeric_utils/extract_int.hpp>
-#include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
 #include <boost/text/algorithm.hpp>
 #include <boost/text/trie.hpp>
 
@@ -1634,6 +1632,16 @@ namespace boost { namespace parser {
 
         template<typename Iter, typename Sentinel>
         using sentinel_for = is_detected<eq_comparable, Iter, Sentinel>;
+
+        template<typename Range>
+        constexpr auto make_range(Range && r) noexcept
+        {
+            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                return parser::make_range(r, text::null_sentinel{});
+            } else {
+                return parser::make_range(r.begin(), r.end());
+            }
+        }
     }
 
 
@@ -2182,7 +2190,7 @@ namespace boost { namespace parser {
             }
 
             Iter & first_;
-            Iter last_;
+            Sentinel last_;
             Context const & context_;
             SkipParser const & skip_;
             detail::flags flags_;
@@ -2363,7 +2371,7 @@ namespace boost { namespace parser {
                     success_);
             }
             Iter & first_;
-            Iter last_;
+            Sentinel last_;
             Context const & context_;
             SkipParser const & skip_;
             detail::flags flags_;
@@ -4781,9 +4789,7 @@ namespace boost { namespace parser {
         typename Expected>
     struct uint_parser
     {
-        static_assert(
-            Radix == 2 || Radix == 8 || Radix == 10 || Radix == 16,
-            "Unsupported radix.");
+        static_assert(2 <= Radix && Radix <= 36, "Unsupported radix.");
 
         constexpr uint_parser() {}
         explicit constexpr uint_parser(Expected expected) : expected_(expected)
@@ -4828,7 +4834,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             using extract =
-                spirit::x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
+                detail_spirit_x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             success = extract::call(first, last, attr);
             if (attr != detail::resolve(context, expected_))
@@ -4891,6 +4897,10 @@ namespace boost { namespace parser {
         typename Expected>
     struct int_parser
     {
+        static_assert(
+            Radix == 2 || Radix == 8 || Radix == 10 || Radix == 16,
+            "Unsupported radix.");
+
         constexpr int_parser() {}
         explicit constexpr int_parser(Expected expected) : expected_(expected)
         {}
@@ -4934,7 +4944,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             using extract =
-                spirit::x3::extract_int<T, Radix, MinDigits, MaxDigits>;
+                detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             success = extract::call(first, last, attr);
             if (attr != detail::resolve(context, expected_))
@@ -5017,7 +5027,7 @@ namespace boost { namespace parser {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             spirit::x3::real_policies<T> policies;
             using extract =
-                spirit::x3::extract_real<T, spirit::x3::real_policies<T>>;
+                detail_spirit_x3::extract_real<T, spirit::x3::real_policies<T>>;
             T attr = 0;
             if (extract::parse(first, last, attr, policies))
                 detail::assign(retval, attr);
@@ -5542,8 +5552,6 @@ namespace boost { namespace parser {
 
     // Parse API.
 
-    // TODO: std::string_view -> range/ptr
-
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  On success, `attr` will be assigned the value of the
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
@@ -5578,18 +5586,21 @@ namespace boost { namespace parser {
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
     template<
+        typename Range,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename Attr>
+        typename Attr,
+        typename Enable = detail::range_t<Range>>
     bool parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::parse(first, last, parser, attr, trace_mode);
     }
 
@@ -5624,14 +5635,20 @@ namespace boost { namespace parser {
         attribute produced by `parser` on parse success, and `std::nullopt` on
         parse failure.  If `trace_mode == trace::on`, a verbose trace of the
         parse will be streamed to `std::cout`. */
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Range,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Enable = detail::range_t<Range>>
     auto parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::parse(first, last, parser, trace_mode);
     }
 
@@ -5689,18 +5706,21 @@ namespace boost { namespace parser {
         occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
         will be streamed to `std::cout`. */
     template<
+        typename Range,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename Callbacks>
+        typename Callbacks,
+        typename Enable = detail::range_t<Range>>
     bool callback_parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::callback_parse(first, last, parser, callbacks);
     }
 
@@ -5743,20 +5763,23 @@ namespace boost { namespace parser {
         of the attribute produced by `parser`.  If `trace_mode == trace::on`,
         a verbose trace of the parse will be streamed to `std::cout`. */
     template<
+        typename Range,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser,
-        typename Attr>
+        typename Attr,
+        typename Enable = detail::range_t<Range>>
     bool skip_parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
     }
 
@@ -5797,18 +5820,21 @@ namespace boost { namespace parser {
         `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
     template<
+        typename Range,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename SkipParser>
+        typename SkipParser,
+        typename Enable = detail::range_t<Range>>
     auto skip_parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::skip_parse(first, last, parser, skip, trace_mode);
     }
 
@@ -5870,20 +5896,23 @@ namespace boost { namespace parser {
         occurs.  If `trace_mode == trace::on`, a verbose trace of the parse
         will be streamed to `std::cout`. */
     template<
+        typename Range,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser,
-        typename Callbacks>
+        typename Callbacks,
+        typename Enable = detail::range_t<Range>>
     bool callback_skip_parse(
-        std::string_view str,
+        Range const & range,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         SkipParser const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto first = str.begin();
-        auto const last = str.end();
+        auto r = detail::make_range(range);
+        auto first = r.begin();
+        auto const last = r.end();
         return parser::skip_parse(
             first, last, parser, skip, callbacks, trace_mode);
     }

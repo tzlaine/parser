@@ -4,6 +4,7 @@
 #include <boost/parser/error_handling_fwd.hpp>
 #include <boost/parser/detail/printing.hpp>
 
+#include <boost/text/algorithm.hpp>
 #include <boost/text/transcode_iterator.hpp>
 
 #include <array>
@@ -56,7 +57,7 @@ namespace boost { namespace parser {
     template<typename Iter, typename Sentinel>
     Iter find_line_end(Iter it, Sentinel last)
     {
-        return std::find_if(it, last, [](auto c) {
+        return text::find_if(it, last, [](auto c) {
             return (c & detail::eol_cp_mask) == c &&
                    std::find(
                        detail::eol_cps.begin(), detail::eol_cps.end(), c) !=
