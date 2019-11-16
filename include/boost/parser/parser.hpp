@@ -885,11 +885,13 @@ namespace boost { namespace parser {
         };
 
         template<typename Iter, typename Sentinel>
-        void skip(Iter & first, Sentinel last, null_parser const & skip_, flags f)
+        void
+        skip(Iter & first, Sentinel last, null_parser const & skip_, flags f)
         {}
 
         template<typename Iter, typename Sentinel, typename SkipParser>
-        void skip(Iter & first, Sentinel last, SkipParser const & skip_, flags f)
+        void
+        skip(Iter & first, Sentinel last, SkipParser const & skip_, flags f)
         {
             if (!use_skip(f))
                 return;
@@ -1823,7 +1825,7 @@ namespace boost { namespace parser {
     }
     /** Report that the warning described in `message` occurred at
         `_where(context).begin()`, using the context's error handler. */
-     template<typename Context>
+    template<typename Context>
     inline void
     _report_warning(Context const & context, std::string_view message)
     {
@@ -3562,7 +3564,7 @@ namespace boost { namespace parser {
             true`. */
         constexpr auto operator!() const noexcept
         {
-            return parser_interface<expect_parser<Parser, true>>{
+            return parser::parser_interface{
                 expect_parser<Parser, true>{parser_}};
         }
 
@@ -3571,7 +3573,7 @@ namespace boost { namespace parser {
             false`. */
         constexpr auto operator&() const noexcept
         {
-            return parser_interface<expect_parser<Parser, false>>{
+            return parser::parser_interface{
                 expect_parser<Parser, false>{parser_}};
         }
 
@@ -3583,10 +3585,10 @@ namespace boost { namespace parser {
                 return *this;
             } else if constexpr (detail::is_one_plus_p<Parser>{}) {
                 using inner_parser = decltype(Parser::parser_);
-                return parser_interface<zero_plus_parser<inner_parser>>{
+                return parser::parser_interface{
                     zero_plus_parser<inner_parser>(parser_.parser_)};
             } else {
-                return parser_interface<zero_plus_parser<Parser>>{
+                return parser::parser_interface{
                     zero_plus_parser<Parser>(parser_)};
             }
         }
@@ -3597,12 +3599,12 @@ namespace boost { namespace parser {
         {
             if constexpr (detail::is_zero_plus_p<Parser>{}) {
                 using inner_parser = decltype(Parser::parser_);
-                return parser_interface<zero_plus_parser<inner_parser>>{
+                return parser::parser_interface{
                     zero_plus_parser<inner_parser>(parser_.parser_)};
             } else if constexpr (detail::is_one_plus_p<Parser>{}) {
                 return *this;
             } else {
-                return parser_interface<one_plus_parser<Parser>>{
+                return parser::parser_interface{
                     one_plus_parser<Parser>(parser_)};
             }
         }
@@ -3611,8 +3613,7 @@ namespace boost { namespace parser {
             `opt_parser` containing `parser_`. */
         constexpr auto operator-() const noexcept
         {
-            return parser_interface<opt_parser<Parser>>{
-                opt_parser<Parser>{parser_}};
+            return parser::parser_interface{opt_parser<Parser>{parser_}};
         }
 
         /** Returns a `parser_interface` containing a parser equivalent to a
@@ -3626,7 +3627,7 @@ namespace boost { namespace parser {
                 using parser_t = seq_parser<
                     hana::tuple<Parser, Parser2>,
                     hana::tuple<hana::true_, hana::true_>>;
-                return parser_interface<parser_t>{parser_t{
+                return parser::parser_interface{parser_t{
                     hana::tuple<Parser, Parser2>{parser_, rhs.parser_}}};
             }
         }
@@ -3641,7 +3642,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator>>(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
+        constexpr auto operator>>(std::string_view rhs) const
+            noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`.  No
@@ -3657,7 +3659,7 @@ namespace boost { namespace parser {
                 using parser_t = seq_parser<
                     hana::tuple<Parser, Parser2>,
                     hana::tuple<hana::true_, hana::false_>>;
-                return parser_interface<parser_t>{parser_t{
+                return parser::parser_interface{parser_t{
                     hana::tuple<Parser, Parser2>{parser_, rhs.parser_}}};
             }
         }
@@ -3678,7 +3680,8 @@ namespace boost { namespace parser {
             `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
             back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
             fails after `parser_` succeeds, the top-level parse fails. */
-        constexpr auto operator>(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
+        constexpr auto operator>(std::string_view rhs) const
+            noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `rhs.parser_`. */
@@ -3688,8 +3691,7 @@ namespace boost { namespace parser {
             if constexpr (detail::is_or_p<Parser>{}) {
                 return parser_.append(rhs);
             } else {
-                return parser_interface<
-                    or_parser<hana::tuple<Parser, Parser2>>>{
+                return parser::parser_interface{
                     or_parser<hana::tuple<Parser, Parser2>>{
                         hana::tuple<Parser, Parser2>{parser_, rhs.parser_}}};
             }
@@ -3705,7 +3707,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator|(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
+        constexpr auto operator|(std::string_view rhs) const
+            noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!rhs >> *this`. */
@@ -3725,14 +3728,15 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!lit(rhs) >> *this`. */
-        constexpr auto operator-(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
+        constexpr auto operator-(std::string_view rhs) const
+            noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
         template<typename Parser2>
         constexpr auto operator%(parser_interface<Parser2> rhs) const noexcept
         {
-            return parser_interface<delimited_seq_parser<Parser, Parser2>>{
+            return parser::parser_interface{
                 delimited_seq_parser<Parser, Parser2>(parser_, rhs.parser_)};
         }
 
@@ -3746,7 +3750,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
-        constexpr auto operator%(std::string_view rhs) const noexcept; // TODO: Handle ranges of CPs.
+        constexpr auto operator%(std::string_view rhs) const
+            noexcept; // TODO: Handle ranges of CPs.
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `action_parser` containing `parser_`, with semantic action
@@ -3755,8 +3760,7 @@ namespace boost { namespace parser {
         constexpr auto operator[](Action action) const
         {
             using action_parser_t = action_parser<Parser, Action>;
-            return parser_interface<action_parser_t>{
-                action_parser_t{parser_, action}};
+            return parser::parser_interface{action_parser_t{parser_, action}};
         }
 
         /** Returns `parser_((Arg &&)arg, (Args &&)args...)`.  This is useful
@@ -3946,7 +3950,7 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface<rule_parser_type>{
+            return parser_interface{
                 rule_parser_type{this->parser_.name_,
                                  hana::make_tuple(static_cast<T &&>(x)...)}};
         }
@@ -3985,7 +3989,7 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface<rule_parser_type>{
+            return parser_interface{
                 rule_parser_type{this->parser_.name_,
                                  hana::make_tuple(static_cast<T &&>(x)...)}};
         }
@@ -4060,8 +4064,7 @@ namespace boost { namespace parser {
     or_parser<ParserTuple>::prepend(parser_interface<Parser> parser) const
         noexcept
     {
-        return parser_interface<
-            or_parser<decltype(hana::prepend(parsers_, parser.parser_))>>{
+        return parser_interface{
             or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
                 hana::prepend(parsers_, parser.parser_)}};
     }
@@ -4072,8 +4075,7 @@ namespace boost { namespace parser {
     or_parser<ParserTuple>::append(parser_interface<Parser> parser) const
         noexcept
     {
-        return parser_interface<
-            or_parser<decltype(hana::append(parsers_, parser.parser_))>>{
+        return parser_interface{
             or_parser<decltype(hana::append(parsers_, parser.parser_))>{
                 hana::append(parsers_, parser.parser_)}};
     }
@@ -4091,7 +4093,7 @@ namespace boost { namespace parser {
         using parser_t = seq_parser<
             decltype(hana::prepend(parsers_, parser.parser_)),
             backtracking>;
-        return parser_interface<parser_t>{
+        return parser_interface{
             parser_t{hana::prepend(parsers_, parser.parser_)}};
     }
 
@@ -4105,7 +4107,7 @@ namespace boost { namespace parser {
         using parser_t = seq_parser<
             decltype(hana::append(parsers_, parser.parser_)),
             backtracking>;
-        return parser_interface<parser_t>{
+        return parser_interface{
             parser_t{hana::append(parsers_, parser.parser_)}};
     }
 
@@ -4123,8 +4125,7 @@ namespace boost { namespace parser {
         template<typename Parser2>
         constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
         {
-            return parser_interface<Parser<Parser2>>{
-                Parser<Parser2>{rhs.parser_}};
+            return parser_interface{Parser<Parser2>{rhs.parser_}};
         }
     };
 
@@ -4153,7 +4154,7 @@ namespace boost { namespace parser {
         {
             using repeat_parser_type =
                 repeat_parser<Parser2, detail::nope, MinType, MaxType>;
-            return parser_interface<repeat_parser_type>{
+            return parser_interface{
                 repeat_parser_type{rhs.parser_, min_, max_}};
         }
 
@@ -4191,7 +4192,7 @@ namespace boost { namespace parser {
         template<typename Parser>
         constexpr auto operator[](parser_interface<Parser> rhs) const noexcept
         {
-            return parser_interface<skip_parser<Parser, SkipParser>>{
+            return parser_interface{
                 skip_parser<Parser, SkipParser>{rhs.parser_, skip_parser_}};
         }
 
@@ -4278,8 +4279,7 @@ namespace boost { namespace parser {
                 std::is_same<Predicate, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on eps, "
                 "like 'eps(foo)(bar)'.  Quit it!'");
-            return parser_interface<eps_parser<Predicate2>>{
-                eps_parser<Predicate2>{std::move(pred)}};
+            return parser_interface{eps_parser<Predicate2>{std::move(pred)}};
         }
 
         Predicate pred_;
@@ -4392,8 +4392,7 @@ namespace boost { namespace parser {
     template<typename Attribute>
     inline constexpr auto attr(Attribute a) noexcept
     {
-        return parser_interface<attr_parser<Attribute>>{
-            attr_parser<Attribute>{std::move(a)}};
+        return parser_interface{attr_parser<Attribute>{std::move(a)}};
     }
 
     template<typename Expected, typename AttributeType>
@@ -4469,7 +4468,7 @@ namespace boost { namespace parser {
                 std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a')('b')'.  Quit it!'");
-            return parser_interface<char_parser<T, AttributeType>>{
+            return parser_interface{
                 char_parser<T, AttributeType>{std::move(x)}};
         }
 
@@ -4484,7 +4483,7 @@ namespace boost { namespace parser {
                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
             using char_pair_t = detail::char_pair<LoType, HiType>;
             using char_parser_t = char_parser<char_pair_t, AttributeType>;
-            return parser_interface<char_parser_t>(
+            return parser_interface(
                 char_parser_t(char_pair_t{std::move(lo), std::move(hi)}));
         }
 
@@ -4506,7 +4505,7 @@ namespace boost { namespace parser {
             auto range = detail::make_char_range(r);
             using char_range_t = decltype(range);
             using char_parser_t = char_parser<char_range_t, AttributeType>;
-            return parser_interface<char_parser_t>(char_parser_t(range));
+            return parser_interface(char_parser_t(range));
         }
 
         Expected expected_;
@@ -4639,14 +4638,15 @@ namespace boost { namespace parser {
 
     /** Returns a parser that matches `str` that produces the matched string
         as its attribute. */
-    inline constexpr auto string(std::string_view str) noexcept // TODO: Handle ranges of CPs.
+    inline constexpr auto
+    string(std::string_view str) noexcept // TODO: Handle ranges of CPs.
     {
-        string_parser sp(str);
-        return parser_interface<decltype(sp)>{sp};
+        return parser_interface{string_parser(str)};
     }
 
     /** Returns a parser that matches `str` that produces no attribute. */
-    inline constexpr auto lit(std::string_view str) noexcept // TODO: Handle ranges of CPs.
+    inline constexpr auto
+    lit(std::string_view str) noexcept // TODO: Handle ranges of CPs.
     {
         return omit[string(str)];
     }
@@ -4913,7 +4913,7 @@ namespace boost { namespace parser {
                 "parser, like 'uint_(2)(3)'.  Quit it!'");
             using parser_t =
                 uint_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
-            return parser_interface<parser_t>{parser_t{expected}};
+            return parser_interface{parser_t{expected}};
         }
 
         Expected expected_;
@@ -5023,7 +5023,7 @@ namespace boost { namespace parser {
                 "parser, like 'int_(2)(3)'.  Quit it!'");
             using parser_t =
                 int_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
-            return parser_interface<parser_t>{parser_t{expected}};
+            return parser_interface{parser_t{expected}};
         }
 
         Expected expected_;
@@ -5217,7 +5217,7 @@ namespace boost { namespace parser {
             auto or_parser = make_or_parser(or_parser_, eps(match) >> rhs);
             using switch_parser_type =
                 switch_parser<SwitchValue, decltype(or_parser)>;
-            return parser_interface<switch_parser_type>{
+            return parser_interface{
                 switch_parser_type{switch_value_, or_parser}};
         }
 
@@ -5227,7 +5227,7 @@ namespace boost { namespace parser {
         static constexpr auto
         make_or_parser(Parser1 parser1, parser_interface<Parser2> parser2)
         {
-            return (parser_interface<Parser1>{parser1} | parser2).parser_;
+            return (parser_interface{parser1} | parser2).parser_;
         }
 
         template<typename Parser>
@@ -5322,8 +5322,9 @@ namespace boost { namespace parser {
 
     /** Returns a parser equivalent to `lit(str) >> rhs`. */
     template<typename Parser>
-    constexpr auto
-    operator>>(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    constexpr auto operator>>(
+        std::string_view str,
+        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return rhs.parser_.template prepend<true>(lit(str));
@@ -5396,8 +5397,9 @@ namespace boost { namespace parser {
 
     /** Returns a parser equivalent to `lit(str) > rhs`. */
     template<typename Parser>
-    constexpr auto
-    operator>(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    constexpr auto operator>(
+        std::string_view str,
+        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
             return rhs.parser_.template prepend<false>(lit(str));
@@ -5470,8 +5472,9 @@ namespace boost { namespace parser {
 
     /** Returns a parser equivalent to `lit(str) | rhs`. */
     template<typename Parser>
-    constexpr auto
-    operator|(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    constexpr auto operator|(
+        std::string_view str,
+        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         if constexpr (detail::is_or_p<Parser>{}) {
             return rhs.parser_.prepend(lit(str));
@@ -5524,8 +5527,9 @@ namespace boost { namespace parser {
 
     /** Returns a parser equivalent to `!rhs >> lit(str)`. */
     template<typename Parser>
-    constexpr auto
-    operator-(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    constexpr auto operator-(
+        std::string_view str,
+        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         return !rhs >> lit(str);
     }
@@ -5574,8 +5578,9 @@ namespace boost { namespace parser {
 
     /** Returns a parser equivalent to `lit(str) % rhs`. */
     template<typename Parser>
-    constexpr auto
-    operator%(std::string_view str, parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    constexpr auto operator%(
+        std::string_view str,
+        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
     {
         return lit(str) % rhs;
     }
