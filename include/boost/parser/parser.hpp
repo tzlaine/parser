@@ -466,18 +466,27 @@ namespace boost { namespace parser {
         // Type traits.
 
         template<typename T>
+        using value_type =
+            std::decay_t<decltype(*std::begin(std::declval<T>()))>;
+
+        template<typename T>
+        using integral_value_type = std::integral_constant<
+            bool,
+            std::is_integral<detected_t<value_type, T>>::value>;
+
+        template<typename T>
         using begin_and_end = decltype(
             std::begin(std::declval<T>()), std::end(std::declval<T>()));
 
         template<typename T>
         using range_t = typename std::enable_if_t<
-            is_detected<begin_and_end, T>{} ||
+            (is_detected<begin_and_end, T>{} && integral_value_type<T>{}) ||
             (std::is_pointer<std::decay_t<T>>::value &&
              std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value)>;
 
         template<typename T>
         using non_range_t = typename std::enable_if_t<
-            !is_detected<begin_and_end, T>{} &&
+            (!is_detected<begin_and_end, T>{} || !integral_value_type<T>{}) &&
             !(std::is_pointer<std::decay_t<T>>::value &&
               std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value)>;
 
@@ -493,10 +502,6 @@ namespace boost { namespace parser {
         template<typename T>
         struct is_container : is_detected<insert_range_insert_begin_and_end, T>
         {};
-
-        template<typename T>
-        using value_type =
-            std::decay_t<decltype(*std::begin(std::declval<T>()))>;
 
         template<typename T, typename U>
         struct is_container_and_value_type
