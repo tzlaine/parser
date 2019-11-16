@@ -1371,14 +1371,14 @@ TEST(parser, combined_seq_and_or)
         {
             std::string str = "abz";
             std::string chars;
-            default_error_handler eh("simple_parser.cpp");
+            stream_error_handler eh("simple_parser.cpp");
             EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
         }
 
         {
             std::string str = "ab";
             std::string chars;
-            default_error_handler eh("simple_parser.cpp");
+            stream_error_handler eh("simple_parser.cpp");
             EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
         }
     }
