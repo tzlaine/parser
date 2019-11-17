@@ -91,8 +91,6 @@ namespace boost { namespace parser {
         int64_t max_after_caret = 40);
 #endif
 
-    // TODO: Add info kind as well?
-
     /** The kinds of diagnostics that can be handled by an error handler. */
     enum class diagnostic_kind {
         error,  /// An error diagnostic.

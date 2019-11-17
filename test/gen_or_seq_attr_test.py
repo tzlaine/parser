@@ -66,14 +66,14 @@ def add_infix_op(t, op):
     return retval
 
 def atom_type(a):
-    mapping = {'*char_': 'std::vector<char>', 'eps': 'detail::nope', '-int_': 'optional<int>', "char_('z')": 'char'}
+    mapping = {'*char_': 'std::vector<char>', 'eps': 'nope', '-int_': 'optional<int>', "char_('z')": 'char'}
     return mapping[a]
 
 seq_dump = False
 or_dump = False
 
 def seq_fold(x, y):
-    if y == 'detail::nope':
+    if y == 'nope':
         if seq_dump:
             print '0 return', x
         return x
@@ -106,7 +106,7 @@ def seq_fold(x, y):
             print '4 return',x[:-1] + [y]
         return x[:-1] + [y]
 
-    if x[-1] == 'detail::nope':
+    if x[-1] == 'nope':
         if seq_dump:
             print '5 return', x[:-1] + [y]
         return x[:-1] + [y]
@@ -116,7 +116,7 @@ def seq_fold(x, y):
     return x + [y]
 
 def or_fold(x, y):
-    if y == 'detail::nope':
+    if y == 'nope':
         return [x[0], True]
     if y in x[0]:
         return x
@@ -143,7 +143,7 @@ def or_of(t):
         print types
     folded = reduce(or_fold, types, [[], False])
     if len(folded[0]) == 0:
-        return 'detail::nope'
+        return 'nope'
     if len(folded[0]) == 1:
         retval = folded[0][0]
         if retval.startswith('optional<'):
@@ -161,7 +161,7 @@ def type_of(t, op):
         return or_of(t)
 
 def optional_of(op_token, type_str):
-    if op_token == '-' and not type_str.startswith('optional<') and type_str != 'detail::nope':
+    if op_token == '-' and not type_str.startswith('optional<') and type_str != 'nope':
         return 'optional<{}>'.format(type_str)
     return type_str
 
@@ -215,7 +215,7 @@ for first in all_atoms:
         i += 1
 
 def type_to_result(type_):
-    if type_ == 'detail::nope':
+    if type_ == 'nope':
         return 'bool'
     return 'optional<{}>'.format(type_)
 

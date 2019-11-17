@@ -63,42 +63,43 @@ namespace boost { namespace parser {
     constexpr hana::type<T> tag{};
 
 
+    struct nope
+    {
+        // Assignable from anything.
+        template<typename T>
+        constexpr nope & operator=(T const &)
+        {
+            return *this;
+        }
+
+        // Convertible to optional.
+        operator std::nullopt_t() const noexcept { return std::nullopt; }
+
+        // Also acts as a dummy predicate.
+        template<typename Context>
+        constexpr bool operator()(Context const &) const noexcept
+        {
+            return true;
+        }
+
+        friend constexpr bool operator==(nope, nope) { return true; }
+        friend constexpr bool operator!=(nope, nope) { return false; }
+        template<typename T>
+        friend constexpr bool operator==(T, nope)
+        {
+            return false;
+        }
+        template<typename T>
+        friend constexpr bool operator!=(T, nope)
+        {
+            return false;
+        }
+    };
+
+
     namespace detail {
 
         // Utility types.
-
-        struct nope
-        {
-            // Assignable from anything.
-            template<typename T>
-            constexpr nope & operator=(T const &)
-            {
-                return *this;
-            }
-
-            // Convertible to optional.
-            operator std::nullopt_t() const noexcept { return std::nullopt; }
-
-            // Also acts as a dummy predicate.
-            template<typename Context>
-            constexpr bool operator()(Context const &) const noexcept
-            {
-                return true;
-            }
-
-            friend constexpr bool operator==(nope, nope) { return true; }
-            friend constexpr bool operator!=(nope, nope) { return false; }
-        };
-        template<typename T>
-        constexpr bool operator==(T, nope)
-        {
-            return false;
-        }
-        template<typename T>
-        constexpr bool operator!=(T, nope)
-        {
-            return false;
-        }
 
         inline nope global_nope;
 
@@ -1424,7 +1425,7 @@ namespace boost { namespace parser {
                     flags,
                     success);
                 if (Debug)
-                    final_trace(context, flags, detail::nope{});
+                    final_trace(context, flags, nope{});
                 return detail::make_parse_result(attr_, success);
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1475,7 +1476,7 @@ namespace boost { namespace parser {
                     flags,
                     success);
                 if (Debug)
-                    final_trace(context, flags, detail::nope{});
+                    final_trace(context, flags, nope{});
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1576,7 +1577,7 @@ namespace boost { namespace parser {
                     hana::false_c, first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
-                    final_trace(context, flags, detail::nope{});
+                    final_trace(context, flags, nope{});
                 return detail::make_parse_result(attr_, success);
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1625,7 +1626,7 @@ namespace boost { namespace parser {
                     hana::false_c, first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
-                    final_trace(context, flags, detail::nope{});
+                    final_trace(context, flags, nope{});
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1817,8 +1818,8 @@ namespace boost { namespace parser {
         return *context[detail::params_];
     }
     /** Returns a reference to the globals object associated with the
-        innermost parser.  Returns `nope` if there is no associated
-        globals object. */
+        innermost parser.  Returns `nope` if there is no associated globals
+        object. */
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
     {
@@ -1988,9 +1989,7 @@ namespace boost { namespace parser {
                     // This is only ever used in delimited_parser, which
                     // always has a min=1; we therefore know we're after a
                     // previous element when this executes.
-                    if constexpr (!std::is_same<
-                                      DelimiterParser,
-                                      detail::nope>{}) {
+                    if constexpr (!std::is_same<DelimiterParser, nope>{}) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2058,9 +2057,7 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, max_); count != end;
                      ++count) {
                     auto const prev_first = first;
-                    if constexpr (!std::is_same<
-                                      DelimiterParser,
-                                      detail::nope>{}) {
+                    if constexpr (!std::is_same<DelimiterParser, nope>{}) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2309,13 +2306,14 @@ namespace boost { namespace parser {
             using all_types_wrapped =
                 decltype(hana::transform(all_types{}, hana::make_type));
 
-            // Returns a hana::pair<> containing two things: 1) A tuple of only
-            // the unique wrapped types from above, without nopes; this may be
-            // empty. 2) std::true_type or std::false_type indicating whether
-            // nopes were found; if so, the final result is an optional.
+            // Returns a hana::pair<> containing two things: 1) A tuple of
+            // only the unique wrapped types from above, without nopes; this
+            // may be empty. 2) std::true_type or std::false_type indicating
+            // whether nopes were found; if so, the final result is an
+            // optional.
             auto append_unique = [](auto result, auto x) {
                 using x_type = typename decltype(x)::type;
-                if constexpr (std::is_same<x_type, detail::nope>{}) {
+                if constexpr (std::is_same<x_type, nope>{}) {
                     return hana::make_pair(
                         hana::first(result), std::true_type{});
                 } else if constexpr (hana::contains(hana::first(result), x)) {
@@ -2478,7 +2476,7 @@ namespace boost { namespace parser {
                 constexpr auto one = hana::size_c<1>;
                 (void)one;
 
-                if constexpr (std::is_same<x_type, detail::nope>{}) {
+                if constexpr (std::is_same<x_type, nope>{}) {
                     // T >> nope -> T
                     return hana::make_pair(
                         result,
@@ -2525,9 +2523,7 @@ namespace boost { namespace parser {
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
-                } else if constexpr (std::is_same<
-                                         result_back_type,
-                                         detail::nope>{}) {
+                } else if constexpr (std::is_same<result_back_type, nope>{}) {
                     // hana::tuple<nope> >> T -> hana::tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
@@ -2863,7 +2859,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -2872,7 +2868,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            detail::nope retval;
+            nope retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -2931,7 +2927,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3167,7 +3163,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            if constexpr (std::is_same<SkipParser, detail::nope>{}) {
+            if constexpr (std::is_same<SkipParser, nope>{}) {
                 parser_.call(
                     use_cbs,
                     first,
@@ -3203,7 +3199,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3212,7 +3208,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            detail::nope retval;
+            nope retval;
             call(
                 use_cbs,
                 first,
@@ -3501,7 +3497,7 @@ namespace boost { namespace parser {
 
                 auto const & callbacks = _callbacks(context);
 
-                if constexpr (std::is_same<attr_type, detail::nope>{}) {
+                if constexpr (std::is_same<attr_type, nope>{}) {
                     if constexpr (detail::has_overloaded_callback_1<
                                       decltype((callbacks)),
                                       tag_type>{}) {
@@ -3869,7 +3865,7 @@ namespace boost { namespace parser {
         for the `parser` argument is undefined. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_globals(
-        parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
+        parser_interface<Parser, nope, ErrorHandler> const & parser,
         GlobalState & globals)
     {
         return parser_interface<Parser, GlobalState &, ErrorHandler>{
@@ -3953,9 +3949,9 @@ namespace boost { namespace parser {
         }
     };
 
-    using no_attribute = detail::nope;
-    using no_local_state = detail::nope;
-    using no_params = detail::nope;
+    using no_attribute = nope;
+    using no_local_state = nope;
+    using no_params = nope;
 
     /** A type used to declare named parsing rules.  The `TagType` template
         parameter is used to associate a particular `rule` with the
@@ -3975,7 +3971,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             static_assert(
-                std::is_same<ParamsTuple, detail::nope>{},
+                std::is_same<ParamsTuple, nope>{},
                 "If you're seeing this, you tried to chain calls on a rule, "
                 "like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
@@ -4014,7 +4010,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             static_assert(
-                std::is_same<ParamsTuple, detail::nope>{},
+                std::is_same<ParamsTuple, nope>{},
                 "If you're seeing this, you tried to chain calls on a "
                 "callback_rule, like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
@@ -4075,7 +4071,7 @@ namespace boost { namespace parser {
         auto const & parser = BOOST_PP_CAT(name_, _def);                       \
         using attr_t = decltype(                                               \
             parser(use_cbs, first, last, context, skip, flags, success));      \
-        if constexpr (std::is_same<attr_t, boost::parser::detail::nope>{})     \
+        if constexpr (std::is_same<attr_t, boost::parser::nope>{})             \
             parser(use_cbs, first, last, context, skip, flags, success);       \
         else                                                                   \
             parser(                                                            \
@@ -4189,7 +4185,7 @@ namespace boost { namespace parser {
         constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
         {
             using repeat_parser_type =
-                repeat_parser<Parser2, detail::nope, MinType, MaxType>;
+                repeat_parser<Parser2, nope, MinType, MaxType>;
             return parser_interface{
                 repeat_parser_type{rhs.parser_, min_, max_}};
         }
@@ -4222,7 +4218,7 @@ namespace boost { namespace parser {
         the entire parse is used.  When given another parser, e.g.
         `skip(skip_parser)[parser_in_which_to_do_skipping]`, that other parser
         is used as the skipper within the directive. */
-    template<typename SkipParser = detail::nope>
+    template<typename SkipParser = nope>
     struct skip_directive
     {
         template<typename Parser>
@@ -4237,7 +4233,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
             static_assert(
-                std::is_same<SkipParser, detail::nope>{},
+                std::is_same<SkipParser, nope>{},
                 "If you're seeing this, you tried to chain calls on skip, "
                 "like 'skip(foo)(bar)'.  Quit it!'");
             return skip_directive<SkipParser2>{skip_parser};
@@ -4264,7 +4260,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4312,7 +4308,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
             static_assert(
-                std::is_same<Predicate, detail::nope>{},
+                std::is_same<Predicate, nope>{},
                 "If you're seeing this, you tried to chain calls on eps, "
                 "like 'eps(foo)(bar)'.  Quit it!'");
             return parser_interface{eps_parser<Predicate2>{std::move(pred)}};
@@ -4324,7 +4320,7 @@ namespace boost { namespace parser {
     /** The epsilon parser.  This matches anything, and consumes no input.  If
         used with an optional predicate, like `eps(pred)`, it matches iff
         `pred(ctx)` evaluates to true, where `ctx` is the parser context. */
-    inline constexpr parser_interface<eps_parser<detail::nope>> eps;
+    inline constexpr parser_interface<eps_parser<nope>> eps;
 
     struct eoi_parser
     {
@@ -4334,7 +4330,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4501,7 +4497,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(T x) const noexcept
         {
             static_assert(
-                std::is_same<Expected, detail::nope>{},
+                std::is_same<Expected, nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a')('b')'.  Quit it!'");
             return parser_interface{
@@ -4514,7 +4510,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
             static_assert(
-                std::is_same<Expected, detail::nope>{},
+                std::is_same<Expected, nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
             using char_pair_t = detail::char_pair<LoType, HiType>;
@@ -4535,7 +4531,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Range const & r) const noexcept
         {
             static_assert(
-                std::is_same<Expected, detail::nope>{},
+                std::is_same<Expected, nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_(char-set)(char-set)'.  Quit it!'");
             auto range = detail::make_char_range(r);
@@ -4553,7 +4549,7 @@ namespace boost { namespace parser {
         it with: a single value comparable to a code point; a set of code
         point values in a string; a half-open range of code point values `[lo,
         hi)`, or a set of code point values passed as a range. */
-    inline constexpr parser_interface<char_parser<detail::nope>> char_;
+    inline constexpr parser_interface<char_parser<nope>> char_;
 
     /** The literal code point parser.  It produces a 32-bit unsigned integer
         attribute.  This parser can be used to create code point parsers that
@@ -4561,7 +4557,7 @@ namespace boost { namespace parser {
         single value comparable to a code point; a set of code point values in
         a string; a half-open range of code point values `[lo, hi)`, or a set
         of code point values passed as a range. */
-    inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
+    inline constexpr parser_interface<char_parser<nope, uint32_t>> cp;
 
     /** The literal code unit parser.  It produces a `char` attribute.  This
         parser can be used to create code point parsers that match one or more
@@ -4569,7 +4565,7 @@ namespace boost { namespace parser {
         comparable to a code point; a set of code point values in a string; a
         half-open range of code point values `[lo, hi)`, or a set of code
         point values passed as a range. */
-    inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
+    inline constexpr parser_interface<char_parser<nope, char>> cu;
 
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
@@ -4693,7 +4689,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
+        nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4702,7 +4698,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            detail::nope nope;
+            nope nope;
             call(use_cbs, first, last, context, skip, flags, success, nope);
             return {};
         }
@@ -4940,7 +4936,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
-                std::is_same<Expected, detail::nope>{},
+                std::is_same<Expected, nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'uint_(2)(3)'.  Quit it!'");
             using parser_t =
@@ -5050,7 +5046,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
-                std::is_same<Expected, detail::nope>{},
+                std::is_same<Expected, nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'int_(2)(3)'.  Quit it!'");
             using parser_t =
@@ -5198,7 +5194,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             static_assert(
-                !std::is_same<OrParser, detail::nope>{},
+                !std::is_same<OrParser, nope>{},
                 "It looks like you tried to write switch_(val).  You need at "
                 "least one alternative, like: switch_(val)(value_1, "
                 "parser_1)(value_2, parser_2)...");
@@ -5229,7 +5225,7 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             static_assert(
-                !std::is_same<OrParser, detail::nope>{},
+                !std::is_same<OrParser, nope>{},
                 "It looks like you tried to write switch_(val).  You need at "
                 "least one alternative, like: switch_(val)(value_1, "
                 "parser_1)(value_2, parser_2)...");
@@ -5264,7 +5260,7 @@ namespace boost { namespace parser {
 
         template<typename Parser>
         static constexpr auto
-        make_or_parser(detail::nope, parser_interface<Parser> parser)
+        make_or_parser(nope, parser_interface<Parser> parser)
         {
             return parser.parser_;
         }
