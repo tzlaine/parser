@@ -1318,6 +1318,18 @@ namespace boost { namespace parser {
 
         // API implementations
 
+        template<typename BaseIter, typename Iter>
+        struct scoped_base_assign
+        {
+            scoped_base_assign(BaseIter & base, Iter & it) :
+                base_(base), it_(it)
+            {}
+            ~scoped_base_assign() { base_ = it_.base(); }
+
+            BaseIter & base_;
+            Iter & it_;
+        };
+
         template<
             bool Debug,
             typename Iter,
@@ -1641,17 +1653,36 @@ namespace boost { namespace parser {
         template<typename Iter, typename Sentinel>
         using sentinel_for = is_detected<eq_comparable, Iter, Sentinel>;
 
-        // TODO: is_plain_char_range trait, following below.
+        template<typename T>
+        struct is_utf8_view : std::false_type
+        {};
 
-        // TODO: if the value_type of Range is char, and Range is not a
-        // specialization of text::utf8_view, return a text::as_utf32() here.
+        template<typename Iter, typename Sentinel>
+        struct is_utf8_view<text::utf8_view<Iter, Sentinel>> : std::true_type
+        {};
+
+        template<typename Range>
+        using plain_char_range = std::integral_constant<
+            bool,
+            (!is_utf8_view<Range>{} &&
+             std::is_same<value_type<Range>, char>{})>;
+
         template<typename Range>
         constexpr auto make_input_range(Range && r) noexcept
         {
-            if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
-                return parser::make_range(r, text::null_sentinel{});
+            if constexpr (plain_char_range<Range>::value) {
+                if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                    return parser::make_range(r, text::null_sentinel{});
+                } else {
+                    return parser::make_range(std::begin(r), std::end(r));
+                }
             } else {
-                return parser::make_range(std::begin(r), std::end(r));
+                if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+                    return parser::make_range(r, text::null_sentinel{});
+                } else {
+                    auto r_ = text::as_utf32(r);
+                    return parser::make_range(r_.begin(), r_.end());
+                }
             }
         }
 
@@ -1710,6 +1741,9 @@ namespace boost { namespace parser {
 
     // TODO: Document the conversions that occur when comparing in char_parser
     // (uint32_t's compared to ASCII, etc.).
+
+    // TODO: Document that using char8_t or as_utf8() when passing to
+    // *parse() opts you into Unicode-aware parsing.
 
     // TODO: C++20 concepts.
 
@@ -4597,9 +4631,6 @@ namespace boost { namespace parser {
                 return;
             }
 
-            // TODO: -> if constexpr
-            // (std::is_same<std::decay_t<decltype(*first)>, char>::value),
-            // here and elsewhere.
             if constexpr (sizeof(*first) == 4) {
                 auto const cps =
                     text::as_utf32(expected_first_, expected_last_);
@@ -4614,10 +4645,9 @@ namespace boost { namespace parser {
 
                 first = mismatch.first;
             } else {
-                auto const cus = text::as_utf8(expected_first_, expected_last_);
-                auto const mismatch =
-                    detail::mismatch(first, last, cus.begin(), cus.end());
-                if (mismatch.second != cus.end()) {
+                auto const mismatch = detail::mismatch(
+                    first, last, expected_first_, expected_last_);
+                if (mismatch.second != expected_last_) {
                     success = false;
                     return;
                 }
@@ -5653,12 +5683,28 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::parse_impl<true>(
-                first, last, parser, parser.error_handler_, attr);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::parse_impl<true>(
+                    first, last, parser, parser.error_handler_, attr);
+            } else {
+                return detail::parse_impl<false>(
+                    first, last, parser, parser.error_handler_, attr);
+            }
         } else {
-            return detail::parse_impl<false>(
-                first, last, parser, parser.error_handler_, attr);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::parse_impl<true>(
+                    first, last, parser, parser.error_handler_, attr);
+            } else {
+                return detail::parse_impl<false>(
+                    first, last, parser, parser.error_handler_, attr);
+            }
         }
     }
 
@@ -5703,12 +5749,28 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::parse_impl<true>(
-                first, last, parser, parser.error_handler_);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::parse_impl<true>(
+                    first, last, parser, parser.error_handler_);
+            } else {
+                return detail::parse_impl<false>(
+                    first, last, parser, parser.error_handler_);
+            }
         } else {
-            return detail::parse_impl<false>(
-                first, last, parser, parser.error_handler_);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::parse_impl<true>(
+                    f, l, parser, parser.error_handler_);
+            } else {
+                return detail::parse_impl<false>(
+                    f, l, parser, parser.error_handler_);
+            }
         }
     }
 
@@ -5763,12 +5825,28 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::callback_parse_impl<true>(
-                first, last, parser, parser.error_handler_, callbacks);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::callback_parse_impl<true>(
+                    first, last, parser, parser.error_handler_, callbacks);
+            } else {
+                return detail::callback_parse_impl<false>(
+                    first, last, parser, parser.error_handler_, callbacks);
+            }
         } else {
-            return detail::callback_parse_impl<false>(
-                first, last, parser, parser.error_handler_, callbacks);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::callback_parse_impl<true>(
+                    f, l, parser, parser.error_handler_, callbacks);
+            } else {
+                return detail::callback_parse_impl<false>(
+                    f, l, parser, parser.error_handler_, callbacks);
+            }
         }
     }
 
@@ -5829,12 +5907,28 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::skip_parse_impl<true>(
-                first, last, parser, skip, parser.error_handler_, attr);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    first, last, parser, skip, parser.error_handler_, attr);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    first, last, parser, skip, parser.error_handler_, attr);
+            }
         } else {
-            return detail::skip_parse_impl<false>(
-                first, last, parser, skip, parser.error_handler_, attr);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    f, l, parser, skip, parser.error_handler_, attr);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    f, l, parser, skip, parser.error_handler_, attr);
+            }
         }
     }
 
@@ -5886,12 +5980,28 @@ namespace boost { namespace parser {
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::skip_parse_impl<true>(
-                first, last, parser, skip, parser.error_handler_);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    first, last, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    first, last, parser, skip, parser.error_handler_);
+            }
         } else {
-            return detail::skip_parse_impl<false>(
-                first, last, parser, skip, parser.error_handler_);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    f, l, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    f, l, parser, skip, parser.error_handler_);
+            }
         }
     }
 
@@ -5952,12 +6062,38 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        if (trace_mode == trace::on) {
-            return detail::callback_skip_parse_impl<true>(
-                first, last, parser, skip, parser.error_handler_, callbacks);
+        if constexpr (
+            detail::plain_char_range<range<Iter, Sentinel>>::value ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::callback_skip_parse_impl<true>(
+                    first,
+                    last,
+                    parser,
+                    skip,
+                    parser.error_handler_,
+                    callbacks);
+            } else {
+                return detail::callback_skip_parse_impl<false>(
+                    first,
+                    last,
+                    parser,
+                    skip,
+                    parser.error_handler_,
+                    callbacks);
+            }
         } else {
-            return detail::callback_skip_parse_impl<false>(
-                first, last, parser, skip, parser.error_handler_, callbacks);
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::callback_skip_parse_impl<true>(
+                    f, l, parser, skip, parser.error_handler_, callbacks);
+            } else {
+                return detail::callback_skip_parse_impl<false>(
+                    f, l, parser, skip, parser.error_handler_, callbacks);
+            }
         }
     }
 
