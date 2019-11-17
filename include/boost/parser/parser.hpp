@@ -1715,9 +1715,6 @@ namespace boost { namespace parser {
 
     // TODO: Are _val() and _attr() redundant?
 
-    // TODO: Constrain Range function params as a begin()/end() pair over
-    // integral types, or a pointer to an integral type.
-
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
         `hana::tuple`.  You may write to this value in a semantic action to
