@@ -3647,8 +3647,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator>>(std::string_view rhs) const
-            noexcept; // TODO: Handle ranges of CPs.
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator>>(Range && range) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`.  No
@@ -3685,8 +3685,8 @@ namespace boost { namespace parser {
             `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
             back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
             fails after `parser_` succeeds, the top-level parse fails. */
-        constexpr auto operator>(std::string_view rhs) const
-            noexcept; // TODO: Handle ranges of CPs.
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator>(Range && range) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `rhs.parser_`. */
@@ -3712,8 +3712,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
-        constexpr auto operator|(std::string_view rhs) const
-            noexcept; // TODO: Handle ranges of CPs.
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator|(Range && range) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!rhs >> *this`. */
@@ -3733,8 +3733,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!lit(rhs) >> *this`. */
-        constexpr auto operator-(std::string_view rhs) const
-            noexcept; // TODO: Handle ranges of CPs.
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator-(Range && range) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
@@ -3755,8 +3755,8 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
-        constexpr auto operator%(std::string_view rhs) const
-            noexcept; // TODO: Handle ranges of CPs.
+        template<typename Range, typename Enable = detail::range_t<Range>>
+        constexpr auto operator%(Range && range) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `action_parser` containing `parser_`, with semantic action
@@ -5290,14 +5290,15 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<typename Range, typename Enable>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
-        std::string_view rhs) const noexcept
+        Range && range) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<true>(lit(rhs));
+            return parser_.template append<true>(lit(range));
         } else {
-            return *this >> lit(rhs);
+            return *this >> lit(range);
         }
     }
 
@@ -5326,15 +5327,17 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) >> rhs`. */
-    template<typename Parser>
-    constexpr auto operator>>(
-        std::string_view str,
-        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    template<
+        typename Range,
+        typename Parser,
+        typename Enable = detail::range_t<Range>>
+    constexpr auto
+    operator>>(Range && range, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<true>(lit(str));
+            return rhs.parser_.template prepend<true>(lit(range));
         } else {
-            return lit(str) >> rhs;
+            return lit(range) >> rhs;
         }
     }
 
@@ -5365,14 +5368,15 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<typename Range, typename Enable>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
-        std::string_view rhs) const noexcept
+        Range && range) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<false>(lit(rhs));
+            return parser_.template append<false>(lit(range));
         } else {
-            return *this > lit(rhs);
+            return *this > lit(range);
         }
     }
 
@@ -5401,15 +5405,17 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) > rhs`. */
-    template<typename Parser>
-    constexpr auto operator>(
-        std::string_view str,
-        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    template<
+        typename Range,
+        typename Parser,
+        typename Enable = detail::range_t<Range>>
+    constexpr auto
+    operator>(Range && range, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<false>(lit(str));
+            return rhs.parser_.template prepend<false>(lit(range));
         } else {
-            return lit(str) > rhs;
+            return lit(range) > rhs;
         }
     }
 
@@ -5440,14 +5446,15 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<typename Range, typename Enable>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
-        std::string_view rhs) const noexcept
+        Range && range) const noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
-            return parser_.append(lit(rhs));
+            return parser_.append(lit(range));
         } else {
-            return *this | lit(rhs);
+            return *this | lit(range);
         }
     }
 
@@ -5476,15 +5483,17 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) | rhs`. */
-    template<typename Parser>
-    constexpr auto operator|(
-        std::string_view str,
-        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    template<
+        typename Range,
+        typename Parser,
+        typename Enable = detail::range_t<Range>>
+    constexpr auto
+    operator|(Range && range, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
-            return rhs.parser_.prepend(lit(str));
+            return rhs.parser_.prepend(lit(range));
         } else {
-            return lit(str) | rhs;
+            return lit(range) | rhs;
         }
     }
 
@@ -5507,11 +5516,12 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<typename Range, typename Enable>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
-        std::string_view rhs) const noexcept
+        Range && range) const noexcept
     {
-        return !lit(rhs) >> *this;
+        return !lit(range) >> *this;
     }
 
 #endif
@@ -5531,12 +5541,14 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `!rhs >> lit(str)`. */
-    template<typename Parser>
-    constexpr auto operator-(
-        std::string_view str,
-        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    template<
+        typename Range,
+        typename Parser,
+        typename Enable = detail::range_t<Range>>
+    constexpr auto
+    operator-(Range && range, parser_interface<Parser> rhs) noexcept
     {
-        return !rhs >> lit(str);
+        return !rhs >> lit(range);
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -5558,11 +5570,12 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<typename Range, typename Enable>
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
-        std::string_view rhs) const noexcept
+        Range && range) const noexcept
     {
-        return *this % lit(rhs);
+        return *this % lit(range);
     }
 
 #endif
@@ -5582,12 +5595,14 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) % rhs`. */
-    template<typename Parser>
-    constexpr auto operator%(
-        std::string_view str,
-        parser_interface<Parser> rhs) noexcept // TODO: Handle ranges of CPs.
+    template<
+        typename Range,
+        typename Parser,
+        typename Enable = detail::range_t<Range>>
+    constexpr auto
+    operator%(Range && range, parser_interface<Parser> rhs) noexcept
     {
-        return lit(str) % rhs;
+        return lit(range) % rhs;
     }
 
     namespace literals {
