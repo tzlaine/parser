@@ -1662,28 +1662,34 @@ namespace boost { namespace parser {
         struct is_utf8_view<text::utf8_view<Iter, Sentinel>> : std::true_type
         {};
 
+        template<typename T>
+        struct is_char8_t : std::false_type
+        {};
+
+#if defined(__cpp_char8_t)
+        template<>
+        struct is_char8_t<char8_t> : std::true_type
+        {};
+#endif
+
         template<typename Range>
         using plain_char_range = std::integral_constant<
             bool,
-            (!is_utf8_view<Range>{} &&
-             std::is_same<value_type<Range>, char>{})>;
+            (!is_utf8_view<Range>{} && !is_char8_t<value_type<Range>>{} &&
+             sizeof(value_type<Range>) == 1u)>;
 
         template<typename Range>
         constexpr auto make_input_range(Range && r) noexcept
         {
-            if constexpr (plain_char_range<Range>::value) {
-                if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
+            if constexpr (plain_char_range<Range>{}) {
+                if constexpr (std::is_pointer<std::decay_t<Range>>{}) {
                     return parser::make_range(r, text::null_sentinel{});
                 } else {
                     return parser::make_range(std::begin(r), std::end(r));
                 }
             } else {
-                if constexpr (std::is_pointer<std::decay_t<Range>>::value) {
-                    return parser::make_range(r, text::null_sentinel{});
-                } else {
-                    auto r_ = text::as_utf32(r);
-                    return parser::make_range(r_.begin(), r_.end());
-                }
+                auto r_ = text::as_utf32(r);
+                return parser::make_range(r_.begin(), r_.end());
             }
         }
 
@@ -1738,13 +1744,15 @@ namespace boost { namespace parser {
     // TODO: Document what a pred/pred_ is (value or invocable), and what any
     // other value is (value or invocable).
 
-    // TODO: Document that the parse always operates on UTF-8 or UTF-32.
-
-    // TODO: Document the conversions that occur when comparing in char_parser
-    // (uint32_t's compared to ASCII, etc.).
+    // TODO: Document that the parse always operates on {,signed,unsigned}
+    // chars and std::bytes (or any size-1 integral besides char8_t) of
+    // unknown encoding or Unicode code points.
 
     // TODO: Document that using char8_t or as_utf8() when passing to
     // *parse() opts you into Unicode-aware parsing.
+
+    // TODO: Document the conversions that occur when comparing in char_parser
+    // (uint32_t's compared to ASCII, etc.).
 
     // TODO: C++20 concepts.
 
