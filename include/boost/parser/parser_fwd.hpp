@@ -3,7 +3,10 @@
 
 #include <boost/parser/error_handling_fwd.hpp>
 
+#include <boost/any.hpp>
+
 #include <cstdint>
+#include <map>
 
 
 namespace boost { namespace parser {
@@ -14,7 +17,6 @@ namespace boost { namespace parser {
     struct nope;
 
     namespace detail {
-
         enum class flags : unsigned int {
             gen_attrs = 1 << 0,
             use_skip = 1 << 1,
@@ -36,6 +38,18 @@ namespace boost { namespace parser {
         struct error_handler_tag;
         struct callbacks_tag;
         struct symbol_table_tries_tag;
+
+        using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
+
+        template<typename Iter, typename Sentinel, typename ErrorHandler>
+        inline auto make_context(
+            Iter first,
+            Sentinel last,
+            bool & success,
+            int & indent,
+            ErrorHandler const & error_handler,
+            nope &,
+            symbol_table_tries_t & symbol_table_tries) noexcept;
     }
 
     /** Repeats the application of another parser of type `Parser p`,

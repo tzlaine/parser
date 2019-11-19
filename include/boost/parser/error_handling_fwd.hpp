@@ -97,22 +97,6 @@ namespace boost { namespace parser {
         warning /// A warning diagnostic.
     };
 
-#if 0 // TODO: error_handler concept.
-#if defined(__cpp_lib_concepts) && defined(__cpp_lib_ranges)
-    template<typename T>
-    BOOST_PARSER_CONCEPT cp_iterator =
-        ranges::forward_iterator<T> &&
-        requires (T & t, T const & ct) {
-            { *t } -> std::convertible_to<uint32_t>;
-            { *ct } -> std::convertible_to<uint32_t>;
-        };
-    template<typename T>
-    BOOST_PARSER_CONCEPT error_handler = requires (T const & t) {
-        
-    };
-#endif
-#endif
-
     /** The error handler used when the user does not specify a custom one.
         This error handler prints warnings and errors to `std::cout`, and does
         not have an associcated filename. */
