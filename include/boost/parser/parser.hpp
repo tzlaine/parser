@@ -81,6 +81,9 @@ namespace boost { namespace parser {
             return true;
         }
 
+        // Dereferencable.
+        constexpr nope operator*() const noexcept { return nope{}; }
+
         friend constexpr bool operator==(nope, nope) { return true; }
         friend constexpr bool operator!=(nope, nope) { return false; }
         template<typename T>
@@ -3584,12 +3587,7 @@ namespace boost { namespace parser {
         topmost parser's error handler is used for all errors encountered
         during parsing. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
-    // clang-format off
-#if BOOST_PARSER_USE_CONCEPTS
-    requires std::is_object_v<GlobalState>
-#endif
     struct parser_interface
-    // clang-format on
     {
         using parser_type = Parser;
 
@@ -5773,8 +5771,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     // clang-format off
 #if BOOST_PARSER_USE_CONCEPTS
-    requires parser::parser<Parser, Iter, Sentinel> &&
-             error_handler<Parser, Iter, Sentinel>
+    requires parser::parser<Parser, Iter, Sentinel, ErrorHandler, GlobalState>&&
+             error_handler<ErrorHandler, Iter, Sentinel, GlobalState>
 #endif
     // clang-format on
     {
@@ -5795,10 +5793,10 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_base_assign(first, f);
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
-                    first, last, parser, parser.error_handler_, attr);
+                    f, l, parser, parser.error_handler_, attr);
             } else {
                 return detail::parse_impl<false>(
-                    first, last, parser, parser.error_handler_, attr);
+                    f, l, parser, parser.error_handler_, attr);
             }
         }
     }
@@ -5826,9 +5824,16 @@ namespace boost { namespace parser {
     // clang-format off
 #if BOOST_PARSER_USE_CONCEPTS
     requires
-        std_::forward_range<Range> &&
-        parser::parser<Parser, ranges::iterator_t<Range>, ranges::sentinel_t<Range>> &&
-        error_handler<Parser, ranges::iterator_t<Range>, ranges::sentinel_t<Range>>
+        ranges::forward_range<Range> &&
+        parser::parser<Parser,
+                       ranges::iterator_t<Range>,
+                       ranges::sentinel_t<Range>,
+                       ErrorHandler,
+                       GlobalState> &&
+        error_handler<ErrorHandler,
+                      ranges::iterator_t<Range>,
+                      ranges::sentinel_t<Range>,
+                      GlobalState>
 #endif
     // clang-format on
     {

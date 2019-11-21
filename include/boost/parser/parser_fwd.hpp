@@ -50,6 +50,8 @@ namespace boost { namespace parser {
             ErrorHandler const & error_handler,
             nope &,
             symbol_table_tries_t & symbol_table_tries) noexcept;
+
+        struct skip_skipper;
     }
 
     /** Repeats the application of another parser of type `Parser p`,
