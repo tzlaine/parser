@@ -466,8 +466,15 @@ namespace boost { namespace parser {
         // Type traits.
 
         template<typename T>
-        using value_type =
+        using value_type_ =
             std::decay_t<decltype(*std::begin(std::declval<T>()))>;
+
+        struct dont_care
+        {
+            int i;
+        };
+        template<typename T>
+        using value_type = detected_or<dont_care, value_type_, T>;
 
         template<typename T>
         using integral_value_type = std::integral_constant<
@@ -1674,8 +1681,11 @@ namespace boost { namespace parser {
         template<typename Range>
         using plain_char_range = std::integral_constant<
             bool,
-            (!is_utf8_view<Range>{} && !is_char8_t<value_type<Range>>{} &&
-             sizeof(value_type<Range>) == 1u)>;
+            ((std::is_pointer<Range>{} &&
+              std::is_integral<std::remove_pointer_t<std::decay_t<Range>>>{} &&
+              sizeof(std::remove_pointer_t<std::decay_t<Range>>) == 1u) ||
+             (!is_utf8_view<Range>{} && !is_char8_t<value_type<Range>>{} &&
+              sizeof(value_type<Range>) == 1u))>;
 
         template<typename Range>
         constexpr auto make_input_range(Range && r) noexcept

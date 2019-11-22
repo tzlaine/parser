@@ -2,6 +2,7 @@
 #define BOOST_PARSER_ERROR_HANDLING_FWD_HPP
 
 #include <iostream>
+#include <string_view>
 
 
 namespace boost { namespace parser {

@@ -41,6 +41,15 @@ elseif (USE_UBSAN)
 endif()
 
 
+##################################################
+# Parser sub-library
+##################################################
+add_library(parser INTERFACE)
+target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_compile_features(parser INTERFACE cxx_std_17)
+
+
+
 # TODO: Turn this on if a static lib is desired; there's no need for it now.
 if (false)
 ##################################################
