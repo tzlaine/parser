@@ -11,12 +11,12 @@ namespace boost { namespace parser {
         handler. */
     enum class error_handler_result {
         fail,   /// Fail the top-level parse.
-        rethrow /// Re-throw the parse error eexception.
+        rethrow /// Re-throw the parse error exception.
     };
 
-    /** The exception thrown when a parse error is encountered, consisting an
-        iterator to the point of failure, and the name of the failed parser or
-        rule in `what()`. */
+    /** The exception thrown when a parse error is encountered, consisting of
+        an iterator to the point of failure, and the name of the failed parser
+        or rule in `what()`. */
     template<typename Iter>
     struct parse_error : std::runtime_error
     {
@@ -106,9 +106,8 @@ namespace boost { namespace parser {
         constexpr default_error_handler() = default;
 
         /** Handles a `parse_error` exception thrown during parsing.  A
-            formatted parse-expectation failure is printed to `*os_` when
-            `os_` is non-null, or `std::cout` otherwise.  Always returns
-            `error_handler_result::fail`. */
+            formatted parse-expectation failure is printed to `std::cout`.
+            Always returns `error_handler_result::fail`. */
         template<typename Iter, typename Sentinel>
         error_handler_result
         operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
@@ -118,10 +117,10 @@ namespace boost { namespace parser {
             return error_handler_result::fail;
         }
 
-        /** Prints `message` to `*os_` when `os_` is non-null, or `std::cout`
-            otherwise.  The diagnostic is printed with the given `kind`,
-            indicating the location as being at `it`.  This must be called
-            within a parser semantic action, providing the parse context. */
+        /** Prints `message` to `std::cout`.  The diagnostic is printed with
+            the given `kind`, indicating the location as being at `it`.  This
+            must be called within a parser semantic action, providing the
+            parse context. */
         template<typename Context, typename Iter>
         void diagnose(
             diagnostic_kind kind,
@@ -133,10 +132,9 @@ namespace boost { namespace parser {
                 std::cout, "", _begin(context), it, _end(context), message);
         }
 
-        /** Prints `message` to `*os_` when `os_` is non-null, or `std::cout`
-            otherwise.  The diagnostic is printed with the given `kind`, at no
-            particular location.  This must be called within a parser semantic
-            action, providing the parse context. */
+        /** Prints `message` to `std::cout`.  The diagnostic is printed with
+            the given `kind`, at no particular location.  This must be called
+            within a parser semantic action, providing the parse context. */
         template<typename Context>
         void diagnose(
             diagnostic_kind kind,

@@ -1769,9 +1769,11 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  You may write to this value in a semantic action to
-        control what attribute value(s) the associated parser produces.
-        Returns `nope` if the innermost parser does produce an attribute. */
+        `hana::tuple` (TODO: As reference members of the tuple?  Same for
+        `_attr()`, `_locals()`, etc.).  You may write to this value in a
+        semantic action to control what attribute value(s) the associated
+        parser produces.  Returns `nope` if the innermost parser does produce
+        an attribute. */
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
@@ -1786,7 +1788,7 @@ namespace boost { namespace parser {
     {
         return *context[detail::attr_];
     }
-    /** Returns a `range` that describes the boundaries of the innermost
+    /** Returns a `range` that describes the matched range of the innermost
         parser. */
     template<typename Context>
     inline decltype(auto) _where(Context const & context)
@@ -1808,7 +1810,7 @@ namespace boost { namespace parser {
         return context[detail::end_];
     }
     /** Returns a reference to a `bool` that represents the success or failure
-        of the innermost parser.  You can set this to `false` within a
+        of the innermost parser.  You can assign `false` to this within a
         semantic action to force a parser to fail its parse. */
     template<typename Context>
     inline decltype(auto) _pass(Context const & context)
@@ -1824,7 +1826,7 @@ namespace boost { namespace parser {
     {
         return *context[detail::locals_];
     }
-    /** Returns a reference to one or more parameter passed to the innermost
+    /** Returns a reference to one or more parameters passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
         multiple values will be stored within a `hana::tuple`.  Returns `nope`
         if there is no innermost rule, or if that rule was not given any
@@ -3295,9 +3297,9 @@ namespace boost { namespace parser {
             return trie_[text::as_utf32(str)];
         }
 
-        /** Inserts an entry consisting of a UTF-8 string string to match
-            `str`, and an associtated attribute `x`, to the copy of the symbol
-            table inside the parse context `context`. */
+        /** Inserts an entry consisting of a UTF-8 string `str` to match, and
+            an associtated attribute `x`, to the copy of the symbol table
+            inside the parse context `context`. */
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
@@ -3941,7 +3943,7 @@ namespace boost { namespace parser {
 
         using parser_interface<symbol_parser<T>>::operator();
 
-        /** Adds an entry consisting of a UTF-8 string to match `str`, and an
+        /** Adds an entry consisting of a UTF-8 string `str` to match, and an
             associated attribute `x`, to `*this`.  The entry is added for use
             in all subsequent parsing. */
         symbols & add(std::string_view str, T x)
@@ -4214,7 +4216,7 @@ namespace boost { namespace parser {
     inline constexpr directive<lexeme_parser> lexeme;
 
     /** Represents a `repeat_parser` as a directive
-        (e.g. `omit[other_parser]`). */
+        (e.g. `repeat[other_parser]`). */
     template<typename MinType, typename MaxType>
     struct repeat_directive
     {
@@ -4231,7 +4233,7 @@ namespace boost { namespace parser {
         MaxType max_;
     };
 
-    /** Returns a `repeat_directive` that repeats exactly `n` times, whose
+    /** Returns a `repeat_directive` that repeats exactly `n` times, and whose
         `operator[]` returns an `parser_interface<omit_parser<P>>` from a
         given parser of type `parser_interface<P>`. */
     template<typename T>
@@ -4240,9 +4242,9 @@ namespace boost { namespace parser {
         return repeat_directive<T, T>{n, n};
     }
 
-    /** Returns a `repeat_directive` that repeats `[min_, max_]` times, whose
-        `operator[]` returns an `parser_interface<omit_parser<P>>` from a
-        given parser of type `parser_interface<P>`. */
+    /** Returns a `repeat_directive` that repeats `[min_, max_]` times, and
+        whose `operator[]` returns an `parser_interface<omit_parser<P>>` from
+        a given parser of type `parser_interface<P>`. */
     template<typename MinType, typename MaxType>
     constexpr repeat_directive<MinType, MaxType>
     repeat(MinType min_, MaxType max_) noexcept
@@ -4250,7 +4252,7 @@ namespace boost { namespace parser {
         return repeat_directive<MinType, MaxType>{min_, max_};
     }
 
-    /** Represents a `skip_parser` as a directive.  When used without a skip
+    /** Represents a skip parser as a directive.  When used without a skip
         parser, e.g. `skip[parser_in_which_to_do_skipping]`, the skipper for
         the entire parse is used.  When given another parser, e.g.
         `skip(skip_parser)[parser_in_which_to_do_skipping]`, that other parser
@@ -4457,7 +4459,8 @@ namespace boost { namespace parser {
         Attribute attr_;
     };
 
-    /** Returns an `attr_parser` that produces `a` as its attribute. */
+    /** Returns an `attr_parser` which matches anything, and consumes no
+        input, and which produces `a` as its attribute. */
     template<typename Attribute>
     inline constexpr auto attr(Attribute a) noexcept
     {
@@ -4563,7 +4566,7 @@ namespace boost { namespace parser {
             comparison.  Otherwise, the character begin matched is directly
             compared to the elements of `r`.  The presumed encoding of `r` is
             considered UTF-8, UTF-16, or UTF-32, if the size of the elements
-            of `r` are `-, 2- or 4-bytes in size, respectively. */
+            of `r` are 1-, 2- or 4-bytes in size, respectively. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_or_pointer Range>
 #else
@@ -4601,11 +4604,11 @@ namespace boost { namespace parser {
     inline constexpr parser_interface<char_parser<nope, uint32_t>> cp;
 
     /** The literal code unit parser.  It produces a `char` attribute.  This
-        parser can be used to create code point parsers that match one or more
-        specific code point values, by calling it with: a single value
-        comparable to a code point; a set of code point values in a string; a
-        half-open range of code point values `[lo, hi)`, or a set of code
-        point values passed as a range. */
+        parser can be used to create code unit parsers that match one or more
+        specific code unit values, by calling it with: a single value
+        comparable to a code unit; a set of code unit values in a string; a
+        half-open range of code unit values `[lo, hi)`, or a set of code unit
+        values passed as a range. */
     inline constexpr parser_interface<char_parser<nope, char>> cu;
 
     /** Returns a literal code point parser that produces no attribute. */
@@ -4922,7 +4925,7 @@ namespace boost { namespace parser {
     };
 
     /** The Boolean parser.  Parses "true" and "false", producing attributes
-        `true` and `false`, repsectively, and fails on any other input. */
+        `true` and `false`, respectively, and fails on any other input. */
     inline constexpr parser_interface<bool_parser> bool_;
 
     template<
@@ -5114,16 +5117,20 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
-    /** The `short` parser.  Produces a `short` attribute. */
+    /** The `short` parser.  Produces a `short` attribute.  To parse a
+        particular value `x`, use `short_(x)`. */
     inline constexpr parser_interface<int_parser<short>> short_;
 
-    /** The `int` parser.  Produces an `int` attribute. */
+    /** The `int` parser.  Produces an `int` attribute.  To parse a particular
+        value `x`, use `int_(x)`. */
     inline constexpr parser_interface<int_parser<int>> int_;
 
-    /** The `long` parser.  Produces a `long` attribute. */
+    /** The `long` parser.  Produces a `long` attribute.  To parse a particular
+        value `x`, use `long_(x)`. */
     inline constexpr parser_interface<int_parser<long>> long_;
 
-    /** The `long long` parser.  Produces a `long long` attribute. */
+    /** The `long long` parser.  Produces a `long long` attribute.  To parse a
+        particular value `x`, use `long_long(x)`. */
     inline constexpr parser_interface<int_parser<long long>> long_long;
 
     template<typename T>
@@ -5292,7 +5299,7 @@ namespace boost { namespace parser {
         }
 
         /** Returns a `parser_interface` containing a `switch_parser`, with
-            the case `value_`/`rhs` appended to its `or_parser_`. */
+            the case `value_`,`rhs` appended to its `or_parser_`. */
         template<typename Value, typename Parser2>
         constexpr auto
         operator()(Value value_, parser_interface<Parser2> rhs) const noexcept

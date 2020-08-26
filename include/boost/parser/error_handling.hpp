@@ -17,7 +17,7 @@ namespace boost { namespace parser {
 
     namespace detail {
 
-        // All the line break code points from the Unicode Line Break
+        // All the hard line break code points from the Unicode Line Break
         // Algorithm; see https://unicode.org/reports/tr14.
         inline constexpr std::array<int, 7> eol_cps = {
             {0x000a, 0x000b, 0x000c, 0x000d, 0x0085, 0x2028, 0x2029}};

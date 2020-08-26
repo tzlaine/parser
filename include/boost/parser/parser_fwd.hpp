@@ -54,8 +54,8 @@ namespace boost { namespace parser {
         struct skip_skipper;
     }
 
-    /** Repeats the application of another parser of type `Parser p`,
-        optionally applying another parser of type `DelimiterParser d` in
+    /** Repeats the application of another parser `p` of type `Parser`,
+        optionally applying another parser `d` of type `DelimiterParser` in
         between each pair of applications of `p`.  The parse succeeds if `p`
         succeeds at least the minumum number of times, and `d` succeeds each
         time it is applied.  The attribute produced is a sequence of the type
@@ -67,29 +67,29 @@ namespace boost { namespace parser {
         typename MaxType = int64_t>
     struct repeat_parser;
 
-    /** Repeats the application of another parser of type `Parser [0, Inf)`
-        times.  The parse always succeeds.  The attribute produced is a
+    /** Repeats the application of another parser `p` of type `Parser`, `[0,
+        Inf)` times.  The parse always succeeds.  The attribute produced is a
         sequence of the type of attribute produced by `Parser`. */
     template<typename Parser>
     struct zero_plus_parser;
 
-    /** Repeats the application of another parser of type `Parser p [1, Inf)`
-        times.  The parse succeeds iff `p` succeeds at least once.  The
+    /** Repeats the application of another parser `p` of type `Parser`, `[1,
+        Inf)` times.  The parse succeeds iff `p` succeeds at least once.  The
         attribute produced is a sequence of the type of attribute produced by
         `Parser`. */
     template<typename Parser>
     struct one_plus_parser;
 
-    /** Repeats the application of another parser of type `Parser p [1, Inf)`
-        times, applying a parser of type `DelimiterParser` in between each
-        pair of applications of `p`.  The parse succeeds iff `p` succeeds at
-        least once, and `d` succeeds each time it is applied.  The attribute
-        produced is a sequence of the type of attribute produced by
+    /** Repeats the application of another parser `p` of type `Parser`, `[1,
+        Inf)` times, applying a parser `d` of type `DelimiterParser` in
+        between each pair of applications of `p`.  The parse succeeds iff `p`
+        succeeds at least once, and `d` succeeds each time it is applied.  The
+        attribute produced is a sequence of the type of attribute produced by
         `Parser`. */
     template<typename Parser, typename DelimiterParser>
     struct delimited_seq_parser;
 
-    /** Repeats the application of another parser of type `Parser [0, 1]`
+    /** Repeats the application of another parser of type `Parser`, `[0, 1]`
         times.  The parse always succeeds.  The attribute produced is a
         `std::optional<T>`, where `T` is the type of attribute produced by
         `Parser`. */
@@ -113,40 +113,41 @@ namespace boost { namespace parser {
     template<typename ParserTuple, typename BacktrackingTuple>
     struct seq_parser;
 
-    /** Applies the given parser of type `Parser p` and an invocable of type
-        `Action a`.  `Action` shall model `semantic_action`, and `a` will only
-        be invoked if `p` succeeds.  The parse succeeds iff `p` succeeds.
+    /** Applies the given parser `p` of type `Parser` and an invocable `a` of
+        type `Action`.  `Action` shall model `semantic_action`, and `a` will
+        only be invoked if `p` succeeds.  The parse succeeds iff `p` succeeds.
         Produces no attribute. */
     template<typename Parser, typename Action>
     struct action_parser;
 
-    /** Applies the given parser of type `Parser p`; regardless of the
-        attribute produced by `Parser`, this parser produces no attribute.
-        The parse succeeds iff `p` succeeds. */
+    /** Applies the given parser `p` of type `Parser`.  This parser produces
+        no attribute, and suppresses the production of any attributes that
+        would otherwise be produced by `p`.  The parse succeeds iff `p`
+        succeeds. */
     template<typename Parser>
     struct omit_parser;
 
-    /** Applies the given parser of type `Parser p`; regardless of the
+    /** Applies the given parser `p` of type `Parser`; regardless of the
         attribute produced by `Parser`, this parser's attribute is equivalent
         to `_where(ctx)` within a semantic action on `p`.  The parse succeeds
         iff `p` succeeds. */
     template<typename Parser>
     struct raw_parser;
 
-    /** Applies the given parser of type `Parser p`, disabling the current
+    /** Applies the given parser `p` of type `Parser`, disabling the current
         skipper in use, if any.  The parse succeeds iff `p` succeeds.  The
         attribute produced is the type of attribute produced by `Parser`. */
     template<typename Parser>
     struct lexeme_parser;
 
-    /** Applies the given parser of type `Parser p`, using a parser of type
+    /** Applies the given parser `p` of type `Parser`, using a parser of type
         `SkipParser` as the skipper.  The parse succeeds iff `p` succeeds.
-        The parse succeeds iff `p` succeeds.  The attribute produced is the
-        type of attribute produced by `Parser`. */
+        The attribute produced is the type of attribute produced by
+        `Parser`. */
     template<typename Parser, typename SkipParser = nope>
     struct skip_parser;
 
-    /** Applies the given parser of type `Parser p`, producing no attributes
+    /** Applies the given parser `p` of type `Parser`, producing no attributes
         and consuming no input.  The parse succeeds iff `p` succeeds. */
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
@@ -156,20 +157,20 @@ namespace boost { namespace parser {
         elements and their associated attributes may be added to or removed
         from S dynamically, during parsing; any such changes are reverted at
         the end of parsing.  The parse succeeds iff an element of S is
-        matched.  \see symbols */
+        matched.  \see `symbols` */
     template<typename T>
     struct symbol_parser;
 
-    /** Applies another parser, associated with this parser via `TagType`.
+    /** Applies another parser `p`, associated with this parser via `TagType`.
         The attribute produced is `Attribute`.  Both a default-constructed
         object of type `LocalState`, and a default-constructed object of type
         `ParamsTuple`, are added to the parse context before the associated
-        parser is applied.  The failure or success of the parse is that of the
-        applied parser.  If `UseCallbacks` is `true`, the attribute is
-        produced via callback; otherwise, the attribute is produced as normal
-        (as a return value, or as an out-param).  The rule may be constructed
-        with a user-friendly name that will appear if the top-level parse is
-        executed with `trace_mode == boost::parser::trace::on`. */
+        parser is applied.  The parse succeeds iff `p` succeeds.  If
+        `UseCallbacks` is `true`, the attribute is produced via callback;
+        otherwise, the attribute is produced as normal (as a return value, or
+        as an out-param).  The rule may be constructed with a user-friendly
+        name that will appear if the top-level parse is executed with
+        `trace_mode == boost::parser::trace::on`. */
     template<
         bool UseCallbacks,
         typename TagType,
@@ -220,7 +221,7 @@ namespace boost { namespace parser {
         and at most `MaxDigits`, producing an attribute of type `T`.  Fails on
         any other input.  The parse will also fail if `Expected` is anything
         but `nope`, and the produced attribute is not equal to `expected_`.
-        `Radix` must be in [2, 36]. */
+        `Radix` must be in `[2, 36]`. */
     template<
         typename T,
         int Radix = 10,
@@ -233,7 +234,7 @@ namespace boost { namespace parser {
         at most `MaxDigits`, producing an attribute of type `T`.  Fails on any
         other input.  The parse will also fail if `Expected` is anything but
         `nope`, and the produced attribute is not equal to `expected_`.
-        `Radix` must be one of 2, 8, 10, or 16. */
+        `Radix` must be one of `2`, `8`, `10`, or `16`. */
     template<
         typename T,
         int Radix = 10,
