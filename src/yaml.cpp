@@ -103,7 +103,7 @@ namespace boost { namespace yaml {
     struct global_state
     {
         using iterator = Iter;
-        using iterator_range = parser::range<Iter>;
+        using view_type = parser::view<Iter>;
 
         global_state(iterator first, int max_recursion) :
             first_(first),
@@ -130,7 +130,7 @@ namespace boost { namespace yaml {
         iterator tag_handle_it_;
 
         std::string tag_property_;
-        iterator_range anchor_property_;
+        view_type anchor_property_;
     };
 
     auto const reset_eoi_state_ = [](auto & ctx) {
@@ -379,7 +379,7 @@ namespace boost { namespace yaml {
         yaml_directive = "yaml_directive";
 
     // [88]
-    // any as iterator_range
+    // any as view
     bp::rule<class tag_directive> const tag_directive = "tag_directive";
 
     // [89]

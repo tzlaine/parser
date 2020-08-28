@@ -802,7 +802,7 @@ TEST(parser, raw)
 {
     {
         constexpr auto parser = raw[*string("zs")];
-        using range_t = range<std::string::const_iterator>;
+        using range_t = view<std::string::const_iterator>;
 
         {
             std::string const str = "";

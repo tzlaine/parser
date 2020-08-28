@@ -192,11 +192,14 @@ namespace boost { namespace json {
             uint8_t kind_;
             std::array<char, 15> bytes_;
         };
+        static_assert(sizeof(local) == 16);
+        static_assert(alignof(local::bytes_) == 1);
         struct remote
         {
             uint8_t kind_;
             std::unique_ptr<detail::value_impl_base> ptr_;
         };
+        static_assert(sizeof(local) <= 16);
         union storage
         {
             storage() : local_{null_k} {}
