@@ -4,7 +4,7 @@ include(CTest)
 
 enable_testing()
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -C ${CMAKE_CFG_INTDIR})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -j4 -C ${CMAKE_CFG_INTDIR})
 
 set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app with -DBOOST_YAML_HEADER_ONLY=1.")
 
@@ -13,10 +13,12 @@ set(BUILD_HEADER_ONLY_TEST false CACHE BOOL "Set to true to build a test app wit
 # Parser tests
 ##################################################
 add_executable(parser_ parser.cpp)
+set_property(TARGET parser_ PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parser_ parser gtest gtest_main ${link_flags})
 add_test(NAME parser_ COMMAND parser_ ---gtest_catch_exceptions=1)
 
 add_executable(parser_api parser_api.cpp)
+set_property(TARGET parser_api PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parser_api parser gtest gtest_main ${link_flags})
 add_test(NAME parser_api COMMAND parser_api ---gtest_catch_exceptions=1)
 
@@ -26,12 +28,14 @@ add_executable(
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
 )
+set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(compile_tests yaml)
 add_definitions(-ftemplate-backtrace-limit=0)
 
 macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
-    target_link_libraries(${name} yaml gtest gtest_main ${link_flags})
+    set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
+    target_link_libraries(${name} parser gtest gtest_main ${link_flags})
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 
@@ -52,7 +56,7 @@ add_test_executable(parser_action_with_params)
 add_test_executable(parser_symbol_table)
 
 ##################################################
-# YAML/JSON datA type tests
+# YAML/JSON data type tests
 ##################################################
 
 add_test_executable(json_value)
@@ -66,6 +70,7 @@ add_executable(
     header_only_parse_test
     parse_yaml_test.cpp
 )
+set_property(TARGET header_only_parse_test PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(header_only_parse_test yaml gtest ${link_flags})
 target_compile_definitions(header_only_parse_test PRIVATE -DBOOST_YAML_HEADER_ONLY=1)
 endif ()
@@ -77,12 +82,14 @@ add_executable(
     parse_yaml_test
     parse_yaml_test.cpp
 )
+set_property(TARGET parse_yaml_test PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parse_yaml_test yaml gtest ${link_flags})
 
 add_executable(
     parse_json_test
     parse_json_test.cpp
 )
+set_property(TARGET parse_json_test PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parse_json_test yaml gtest ${link_flags})
 
 
@@ -92,6 +99,7 @@ add_executable(
     json_parser
     json_parser.cpp
 )
+set_property(TARGET json_parser PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(json_parser yaml ${link_flags})
 
 
@@ -103,6 +111,7 @@ add_executable(
     parse_compare_test
     parse_yaml_compare_test.cpp
 )
+set_property(TARGET parse_compare_test PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parse_compare_test yaml gtest ${link_flags})
 
 ##################################################
@@ -119,6 +128,7 @@ add_executable(
     stream.cpp
     parse_yaml_round_trip_test.cpp
 )
+set_property(TARGET parse_round_trip_test PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parse_round_trip_test yaml gtest ${link_flags})
 endif()
 
@@ -341,6 +351,7 @@ add_executable(
     warnings_test_bin
     warnings_test.cpp
 )
+set_property(TARGET warnings_test_bin PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(warnings_test_bin yaml gtest ${link_flags})
 add_test(
     warnings_test

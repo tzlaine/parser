@@ -255,6 +255,21 @@ namespace boost { namespace parser {
         {
             return error_handler_result::rethrow;
         }
+
+        template<typename Context, typename Iter>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context,
+            Iter it) const
+        {}
+
+        template<typename Context>
+        void diagnose(
+            diagnostic_kind kind,
+            std::string_view message,
+            Context const & context) const
+        {}
     };
 
 }}

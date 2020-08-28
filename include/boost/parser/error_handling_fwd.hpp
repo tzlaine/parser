@@ -1,6 +1,8 @@
 #ifndef BOOST_PARSER_ERROR_HANDLING_FWD_HPP
 #define BOOST_PARSER_ERROR_HANDLING_FWD_HPP
 
+#include <boost/parser/config.hpp>
+
 #include <iostream>
 #include <string_view>
 

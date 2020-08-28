@@ -1,157 +1,136 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_CONCEPTS_HPP
 #define BOOST_PARSER_CONCEPTS_HPP
 
+#include <boost/parser/config.hpp>
 #include <boost/parser/parser_fwd.hpp>
+#include <boost/text/transcode_view.hpp>
 #include <boost/hana.hpp>
 
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-#ifndef BOOST_PARSER_DOXYGEN
-
-#define BOOST_PARSER_CXX20_CONCEPTS                                            \
-    201703L < __cplusplus && defined(__cpp_lib_concepts)
-#define BOOST_PARSER_CMCSTL2_CONCEPTS                                          \
-    201703L <= __cplusplus && __has_include(<stl2/ranges.hpp>) &&              \
-    !defined(BOOST_PARSER_DISABLE_CMCSTL2)
-
-#if BOOST_PARSER_CXX20_CONCEPTS
-#define BOOST_PARSER_USE_CONCEPTS 1
-#elif BOOST_PARSER_CMCSTL2_CONCEPTS
-#define BOOST_PARSER_USE_CONCEPTS 1
-#include <stl2/ranges.hpp>
-#else
-#define BOOST_PARSER_USE_CONCEPTS 0
-#endif
-
-#if defined(__GNUC__) && __GNUC__ < 9
-#define BOOST_PARSER_CONCEPT concept bool
-#else
-#define BOOST_PARSER_CONCEPT concept
-#endif
-
-#if BOOST_PARSER_CXX20_CONCEPTS
-namespace ranges = std::ranges;
-namespace std_ = std;
-#elif BOOST_PARSER_CMCSTL2_CONCEPTS
-namespace ranges = std::experimental::ranges::v1;
-namespace std_ = std::experimental;
-#endif
-
-#endif
+#include <ranges>
 
 
 namespace boost { namespace parser {
 
-#if BOOST_PARSER_USE_CONCEPTS
+    template<typename T>
+    concept utf8_code_unit = std::integral<T> && sizeof(T) == 1;
+
+    template<typename T>
+    concept utf32_code_unit = std::integral<T> && sizeof(T) == 4;
+
+    template<typename T>
+    concept utf8_pointer =
+        std::is_pointer_v<T> && utf8_code_unit<std::iter_value_t<T>>;
+
+    template<typename T>
+    concept utf8_range = std::ranges::forward_range<T> &&
+        utf8_code_unit<std::ranges::range_value_t<T>>;
+
+    template<typename T>
+    concept utf8_range_like = utf8_range<T> || utf8_pointer<T>;
+
+    template<typename T>
+    concept char8_ptr =
+        utf8_pointer<T> && std::is_same_v<std::iter_value_t<T>, char8_t>;
+
+    template<typename T>
+    concept char8_range =
+        utf8_range<T> && std::is_same_v<std::ranges::range_value_t<T>, char8_t>;
 
     namespace detail {
         template<typename T>
-        using range_value_t = ranges::iter_value_t<ranges::iterator_t<T>>;
+        struct is_utf8_view : std::false_type
+        {};
+
+        template<typename I, typename S>
+        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
+        {};
     }
 
-    // clang-format off
+    template<typename T>
+    concept utf8_view = utf8_range<T> && detail::is_utf8_view<T>::value;
 
     template<typename T>
-    BOOST_PARSER_CONCEPT parsable_iterator =
-        ranges::forward_iterator<T> && std::is_integral<ranges::iter_value_t<T>>::value;
+    concept parsable_iter = std::forward_iterator<T> &&
+        std::is_integral<std::iter_value_t<T>>::value;
 
     template<typename T>
-    BOOST_PARSER_CONCEPT cp_iterator =
-        parsable_iterator<T> && sizeof(ranges::iter_value_t<T>) == 4u;
+    concept code_point_iter = parsable_iter<T> &&
+                              sizeof(std::iter_value_t<T>) == 4u;
 
     template<typename T>
-    BOOST_PARSER_CONCEPT parsable_range =
-        ranges::forward_range<T> && std::is_integral<detail::range_value_t<T>>::value;
+    concept parsable_range = std::ranges::forward_range<T> &&
+        std::is_integral<std::ranges::range_value_t<T>>::value;
 
     template<typename T>
-    BOOST_PARSER_CONCEPT parsable_pointer =
-        std::is_pointer<std::decay_t<T>>::value &&
+    concept code_point_range = parsable_range<T> &&
+                               sizeof(std::ranges::range_value_t<T>) == 4u;
+
+    template<typename T>
+    concept parsable_pointer = std::is_pointer<std::decay_t<T>>::value &&
         std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value;
 
     template<typename T>
-    BOOST_PARSER_CONCEPT parsable_range_or_pointer =
-        parsable_range<T> || parsable_pointer<T>;
+    concept parsable_range_like = parsable_range<T> || parsable_pointer<T>;
 
     template<
-        typename Iter,
-        typename Sentinel,
+        typename I,
+        typename S,
         typename ErrorHandler,
         typename GlobalState>
     using minimal_parse_context = decltype(detail::make_context(
-        std::declval<Iter>(),
-        std::declval<Sentinel>(),
+        std::declval<I>(),
+        std::declval<S>(),
         std::declval<bool &>(),
         std::declval<int &>(),
         std::declval<ErrorHandler const &>(),
-        std::declval<GlobalState &>(),
+        std::declval<nope &>(),
         std::declval<detail::symbol_table_tries_t &>()));
 
-    template<
-        typename T,
-        typename Iter,
-        typename Sentinel,
-        typename ErrorHandler,
-        typename GlobalState>
-    BOOST_PARSER_CONCEPT parser_attr_out_param = requires (
-        T const & t,
-        hana::bool_<true> use_cbs,
-        hana::bool_<false> dont_use_cbs,
-        Iter & first,
-        Sentinel last,
-        minimal_parse_context<
-            Iter, Sentinel, ErrorHandler, GlobalState> const & context,
-        detail::skip_skipper skip,
-        detail::flags flags,
-        bool & success,
-        decltype(t.call(use_cbs, first, last, context, skip, flags, success)) & attr) {
-        { t.call(use_cbs, first, last, context, skip, flags, success, attr) };
-        { t.call(dont_use_cbs, first, last, context, skip, flags, success, attr) };
-    };
+    // clang-format off
 
-    template<
-        typename T,
-        typename Iter,
-        typename Sentinel,
-        typename ErrorHandler,
-        typename GlobalState>
-    BOOST_PARSER_CONCEPT parser =
-        parsable_iterator<Iter> && ranges::sentinel_for<Sentinel, Iter> &&
+    template<typename T, typename I, typename S, typename GlobalState>
+    concept error_handler =
         requires (
             T const & t,
-            hana::bool_<true> use_cbs,
-            hana::bool_<false> dont_use_cbs,
-            Iter & first,
-            Sentinel last,
-            minimal_parse_context<
-                Iter, Sentinel, ErrorHandler, GlobalState> const & context,
-            detail::skip_skipper skip,
-            detail::flags flags,
-            bool & success) {
-            { t.call(use_cbs, first, last, context, skip, flags, success) };
-            { t.call(dont_use_cbs, first, last, context, skip, flags, success) };
-       } &&
-       parser_attr_out_param<T, Iter, Sentinel, ErrorHandler, GlobalState>;
-
-    template<typename T, typename Iter, typename Sentinel, typename GlobalState>
-    BOOST_PARSER_CONCEPT error_handler =
-        parsable_iterator<Iter> && ranges::sentinel_for<Sentinel, Iter> &&
-        requires (
-            T const & t,
-            Iter first,
-            Sentinel last,
-            parse_error<Iter> const & e,
+            I first,
+            S last,
+            parse_error<I> const & e,
             diagnostic_kind kind,
             std::string_view message,
             minimal_parse_context<
-                Iter, Sentinel, T, GlobalState> const & context) {
-            { t(first, last, e) } -> ranges::same_as<error_handler_result>;
-            { t.diagnose(kind, message, context, first) };
-            { t.diagnose(kind, message, context) };
+                I, S, T, GlobalState> const & context) {
+            { t(first, last, e) } -> std::same_as<error_handler_result>;
+            t.diagnose(kind, message, context, first);
+            t.diagnose(kind, message, context);
         };
+
+    namespace detail {
+
+        template<typename T>
+        concept container = std::ranges::common_range<T> && requires(T t) {
+            { t.insert(t.begin(), *t.begin()) }
+                -> std::same_as<std::ranges::iterator_t<T>>;
+            { t.insert(t.begin(), t.begin(), t.end()) }
+                -> std::same_as<std::ranges::iterator_t<T>>;
+        };
+
+        template<typename T, typename U>
+        concept container_and_value_type =
+            container<T> && std::is_same_v<std::ranges::range_value_t<T>, U>;
+
+    }
 
     // clang-format on
 
-#endif
-
 }}
+
+#endif
 
 #endif

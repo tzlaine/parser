@@ -17,71 +17,79 @@ using namespace boost::parser;
 
 // TODO BOOST_MPL_ASSERT((std::is_same<bool, double>));
 
-static_assert(boost::parser::detail::plain_char_range<char const *>::value);
-static_assert(boost::parser::detail::plain_char_range<char *>::value);
+static_assert(boost::parser::detail::non_unicode_char_range_like<char const *>);
+static_assert(boost::parser::detail::non_unicode_char_range_like<char *>);
 static_assert(
-    boost::parser::detail::plain_char_range<signed char const *>::value);
-static_assert(boost::parser::detail::plain_char_range<signed char *>::value);
+    boost::parser::detail::non_unicode_char_range_like<signed char const *>);
 static_assert(
-    boost::parser::detail::plain_char_range<unsigned char const *>::value);
-static_assert(boost::parser::detail::plain_char_range<unsigned char *>::value);
+    boost::parser::detail::non_unicode_char_range_like<signed char *>);
+static_assert(
+    boost::parser::detail::non_unicode_char_range_like<unsigned char const *>);
+static_assert(
+    boost::parser::detail::non_unicode_char_range_like<unsigned char *>);
 #if defined(__cpp_char8_t)
-static_assert(!boost::parser::detail::plain_char_range<char8_t const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<char8_t *>::value);
+static_assert(
+    !boost::parser::detail::non_unicode_char_range_like<char8_t const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char8_t *>);
 #endif
 static_assert(
-    !boost::parser::detail::plain_char_range<char16_t const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<char16_t *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<char16_t const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char16_t *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<char32_t const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<char32_t *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<char32_t const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char32_t *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<short int const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<short int *>::value);
-static_assert(!boost::parser::detail::plain_char_range<
-              unsigned short int const *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<short int const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<short int *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<
+              unsigned short int const *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned short int *>::value);
-static_assert(!boost::parser::detail::plain_char_range<int const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<int *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned short int *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<int const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<int *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned int const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<unsigned int *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned int const *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<long int const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<long int *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned int *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned long int const *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<long int const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<long int *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<
+              unsigned long int const *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned long int *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned long int *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<long long int const *>::value);
-static_assert(!boost::parser::detail::plain_char_range<long long int *>::value);
-static_assert(!boost::parser::detail::plain_char_range<
-              unsigned long long int const *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<long long int const *>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned long long int *>::value);
+    !boost::parser::detail::non_unicode_char_range_like<long long int *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<
+              unsigned long long int const *>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<
+              unsigned long long int *>);
 
 
-static_assert(!boost::parser::detail::plain_char_range<char>::value);
-static_assert(!boost::parser::detail::plain_char_range<signed char>::value);
-static_assert(!boost::parser::detail::plain_char_range<unsigned char>::value);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<signed char>);
+static_assert(
+    !boost::parser::detail::non_unicode_char_range_like<unsigned char>);
 #if defined(__cpp_char8_t)
-static_assert(!boost::parser::detail::plain_char_range<char8_t>::value);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char8_t>);
 #endif
-static_assert(!boost::parser::detail::plain_char_range<char16_t>::value);
-static_assert(!boost::parser::detail::plain_char_range<char32_t>::value);
-static_assert(!boost::parser::detail::plain_char_range<short int>::value);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char16_t>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<char32_t>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<short int>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned short int>::value);
-static_assert(!boost::parser::detail::plain_char_range<int>::value);
-static_assert(!boost::parser::detail::plain_char_range<unsigned int>::value);
-static_assert(!boost::parser::detail::plain_char_range<long int>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned short int>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<int>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned long int>::value);
-static_assert(!boost::parser::detail::plain_char_range<long long int>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned int>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<long int>);
 static_assert(
-    !boost::parser::detail::plain_char_range<unsigned long long int>::value);
+    !boost::parser::detail::non_unicode_char_range_like<unsigned long int>);
+static_assert(
+    !boost::parser::detail::non_unicode_char_range_like<long long int>);
+static_assert(!boost::parser::detail::non_unicode_char_range_like<
+              unsigned long long int>);
 
 
 TEST(parser, basic)

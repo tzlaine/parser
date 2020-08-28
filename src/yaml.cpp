@@ -1157,11 +1157,11 @@ namespace boost { namespace yaml {
     auto record_tag = [](auto & ctx) {
         auto const & globals = _globals(ctx);
 
-        trie::optional_ref<tag> existing_tag =
+        text::optional_ref<tag> existing_tag =
             tags.find(ctx, globals.tag_handle_);
         if (existing_tag && existing_tag->default_) {
             tags.erase(ctx, globals.tag_handle_);
-            existing_tag = trie::optional_ref<tag>{};
+            existing_tag = text::optional_ref<tag>{};
         }
 
         if (existing_tag) {
@@ -2326,7 +2326,7 @@ namespace boost { namespace yaml {
             }
             auto const retval = detail::read_bom_8(first, size);
             first += size;
-            cp_first = text::make_utf_8_to_32_iterator(first, first, last);
+            cp_first = text::utf32_iterator(first, first, last);
             return retval;
         }
     }
@@ -2343,7 +2343,7 @@ namespace boost { namespace yaml {
         auto const range = text::as_utf32(str);
         using iter_t = decltype(range.begin());
         auto first = range.begin();
-        auto const last = range.end();
+        auto last = range.end();
 
         if (max_recursion <= 0)
             max_recursion = INT_MAX;

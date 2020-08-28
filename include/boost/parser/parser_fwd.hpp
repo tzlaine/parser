@@ -1,6 +1,7 @@
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
 
+#include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
 
 #include <boost/any.hpp>

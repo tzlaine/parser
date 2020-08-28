@@ -1,3 +1,8 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_TEXT_TRIE_HPP
 #define BOOST_TEXT_TRIE_HPP
 
@@ -5,12 +10,13 @@
 #include <boost/text/trie_fwd.hpp>
 #include <boost/algorithm/cxx14/equal.hpp>
 
+#include <algorithm>
 #include <memory>
 #include <type_traits>
 #include <vector>
 
 
-namespace boost { namespace trie {
+namespace boost { namespace text {
 
     /** An optional reference.  Its optionality is testable, via the operator
         bool() members, and it is implicitly convertible to the underlying
@@ -35,6 +41,7 @@ namespace boost { namespace trie {
         }
 
         explicit operator bool() const & noexcept { return t_ != nullptr; }
+        explicit operator bool() & noexcept { return t_ != nullptr; }
         explicit operator bool() && noexcept { return t_ != nullptr; }
 
         T const & operator*() const noexcept
@@ -250,7 +257,7 @@ namespace boost { namespace trie {
             Char * end() const noexcept { return last_; }
         };
 
-        struct void_
+        struct void_type
         {};
     }
 
@@ -547,7 +554,7 @@ namespace boost { namespace trie {
         }
 
         /** Writes the sequence of elements that would advance `prev` by one
-            element to `out`, and returns the final value of \out after the
+            element to `out`, and returns the final value of `out` after the
             writes. */
         template<typename OutIter>
         OutIter copy_next_key_elements(match_result prev, OutIter out) const
@@ -949,7 +956,7 @@ namespace boost { namespace trie {
             const_iterator
             lower_bound(key_element const & e, Compare const &) const noexcept
             {
-                return children_.begin() + e;
+                return children_.empty() ? children_.end() : children_.begin() + e;
             }
             template<typename Compare>
             const_iterator

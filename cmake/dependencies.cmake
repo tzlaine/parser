@@ -6,7 +6,7 @@
 ###############################################################################
 # Boost
 ###############################################################################
-find_package(Boost 1.62.0 EXACT)
+find_package(Boost 1.62.0)
 if (Boost_INCLUDE_DIRS)
   add_library(boost INTERFACE)
   target_include_directories(boost INTERFACE ${Boost_INCLUDE_DIRS})
@@ -43,12 +43,3 @@ target_include_directories(gtest_main INTERFACE ${CMAKE_HOME_DIRECTORY}/googlete
 ###############################################################################
 add_subdirectory(${CMAKE_SOURCE_DIR}/benchmark-v1.1.0)
 target_include_directories(benchmark INTERFACE ${CMAKE_HOME_DIRECTORY}/benchmark-v1.1.0/include)
-
-
-###############################################################################
-# cmcstl2, and experimental implementation of P0896R4 "The One Ranges Proposal"
-###############################################################################
-if (EXISTS "${CMAKE_SOURCE_DIR}/cmcstl2")
-    add_subdirectory(${CMAKE_SOURCE_DIR}/cmcstl2)
-    set(HAVE_CMCSTL2 true)
-endif()

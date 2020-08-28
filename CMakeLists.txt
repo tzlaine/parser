@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.5)
+project(yaml)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+##################################################
+# C++ standard version selection
+##################################################
+set(CXX_STD 14 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
+message("-- Using -std=c++${CXX_STD}")
+
 set(cxx_defs)
-set(std_flag)
 set(clang_on_linux false)
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     add_definitions(-g -Wall)
@@ -15,7 +21,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
         set(clang_on_linux true)
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    add_definitions(-g -Wall) 
+    add_definitions(-g -Wall)
     set(cxx_defs -ftemplate-depth-300 -Wno-parentheses) 
 endif ()
 
@@ -46,7 +52,6 @@ endif()
 ##################################################
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
-target_compile_features(parser INTERFACE cxx_std_17)
 
 
 
@@ -66,16 +71,11 @@ add_library(
     src/json.cpp
     src/yaml.cpp
 )
-target_compile_features(yaml-static PUBLIC cxx_generic_lambdas)
 target_compile_options(yaml-static PUBLIC ${cxx_defs})
-target_compile_features(yaml-static PUBLIC cxx_std_17)
+set_property(TARGET yaml-static PROPERTY CXX_STANDARD ${CXX_STD})
 target_include_directories(yaml-static PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml-static PUBLIC boost)
 target_link_libraries(yaml-static ${link_flags})
-if (HAVE_CMCSTL2 AND false) # TODO: Disabled for now.
-    target_link_libraries(yaml-static PUBLIC stl2)
-    target_compile_options(yaml-static PUBLIC -fconcepts)
-endif()
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml-static PUBLIC ${link_flags})
 endif()
@@ -99,16 +99,10 @@ add_library(
     src/json.cpp
     src/yaml.cpp
 )
-target_compile_features(yaml PUBLIC cxx_generic_lambdas)
-target_compile_options(yaml PUBLIC ${cxx_defs} -ftemplate-backtrace-limit=0 -ftemplate-depth=1024) # TODO
-target_compile_features(yaml PUBLIC cxx_std_17)
+set_property(TARGET yaml PROPERTY CXX_STANDARD ${CXX_STD})
 target_include_directories(yaml PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(yaml PUBLIC boost)
 target_link_libraries(yaml ${link_flags})
-if (HAVE_CMCSTL2 AND false) # TODO: Disabled for now.
-    target_link_libraries(yaml PUBLIC stl2)
-    target_compile_options(yaml PUBLIC -fconcepts)
-endif()
 if (USE_ASAN OR USE_UBSAN)
     target_compile_options(yaml PUBLIC ${link_flags})
 endif()

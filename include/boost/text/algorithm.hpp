@@ -1,13 +1,21 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_TEXT_ALGORITHM_HPP
 #define BOOST_TEXT_ALGORITHM_HPP
 
 #include <boost/text/detail/sentinel_tag.hpp>
 
+#include <boost/stl_interfaces/view_interface.hpp>
+
 #include <cstddef>
 #include <iterator>
+#include <utility>
 
 
-namespace boost { namespace text { inline namespace v1 {
+namespace boost { namespace text {
 
     namespace detail {
         template<typename Iter>
@@ -176,9 +184,9 @@ namespace boost { namespace text { inline namespace v1 {
     {
         while (first != last) {
             auto const & x = *first;
-            auto const next = boost::text::v1::find_not(first, last, x);
+            auto const next = boost::text::find_not(first, last, x);
             if (first != next) {
-                f(boost::text::v1::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -196,12 +204,12 @@ namespace boost { namespace text { inline namespace v1 {
         using value_type = typename std::iterator_traits<FwdIter>::value_type;
         while (first != last) {
             auto const & x = proj(*first);
-            auto const next = boost::text::v1::find_if_not(
+            auto const next = boost::text::find_if_not(
                 first, last, [&x, proj](const value_type & element) {
                     return proj(element) == x;
                 });
             if (first != next) {
-                f(boost::text::v1::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -216,10 +224,10 @@ namespace boost { namespace text { inline namespace v1 {
     Func foreach_subrange_of(FwdIter first, Sentinel last, T const & x, Func f)
     {
         while (first != last) {
-            first = boost::text::v1::find(first, last, x);
-            auto const next = boost::text::v1::find_not(first, last, x);
+            first = boost::text::find(first, last, x);
+            auto const next = boost::text::find_not(first, last, x);
             if (first != next) {
-                f(boost::text::v1::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -234,10 +242,10 @@ namespace boost { namespace text { inline namespace v1 {
     Func foreach_subrange_if(FwdIter first, Sentinel last, Pred p, Func f)
     {
         while (first != last) {
-            first = boost::text::v1::find_if(first, last, p);
-            auto const next = boost::text::v1::find_if_not(first, last, p);
+            first = boost::text::find_if(first, last, p);
+            auto const next = boost::text::find_if_not(first, last, p);
             if (first != next) {
-                f(boost::text::v1::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -256,6 +264,153 @@ namespace boost { namespace text { inline namespace v1 {
         return true;
     }
 
-}}}
+    /** Sentinel-friendly version of `std::equal()`. */
+    template<
+        typename Iter1,
+        typename Sentinel1,
+        typename Iter2,
+        typename Sentinel2>
+    bool equal(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+    {
+        for (; first1 != last1 && first2 != last2; ++first1, ++first2) {
+            if (*first1 != *first2)
+                return false;
+        }
+        return first1 == last1 && first2 == last2;
+    }
+
+    /** Sentinel-friendly version of `std::mismatch()`. */
+    template<
+        typename Iter1,
+        typename Sentinel1,
+        typename Iter2,
+        typename Sentinel2>
+    std::pair<Iter1, Iter2>
+    mismatch(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+    {
+        for (; first1 != last1 && first2 != last2; ++first1, ++first2) {
+            if (*first1 != *first2)
+                break;
+        }
+        return {first1, first2};
+    }
+
+    /** Sentinel-friendly version of
+        `std::lexicographical_compare_three_way()`, except that it returns an
+        `int` instead of a `std::strong_ordering`. */
+    template<
+        typename Iter1,
+        typename Sentinel1,
+        typename Iter2,
+        typename Sentinel2>
+    int lexicographical_compare_three_way(
+        Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+    {
+        auto const iters = boost::text::mismatch(first1, last1, first2, last2);
+        if (iters.first == last1) {
+            if (iters.second == last2)
+                return 0;
+            else
+                return -1;
+        } else if (iters.second == last2) {
+            return 1;
+        } else if (*iters.first < *iters.second) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    /** The view type returned by `boost::text::search()`. */
+    template<typename Iter>
+    struct search_result : stl_interfaces::view_interface<search_result<Iter>>
+    {
+        using iterator = Iter;
+
+        constexpr search_result() noexcept {}
+        constexpr search_result(iterator first, iterator last) noexcept :
+            first_(first), last_(last)
+        {}
+
+        constexpr iterator begin() const noexcept { return first_; }
+        constexpr iterator end() const noexcept { return last_; }
+
+    private:
+        iterator first_;
+        iterator last_;
+    };
+
+    /** Sentinel-friendly version of `std::search()`. */
+    template<
+        typename Iter1,
+        typename Sentinel1,
+        typename Iter2,
+        typename Sentinel2>
+    search_result<Iter1>
+    search(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+    {
+        if (first1 == last1 || first2 == last2)
+            return {first1, first1};
+
+        if (std::next(first2) == last2) {
+            auto const it = text::find(first1, last1, *first2);
+            return {it, std::next(it)};
+        }
+
+        auto it = first1;
+        for (;;) {
+            first1 = text::find(first1, last1, *first2);
+
+            if (first1 == last1)
+                return {first1, first1};
+
+            auto it2 = std::next(first2);
+            it = first1;
+            if (++it == last1)
+                return {it, it};
+
+            while (*it == *it2) {
+                if (++it2 == last2)
+                    return {first1, ++it};
+                if (++it == last1)
+                    return {it, it};
+            }
+
+            ++first1;
+        }
+
+        return {first1, first1};
+    }
+
+    /** Sentinel-friendly version of `std::find_first_of()`. */
+    template<
+        typename Iter1,
+        typename Sentinel1,
+        typename Iter2,
+        typename Sentinel2,
+        typename Pred>
+    Iter1 find_first_of(
+        Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2, Pred pred)
+    {
+        for (; first1 != last1; ++first1) {
+            for (auto it = first2; it != last2; ++it) {
+                if (pred(*first1, *it))
+                    return first1;
+            }
+        }
+        return first1;
+    }
+
+}}
+
+#if BOOST_TEXT_USE_CONCEPTS
+
+namespace std::ranges {
+    template<typename Iter, typename Sentinel>
+    inline constexpr bool enable_borrowed_range<
+        boost::text::foreach_subrange_range<Iter, Sentinel>> = true;
+}
+
+#endif
 
 #endif
