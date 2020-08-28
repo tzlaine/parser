@@ -1,8 +1,8 @@
 {
     "key": "yaml",
-    "name": "YAML",
+    "name": "Parser",
     "authors": [ "T. Zachary Laine" ],
     "maintainers": [ "Zach Laine <whatwasthataddress -at- gmail.com>" ],
-    "description": "A YAML parsing and generation library.",
+    "description": "A parser combinator library.",
     "category": [ "Parsing" ]
 }

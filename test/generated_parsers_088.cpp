@@ -14,8 +14,8 @@
 
 using namespace boost::parser;
 using boost::is_same;
-using boost::optional;
-using boost::variant;
+using std::optional;
+using std::variant;
 using boost::hana::tuple;
 
 char const g_chars[] = "";

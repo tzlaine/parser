@@ -1,4 +1,0 @@
-# XXX Why are tabs allowed as indentation after dash?
-- foo:	 bar
-- - baz
-  -	baz

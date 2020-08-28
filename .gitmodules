@@ -1,9 +1,0 @@
-[submodule "yaml-test-suite"]
-	path = yaml-test-suite
-	url = https://github.com/yaml/yaml-test-suite.git
-[submodule "libyaml"]
-	path = libyaml
-	url = https://github.com/yaml/libyaml.git
-[submodule "JSONTestSuite"]
-	path = JSONTestSuite
-	url = https://github.com/nst/JSONTestSuite.git

@@ -1,5 +1,0 @@
-Gorp : true
-       is not relative
-Prog : false
-Burp : 3DEVENT # 3 should not be taken as an int!
-Foo : on the right # strict yaml 1.2 disallows "on" as a boolean value!
