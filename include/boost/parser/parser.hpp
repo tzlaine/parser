@@ -64,33 +64,39 @@ namespace boost { namespace parser {
 
     struct nope
     {
-        // Assignable from anything.
+        /** Assignable from anything. */
         template<typename T>
         constexpr nope & operator=(T const &)
         {
             return *this;
         }
 
-        // Convertible to optional.
+        /** Convertible to `optional<T>`. */
         operator std::nullopt_t() const noexcept { return std::nullopt; }
 
-        // Also acts as a dummy predicate.
+        /** Acts as a dummy predicate. */
         template<typename Context>
         constexpr bool operator()(Context const &) const noexcept
         {
             return true;
         }
 
-        // Dereferencable.
+        /** Dereferencable. */
         constexpr nope operator*() const noexcept { return nope{}; }
 
+        /** nope is always equal to nope. */
         friend constexpr bool operator==(nope, nope) { return true; }
+        /** nope is always equal to nope. */
         friend constexpr bool operator!=(nope, nope) { return false; }
+
+        /** nope is not equal to anything that is not a nope. */
         template<typename T>
         friend constexpr bool operator==(T, nope)
         {
             return false;
         }
+
+        /** nope is not unqeual to anything that is not a nope. */
         template<typename T>
         friend constexpr bool operator!=(T, nope)
         {

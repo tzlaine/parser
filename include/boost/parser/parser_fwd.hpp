@@ -12,9 +12,13 @@
 
 namespace boost { namespace parser {
 
-    /** A tag type used to represent the absence of information, value, etc.,
-        in `boost::parser`.  For instance, a parser with no global data will
-        have a `globals_` data member whose type is `nope`. */
+    /** A placeholder type used to represent the absence of information,
+        value, etc., in `boost::parser`.  For instance, a parser with no
+        global data will have a `globals_` data member whose type is `nope`.
+        `nope` is designed to satisfy all requirements of any type that it
+        might replace, where convenient.  For instance, it has an implicit
+        conversion to `std::nullopt_t`, so that it be assigned to a
+        `std::optional<T>`. */
     struct nope;
 
     namespace detail {
