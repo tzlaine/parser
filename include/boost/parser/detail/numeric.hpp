@@ -44,6 +44,10 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     >
     struct extract_int_impl
     {
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+# pragma warning(push)
+# pragma warning(disable: 4127)   // conditional expression is constant
+#endif
         template <typename Iterator, typename Sentinel, typename Attribute>
         inline static bool
         parse_main(
@@ -53,9 +57,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         {
             typedef spirit::x3::detail::radix_traits<Radix> radix_check;
             typedef spirit::x3::detail::int_extractor<Radix, Accumulator, MaxDigits> extractor;
-            typedef typename
-                boost::detail::iterator_traits<Iterator>::value_type
-            char_type;
+            typedef
+                typename std::iterator_traits<Iterator>::value_type char_type;
 
             Iterator it = first;
             std::size_t leading_zeros = 0;
@@ -92,6 +95,9 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             }
             return false;
         }
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+# pragma warning(pop)
+#endif
 
         template <typename Iterator, typename Sentinel>
         inline static bool
@@ -135,6 +141,10 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     template <typename T, unsigned Radix, typename Accumulator, bool Accumulate>
     struct extract_int_impl<T, Radix, 1, -1, Accumulator, Accumulate>
     {
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+# pragma warning(push)
+# pragma warning(disable: 4127)   // conditional expression is constant
+#endif
         template <typename Iterator, typename Sentinel, typename Attribute>
         inline static bool
         parse_main(
@@ -144,9 +154,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         {
             typedef spirit::x3::detail::radix_traits<Radix> radix_check;
             typedef spirit::x3::detail::int_extractor<Radix, Accumulator, -1> extractor;
-            typedef typename
-                boost::detail::iterator_traits<Iterator>::value_type
-            char_type;
+            typedef
+                typename std::iterator_traits<Iterator>::value_type char_type;
 
             Iterator it = first;
             std::size_t count = 0;
@@ -198,6 +207,9 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             first = it;
             return true;
         }
+#if BOOST_WORKAROUND(BOOST_MSVC, >= 1400)
+# pragma warning(pop)
+#endif
 
         template <typename Iterator, typename Sentinel>
         inline static bool
@@ -325,7 +337,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     };
 
     // Copied from boost/spirit/home/x3/support/numeric_utils/extract_real.hpp
-    // (Boost 1.67), and modified for use with iterator, sentinel pairs:
+    // (Boost 1.71), and modified for use with iterator, sentinel pairs:
 
     template <typename T, typename RealPolicies>
     struct extract_real
@@ -341,7 +353,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
 
             // Start by parsing the sign. neg will be true if
             // we got a "-" sign, false otherwise.
-            bool neg = detail_spirit_x3::extract_sign(first, last);
+            bool neg = p.parse_sign(first, last);
 
             // Now attempt to parse an integer
             T n = 0;
@@ -356,7 +368,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                     p.parse_inf(first, last, n))
                 {
                     // If we got a negative sign, negate the number
-                    spirit::x3::traits::move_to(spirit::x3::extension::negate(neg, n), attr);
+                    spirit::x3::traits::move_to(
+                        spirit::x3::extension::negate(neg, n), attr);
                     return true;    // got a NaN or Inf, return early
                 }
 
@@ -370,6 +383,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             }
 
             bool e_hit = false;
+            Iterator e_pos;
             int frac_digits = 0;
 
             // Try to parse the dot ('.' decimal point)
@@ -398,6 +412,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 }
 
                 // Now, let's see if we can parse the exponent prefix
+                e_pos = first;
                 e_hit = p.parse_exp(first, last);
             }
             else
@@ -411,6 +426,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
 
                 // If we must expect a dot and we didn't see an exponent
                 // prefix, return no-match.
+                e_pos = first;
                 e_hit = p.parse_exp(first, last);
                 if (p.expect_dot && !e_hit)
                 {
@@ -428,37 +444,30 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 {
                     // Got the exponent value. Scale the number by
                     // exp-frac_digits.
-                    spirit::x3::extension::scale(exp, frac_digits, n);
+                    if (!spirit::x3::extension::scale(exp, frac_digits, n))
+                        return false;
                 }
                 else
                 {
-                    // Oops, no exponent, return no-match.
-                    first = save;
-                    return false;
+                    // If there is no number, disregard the exponent altogether.
+                    // by resetting 'first' prior to the exponent prefix (e|E)
+                    first = e_pos;
+
+                    // Scale the number by -frac_digits.
+                    if (!spirit::x3::extension::scale(-frac_digits, n))
+                        return false;
                 }
             }
             else if (frac_digits)
             {
                 // No exponent found. Scale the number by -frac_digits.
-                spirit::x3::extension::scale(-frac_digits, n);
-            }
-            else if (spirit::x3::extension::is_equal_to_one(n))
-            {
-                // There is a chance of having to parse one of the 1.0#...
-                // styles some implementations use for representing NaN or Inf.
-
-                // Check whether the number to parse is a NaN or Inf
-                if (p.parse_nan(first, last, n) ||
-                    p.parse_inf(first, last, n))
-                {
-                    // If we got a negative sign, negate the number
-                    spirit::x3::traits::move_to(spirit::x3::extension::negate(neg, n), attr);
-                    return true;    // got a NaN or Inf, return immediately
-                }
+                if (!spirit::x3::extension::scale(-frac_digits, n))
+                    return false;
             }
 
             // If we got a negative sign, negate the number
-            spirit::x3::traits::move_to(spirit::x3::extension::negate(neg, n), attr);
+            spirit::x3::traits::move_to(
+                spirit::x3::extension::negate(neg, n), attr);
 
             // Success!!!
             return true;
