@@ -394,8 +394,10 @@ TEST(parser, star_and_plus_collapsing)
 TEST(parser, action)
 {
     {
-#if 0 // Must not compile, because the action makes the parser return a nope!
+#if 0 // TODO: Should not compile, because the action makes the parser return a nope!
         {
+            std::string str = "";
+            std::stringstream ss;
             auto action = [&ss](auto & context) { ss << _attr(context); };
             auto parser = *char_('b')[action];
             std::vector<char> chars;
@@ -431,8 +433,10 @@ TEST(parser, action)
     }
 
     {
-#if 0 // Must not compile, because the action makes the parser return a nope!
+#if 0 // TODO: Should not compile, because the action makes the parser return a nope!
         {
+            std::string str = "";
+            std::stringstream ss;
             auto action = [&ss](auto & context) { ss << _attr(context); };
             auto parser = +char_('b')[action];
             std::vector<char> chars;
@@ -881,248 +885,248 @@ TEST(parser, delimited)
         {
             std::string str = "";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
 
         {
             std::string str = "";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = "z";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = "z";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = ",";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ",";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = " ,yay";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = " ,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = ", yay";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ", yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = ",yay ";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ",yay ";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
 
         {
             std::string str = " , yay ";
             std::string chars;
-            EXPECT_TRUE(!skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = " , yay ";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(!chars);
         }
         {
             std::string str = "yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yay");
         }
         {
             std::string str = "yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
         {
             std::string str = "yayyay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yay");
         }
         {
             std::string str = "yayyay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
         {
             std::string str = "yay,";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yay");
         }
         {
             std::string str = "yay,";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
         {
             std::string str = "yay,yay,yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
         {
             std::string str = "yay,yay,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = " yay,yay,yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
         {
             std::string str = " yay,yay,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay ,yay,yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = "yay ,yay,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay, yay,yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
         {
             std::string str = "yay, yay,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay,yay ,yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = "yay,yay ,yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay,yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = "yay,yay, yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay,yay,yay ";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = "yay,yay,yay ";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = " yay , yay , yay ";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = " yay , yay , yay ";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
         {
             std::string str = "yay, yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
         }
 
         {
             std::string str = "yay, yay, yay";
             std::optional<std::string> const chars =
-                skip_parse(str, parser, char_(' '));
+                parse(str, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yayyayyay");
         }
@@ -1137,13 +1141,13 @@ TEST(parser, lexeme)
         {
             std::string str = "yay, yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yay");
 
             {
                 std::string str = "yay, yay, yay";
                 std::optional<std::string> const chars =
-                    skip_parse(str, parser, char_(' '));
+                    parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1151,13 +1155,13 @@ TEST(parser, lexeme)
         {
             std::string str = " yay, yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yay");
 
             {
                 std::string str = " yay, yay, yay";
                 std::optional<std::string> const chars =
-                    skip_parse(str, parser, char_(' '));
+                    parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1170,13 +1174,13 @@ TEST(parser, lexeme)
         {
             std::string str = "yay, yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
 
             {
                 std::string str = "yay, yay, yay";
                 std::optional<std::string> const chars =
-                    skip_parse(str, parser, char_(' '));
+                    parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yayyayyay");
             }
@@ -1184,13 +1188,13 @@ TEST(parser, lexeme)
         {
             std::string str = " yay, yay, yay";
             std::string chars;
-            EXPECT_TRUE(skip_parse(str, parser, char_(' '), chars));
+            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "yayyayyay");
 
             {
                 std::string str = " yay, yay, yay";
                 std::optional<std::string> const chars =
-                    skip_parse(str, parser, char_(' '));
+                    parse(str, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yayyayyay");
             }
@@ -1302,7 +1306,7 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = string("a") >> string("b") >> string("c") |
                                 string("x") >> string("y") >> string("z");
-#if 0 // Expected to fail.
+#if 0 // TODO: Document why this assigns "c" instead of "abc" to the any.
         {
             std::string str = "abc";
             boost::any chars;
@@ -1408,39 +1412,3 @@ TEST(parser, combined_seq_and_or)
         }
     }
 }
-
-#if 0
-TEST(parser, TODO)
-{
-    {
-        constexpr auto parser =
-            *(char_('a') >> string("b") > lit('c') >> lit("str") |
-              char_('x') >> string("y") >> char_('z'));
-        std::string str = "xyz";
-        std::string chars;
-        EXPECT_TRUE(debug_parse(str, parser, chars));
-    }
-    {
-        constexpr auto parser = +char_('x');
-        std::string str = "xyz";
-        std::string chars;
-        EXPECT_TRUE(debug_parse(str, parser, chars));
-    }
-    {
-        constexpr auto parser = *char_('x');
-        std::string str = "xyz";
-        std::string chars;
-        EXPECT_TRUE(debug_parse(str, parser, chars));
-    }
-    {
-        constexpr auto parser = repeat(3, 4)[char_('h')];
-        std::string str = "hhh";
-        debug_parse(str, parser);
-    }
-    {
-        constexpr auto parser = char_ % ',';
-        std::string str = "h,i,j";
-        debug_parse(str, parser);
-    }
-}
-#endif
