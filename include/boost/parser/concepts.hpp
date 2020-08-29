@@ -9,7 +9,17 @@
 #include <boost/parser/config.hpp>
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/text/transcode_view.hpp>
+
+// Silence very verbose warnings about std::is_pod being deprecated.  TODO:
+// Remove this if/when Hana accepts https://github.com/boostorg/hana/pull/471.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include <boost/hana.hpp>
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
