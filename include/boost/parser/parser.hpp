@@ -3497,16 +3497,6 @@ namespace boost { namespace parser {
 
     // Parser interface.
 
-    /** A wrapper for parsers that provides the operations that must be
-        supported by all parsers (e.g. `operator>>()`).  `GlobalState` is an
-        optional state object that can be accessed within semantic actions
-        with a call to `_globals()`.  This global state object is ignored for
-        all but the topmost parser; the topmost global state object is
-        available in the semantic actions of all nested parsers.
-        `ErrorHandler` is the type of the error handler to be used on parse
-        failure.  This handler is ignored on all but the topmost parser; the
-        topmost parser's error handler is used for all errors encountered
-        during parsing. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     struct parser_interface
     {

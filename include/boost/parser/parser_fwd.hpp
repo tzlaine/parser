@@ -261,9 +261,15 @@ namespace boost { namespace parser {
     template<typename SwitchValue, typename OrParser = nope>
     struct switch_parser;
 
-    /** A wrapper for a parser, with optional global state and optional error
-        handler, that provides the interface that all parsers must have:
-        `operator*()`, `operator>>()`, etc. */
+    /** A wrapper for parsers that provides the operations that must be
+        supported by all parsers (e.g. `operator>>()`).  `GlobalState` is an
+        optional state object that can be accessed within semantic actions via
+        a call to `_globals()`.  This global state object is ignored for all
+        but the topmost parser; the topmost global state object is available
+        in the semantic actions of all nested parsers.  `ErrorHandler` is the
+        type of the error handler to be used on parse failure.  This handler
+        is ignored on all but the topmost parser; the topmost parser's error
+        handler is used for all errors encountered during parsing. */
     template<
         typename Parser,
         typename GlobalState = nope,
