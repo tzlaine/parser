@@ -24,7 +24,8 @@
 
 [/ Imports ]
 
-[/ TODO ]
+[/ Examples ]
+[import ../example/trivial.cpp]
 
 [/ Images ]
 

@@ -49,3 +49,4 @@ target_link_libraries(parser INTERFACE boost)
 
 
 add_subdirectory(test)
+add_subdirectory(example)
