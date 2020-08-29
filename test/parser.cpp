@@ -1332,8 +1332,8 @@ TEST(parser, combined_seq_and_or)
     }
 
     {
-        constexpr auto parser = char_('a') >> string("b") > char_('c') |
-                                char_('x') >> string("y") >> char_('z');
+        constexpr auto parser = (char_('a') >> string("b") > char_('c')) |
+                                (char_('x') >> string("y") >> char_('z'));
         {
             std::string str = "abc";
             std::string chars;
@@ -1384,8 +1384,8 @@ TEST(parser, combined_seq_and_or)
     }
 
     {
-        constexpr auto parser = char_('a') >> string("b") > char_('c') |
-                                char_('x') >> string("y") >> char_('z');
+        constexpr auto parser = (char_('a') >> string("b") > char_('c')) |
+                                (char_('x') >> string("y") >> char_('z'));
         {
             std::string str = "abc";
             std::string chars;
