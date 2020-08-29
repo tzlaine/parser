@@ -8,21 +8,14 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CXX_STD 14 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
 message("-- Using -std=c++${CXX_STD}")
 
-set(cxx_defs)
 set(clang_on_linux false)
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     add_definitions(-g -Wall)
-    set(cxx_defs
-        -stdlib=libc++
-        -Wno-parentheses
-        -ftemplate-depth-300
-    )
     if (CMAKE_SYSTEM_NAME STREQUAL Linux)
         set(clang_on_linux true)
     endif ()
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(-g -Wall)
-    set(cxx_defs -ftemplate-depth-300 -Wno-parentheses) 
 endif ()
 
 include(dependencies)
@@ -52,6 +45,7 @@ endif()
 ##################################################
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(parser INTERFACE boost)
 
 
 add_subdirectory(test)
