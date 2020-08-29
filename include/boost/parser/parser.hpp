@@ -1637,6 +1637,28 @@ namespace boost { namespace parser {
             typename Iter1,
             typename Sentinel1,
             typename Iter2,
+            typename Sentinel2,
+            typename Pred>
+        std::pair<Iter1, Iter2> mismatch(
+            Iter1 first1,
+            Sentinel1 last1,
+            Iter2 first2,
+            Sentinel2 last2,
+            Pred pred)
+        {
+            std::pair<Iter1, Iter2> retval{first1, first2};
+            while (retval.first != last1 && retval.second != last2 &&
+                   pred(*retval.first, *retval.second)) {
+                ++retval.first;
+                ++retval.second;
+            }
+            return retval;
+        }
+
+        template<
+            typename Iter1,
+            typename Sentinel1,
+            typename Iter2,
             typename Sentinel2>
         std::pair<Iter1, Iter2>
         mismatch(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
@@ -4776,14 +4798,28 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
+            // The lambda quiets a signed/unsigned mismatch warning when
+            // comparing the chars here to code points.
             char const t[] = "true";
-            if (std::mismatch(t, t + 4, first, last).first == t + 4) {
+            if (detail::mismatch(
+                    t,
+                    t + 4,
+                    first,
+                    last,
+                    [](uint32_t a, uint32_t b) { return a == b; })
+                    .first == t + 4) {
                 std::advance(first, 4);
                 detail::assign(retval, true);
                 return;
             }
             char const f[] = "false";
-            if (std::mismatch(f, f + 5, first, last).first == f + 5) {
+            if (detail::mismatch(
+                    f,
+                    f + 5,
+                    first,
+                    last,
+                    [](uint32_t a, uint32_t b) { return a == b; })
+                    .first == f + 5) {
                 std::advance(first, 5);
                 detail::assign(retval, false);
                 return;
