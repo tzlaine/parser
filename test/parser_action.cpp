@@ -61,12 +61,20 @@ TEST(parser, side_effects)
         std::string const str = "xyz";
         EXPECT_FALSE(parse(str, char_('a')[increment_i]));
         EXPECT_EQ(i, 0);
-        EXPECT_TRUE(parse(str, char_('x')[increment_i]));
+        EXPECT_FALSE(parse(str, char_('x')[increment_i]));
         EXPECT_EQ(i, 1);
-        EXPECT_FALSE(parse(str, char_('a')[increment_i]));
-        EXPECT_EQ(i, 1);
-        EXPECT_TRUE(parse(str, char_('x')[increment_i]));
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(
+            first, boost::text::null_sentinel{}, char_('x')[increment_i]));
         EXPECT_EQ(i, 2);
+        EXPECT_FALSE(parse(str, char_('a')[increment_i]));
+        EXPECT_EQ(i, 2);
+        EXPECT_FALSE(parse(str, char_('x')[increment_i]));
+        EXPECT_EQ(i, 3);
+        first = str.c_str();
+        EXPECT_TRUE(parse(
+            first, boost::text::null_sentinel{}, char_('x')[increment_i]));
+        EXPECT_EQ(i, 4);
     }
 }
 

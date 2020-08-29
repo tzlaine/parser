@@ -38,8 +38,15 @@ TEST(parser, no_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_TRUE(parse(str, flat_rule));
+        EXPECT_FALSE(parse(str, flat_rule));
         EXPECT_TRUE(parse(str, recursive_rule));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, flat_rule));
+        first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, recursive_rule));
     }
 }
 
@@ -75,8 +82,19 @@ TEST(parser, string_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_EQ(*parse(str, flat_string_rule), "abc");
-        EXPECT_EQ(*parse(str, recursive_string_rule), "abcabc");
+        EXPECT_FALSE(parse(str, flat_string_rule));
+        EXPECT_FALSE(parse(str, recursive_string_rule));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_EQ(
+            *parse(first, boost::text::null_sentinel{}, flat_string_rule),
+            "abc");
+        first = str.c_str();
+        EXPECT_EQ(
+            *parse(first, boost::text::null_sentinel{}, recursive_string_rule),
+            "abcabc");
     }
 }
 
@@ -105,12 +123,22 @@ TEST(parser, vector_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_EQ(
-            *parse(str, flat_vector_rule), std::vector<char>({'a', 'b', 'c'}));
+        EXPECT_FALSE(parse(str, flat_vector_rule));
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_EQ(callback_parse(str, flat_vector_rule, int{}), true);
+        auto first = str.c_str();
+        EXPECT_EQ(
+            *parse(first, boost::text::null_sentinel{}, flat_vector_rule),
+            std::vector<char>({'a', 'b', 'c'}));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_EQ(
+            callback_parse(
+                first, boost::text::null_sentinel{}, flat_vector_rule, int{}),
+            true);
     }
 }
 

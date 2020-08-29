@@ -120,7 +120,7 @@ TEST(parser, full_parse_api)
         EXPECT_TRUE(parse(str, char_, out));
         EXPECT_EQ(out, 'a');
         out = 0;
-        EXPECT_TRUE(!parse(str, char_('b'), out));
+        EXPECT_FALSE(parse(str, char_('b'), out));
         EXPECT_EQ(out, 0);
     }
 
@@ -131,13 +131,13 @@ TEST(parser, full_parse_api)
         first = str.c_str();
         EXPECT_EQ(*parse(first, boost::text::null_sentinel{}, char_), 'a');
         first = str.c_str();
-        EXPECT_TRUE(!parse(first, boost::text::null_sentinel{}, char_('b')));
+        EXPECT_FALSE(parse(first, boost::text::null_sentinel{}, char_('b')));
     }
     // returned attr
     {
         EXPECT_TRUE(parse(str, char_));
         EXPECT_EQ(*parse(str, char_), 'a');
-        EXPECT_TRUE(!parse(str, char_('b')));
+        EXPECT_FALSE(parse(str, char_('b')));
     }
 
     // attr out param, using skipper
@@ -150,7 +150,7 @@ TEST(parser, full_parse_api)
         EXPECT_EQ(out, 'a');
         out = 0;
         first = str.c_str();
-        EXPECT_TRUE(!parse(
+        EXPECT_FALSE(parse(
             first, boost::text::null_sentinel{}, char_('b'), skip_ws, out));
         EXPECT_EQ(out, 0);
     }
@@ -160,7 +160,7 @@ TEST(parser, full_parse_api)
         EXPECT_TRUE(parse(str, char_, skip_ws, out));
         EXPECT_EQ(out, 'a');
         out = 0;
-        EXPECT_TRUE(!parse(str, char_('b'), skip_ws, out));
+        EXPECT_FALSE(parse(str, char_('b'), skip_ws, out));
         EXPECT_EQ(out, 0);
     }
 
@@ -179,7 +179,7 @@ TEST(parser, full_parse_api)
     {
         EXPECT_TRUE(parse(str, char_, skip_ws));
         EXPECT_EQ(*parse(str, char_, skip_ws), 'a');
-        EXPECT_TRUE(!parse(str, char_('b'), skip_ws));
+        EXPECT_FALSE(parse(str, char_('b'), skip_ws));
     }
 
     // callback
@@ -188,7 +188,10 @@ TEST(parser, full_parse_api)
         auto callbacks = [&out](auto tag, auto x) { out = x; };
         auto first = str.c_str();
         EXPECT_TRUE(callback_parse(
-            first, boost::text::null_sentinel{}, callback_char_rule, callbacks));
+            first,
+            boost::text::null_sentinel{},
+            callback_char_rule,
+            callbacks));
         first = str.c_str();
         EXPECT_EQ(out, 'a');
     }
@@ -237,21 +240,21 @@ TEST(parser, basic)
     {
         std::string str = "a";
         EXPECT_TRUE(parse(str, char_));
-        EXPECT_TRUE(!parse(str, char_('b')));
+        EXPECT_FALSE(parse(str, char_('b')));
     }
     {
         std::string str = "a";
         char c = '\0';
         EXPECT_TRUE(parse(str, char_, c));
         EXPECT_EQ(c, 'a');
-        EXPECT_TRUE(!parse(str, char_('b')));
+        EXPECT_FALSE(parse(str, char_('b')));
     }
     {
         std::string str = "b";
         char c = '\0';
         EXPECT_TRUE(parse(str, char_("ab"), c));
         EXPECT_EQ(c, 'b');
-        EXPECT_TRUE(!parse(str, char_("cd")));
+        EXPECT_FALSE(parse(str, char_("cd")));
     }
     {
         std::string str = "b";
@@ -260,27 +263,36 @@ TEST(parser, basic)
         std::string const pattern_2 = "cd";
         EXPECT_TRUE(parse(str, char_(pattern_1), c));
         EXPECT_EQ(c, 'b');
-        EXPECT_TRUE(!parse(str, char_(pattern_2)));
+        EXPECT_FALSE(parse(str, char_(pattern_2)));
     }
     {
         std::string str = "b";
         char c = '\0';
         EXPECT_TRUE(parse(str, char_('a', 'b'), c));
         EXPECT_EQ(c, 'b');
-        EXPECT_TRUE(!parse(str, char_('c', 'd')));
+        EXPECT_FALSE(parse(str, char_('c', 'd')));
     }
     {
         std::string str = " ";
         char c = '\0';
         EXPECT_TRUE(parse(str, ascii::blank, c));
         EXPECT_EQ(c, ' ');
-        EXPECT_TRUE(!parse(str, ascii::lower));
+        EXPECT_FALSE(parse(str, ascii::lower));
     }
     {
         std::string str = "ab";
-        EXPECT_TRUE(parse(str, char_));
+        EXPECT_FALSE(parse(str, char_));
         EXPECT_TRUE(parse(str, parser_1));
-        EXPECT_TRUE(!parse(str, parser_2));
+        EXPECT_FALSE(parse(str, parser_2));
+    }
+    {
+        std::string str = "ab";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, char_));
+        first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser_1));
+        first = str.c_str();
+        EXPECT_FALSE(parse(str, parser_2));
     }
     {
         std::string str = "ab";
@@ -292,8 +304,15 @@ TEST(parser, basic)
     }
     {
         std::string str = "abc";
-        EXPECT_TRUE(parse(str, parser_1));
+        EXPECT_FALSE(parse(str, parser_1));
         EXPECT_TRUE(parse(str, parser_2));
+    }
+    {
+        std::string str = "abc";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser_1));
+        first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser_2));
     }
     {
         std::string str = "abc";
@@ -324,7 +343,7 @@ TEST(parser, basic)
     {
         std::string str = "z";
         EXPECT_TRUE(parse(str, parser_3));
-        EXPECT_TRUE(!parse(str, parser_4));
+        EXPECT_FALSE(parse(str, parser_4));
     }
     {
         std::string str = "a";
@@ -332,7 +351,12 @@ TEST(parser, basic)
     }
     {
         std::string str = "z";
-        EXPECT_TRUE(parse(str, parser_5));
+        EXPECT_FALSE(parse(str, parser_5));
+    }
+    {
+        std::string str = "z";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser_5));
     }
     {
         std::string str = "a";
@@ -343,7 +367,13 @@ TEST(parser, basic)
     {
         std::string str = "z";
         std::optional<char> c;
-        EXPECT_TRUE(parse(str, parser_5, c));
+        EXPECT_FALSE(parse(str, parser_5, c));
+    }
+    {
+        std::string str = "z";
+        std::optional<char> c;
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser_5, c));
         EXPECT_EQ(c, std::nullopt);
     }
 }
@@ -365,7 +395,7 @@ TEST(parser, int_uint)
     {
         std::string str = "-42";
         int i = 3;
-        EXPECT_TRUE(!parse(str, uint_, i));
+        EXPECT_FALSE(parse(str, uint_, i));
         EXPECT_EQ(i, 3);
     }
     {
@@ -392,7 +422,13 @@ TEST(parser, bool_)
     {
         std::string str = "false ";
         bool b = true;
-        EXPECT_TRUE(parse(str, bool_, b));
+        EXPECT_FALSE(parse(str, bool_, b));
+    }
+    {
+        std::string str = "false ";
+        bool b = true;
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, bool_, b));
         EXPECT_EQ(b, false);
     }
     {
@@ -470,7 +506,7 @@ TEST(parser, plus)
         {
             std::string str = "";
             std::vector<char> chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
         }
         {
             std::string str = "a";
@@ -492,7 +528,7 @@ TEST(parser, plus)
         {
             std::string str = "";
             std::vector<char> chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
         }
         {
             std::string str = "b";
@@ -517,7 +553,7 @@ TEST(parser, star_and_plus_collapsing)
         {
             std::string str = "";
             std::vector<char> chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
         }
         {
             std::string str = "b";
@@ -606,7 +642,8 @@ TEST(parser, star_and_plus_collapsing)
 TEST(parser, action)
 {
     {
-#if 0 // TODO: Should not compile, because the action makes the parser return a nope!
+#if 0 // TODO: Should not compile, because the action makes the parser return a
+      // nope!
         {
             std::string str = "";
             std::stringstream ss;
@@ -645,14 +682,15 @@ TEST(parser, action)
     }
 
     {
-#if 0 // TODO: Should not compile, because the action makes the parser return a nope!
+#if 0 // TODO: Should not compile, because the action makes the parser return a
+      // nope!
         {
             std::string str = "";
             std::stringstream ss;
             auto action = [&ss](auto & context) { ss << _attr(context); };
             auto parser = +char_('b')[action];
             std::vector<char> chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
         }
 #endif
 
@@ -661,7 +699,7 @@ TEST(parser, action)
             std::stringstream ss;
             auto action = [&ss](auto & context) { ss << _attr(context); };
             auto parser = +char_('b')[action];
-            EXPECT_TRUE(!parse(str, parser));
+            EXPECT_FALSE(parse(str, parser));
             EXPECT_EQ(ss.str(), "");
         }
         {
@@ -749,12 +787,26 @@ TEST(parser, star_as_string_or_vector)
         }
         {
             std::string str = "z";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            {
+                std::string chars;
+                EXPECT_FALSE(parse(str, parser, chars));
+            }
+            {
+                std::string chars;
+                auto first = str.c_str();
+                EXPECT_TRUE(
+                    parse(first, boost::text::null_sentinel{}, parser, chars));
+                EXPECT_EQ(chars, "");
+            }
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
+                EXPECT_FALSE(chars);
+            }
+            {
+                auto first = str.c_str();
+                std::optional<std::string> const chars =
+                    parse(first, boost::text::null_sentinel{}, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "");
             }
@@ -797,7 +849,14 @@ TEST(parser, star_as_string_or_vector)
         {
             std::string str = "z";
             std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
+        }
+        {
+            std::string str = "z";
+            std::vector<char> chars;
+            auto first = str.c_str();
+            EXPECT_TRUE(
+                parse(first, boost::text::null_sentinel{}, parser, chars));
         }
         {
             std::string str = "zs";
@@ -866,7 +925,14 @@ TEST(parser, omit)
         {
             std::string str = "z";
             std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
+        }
+        {
+            std::string str = "z";
+            std::vector<char> chars;
+            auto first = str.c_str();
+            EXPECT_TRUE(
+                parse(first, boost::text::null_sentinel{}, parser, chars));
         }
         {
             std::string str = "zs";
@@ -891,34 +957,34 @@ TEST(parser, repeat)
         {
             std::string str = "";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
             std::string str = "z";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
             std::string str = "zs";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
@@ -951,7 +1017,13 @@ TEST(parser, raw)
         {
             std::string const str = "z";
             range_t r;
-            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_FALSE(parse(str, parser, r));
+        }
+        {
+            std::string const str = "z";
+            range_t r;
+            auto first = str.begin();
+            EXPECT_TRUE(parse(first, str.end(), parser, r));
             EXPECT_EQ(r, range_t(str.begin(), str.begin()));
         }
         {
@@ -975,6 +1047,12 @@ TEST(parser, raw)
         {
             std::string const str = "z";
             std::optional<range_t> result = parse(str, parser);
+            EXPECT_FALSE(result);
+        }
+        {
+            std::string const str = "z";
+            auto first = str.begin();
+            std::optional<range_t> result = parse(first, str.end(), parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(*result, range_t(str.begin(), str.begin()));
         }
@@ -1001,45 +1079,45 @@ TEST(parser, delimited)
         {
             std::string str = "";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
             std::string str = "z";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
             std::string str = ",";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
             std::string str = ",yay";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
-                EXPECT_TRUE(!chars);
+                EXPECT_FALSE(chars);
             }
         }
         {
@@ -1056,24 +1134,52 @@ TEST(parser, delimited)
         }
         {
             std::string str = "yayyay";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yay");
+            {
+                std::string chars;
+                EXPECT_FALSE(parse(str, parser, chars));
+            }
+            {
+                std::string chars;
+                auto first = str.c_str();
+                EXPECT_TRUE(
+                    parse(first, boost::text::null_sentinel{}, parser, chars));
+                EXPECT_EQ(chars, "yay");
+            }
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
+                EXPECT_FALSE(chars);
+            }
+            {
+                auto first = str.c_str();
+                std::optional<std::string> const chars =
+                    parse(first, boost::text::null_sentinel{}, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
         }
         {
             std::string str = "yay,";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yay");
+            {
+                std::string chars;
+                EXPECT_FALSE(parse(str, parser, chars));
+            }
+            {
+                std::string chars;
+                auto first = str.c_str();
+                EXPECT_TRUE(
+                    parse(first, boost::text::null_sentinel{}, parser, chars));
+                EXPECT_EQ(chars, "yay");
+            }
 
             {
                 std::optional<std::string> const chars = parse(str, parser);
+                EXPECT_FALSE(chars);
+            }
+            {
+                auto first = str.c_str();
+                std::optional<std::string> const chars =
+                    parse(first, boost::text::null_sentinel{}, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1097,7 +1203,7 @@ TEST(parser, delimited)
         {
             std::string str = "";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
 
@@ -1105,80 +1211,80 @@ TEST(parser, delimited)
             std::string str = "";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = "z";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = "z";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = ",";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ",";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = " ,yay";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = " ,yay";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = ", yay";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ", yay";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = ",yay ";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = ",yay ";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
 
         {
             std::string str = " , yay ";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = " , yay ";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
-            EXPECT_TRUE(!chars);
+            EXPECT_FALSE(chars);
         }
         {
             std::string str = "yay";
@@ -1196,26 +1302,62 @@ TEST(parser, delimited)
         {
             std::string str = "yayyay";
             std::string chars;
-            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
+        }
+        {
+            std::string str = "yayyay";
+            std::string chars;
+            auto first = str.c_str();
+            EXPECT_TRUE(parse(
+                first,
+                boost::text::null_sentinel{},
+                parser,
+                char_(' '),
+                chars));
             EXPECT_EQ(chars, "yay");
         }
         {
             std::string str = "yayyay";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
+            EXPECT_FALSE(chars);
+        }
+        {
+            std::string str = "yayyay";
+            auto first = str.c_str();
+            std::optional<std::string> const chars =
+                parse(first, boost::text::null_sentinel{}, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
         {
             std::string str = "yay,";
             std::string chars;
-            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
+            EXPECT_FALSE(parse(str, parser, char_(' '), chars));
+        }
+        {
+            std::string str = "yay,";
+            std::string chars;
+            auto first = str.c_str();
+            EXPECT_TRUE(parse(
+                first,
+                boost::text::null_sentinel{},
+                parser,
+                char_(' '),
+                chars));
             EXPECT_EQ(chars, "yay");
         }
         {
             std::string str = "yay,";
             std::optional<std::string> const chars =
                 parse(str, parser, char_(' '));
+            EXPECT_FALSE(chars);
+        }
+        {
+            std::string str = "yay,";
+            auto first = str.c_str();
+            std::optional<std::string> const chars =
+                parse(first, boost::text::null_sentinel{}, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
@@ -1352,28 +1494,66 @@ TEST(parser, lexeme)
 
         {
             std::string str = "yay, yay, yay";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yay");
+            {
+                std::string chars;
+                EXPECT_FALSE(parse(str, parser, char_(' '), chars));
+            }
+            {
+                std::string chars;
+                auto first = str.c_str();
+                EXPECT_TRUE(parse(
+                    first,
+                    boost::text::null_sentinel{},
+                    parser,
+                    char_(' '),
+                    chars));
+                EXPECT_EQ(chars, "yay");
+            }
 
             {
                 std::string str = "yay, yay, yay";
                 std::optional<std::string> const chars =
                     parse(str, parser, char_(' '));
+                EXPECT_FALSE(chars);
+            }
+            {
+                std::string str = "yay, yay, yay";
+                auto first = str.c_str();
+                std::optional<std::string> const chars = parse(
+                    first, boost::text::null_sentinel{}, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
         }
         {
             std::string str = " yay, yay, yay";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yay");
+            {
+                std::string chars;
+                EXPECT_FALSE(parse(str, parser, char_(' '), chars));
+            }
+            {
+                std::string chars;
+                auto first = str.c_str();
+                EXPECT_TRUE(parse(
+                    first,
+                    boost::text::null_sentinel{},
+                    parser,
+                    char_(' '),
+                    chars));
+                EXPECT_EQ(chars, "yay");
+            }
 
             {
                 std::string str = " yay, yay, yay";
                 std::optional<std::string> const chars =
                     parse(str, parser, char_(' '));
+                EXPECT_FALSE(chars);
+            }
+            {
+                std::string str = " yay, yay, yay";
+                auto first = str.c_str();
+                std::optional<std::string> const chars = parse(
+                    first, boost::text::null_sentinel{}, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1538,13 +1718,19 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = !char_('a');
         std::string str = "a";
-        EXPECT_TRUE(!parse(str, parser));
+        EXPECT_FALSE(parse(str, parser));
     }
 
     {
         constexpr auto parser = &char_('a');
         std::string str = "a";
-        EXPECT_TRUE(parse(str, parser));
+        EXPECT_FALSE(parse(str, parser));
+    }
+    {
+        constexpr auto parser = &char_('a');
+        std::string str = "a";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser));
     }
 
     {
@@ -1581,21 +1767,21 @@ TEST(parser, combined_seq_and_or)
         {
             std::string str = "abz";
             std::string chars;
-            EXPECT_TRUE(!parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser, chars));
         }
 
         {
             std::string str = "abz";
             std::string chars;
             stream_error_handler eh("simple_parser.cpp");
-            EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
+            EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
         }
 
         {
             std::string str = "ab";
             std::string chars;
             stream_error_handler eh("simple_parser.cpp");
-            EXPECT_TRUE(!parse(str, with_error_handler(parser, eh), chars));
+            EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
         }
     }
 

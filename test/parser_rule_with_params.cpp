@@ -41,8 +41,21 @@ TEST(param_parser, no_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_TRUE(parse(str, flat_rule.with(15.0, make_13)));
+        EXPECT_FALSE(parse(str, flat_rule.with(15.0, make_13)));
         EXPECT_TRUE(parse(str, recursive_rule.with(15.0, make_13)));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_TRUE(parse(
+            first,
+            boost::text::null_sentinel{},
+            flat_rule.with(15.0, make_13)));
+        first = str.c_str();
+        EXPECT_TRUE(parse(
+            first,
+            boost::text::null_sentinel{},
+            recursive_rule.with(15.0, make_13)));
     }
 }
 
@@ -80,9 +93,25 @@ TEST(param_parser, string_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_EQ(*parse(str, flat_string_rule.with(15.0, make_13)), "abc");
+        EXPECT_FALSE(parse(str, flat_string_rule.with(15.0, make_13)));
+        EXPECT_FALSE(parse(str, recursive_string_rule.with(15.0, make_13)));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
         EXPECT_EQ(
-            *parse(str, recursive_string_rule.with(15.0, make_13)), "abcabc");
+            *parse(
+                first,
+                boost::text::null_sentinel{},
+                flat_string_rule.with(15.0, make_13)),
+            "abc");
+        first = str.c_str();
+        EXPECT_EQ(
+            *parse(
+                first,
+                boost::text::null_sentinel{},
+                recursive_string_rule.with(15.0, make_13)),
+            "abcabc");
     }
 }
 
@@ -112,15 +141,31 @@ TEST(param_parser, vector_attribute_rules)
     }
     {
         std::string const str = "abcaabc";
+        EXPECT_FALSE(parse(str, flat_vector_rule.with(15.0, make_13)));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
         EXPECT_EQ(
-            *parse(str, flat_vector_rule.with(15.0, make_13)),
+            *parse(
+                first,
+                boost::text::null_sentinel{},
+                flat_vector_rule.with(15.0, make_13)),
             std::vector<char>({'a', 'b', 'c'}));
     }
     {
         std::string const str = "abcaabc";
-        EXPECT_EQ(
-            callback_parse(str, flat_vector_rule.with(15.0, make_13), int{}),
-            true);
+        EXPECT_FALSE(
+            callback_parse(str, flat_vector_rule.with(15.0, make_13), int{}));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_TRUE(callback_parse(
+            first,
+            boost::text::null_sentinel{},
+            flat_vector_rule.with(15.0, make_13),
+            int{}));
     }
 }
 

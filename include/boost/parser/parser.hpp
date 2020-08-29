@@ -1671,6 +1671,22 @@ namespace boost { namespace parser {
             }
             return retval;
         }
+
+        template<typename I, typename S, typename T>
+        std::optional<T>
+        if_full_parse(I & first, S last, std::optional<T> retval)
+        {
+            if (first != last)
+                retval = std::nullopt;
+            return retval;
+        }
+        template<typename I, typename S>
+        bool if_full_parse(I & first, S last, bool retval)
+        {
+            if (first != last)
+                retval = false;
+            return retval;
+        }
     }
 
 
@@ -5656,9 +5672,11 @@ namespace boost { namespace parser {
     }
 
     /** Parses `str` using `parser`, and returns whether the parse was
-        successful.  On success, `attr` will be assigned the value of the
-        attribute produced by `parser`.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        successful.  The entire input range `r` must be consumed for the parse
+        to be considered successful.  On success, `attr` will be assigned the
+        value of the attribute produced by `parser`.  If `trace_mode ==
+        trace::on`, a verbose trace of the parse will be streamed to
+        `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,
@@ -5681,7 +5699,8 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::parse(first, last, parser, attr, trace_mode);
+        return detail::if_full_parse(
+            first, last, parser::parse(first, last, parser, attr, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`.  Returns a `std::optional`
@@ -5727,8 +5746,9 @@ namespace boost { namespace parser {
 
     /** Parses `str` using `parser`.  Returns a `std::optional` containing the
         attribute produced by `parser` on parse success, and `std::nullopt` on
-        parse failure.  If `trace_mode == trace::on`, a verbose trace of the
-        parse will be streamed to `std::cout`. */
+        parse failure.  The entire input range `r` must be consumed for the
+        parse to be considered successful.  If `trace_mode == trace::on`, a
+        verbose trace of the parse will be streamed to `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,
@@ -5749,7 +5769,8 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::parse(first, last, parser, trace_mode);
+        return detail::if_full_parse(
+            first, last, parser::parse(first, last, parser, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -5801,9 +5822,11 @@ namespace boost { namespace parser {
 
     /** Parses `str` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers, and returns whether the
-        parse was successful.  On success, `attr` will be assigned the value
-        of the attribute produced by `parser`.  If `trace_mode == trace::on`,
-        a verbose trace of the parse will be streamed to `std::cout`. */
+        parse was successful.  The entire input range `r` must be consumed for
+        the parse to be considered successful.  On success, `attr` will be
+        assigned the value of the attribute produced by `parser`.  If
+        `trace_mode == trace::on`, a verbose trace of the parse will be
+        streamed to `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,
@@ -5828,7 +5851,10 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::parse(first, last, parser, skip, attr, trace_mode);
+        return detail::if_full_parse(
+            first,
+            last,
+            parser::parse(first, last, parser, skip, attr, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -5879,8 +5905,10 @@ namespace boost { namespace parser {
     /** Parses `str` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
-        `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        `std::nullopt` on parse failure.  The entire input range `r` must be
+        consumed for the parse to be considered successful.  If `trace_mode ==
+        trace::on`, a verbose trace of the parse will be streamed to
+        `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,
@@ -5903,7 +5931,8 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::parse(first, last, parser, skip, trace_mode);
+        return detail::if_full_parse(
+            first, last, parser::parse(first, last, parser, skip, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`, and returns whether the parse
@@ -5960,9 +5989,10 @@ namespace boost { namespace parser {
     }
 
     /** Parses `str` using `parser`, and returns whether the parse was
-        successful.  When a callback rule `r` is successful during the parse,
-        one of two things happens: 1) if `r` has an attribute, `callbacks(tag,
-        x)` will be called (where `tag` is
+        successful.  The entire input range `r` must be consumed for the parse
+        to be considered successful.  When a callback rule `r` is successful
+        during the parse, one of two things happens: 1) if `r` has an
+        attribute, `callbacks(tag, x)` will be called (where `tag` is
         `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
         produced by `r`), if that call is well-formed; otherwise,
         `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
@@ -5995,7 +6025,10 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::callback_parse(first, last, parser, callbacks);
+        return detail::if_full_parse(
+            first,
+            last,
+            parser::callback_parse(first, last, parser, callbacks));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -6066,9 +6099,10 @@ namespace boost { namespace parser {
 
     /** Parses `str` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers, and returns whether the
-        parse was successful.  When a callback rule `r` is successful during
-        the parse, one of two things happens: 1) if `r` has an attribute,
-        `callbacks(tag, x)` will be called (where `tag` is
+        parse was successful.  The entire input range `r` must be consumed for
+        the parse to be considered successful.  When a callback rule `r` is
+        successful during the parse, one of two things happens: 1) if `r` has
+        an attribute, `callbacks(tag, x)` will be called (where `tag` is
         `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
         produced by `r`), if that call is well-formed; otherwise,
         `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
@@ -6103,8 +6137,11 @@ namespace boost { namespace parser {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return parser::callback_parse(
-            first, last, parser, skip, callbacks, trace_mode);
+        return detail::if_full_parse(
+            first,
+            last,
+            parser::callback_parse(
+                first, last, parser, skip, callbacks, trace_mode));
     }
 
 }}
