@@ -1592,7 +1592,7 @@ namespace boost { namespace parser {
                                               (!utf8_view<T> && !char8_ptr<T>);
 
         template<typename R>
-        constexpr auto make_input_range(R && r) noexcept
+        constexpr auto make_input_view(R && r) noexcept
         {
             if constexpr (non_unicode_char_range_like<R>) {
                 if constexpr (utf8_pointer<R>) {
@@ -5647,7 +5647,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::parse(first, last, parser, attr, trace_mode);
@@ -5715,7 +5715,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::parse(first, last, parser, trace_mode);
@@ -5807,7 +5807,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::callback_parse(first, last, parser, callbacks);
@@ -5886,7 +5886,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::skip_parse(first, last, parser, skip, attr, trace_mode);
@@ -5961,7 +5961,7 @@ namespace boost { namespace parser {
         SkipParser const & skip,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::skip_parse(first, last, parser, skip, trace_mode);
@@ -6069,7 +6069,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        auto r_ = detail::make_input_range(r);
+        auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return parser::skip_parse(
