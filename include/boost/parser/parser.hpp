@@ -4971,8 +4971,9 @@ namespace boost { namespace parser {
             using extract =
                 detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
+            auto const initial = first;
             success = extract::call(first, last, attr);
-            if (attr != detail::resolve(context, expected_))
+            if (first == initial || attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
                 detail::assign(retval, attr);
@@ -5058,7 +5059,11 @@ namespace boost { namespace parser {
             using extract =
                 detail_spirit_x3::extract_real<T, spirit::x3::real_policies<T>>;
             T attr = 0;
-            if (extract::parse(first, last, attr, policies))
+            auto const initial = first;
+            success = extract::parse(first, last, attr, policies);
+            if (first == initial)
+                success = false;
+            if (success)
                 detail::assign(retval, attr);
         }
     };
