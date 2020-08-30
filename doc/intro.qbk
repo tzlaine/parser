@@ -61,3 +61,56 @@ values produced by the parse, etc.  Again, you don't need to write any code to
 make this happen _emdash_ you just pass a parameter to _p_.
 
 [endsect]
+
+[section This Library's Relationship to Boost.Spirit]
+
+[note If you are familiar with Spirit 2 and/or Spirit X3, you may be
+interested in this section.  If you are not, and you have not ready the
+tutorial for _Parser_ yet, very little of this will make sense.]
+
+_Spirit_ is a library that is already in Boost, and it has been around for a
+long time.
+
+However, it does not suit user needs in some ways.
+
+* Spirit 2 suffers from very long compile times.
+
+* Spirit 2 has error reporting that requires a lot of user intervention to
+  work.
+
+* Spirit 2 requires user intervention, including a (long) recompile, to enable
+  parse tracing.
+
+* Spirit X3 has rules that do not compose well _emdash_ the attributes
+  produced by a rule can change depending on the context in which you use the
+  rule.
+
+* Spirit X3 is missing many of the convenient interface to parsers that Spirit
+  2 had.  For instance, you cannot use a parser in a parameterized fashion.
+
+* All versions of Spirit have Unicode support, but it is quite difficult to
+  get working.
+
+I wanted a library that does not suffer from any of the above limitations.  It
+should be noted that while Spirit X3 only has a couple of flaws in the list
+above, the one related to rules is a deal-breaker.  The ability to write
+rules, test them in isolation, and then re-use them throughout a complex
+parser is essential.
+
+Though no version of _Spirit_ (Spirit 2 or Spirit X3) suffers from all those
+limitations, there also does not exist any one version that avoids all of
+them.  _Parser_ does so.  However, there are a lot of great ideas in _Spirit_
+that have been retained in _Parser_.  Both libraries:
+
+* use the same operator overloads to combine parsers;
+
+* use approximately the same set of directives to influence the parse
+  (e.g. `lexeme[]`);
+
+* provide loosely-coupled rules that are separately compilable (at least for
+  Spirit X3); and
+
+* are built around a flexible parse context object that has state added to and
+  removed from it during the parse (again, comparing to Spirit X3).
+
+[endsect]

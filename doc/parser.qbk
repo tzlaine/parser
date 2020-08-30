@@ -51,6 +51,8 @@
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
 
+[def _Spirit_              [@https://www.boost.org/doc/libs/release/libs/spirit Boost.Spirit]]
+
 [def _emdash_              \u2014]
 
 [include intro.qbk]

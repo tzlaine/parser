@@ -21,7 +21,6 @@ parsers that _Parser_ provides, _ch_.  Like all _Parser_ parsers, it has
 certain operations defined on it.  In this case, `*bp::char_` is using a C++
 version of _kl_ operator _emdash_ `operator*()`.  Since C++ has no postfix
 unary `*` operator, we have to use the one we have, so it is used as a prefix.
-If you've used Boost.Spirit, this should be very familiar already.
 
 So, `*bp::char_` means "any number of characters".  In other words, it really
 cannot fail.  Even an empty string will match it.
@@ -68,10 +67,6 @@ Though it is not a parser, `operator>>()` and the other operators defined on
 _Parser_ parsers have overloads that accept characters/parser pairs of
 arguments; these operator overloads will create the right parser to recognize
 `','`.
-
-Again, this should be very familiar if you're used Boost.Spirit.  The syntax
-is the same, and only the namespace is different (the implementation details
-have almost nothing in common though).
 
 [trivial_example]
 
@@ -123,6 +118,20 @@ Skipping is an important concept in _Parser_.  You can skip anything, not just
 ASCII whitespace; there are lots of other things you might want to skip.  The
 skipper you pass to _p_ can be an arbitrary parser.  For example, if you write
 a parser for a scripting language, you can write a skipper to skip comments.
+
+We'll be using skip parsers almost exclusively in the rest of the
+documentation.  The ability to ignore the parts of your input that you don't
+care about is so convenient that parsing without skipping is a rarity in
+practice.
+
+[endsect]
+
+[section Semantic Actions]
+
+Like all parsing systems (lex & yacc, _Spirit_, etc.), _Parser_ has a
+mechanism for associating semantic actions with different parts of the parse.
+
+[semantic_action_example]
 
 [endsect]
 
