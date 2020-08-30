@@ -6,7 +6,7 @@
 [library Boost.Parser
     [quickbook 1.3]
     [authors [Laine, Zach]]
-    [copyright 2019 T. Zachary Laine]
+    [copyright 2020 T. Zachary Laine]
     [category template]
     [id parser]
     [dirname parser]
@@ -42,13 +42,14 @@
 [def _Parser_              Boost.Parser]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
-[def _cbp_                 [funcref boost::parser::parse `callback_parse()`]]
+[def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
 
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
 [def _i_                   [globalref boost::parser::int_ `int_`]]
 [def _d_                   [globalref boost::parser::double_ `double_`]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
+[def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
 
 [def _emdash_              \u2014]
 

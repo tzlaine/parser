@@ -5,6 +5,59 @@
 
 [section Introduction]
 
-TODO
+_Parser_ is a _comb_ library.  That is, it consists of a set of low-level
+primitive parsers, and operations that can be used to combine those parsers
+into more complicated parsers.
+
+There are primitive parsers that parse /epsilon/ (the empty string), `char`s,
+`int`s, `float`s, etc.
+
+There are operations which combine parsers to create new parsers.  For
+instance, the _kl_ operation takes an existing parser `p` and creates a new
+parser that matches zero or more occurrences of whatever `p` matches.  Both
+operator overloads and callable objects used for the combining operations.
+For instance, `operator*()` is used for _kl_, and you can also write
+`repeat(n)[p]` to create a parser for exactly `n` repetitions of `p`.
+
+_Parser_ also tries to accommodate the multiple ways that people often want to
+get a parse result out of their parsing code.  Some parsing may best be done
+by returning an object that represents the result of the parse.  Other parsing
+may best be done by filling in a preexisting data structure.  Yet other
+parsing may best be done by parsing small sections of a large document, and
+reporting the results of sub-parsers as they are finished, via callbacks.
+_Parser_ accommodates all these ways of working, and even makes is possible to
+do callback-based or non-callback-based parsing without rewriting any code
+(except by changing the top-level call to _p_ to _cbp_).
+
+All of _Parser_'s public interface are sentinel- and range-friendly, just like
+the interfaces in `std::ranges`.
+
+_Parser_ is Unicode-aware through and through.  When you parse ranges of
+`char`, _Parser_ does not assume any particular encoding _emdash_ not Unicode
+or any other encoding.  Parsing of inputs *other than* plain `char`s assumes
+that the input is Unicode.  In the Unicode-aware code paths, all parsing is
+done by matching code points.  This means that you can feed UTF-8 strings into
+_Parser_, both as input and within your parser, and the right sort of matching
+occurs _emdash_ if your parser is trying to match repetitions of the `char`
+`'\xcc'` (which is a lead byte from a UTF-8 sequence, and so is malformed
+UTF-8), it will not match the start of `"\xcc\x80"` (UTF-8 for the code point
+U+0300).  _Parser_ knows that the matching must be whole-code-point, and so it
+interprets the `char` `'\xcc'` as the code point U+00CC.
+
+Error reporting is important to get right, and it is important to make errors
+easy to understand, especially for end-users.  _Parser_ produces runtime parse
+error messages that are very similar to the diagnostics that you get when
+compiling with GCC and Clang (it even supports warnings that don't fail the
+parse).  The exact token associated with a diagnostic can be reported to the
+user, with the containing line quoted, and with a marker pointing right at
+token.  _Parser_ takes care of this for you; your parser does not need to
+include any special code to make this happen.  Of course, you can also replace
+the error handler entirely, if it doesn't fit your needs.
+
+Debugging complex parsers can be a real nightmare.  _Parser_ makes it trivial
+to get a trace of your entire parse, with easy-to-read (and very verbose)
+indications of where each part of the trace is within the parse, the state of
+values produced by the parse, etc.  Again, you don't need to write any code to
+make this happen _emdash_ you just pass a parameter to _p_.
 
 [endsect]

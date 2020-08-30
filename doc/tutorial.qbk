@@ -5,9 +5,8 @@
 
 [section Tutorial]
 
-To get started, let's cover some basic notions that are important in _Parser_.
-
-TODO
+To get started, let's look at some simple programs that parse using _Parser_.
+We'll start small and build up from there.
 
 [section Hello, Whomever]
 
@@ -35,7 +34,7 @@ parser as one of the arguments:
 The arguments here are: `input`, the string to parse; `*bp::char_`, the parser
 used to do the parse; and `result`, and out-parameter into which to put the
 result of the parse.  Don't get too caught up on this method of getting the
-parse result out of _p_; there are mutliple ways of doing so, and we'll cover
+parse result out of _p_; there are multiple ways of doing so, and we'll cover
 all of them in subsequent examples.
 
 The effects of this call to _p_ is not very interesting _emdash_ since the
@@ -63,8 +62,8 @@ parser we want by writing:
     boost::parser::double_ >> *(',' >> boost::parser::double_)
 
 This is a parser that matches at least one `double` _emdash_ because of the
-first _d_ in the expression above _emdash_ follwed by zero or more instances
-of a-comma-follwed-by-a-`double`.  Notice that we can use `','` directly.
+first _d_ in the expression above _emdash_ followed by zero or more instances
+of a-comma-followed-by-a-`double`.  Notice that we can use `','` directly.
 Though it is not a parser, `operator>>()` and the other operators defined on
 _Parser_ parsers have overloads that accept characters/parser pairs of
 arguments; these operator overloads will create the right parser to recognize
