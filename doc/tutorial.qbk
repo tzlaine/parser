@@ -456,9 +456,61 @@ single number, so it was removed.
 
 [endsect]
 
+[section Mutable Symbol Tables]
+
+The previous example showed how to use a symbol table as a fixed lookup table.
+What if we want to add things to the table during the parse?  We can do that,
+but we need to do so within a semantic action.  First, here is our symbol
+table, already with a single value in it:
+
+[self_filling_symbol_table_table]
+
+No surprise that it works to use the symbol table as a parser to parse the one
+string in the symbol table.  Now, here's our parser:
+
+[self_filling_symbol_table_parser]
+
+Here, we've attached the semantic action not to a simple parser like _d_, but
+to the sequence parser `(bp::char_ >> bp::int_)`.  This sequence parser
+contains two parsers, each with its own attribute, so it produces two
+attributes as a `hana::tuple`.
+
+[self_filling_symbol_table_action]
+
+Inside the semantic action, we can get the first element of the attribute
+tuple using _udls_ provided by Boost.Hana, and `hana::tuple::operator[]()`.
+The first attribute, from the _ch_, is `_attr(ctx)[0_c]`, and the second, from
+the _i_, is `_attr(ctx)[1_c]`.  To add the symbol to the symbol table, we call
+`insert()`.
+
+[self_filling_symbol_table_parser]
+
+During the parse, `("X", 9)` is parsed and added to the symbol table.  Then,
+the second `'X'` is recognized by the symbol table parser.  However:
+
+[self_filling_symbol_table_after_parse]
+
+If we parse again, we find that `"X"` did not stay in the symbol table.  The
+fact that `symbols` was declared const might have given you a hint that this
+would happen.  Also, notice that the call to `insert()` in the semantic action
+uses the parse context; that's where all the symbol table changes are stored
+during the parse.
+
+The full program:
+
+[self_filling_symbol_table_example]
+
+[note It is possible to add symbols to a _symbols_ permanently.  To do so, you
+have to use a mutable _symbols_ object `s`, and add the symbols by calling
+`s.add()`, instead of `s.insert()`.]
+
+[endsect]
+
 [section Unicode Support]
 
 TODO
+
+TODO: Unicode in symbol tables
 
 [endsect]
 
