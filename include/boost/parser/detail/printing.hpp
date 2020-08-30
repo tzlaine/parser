@@ -455,7 +455,14 @@ namespace boost { namespace parser { namespace detail {
             if (quote)
                 os << '"';
             for (Iter it = first_, end = first.base(); it != end; ++it) {
-                os << *it;
+                if constexpr (std::is_same_v<
+                                  char8_t,
+                                  std::remove_cv_t<std::remove_reference_t<
+                                      decltype(*it)>>>) {
+                    os << char(*it);
+                } else {
+                    os << *it;
+                }
             }
             if (quote)
                 os << '"';
