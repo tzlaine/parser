@@ -12,16 +12,9 @@
 
 namespace boost { namespace parser {
 
-    /** A placeholder type used to represent the absence of information,
-        value, etc., in `boost::parser`.  For instance, a parser with no
-        global data will have a `globals_` data member whose type is `nope`.
-        `nope` is designed to satisfy all requirements of any type that it
-        might replace, where convenient.  For instance, it has an implicit
-        conversion to `std::nullopt_t`, so that it be assigned to a
-        `std::optional<T>`. */
-    struct nope;
-
     namespace detail {
+        struct nope;
+
         enum class flags : unsigned int {
             gen_attrs = 1 << 0,
             use_skip = 1 << 1,
@@ -67,7 +60,7 @@ namespace boost { namespace parser {
         of attribute produced by `Parser`. */
     template<
         typename Parser,
-        typename DelimiterParser = nope,
+        typename DelimiterParser = detail::nope,
         typename MinType = int64_t,
         typename MaxType = int64_t>
     struct repeat_parser;
@@ -149,7 +142,7 @@ namespace boost { namespace parser {
         `SkipParser` as the skipper.  The parse succeeds iff `p` succeeds.
         The attribute produced is the type of attribute produced by
         `Parser`. */
-    template<typename Parser, typename SkipParser = nope>
+    template<typename Parser, typename SkipParser = detail::nope>
     struct skip_parser;
 
     /** Applies the given parser `p` of type `Parser`, producing no attributes
@@ -185,8 +178,9 @@ namespace boost { namespace parser {
     struct rule_parser;
 
     /** Matches anything, and consumes no input.  If `Predicate` is anything
-        other than `nope`, and `pred_(ctx)` evaluates to false, where `ctx` is
-        the parser context, the parse fails. */
+        other than `detail::nope` (which it is by default), and `pred_(ctx)`
+        evaluates to false, where `ctx` is the parser context, the parse
+        fails. */
     template<typename Predicate>
     struct eps_parser;
 
@@ -225,27 +219,28 @@ namespace boost { namespace parser {
     /** Matches an unsigned number of radix `Radix`, of at least `MinDigits`
         and at most `MaxDigits`, producing an attribute of type `T`.  Fails on
         any other input.  The parse will also fail if `Expected` is anything
-        but `nope`, and the produced attribute is not equal to `expected_`.
-        `Radix` must be in `[2, 36]`. */
+        but `detail::nope` (which it is by default), and the produced attribute is not
+        equal to `expected_`.  `Radix` must be in `[2, 36]`. */
     template<
         typename T,
         int Radix = 10,
         int MinDigits = 1,
         int MaxDigits = -1,
-        typename Expected = nope>
+        typename Expected = detail::nope>
     struct uint_parser;
 
     /** Matches a signed number of radix `Radix`, of at least `MinDigits` and
         at most `MaxDigits`, producing an attribute of type `T`.  Fails on any
         other input.  The parse will also fail if `Expected` is anything but
-        `nope`, and the produced attribute is not equal to `expected_`.
-        `Radix` must be one of `2`, `8`, `10`, or `16`. */
+        `detail::nope` (which it is by default), and the produced
+        attribute is not equal to `expected_`.  `Radix` must be one of `2`,
+        `8`, `10`, or `16`. */
     template<
         typename T,
         int Radix = 10,
         int MinDigits = 1,
         int MaxDigits = -1,
-        typename Expected = nope>
+        typename Expected = detail::nope>
     struct int_parser;
 
     /** Matches a floating point number, producing an attribute of type
@@ -258,7 +253,7 @@ namespace boost { namespace parser {
         first such parser is applied, and the success or failure and attribute
         of the parse are those of the applied parser.  Otherwise, the parse
         fails. */
-    template<typename SwitchValue, typename OrParser = nope>
+    template<typename SwitchValue, typename OrParser = detail::nope>
     struct switch_parser;
 
     /** A wrapper for parsers that provides the operations that must be
@@ -272,7 +267,7 @@ namespace boost { namespace parser {
         handler is used for all errors encountered during parsing. */
     template<
         typename Parser,
-        typename GlobalState = nope,
+        typename GlobalState = detail::nope,
         typename ErrorHandler = default_error_handler>
     struct parser_interface;
 

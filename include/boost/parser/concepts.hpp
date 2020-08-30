@@ -100,7 +100,7 @@ namespace boost { namespace parser {
         std::declval<bool &>(),
         std::declval<int &>(),
         std::declval<ErrorHandler const &>(),
-        std::declval<nope &>(),
+        std::declval<detail::nope &>(),
         std::declval<detail::symbol_table_tries_t &>()));
 
     // clang-format off

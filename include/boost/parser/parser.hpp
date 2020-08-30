@@ -53,57 +53,339 @@ namespace boost { namespace parser {
     }
 
 
+    /** A placeholder type used to represent the absence of information,
+        value, etc., in `boost::parser`.  For instance, a parser with no
+        global data will have a `globals_` data member whose type is `none`.
+        `none` is designed to satisfy all requirements of any type that it
+        might replace, where convenient.  For instance, it has an implicit
+        conversion to `std::nullopt_t`, so that it be assigned to a
+        `std::optional<T>`. */
+    struct none
+    {
+        none() = default;
+
+        // Constructible from, assignable from, and implicitly convertible to,
+        // anything.
+        template<typename T>
+        none(T const &)
+        {
+            fail();
+        }
+        template<typename T>
+        none & operator=(T const &)
+        {
+            fail();
+            return *this;
+        }
+        template<typename T>
+        operator T() const
+        {
+            fail();
+            return T{};
+        }
+
+        // unary operators
+        none operator+() const
+        {
+            fail();
+            return none{};
+        }
+        none operator-() const
+        {
+            fail();
+            return none{};
+        }
+        none operator*() const
+        {
+            fail();
+            return none{};
+        }
+        none operator~() const
+        {
+            fail();
+            return none{};
+        }
+        none operator&() const
+        {
+            fail();
+            return none{};
+        }
+        none operator!() const
+        {
+            fail();
+            return none{};
+        }
+        none operator++()
+        {
+            fail();
+            return none{};
+        }
+        none & operator++(int)
+        {
+            fail();
+            return *this;
+        }
+        none operator--()
+        {
+            fail();
+            return none{};
+        }
+        none operator--(int)
+        {
+            fail();
+            return *this;
+        }
+
+        // binary operators
+        template<typename T>
+        none operator<<(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator>>(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator*(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator/(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator%(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator+(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator-(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator<(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator>(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator<=(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator>=(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator==(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator!=(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator||(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator&&(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator&(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator|(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator^(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator,(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator->*(T const &) const
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator<<=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator>>=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator*=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator/=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator%=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator+=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator-=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator&=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator|=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator^=(T const &)
+        {
+            fail();
+            return none{};
+        }
+        template<typename T>
+        none operator[](T const &) const
+        {
+            fail();
+            return none{};
+        }
+
+        // n-ary operators
+        template<typename... Args>
+        none operator()(Args const &...) const
+        {
+            fail();
+            return none{};
+        }
+
+        void fail() const
+        {
+            // If you're seeing this, you've probably gotten a `none` out of
+            // the parse context, and are trying to use it because you think
+            // it's something else.  For instance, if your parser produces an
+            // int attribute, the semantic ation `[](auto & ctx) { _attr(ctx)
+            // = 0; }` may be fine.  If you attach that same semantic action
+            // to `eps`, you end up here, because `eps` has no attribute, and
+            // so `_attr(ctx)` produces a `none`.
+            BOOST_ASSERT(false);
+        }
+    };
+
+
     /** A tag type used to create tag objects that can be used as keys usable
         to access values in the parse context. */
     template<typename T>
     constexpr hana::type<T> tag{};
 
-
-    struct nope
-    {
-        /** Assignable from anything. */
-        template<typename T>
-        constexpr nope & operator=(T const &)
-        {
-            return *this;
-        }
-
-        /** Convertible to `optional<T>`. */
-        operator std::nullopt_t() const noexcept { return std::nullopt; }
-
-        /** Acts as a dummy predicate. */
-        template<typename Context>
-        constexpr bool operator()(Context const &) const noexcept
-        {
-            return true;
-        }
-
-        /** Dereferencable. */
-        constexpr nope operator*() const noexcept { return nope{}; }
-
-        /** nope is always equal to nope. */
-        friend constexpr bool operator==(nope, nope) { return true; }
-        /** nope is always equal to nope. */
-        friend constexpr bool operator!=(nope, nope) { return false; }
-
-        /** nope is not equal to anything that is not a nope. */
-        template<typename T>
-        friend constexpr bool operator==(T, nope)
-        {
-            return false;
-        }
-
-        /** nope is not unqeual to anything that is not a nope. */
-        template<typename T>
-        friend constexpr bool operator!=(T, nope)
-        {
-            return false;
-        }
-    };
-
-
     namespace detail {
         // Utility types.
+
+        struct nope
+        {
+            template<typename T>
+            constexpr nope & operator=(T const &)
+            {
+                return *this;
+            }
+
+            operator std::nullopt_t() const noexcept { return std::nullopt; }
+
+            template<typename Context>
+            constexpr bool operator()(Context const &) const noexcept
+            {
+                return true;
+            }
+
+            constexpr nope operator*() const noexcept { return nope{}; }
+
+            friend constexpr bool operator==(nope, nope) { return true; }
+            friend constexpr bool operator!=(nope, nope) { return false; }
+
+            template<typename T>
+            friend constexpr bool operator==(T, nope)
+            {
+                return false;
+            }
+            template<typename T>
+            friend constexpr bool operator!=(T, nope)
+            {
+                return false;
+            }
+        };
 
         inline nope global_nope;
 
@@ -1684,6 +1966,14 @@ namespace boost { namespace parser {
                 retval = false;
             return retval;
         }
+
+        template<typename Context, typename Tag>
+        constexpr bool yields_nope(Tag t)
+        {
+            return std::is_same_v<
+                std::decay_t<decltype(*std::declval<Context const &>()[t])>,
+                detail::nope>;
+        }
     }
 
 
@@ -1716,20 +2006,26 @@ namespace boost { namespace parser {
         innermost parser; multiple attributes will be stored within a
         `hana::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
-        Returns `nope` if the innermost parser does produce an attribute. */
+        Returns `none` if the innermost parser does produce an attribute. */
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
-        return *context[detail::val_];
+        if constexpr (detail::yields_nope<Context>(detail::val_))
+            return none{};
+        else
+            return *context[detail::val_];
     }
     /** Returns a reference to the attribute or attributes already produced by
         the innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  Returns `nope` if the innermost parser does produce an
+        `hana::tuple`.  Returns `none` if the innermost parser does produce an
         attribute. */
     template<typename Context>
     inline decltype(auto) _attr(Context const & context)
     {
-        return *context[detail::attr_];
+        if constexpr (detail::yields_nope<Context>(detail::attr_))
+            return none{};
+        else
+            return *context[detail::attr_];
     }
     /** Returns a `view` that describes the matched range of the innermost
         parser. */
@@ -1762,33 +2058,42 @@ namespace boost { namespace parser {
     }
     /** Returns a reference to one or more local values that the innermost
         rule is declared to have; multiple values will be stored within a
-        `hana::tuple`.  Returns `nope` if there is no innermost rule, or if
+        `hana::tuple`.  Returns `none` if there is no innermost rule, or if
         that rule has no locals. */
     template<typename Context>
     inline decltype(auto) _locals(Context const & context)
     {
-        return *context[detail::locals_];
+        if constexpr (detail::yields_nope<Context>(detail::locals_))
+            return none{};
+        else
+            return *context[detail::locals_];
     }
     /** Returns a reference to one or more parameters passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
-        multiple values will be stored within a `hana::tuple`.  Returns `nope`
+        multiple values will be stored within a `hana::tuple`.  Returns `none`
         if there is no innermost rule, or if that rule was not given any
         parameters. */
     template<typename Context>
     inline decltype(auto) _params(Context const & context)
     {
-        return *context[detail::params_];
+        if constexpr (detail::yields_nope<Context>(detail::params_))
+            return none{};
+        else
+            return *context[detail::params_];
     }
     /** Returns a reference to the globals object associated with the
-        innermost parser.  Returns `nope` if there is no associated globals
+        innermost parser.  Returns `none` if there is no associated globals
         object. */
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
     {
-        return *context[detail::globals_];
+        if constexpr (detail::yields_nope<Context>(detail::globals_))
+            return none{};
+        else
+            return *context[detail::globals_];
     }
     /** Returns a reference to the error handler object associated with the
-        innermost parser.  Returns `nope` if there is no associated error
+        innermost parser.  Returns `none` if there is no associated error
         handler. */
     template<typename Context>
     inline decltype(auto) _error_handler(Context const & context)
@@ -1951,7 +2256,7 @@ namespace boost { namespace parser {
                     // This is only ever used in delimited_parser, which
                     // always has a min=1; we therefore know we're after a
                     // previous element when this executes.
-                    if constexpr (!std::is_same<DelimiterParser, nope>{}) {
+                    if constexpr (!std::is_same<DelimiterParser, detail::nope>{}) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2019,7 +2324,7 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, max_); count != end;
                      ++count) {
                     auto const prev_first = first;
-                    if constexpr (!std::is_same<DelimiterParser, nope>{}) {
+                    if constexpr (!std::is_same<DelimiterParser, detail::nope>{}) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2275,7 +2580,7 @@ namespace boost { namespace parser {
             // optional.
             auto append_unique = [](auto result, auto x) {
                 using x_type = typename decltype(x)::type;
-                if constexpr (std::is_same<x_type, nope>{}) {
+                if constexpr (std::is_same<x_type, detail::nope>{}) {
                     return hana::make_pair(
                         hana::first(result), std::true_type{});
                 } else if constexpr (hana::contains(hana::first(result), x)) {
@@ -2438,7 +2743,7 @@ namespace boost { namespace parser {
                 constexpr auto one = hana::size_c<1>;
                 (void)one;
 
-                if constexpr (std::is_same<x_type, nope>{}) {
+                if constexpr (std::is_same<x_type, detail::nope>{}) {
                     // T >> nope -> T
                     return hana::make_pair(
                         result,
@@ -2483,7 +2788,9 @@ namespace boost { namespace parser {
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
-                } else if constexpr (std::is_same<result_back_type, nope>{}) {
+                } else if constexpr (std::is_same<
+                                         result_back_type,
+                                         detail::nope>{}) {
                     // hana::tuple<nope> >> T -> hana::tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
@@ -2819,7 +3126,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -2828,7 +3135,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            nope retval;
+            detail::nope retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -2887,7 +3194,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3123,7 +3430,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            if constexpr (std::is_same<SkipParser, nope>{}) {
+            if constexpr (std::is_same<SkipParser, detail::nope>{}) {
                 parser_.call(
                     use_cbs,
                     first,
@@ -3159,7 +3466,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3168,7 +3475,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            nope retval;
+            detail::nope retval;
             call(
                 use_cbs,
                 first,
@@ -3457,7 +3764,7 @@ namespace boost { namespace parser {
 
                 auto const & callbacks = _callbacks(context);
 
-                if constexpr (std::is_same<attr_type, nope>{}) {
+                if constexpr (std::is_same<attr_type, detail::nope>{}) {
                     if constexpr (detail::has_overloaded_callback_1<
                                       decltype((callbacks)),
                                       tag_type>{}) {
@@ -3826,7 +4133,7 @@ namespace boost { namespace parser {
         for the `parser` argument is undefined. */
     template<typename Parser, typename GlobalState, typename ErrorHandler>
     auto with_globals(
-        parser_interface<Parser, nope, ErrorHandler> const & parser,
+        parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
         GlobalState & globals)
     {
         return parser_interface<Parser, GlobalState &, ErrorHandler>{
@@ -3910,9 +4217,9 @@ namespace boost { namespace parser {
         }
     };
 
-    using no_attribute = nope;
-    using no_local_state = nope;
-    using no_params = nope;
+    using no_attribute = detail::nope;
+    using no_local_state = detail::nope;
+    using no_params = detail::nope;
 
     /** A type used to declare named parsing rules.  The `TagType` template
         parameter is used to associate a particular `rule` with the
@@ -3932,7 +4239,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             static_assert(
-                std::is_same<ParamsTuple, nope>{},
+                std::is_same<ParamsTuple, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on a rule, "
                 "like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
@@ -3971,7 +4278,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             static_assert(
-                std::is_same<ParamsTuple, nope>{},
+                std::is_same<ParamsTuple, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on a "
                 "callback_rule, like 'rule(foo)(bar)'.  Quit it!'");
             using params_tuple_type =
@@ -4032,7 +4339,7 @@ namespace boost { namespace parser {
         auto const & parser = BOOST_PP_CAT(name_, _def);                       \
         using attr_t = decltype(                                               \
             parser(use_cbs, first, last, context, skip, flags, success));      \
-        if constexpr (std::is_same<attr_t, boost::parser::nope>{})             \
+        if constexpr (std::is_same<attr_t, boost::parser::detail::nope>{})     \
             parser(use_cbs, first, last, context, skip, flags, success);       \
         else                                                                   \
             parser(                                                            \
@@ -4144,7 +4451,7 @@ namespace boost { namespace parser {
         constexpr auto operator[](parser_interface<Parser2> rhs) const noexcept
         {
             using repeat_parser_type =
-                repeat_parser<Parser2, nope, MinType, MaxType>;
+                repeat_parser<Parser2, detail::nope, MinType, MaxType>;
             return parser_interface{
                 repeat_parser_type{rhs.parser_, min_, max_}};
         }
@@ -4177,7 +4484,7 @@ namespace boost { namespace parser {
         the entire parse is used.  When given another parser, e.g.
         `skip(skip_parser)[parser_in_which_to_do_skipping]`, that other parser
         is used as the skipper within the directive. */
-    template<typename SkipParser = nope>
+    template<typename SkipParser = detail::nope>
     struct skip_directive
     {
         template<typename Parser>
@@ -4192,7 +4499,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
             static_assert(
-                std::is_same<SkipParser, nope>{},
+                std::is_same<SkipParser, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on skip, "
                 "like 'skip(foo)(bar)'.  Quit it!'");
             return skip_directive<SkipParser2>{skip_parser};
@@ -4219,7 +4526,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4267,7 +4574,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
             static_assert(
-                std::is_same<Predicate, nope>{},
+                std::is_same<Predicate, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on eps, "
                 "like 'eps(foo)(bar)'.  Quit it!'");
             return parser_interface{eps_parser<Predicate2>{std::move(pred)}};
@@ -4279,7 +4586,7 @@ namespace boost { namespace parser {
     /** The epsilon parser.  This matches anything, and consumes no input.  If
         used with an optional predicate, like `eps(pred)`, it matches iff
         `pred(ctx)` evaluates to true, where `ctx` is the parser context. */
-    inline constexpr parser_interface<eps_parser<nope>> eps;
+    inline constexpr parser_interface<eps_parser<detail::nope>> eps;
 
     struct eoi_parser
     {
@@ -4289,7 +4596,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4458,7 +4765,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(T x) const noexcept
         {
             static_assert(
-                std::is_same<Expected, nope>{},
+                std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a')('b')'.  Quit it!'");
             return parser_interface{
@@ -4471,7 +4778,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
             static_assert(
-                std::is_same<Expected, nope>{},
+                std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
             using char_pair_t = detail::char_pair<LoType, HiType>;
@@ -4492,7 +4799,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(R const & r) const noexcept
         {
             static_assert(
-                std::is_same<Expected, nope>{},
+                std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on char_, "
                 "like 'char_(char-set)(char-set)'.  Quit it!'");
             auto chars = detail::make_char_range(r);
@@ -4510,7 +4817,7 @@ namespace boost { namespace parser {
         it with: a single value comparable to a code point; a set of code
         point values in a string; a half-open range of code point values `[lo,
         hi)`, or a set of code point values passed as a range. */
-    inline constexpr parser_interface<char_parser<nope>> char_;
+    inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
     /** The literal code point parser.  It produces a 32-bit unsigned integer
         attribute.  This parser can be used to create code point parsers that
@@ -4518,7 +4825,7 @@ namespace boost { namespace parser {
         single value comparable to a code point; a set of code point values in
         a string; a half-open range of code point values `[lo, hi)`, or a set
         of code point values passed as a range. */
-    inline constexpr parser_interface<char_parser<nope, uint32_t>> cp;
+    inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
 
     /** The literal code unit parser.  It produces a `char` attribute.  This
         parser can be used to create code unit parsers that match one or more
@@ -4526,7 +4833,7 @@ namespace boost { namespace parser {
         comparable to a code unit; a set of code unit values in a string; a
         half-open range of code unit values `[lo, hi)`, or a set of code unit
         values passed as a range. */
-    inline constexpr parser_interface<char_parser<nope, char>> cu;
+    inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
@@ -4649,7 +4956,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        nope call(
+        detail::nope call(
             hana::bool_<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -4658,7 +4965,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            nope nope;
+            detail::nope nope;
             call(use_cbs, first, last, context, skip, flags, success, nope);
             return {};
         }
@@ -4910,7 +5217,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
-                std::is_same<Expected, nope>{},
+                std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'uint_(2)(3)'.  Quit it!'");
             using parser_t =
@@ -5021,7 +5328,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             static_assert(
-                std::is_same<Expected, nope>{},
+                std::is_same<Expected, detail::nope>{},
                 "If you're seeing this, you tried to chain calls on this "
                 "parser, like 'int_(2)(3)'.  Quit it!'");
             using parser_t =
@@ -5177,7 +5484,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             static_assert(
-                !std::is_same<OrParser, nope>{},
+                !std::is_same<OrParser, detail::nope>{},
                 "It looks like you tried to write switch_(val).  You need at "
                 "least one alternative, like: switch_(val)(value_1, "
                 "parser_1)(value_2, parser_2)...");
@@ -5208,7 +5515,7 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             static_assert(
-                !std::is_same<OrParser, nope>{},
+                !std::is_same<OrParser, detail::nope>{},
                 "It looks like you tried to write switch_(val).  You need at "
                 "least one alternative, like: switch_(val)(value_1, "
                 "parser_1)(value_2, parser_2)...");
@@ -5243,7 +5550,7 @@ namespace boost { namespace parser {
 
         template<typename Parser>
         static constexpr auto
-        make_or_parser(nope, parser_interface<Parser> parser)
+        make_or_parser(detail::nope, parser_interface<Parser> parser)
         {
             return parser.parser_;
         }
