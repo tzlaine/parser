@@ -23,3 +23,4 @@ endmacro()
 
 add_sample(hello)
 add_sample(trivial)
+add_sample(trivial_skipper)

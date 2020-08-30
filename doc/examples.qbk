@@ -34,11 +34,92 @@ result of the parse.  Don't get too caught up on this method of getting the
 parse result out of _p_; there are mutliple ways of doing so, and we'll cover
 all of them in subsequent examples.
 
+The effects of this call to _p_ is not very interesting _emdash_ since the
+parser we gave it cannot ever fail, and because we're placing the output in
+the same type as the input, it just copies the contents of `input` to
+`result`.
+
 [endsect]
 
 [section A Trivial Example]
 
+Let's look at a slightly more complicated example, even if it is still
+trivial.  Instead of taking any old `char`s we're given, let's require some
+structure.  Let's parse one or more `double`s, separated by commas.
+
+The _Parser_ parser for `double` is _d_.  So, to parse a single `double`, we'd
+use _d_.  If we wanted to parse two `double`s in a row, we'd use:
+
+    boost::parser::double_ >> boost::parser::double_
+
+`operator>>()` in this expression is the sequence-operator; read is as
+"followed by".  If we combine the sequence-operator with _kl_, we can get the
+parser we want by writing:
+
+    boost::parser::double_ >> *(',' >> boost::parser::double_)
+
+This is a parser that matches at least one `double` _emdash_ because of the
+first _d_ in the expression above _emdash_ follwed by zero or more instances
+of a-comma-follwed-by-a-`double`.  Notice that we can use `','` directly.
+Though it is not a parser, `operator>>()` and the other operators defined on
+_Parser_ parsers have overloads that accept characters/parser pairs of
+arguments; these operator overloads will create the right parser to recognize
+`','`.
+
+Again, this should be very familiar if you're used Boost.Spirit.  The syntax
+is the same, and only the namespace is different (the implementation details
+have almost nothing in common though).
+
 [trivial_example]
+
+The first example filled in an out-parameter to deliver the result of the
+parse.  This call to _p_ returns a result instead.  As you can see, the result
+is contextually convertible to `bool`, and `*result` is some sort of range.
+In fact, the return type of this call to _p_ is
+`std::optional<std::vector<double>>`.  Naturally, if the parse fails,
+`std::nullopt` is returned.  We'll look at how _Parser_ maps the type of the
+parser to the return type, or the filled in out-parameter's type, a bit later.
+
+If I run it in a shell, this is the result:
+
+[pre
+$ example/trivial
+Enter a list of doubles, separated by commas.  No pressure. 5.6,8.9
+Great! It looks like you entered:
+5.6
+8.9
+$ example/trivial
+Enter a list of doubles, separated by commas.  No pressure. 5.6, 8.9
+Good job!  Please proceed to the recovery annex for cake.
+]
+
+It does not recognize `"5.6, 8.9"`.  This is because it expects a comma
+followed /immediately/ by a `double`, but I inserted a space after the comma.
+The same failure to parse would occur if I put a space before or after the
+list of `double`s.
+
+[endsect]
+
+[section A Trivial Example That Gracefully Handles Whitespace]
+
+Let's modify the trivial parse we just did parse to ignore any spaces that
+might exist among the `double`s and commas.  To skip whitespace wherever we
+find it, we can pass a /skip parser/ to our call to _p_ (we don't need to
+touch the parser passed to _p_).  Here, we use `ascii::space`, which matches
+any ASCII character `c` for which `std::isspace(c)` is true.
+
+[trivial_skipper_example]
+
+The skip parser, or /skipper/, is run between the sub-parsers within the
+parser passed to _p_.  In this case, the skipper is run before the first
+`double` is parsed, before any subsequent comma or `double` is parsed, and at
+the end.  So, the strings `"3.6,5.9"` and `" 3.6 , \t 5.9 "` are parsed the
+same by this program.
+
+Skipping is an important concept in _Parser_.  You can skip anything, not just
+ASCII whitespace; there are lots of other things you might want to skip.  The
+skipper you pass to _p_ can be an arbitrary parser.  For example, if you write
+a parser for a scripting language, you can write a skipper to skip comments.
 
 [endsect]
 

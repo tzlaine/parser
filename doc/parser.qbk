@@ -27,6 +27,7 @@
 [/ Examples ]
 [import ../example/hello.cpp]
 [import ../example/trivial.cpp]
+[import ../example/trivial_skipper.cpp]
 
 [/ Images ]
 
@@ -44,6 +45,8 @@
 [def _cbp_                 [funcref boost::parser::parse `callback_parse()`]]
 
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
+[def _i_                   [globalref boost::parser::int_ `int_`]]
+[def _d_                   [globalref boost::parser::double_ `double_`]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 

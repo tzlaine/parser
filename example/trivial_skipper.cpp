@@ -3,7 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-//[ trivial_example
+//[ trivial_skipper_example
 #include <boost/parser/parser.hpp>
 
 #include <iostream>
@@ -18,7 +18,8 @@ int main()
     std::string input;
     std::getline(std::cin, input);
 
-    auto const result = bp::parse(input, bp::double_ >> *(',' >> bp::double_));
+    auto const result = bp::parse(
+        input, bp::double_ >> *(',' >> bp::double_), bp::ascii::space);
 
     if (result) {
         std::cout << "Great! It looks like you entered:\n";
