@@ -53,6 +53,88 @@ TEST(parser, symbols_simple)
     }
 }
 
+TEST(parser, symbols_max_munch)
+{
+    symbols<int> const roman_numerals = {
+        {"I", 1},
+        {"II", 2},
+        {"III", 3},
+        {"IV", 4},
+        {"V", 5},
+        {"VI", 6},
+        {"VII", 7},
+        {"VIII", 8},
+        {"IX", 9},
+
+        {"X", 10},
+        {"XX", 20},
+        {"XXX", 30},
+        {"XL", 40},
+        {"L", 50},
+        {"LX", 60},
+        {"LXX", 70},
+        {"LXXX", 80},
+        {"XC", 90},
+
+        {"C", 100},
+        {"CC", 200},
+        {"CCC", 300},
+        {"CD", 400},
+        {"D", 500},
+        {"DC", 600},
+        {"DCC", 700},
+        {"DCCC", 800},
+        {"CM", 900},
+
+        {"M", 1000}};
+
+    {
+        auto const result = parse("I", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 1);
+    }
+    {
+        auto const result = parse("II", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 2);
+    }
+    {
+        auto const result = parse("III", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 3);
+    }
+    {
+        auto const result = parse("IV", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 4);
+    }
+    {
+        auto const result = parse("V", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 5);
+    }
+    {
+        auto const result = parse("VI", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 6);
+    }
+    {
+        auto const result = parse("VII", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 7);
+    }
+    {
+        auto const result = parse("VIII", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 8);
+    }
+    {
+        auto const result = parse("IX", roman_numerals);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 9);
+    }
+}
+
 TEST(parser, symbols_mutating)
 {
     symbols<int> roman_numerals;

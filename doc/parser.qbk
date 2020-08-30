@@ -29,6 +29,7 @@
 [import ../example/trivial.cpp]
 [import ../example/trivial_skipper.cpp]
 [import ../example/semantic_actions.cpp]
+[import ../example/roman_numerals.cpp]
 
 [import ../include/boost/parser/error_handling_fwd.hpp]
 
@@ -46,9 +47,11 @@
 
 [def _v_                   [classref boost::parser::view `view`]]
 [def _n_                   [classref boost::parser::none `none`]]
+[def _symbols_             [classref boost::parser::symbols `symbols`]]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
+
 [def _attr_                [funcref boost::parser::_attr `_attr()`]]
 [def _val_                 [funcref boost::parser::_val `_val()`]]
 [def _pass_                [funcref boost::parser::_pass `_pass()`]]
@@ -62,12 +65,16 @@
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
 
+[def _lit_                 [funcref boost::parser::lit `lit()`]]
+
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
 [def _i_                   [globalref boost::parser::int_ `int_`]]
 [def _d_                   [globalref boost::parser::double_ `double_`]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
+[def _udl_                 [@https://en.cppreference.com/w/cpp/language/user_literal UDL]]
+[def _udls_                [@https://en.cppreference.com/w/cpp/language/user_literal UDLs]]
 
 [def _Spirit_              [@https://www.boost.org/doc/libs/release/libs/spirit Boost.Spirit]]
 

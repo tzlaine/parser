@@ -388,4 +388,78 @@ explanation.]
 
 [endsect]
 
+[section Symbol Tables]
+
+When writing a parser, it often comes up that there is a set of strings that,
+when parsed, are associated with a set of values 1-to-1.  It is tedious to
+write parsers that recognize all the possible input strings when you have to
+associate each one with an attribute via a semantic action.  Instead, we can
+use a symbol table.
+
+Say we want to parse Roman numerals, one of the most common work-related
+parsing problems.  We want to recognize numbers that start with any number of
+"M"s, representing thousands, followed by the hundreds, the tens, and the
+ones.  Any of these may be absent from the input, but not all.  Here are three
+symbol _Parser_ tables that we can use to recognize ones, tens, and hundreds
+values, respectively:
+
+[roman_numeral_symbol_tables]
+
+A _symbols_ maps strings of `char` to their associated attributes.  The type
+of the attribute must be specified as a template parameter to _symbols_
+_emdash_ `int` in this case.
+
+Any "M"s we encounter should add 1000 to the result, and all other values come
+from the symbol tables.  Here are the semantic actions we'll need to do that:
+
+[roman_numeral_actions]
+
+`add_1000` just adds `1000` to `result`.  `add` adds whatever attribute is
+produced by its parser to `result`.
+
+Now we just need to put the pieces together to make a parser:
+
+[roman_numeral_parser]
+
+We've got a few new bits in play here, so let's break it down.  `'M'_l` is a
+/literal parser/.  That is, it is a parser that parses a literal `char`, code
+point, or string.  In this case, a `char` "M" is being parsed.  The `_l` bit
+at the end is a _udl_ suffix that you can put after any `char`, `char32_t`, or
+`char const *` to form a literal parser.  You can also make a literal parser
+by writing _lit_ for some `x` of one of the previously mentioned types.
+
+Why do we need any of this, considering that we just used a literal `','` in
+our previous example?  The reason is that `'M'` is not used in an expression
+with another _Parser_ parser.  It is used within `*'M'_l[add_1000]`.  If we'd
+written `*'M'[add_1000]`, clearly that would be ill-formed; `char` has no
+`operator*()`, nor an `operator[]()`, associated with it.
+
+[tip Any time you want to use a `char`, `char32_t`, or string literal in a
+_Parser_ parser, write it as-is if it is combined with a preexisting _Parser_
+subparser `p`, as in `'x' >> p`.  Otherwise, you need to wrap it in a call to
+_lit_, or use the `_l` _udl_ suffix.]
+
+On to the next bit: `-hundreds[add]`.  By now, the use of the index operator
+should be pretty familiar; it associates the semantic action `add` with the
+parser `hundreds`.  The `operator-()` at the beginning is new.  It means that
+the parser it is applied to is optional.  You can read it as "zero or one".
+So, if `hundreds` is not successfully parsed after `*'M'[add_1000]`, nothing
+happens, because `hundreds` is allowed to be missing _emdash_ it's optional.
+If `hundreds` is parsed successfully, say by matching `"CC"`, the resulting
+attribute, `200`, is added to `result` inside `add`.
+
+Here is the full listing of the program.  Notice that it would have been
+inappropriate to use a whitespace skipper here, since the entire parse is a
+single number, so it was removed.
+
+[roman_numeral_example]
+
+[endsect]
+
+[section Unicode Support]
+
+TODO
+
+[endsect]
+
 [endsect]
