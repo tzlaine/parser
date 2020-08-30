@@ -1714,11 +1714,9 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
-        `hana::tuple` (TODO: As reference members of the tuple?  Same for
-        `_attr()`, `_locals()`, etc.).  You may write to this value in a
-        semantic action to control what attribute value(s) the associated
-        parser produces.  Returns `nope` if the innermost parser does produce
-        an attribute. */
+        `hana::tuple`.  You may write to this value in a semantic action to
+        control what attribute value(s) the associated parser produces.
+        Returns `nope` if the innermost parser does produce an attribute. */
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
