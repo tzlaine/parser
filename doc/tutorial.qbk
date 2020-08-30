@@ -5,8 +5,50 @@
 
 [section Tutorial]
 
-To get started, let's look at some simple programs that parse using _Parser_.
-We'll start small and build up from there.
+[section Terminology]
+
+First, let's cover some terminology that we'll be using throughout the docs:
+
+A /semantic action/ is an arbitrary bit of logic associated with a parser,
+that is only executed when the parser succeeds.
+
+Simpler parsers can be combined to form more complex parsers.  Given some
+combining operation `C`, and parsers `P0`, `P1`, ... `PN`, `C(P0, P1, ... PN)`
+creates a new parser `Q`.  This creates a /parse tree/.  `Q` is the parent of
+`P1`, `P2` is the child of `Q`, etc.  The parsers are applied in the top-down
+fashion implied by this.  When you use `Q` to parse a string, it will use
+`P0`, `P1`, etc. to do the actual work.  If `P3` is being used to parse the
+input, that means that `Q` is as well, since the way `Q` parses is by
+dispatching to its children to do some or all of the work.  At any point in
+the parse, there will be exactly one parser without children that is being
+used to parse the input; all other parsers being used are its ancestors in the
+parse tree.
+
+A /subparser/ is a parser that is the child of another parser.
+
+The /top-level parser/ is the root of the tree of parsers.
+
+The /current parser/ or /innermost parser/ is the parser with no children that
+is currently being used to parse the input.
+
+A /rule/ is a kind of parser that makes building large, complex parsers
+easier.  A /subrule/ is a rule that is the child of some other rule.  The
+/current rule/ or /innermost rule/ is the one rule currently being used to
+parse the input that has no subrules.  Note that while there is always exactly
+one current parser, there may or may not be a current rule _emdash_ rules are
+one kind of parser, and you may or may not be using them in your top-level
+parser.
+
+The /top-level parse/ is the parse operation being performed by the top-level
+parser.  This term is necessary, because though most parse failures are local
+to a particular parser, some parse failures cause the call to _p_ to indicate
+failure of the entire parse.  For these cases, we say that such a local
+failure "causes the top-level parse to fail".
+
+Next, we'll look at some simple programs that parse using _Parser_.  We'll
+start small and build up from there.
+
+[endsect]
 
 [section Hello, Whomever]
 
@@ -18,9 +60,10 @@ and then we parse it:
 
 The expression `*bp::char_` is a parser-expression.  It uses one of the many
 parsers that _Parser_ provides, _ch_.  Like all _Parser_ parsers, it has
-certain operations defined on it.  In this case, `*bp::char_` is using a C++
-version of _kl_ operator _emdash_ `operator*()`.  Since C++ has no postfix
-unary `*` operator, we have to use the one we have, so it is used as a prefix.
+certain operations defined on it.  In this case, `*bp::char_` is using an
+overloaded `operator*()` as the C++ version of a _kl_ operator.  Since C++ has
+no postfix unary `*` operator, we have to use the one we have, so it is used
+as a prefix.
 
 So, `*bp::char_` means "any number of characters".  In other words, it really
 cannot fail.  Even an empty string will match it.
@@ -35,6 +78,10 @@ used to do the parse; and `result`, and out-parameter into which to put the
 result of the parse.  Don't get too caught up on this method of getting the
 parse result out of _p_; there are multiple ways of doing so, and we'll cover
 all of them in subsequent examples.
+
+Also, just ignore for now the fact that _Parser_ somehow figured out that the
+result type of the `*bp::char_` parser is a `std::string`.  There are clear
+rules for this that we'll cover later.
 
 The effects of this call to _p_ is not very interesting _emdash_ since the
 parser we gave it cannot ever fail, and because we're placing the output in
@@ -64,7 +111,7 @@ This is a parser that matches at least one `double` _emdash_ because of the
 first _d_ in the expression above _emdash_ followed by zero or more instances
 of a-comma-followed-by-a-`double`.  Notice that we can use `','` directly.
 Though it is not a parser, `operator>>()` and the other operators defined on
-_Parser_ parsers have overloads that accept characters/parser pairs of
+_Parser_ parsers have overloads that accept character/parser pairs of
 arguments; these operator overloads will create the right parser to recognize
 `','`.
 
@@ -93,22 +140,22 @@ Good job!  Please proceed to the recovery annex for cake.
 
 It does not recognize `"5.6, 8.9"`.  This is because it expects a comma
 followed /immediately/ by a `double`, but I inserted a space after the comma.
-The same failure to parse would occur if I put a space before or after the
-list of `double`s.
+The same failure to parse would occur if I put a space before the comma, or
+before or after the list of `double`s.
 
 [endsect]
 
 [section A Trivial Example That Gracefully Handles Whitespace]
 
-Let's modify the trivial parse we just did parse to ignore any spaces that
-might exist among the `double`s and commas.  To skip whitespace wherever we
-find it, we can pass a /skip parser/ to our call to _p_ (we don't need to
-touch the parser passed to _p_).  Here, we use `ascii::space`, which matches
-any ASCII character `c` for which `std::isspace(c)` is true.
+Let's modify the trivial parser we just saw to ignore any spaces that might
+exist among the `double`s and commas.  To skip whitespace wherever we find it,
+we can pass a /skip parser/ to our call to _p_ (we don't need to touch the
+parser passed to _p_).  Here, we use `ascii::space`, which matches any ASCII
+character `c` for which `std::isspace(c)` is true.
 
 [trivial_skipper_example]
 
-The skip parser, or /skipper/, is run between the sub-parsers within the
+The skip parser, or /skipper/, is run between the subparsers within the
 parser passed to _p_.  In this case, the skipper is run before the first
 `double` is parsed, before any subsequent comma or `double` is parsed, and at
 the end.  So, the strings `"3.6,5.9"` and `" 3.6 , \t 5.9 "` are parsed the
@@ -117,7 +164,8 @@ same by this program.
 Skipping is an important concept in _Parser_.  You can skip anything, not just
 ASCII whitespace; there are lots of other things you might want to skip.  The
 skipper you pass to _p_ can be an arbitrary parser.  For example, if you write
-a parser for a scripting language, you can write a skipper to skip comments.
+a parser for a scripting language, you can write a skipper to skip whitespace,
+inline comments, and end-of-line comments.
 
 We'll be using skip parsers almost exclusively in the rest of the
 documentation.  The ability to ignore the parts of your input that you don't
@@ -130,8 +178,213 @@ practice.
 
 Like all parsing systems (lex & yacc, _Spirit_, etc.), _Parser_ has a
 mechanism for associating semantic actions with different parts of the parse.
+Here is nearly the same program as we saw in the previous example, except that
+it is implemented in terms of a semantic action that appends each parsed
+`double` to a result, instead of automatically building and returning the
+result:
 
 [semantic_action_example]
+
+Run in a shell, it looks like this:
+
+[pre
+$ example/semantic_actions 
+Enter a list of doubles, separated by commas. 4,3
+Got one!
+Got one!
+You entered:
+4
+3
+]
+
+In _Parser_, semantic actions are implemented in terms of invocable objects
+that take a single parameter to a parse-context object.  In the example we
+used this lambda as our invocable:
+
+[semantic_action_example_lambda]
+
+We're both printing a message to `std::cout` and recording a parsed result in
+the lambda.  It could do both, either, or neither of these things if you like.
+The way we get the parsed `double` in the lambda is by asking the parse
+context for it. `_attr(ctx)` is how you ask the parse context for the
+attribute produced by the parser to which the semantic action is attached.
+There are lots of functions like `_attr()` that can be used to access the
+state in the parse context.  We'll cover more of them later on.
+
+[endsect]
+
+[section The Parse Context]
+
+Now would be a good time to describe the parse context in some detail.  Any
+semantic action that you write will need to use the state in the parse
+context, so you need to know what's available.
+
+The parse context is a `hana::map` from tag types to elements.  Elements are
+added to or removevd from it at different times during the parse.  For
+instance, when a parser with a semantic action succeeds, it adds the attribute
+it produces to the parse context, then calls the invocable semantic action.
+This is efficient to do, because the `hana::map` remains fairly small, usually
+around ten elements, and each element is stored as a pointer.  Copying the
+entire map when mutating the context is therefore fast.
+
+[note All these functions that take the parse context as their first parameter
+will find by found by Argument-Dependent Lookup.  You will probably never need
+to qualify them with `boost::parser::`.]
+
+[heading Accessors for data that are always available]
+
+_pass_ is a `bool` indicating the success of failure of the current parse.
+This can be used to force the current parse to pass or fail:
+
+    [](auto & ctx) {
+        // If the attribute meets this predicate, fail the parse.
+        if (some_condition(_attr(ctx)))
+            _pass(ctx) = false;
+    }
+
+Note that for a semantic action to be executed, its associated parser must
+already have succeeded.  So unless you previously wrote `_pass(ctx) = false`
+somewhere, `_pass(ctx) = true` does nothing; it's redundant.
+
+_begin_ and _end_ return the beginning and end of the range that you passed to
+_p_, respectively.  _where_ returns a _v_ indicating the bounds of the input
+matched by the current parse.  _where_ can be useful if you just want to parse
+some text and return a result consisting of where certain elements are
+located, without producing any other attributes.
+
+_error_handler_ returns a reference to the error handler associated with the
+parser passed to _p_.  Any error handler must have the following member
+functions:
+
+[error_handler_api_1]
+
+[error_handler_api_2]
+
+If you call the second one, the one without the iterator parameter, it will
+call the first with `_where(context).begin()` as the iterator parameter.  The
+one without the iterator is the one you will use most often.  The one with the
+explicit iterator parameter can be useful in situations where you have
+messages that are related to each other, associated with multiple locations.
+For instance, if you are parsing XML, you may want to report that a close-tag
+does not match its associated open-tag by showing the line where the open-tag
+was found.  That may of course not be located anywhere near
+`_where(ctx).begin()`.  (A description of _globals_ is below.)
+
+    [](auto & ctx) {
+        // Assume we have a std::vector of open tags, and another
+        // std::vector of iterators to where the open tags were parsed, in our
+        // globals.
+        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+            std::string open_tag_msg =
+                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+            _error_handler(ctx).diagnose(
+                boost::parser::diagnostic_kind::error,
+                open_tag_msg,
+                ctx,
+                _globals(ctx).open_tags_position.back());
+            std::string close_tag_msg =
+                "does not match close-tag \"" + _attr(ctx) + "\" here:";
+            _error_handler(ctx).diagnose(
+                boost::parser::diagnostic_kind::error,
+                close_tag_msg,
+                ctx);
+
+            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            _pass(ctx) = false;
+        }
+    }
+
+There are also some convenience functions that make the above code a little
+less verbose (_report_error_ and _report_warning_):
+
+    [](auto & ctx) {
+        // Assume we have a std::vector of open tags, and another
+        // std::vector of iterators to where the open tags were parsed, in our
+        // globals.
+        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+            std::string open_tag_msg =
+                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+            _report_error(ctx, open_tag_msg, _globals(ctx).open_tag_positions.back());
+            std::string close_tag_msg =
+                "does not match close-tag \"" + _attr(ctx) + "\" here:";
+            _report_error(ctx, close_tag_msg);
+
+            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            _pass(ctx) = false;
+        }
+    }
+
+You should use these less verbose functions almost all the time.  The only
+time you would want to use _error_handler_ is when you are using a custom
+error handler, and you want access to some part of it's interface besides
+`diagnose()`.
+
+[heading Accessors for data that are only sometimes available] 
+
+_attr_ is the value of the current parser's attribute.  It is available only
+when the current parser's parse is successful.  If the parser has no semantic
+action, no attribute gets added to the parse context.  It can be used to read
+and write the current parser's attribute:
+
+    [](auto & ctx) { _attr(ctx) = 3; }
+
+If the current parser has no attribute, a _n_ is returned.
+
+_val_ is the value of the attribute of the current rules being used to parse
+(if any), and is available even before the rule's parse is successful.  It can
+be used to set the current rule's attribute, even from a parser that is a
+subparser inside the rule.  Let's say we're writing a parser with a semantic
+action that is within a rule.  If we want to set the current rule's value to
+whatever this subparser parses, we would write this semantic action:
+
+    [](auto & ctx) { _val(ctx) = _attr(ctx); }
+
+If there is no current rule, or the current rule has no attribute, a _n_ is
+returned.
+
+_globals_ returns a reference to a user-supplied struct that contains whatever
+data you want to use during the parse.  We'll get into this more later, but
+for now, here's how you might use it:
+
+    [](auto & ctx) {
+        // black_list is some set of proscribed values that are not allowed.
+        if (_globals(ctx).black_list.contains(_attr(ctx)))
+            _pass(ctx) = false;
+    }
+
+_locals_ returns a reference to one or more values that are local to the
+current rule being parsed, if any.  If there are two or more local values,
+_locals_ returns a reference to a `hana::tuple`.  Rules are something we
+haven't gotten to yet, but here is how you use _locals_:
+
+    [](auto & ctx) {
+        auto & local = _locals(ctx);
+        // Use local here.  If it is a hana::tuple, access its members like this:
+        using namespace hana::literals;
+        auto & first_element = local[0_c];
+        auto & second_element = local[1_c];
+    }
+
+If there is no current rule, or the current rule has no locals, a _n_ is
+returned.
+
+_params_, like _locals_, applies to the current rule being used to parse, if
+any.  It also returns a reference to a single value, if the current rule has
+only one parameter, or a `hana::tuple` to multiple values if the current rule
+has multiple parameters.
+
+If there is no current rule, or the current rule has no parameters, a _n_ is
+returned.
+
+[note _n_ is a type that is used as a return value in _Parser_ for parse
+context accessors.  _n_ is convertible to anything that has a default
+constructor, convertible from anything, assignable form anything, and has
+templated overloads for all the overloadable operators.  The intention is that
+a misuse of _val_, _globals_, etc. should compile, and produce an assertion at
+runtime.  Experience has shown that using a debugger for investigating the
+stack that leads to your mistake is a far better user experience than sifting
+through compiler diagnostics.  See the rationale section for a more detailed
+explanation.]
 
 [endsect]
 

@@ -1979,28 +1979,14 @@ namespace boost { namespace parser {
 
     // TODO: Consider eps(cond) -> precondition(cond).
 
-    // TODO: Document term of art: semantic action.
-    // TODO: Document term of art: topmost parser/rule.
-    // TODO: Document term of art: innermost parser/rule.
-    // TODO: Document term of art: top-level parse.
-
     // TODO: Document the convention that a parser's operator() always returns
     // a parser_interface.
 
     // TODO: Document what a pred/pred_ is (value or invocable), and what any
     // other value is (value or invocable).
 
-    // TODO: Document that the parse always operates on {,signed,unsigned}
-    // chars and std::bytes (or any size-1 integral besides char8_t) of
-    // unknown encoding or Unicode code points.
-
     // TODO: Document that using char8_t or as_utf8() when passing to
     // *parse() opts you into Unicode-aware parsing.
-
-    // TODO: Document the conversions that occur when comparing in char_parser
-    // (uint32_t's compared to ASCII, etc.).
-
-    // TODO: Are _val() and _attr() redundant?
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a

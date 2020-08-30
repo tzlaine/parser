@@ -5,6 +5,28 @@
 
 [section Rationale]
 
-TODO
+[heading _n_ is weird]
+
+Yes, and it's generally not a good programming practice to use a type which is
+so loose (anything can be assigned to it, it's implicitly convertible to
+anything, etc.  However, it is better than the alternative.  Consider this
+semantic action:
+
+    [](auto & ctx) { _attr(ctx) = 42; }
+
+If attached to an int-parser, this is fine.  If attached to an epsilon parser
+(which has no attribute), this silently does nothing.  However, in debug mode
+the assignment in this semantic action will hit a `BOOST_ASSERT(false)`, and
+lead the user to a big inline comment about how they got there.  This is a far
+more understandable failure mode for most programmers than the
+arbitrarily-deep template instantiation stack _emdash_ and baffling type of
+`ctx` _emdash_ that would result if the expression `_attr(ctx)` were
+ill-formed.
+
+The use of _n_ turns an entirely compile-time debugging operation into a
+run-time debugging one.  Ususally, this is the opposite of what we want as C++
+users.  In light of just how inscrutable error messages are that come from
+parser combinator libraries, using your favorite debugger to step through the
+stack to diagnose the problem is a *much* faster way to fix problems.
 
 [endsect]

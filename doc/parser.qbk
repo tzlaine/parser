@@ -28,6 +28,9 @@
 [import ../example/hello.cpp]
 [import ../example/trivial.cpp]
 [import ../example/trivial_skipper.cpp]
+[import ../example/semantic_actions.cpp]
+
+[import ../include/boost/parser/error_handling_fwd.hpp]
 
 [/ Images ]
 
@@ -41,8 +44,23 @@
 
 [def _Parser_              Boost.Parser]
 
+[def _v_                   [classref boost::parser::view `view`]]
+[def _n_                   [classref boost::parser::none `none`]]
+
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
+[def _attr_                [funcref boost::parser::_attr `_attr()`]]
+[def _val_                 [funcref boost::parser::_val `_val()`]]
+[def _pass_                [funcref boost::parser::_pass `_pass()`]]
+[def _begin_               [funcref boost::parser::_begin `_begin()`]]
+[def _end_                 [funcref boost::parser::_end `_end()`]]
+[def _where_               [funcref boost::parser::_where `_where()`]]
+[def _globals_             [funcref boost::parser::_globals `_globals()`]]
+[def _locals_              [funcref boost::parser::_locals `_locals()`]]
+[def _params_              [funcref boost::parser::_params `_params()`]]
+[def _error_handler_       [funcref boost::parser::_error_handler `_error_handler()`]]
+[def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
+[def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
 
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
 [def _i_                   [globalref boost::parser::int_ `int_`]]

@@ -24,7 +24,7 @@ get a parse result out of their parsing code.  Some parsing may best be done
 by returning an object that represents the result of the parse.  Other parsing
 may best be done by filling in a preexisting data structure.  Yet other
 parsing may best be done by parsing small sections of a large document, and
-reporting the results of sub-parsers as they are finished, via callbacks.
+reporting the results of subparsers as they are finished, via callbacks.
 _Parser_ accommodates all these ways of working, and even makes is possible to
 do callback-based or non-callback-based parsing without rewriting any code
 (except by changing the top-level call to _p_ to _cbp_).
