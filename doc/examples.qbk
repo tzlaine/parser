@@ -5,15 +5,40 @@
 
 [section Examples]
 
-[section A Trivial Example]
+[section Hello, Whomever]
 
-[trivial_example]
+This is just about the most minimal example of using _Parser_ that one could
+write.  We take a string from the command line, or `"World"` if none is given,
+and then we parse it:
+
+[hello_example]
+
+The expression `*bp::char_` is a parser-expression.  It uses one of the many
+parsers that _Parser_ provides, _ch_.  Like all _Parser_ parsers, it has
+certain operations defined on it.  In this case, `*bp::char_` is using a C++
+version of _kl_ operator _emdash_ `operator*()`.  Since C++ has no postfix
+unary `*` operator, we have to use the one we have, so it is used as a prefix.
+If you've used Boost.Spirit, this should be very familiar already.
+
+So, `*bp::char_` means "any number of characters".  In other words, it really
+cannot fail.  Even an empty string will match it.
+
+The parse operation is performed by calling the _p_ function, passing the
+parser as one of the arguments:
+
+    bp::parse(input, *bp::char_, result);
+
+The arguments here are: `input`, the string to parse; `*bp::char_`, the parser
+used to do the parse; and `result`, and out-parameter into which to put the
+result of the parse.  Don't get too caught up on this method of getting the
+parse result out of _p_; there are mutliple ways of doing so, and we'll cover
+all of them in subsequent examples.
 
 [endsect]
 
-[section Example 2]
+[section A Trivial Example]
 
-TODO
+[trivial_example]
 
 [endsect]
 

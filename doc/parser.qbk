@@ -25,6 +25,7 @@
 [/ Imports ]
 
 [/ Examples ]
+[import ../example/hello.cpp]
 [import ../example/trivial.cpp]
 
 [/ Images ]
@@ -38,7 +39,13 @@
 [/ Links ]
 
 [def _Parser_              Boost.Parser]
-tainer]]
+
+[def _p_                   [funcref boost::parser::parse `parse()`]]
+[def _cbp_                 [funcref boost::parser::parse `callback_parse()`]]
+
+[def _ch_                  [globalref boost::parser::char_ `char_`]]
+
+[def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 
 [def _emdash_              \u2014]
 

@@ -14,19 +14,21 @@ namespace bp = boost::parser;
 
 int main()
 {
-    std::cout << "Enter a list of doubles, separated by commas: ";
+    std::cout
+        << "Enter a list of doubles, separated by commas.  No pressure. ";
     std::string input;
     std::cin >> input;
 
     auto const result = bp::parse(input, bp::double_ >> *(',' >> bp::double_));
 
     if (result) {
-        std::cout << "You entered:\n";
+        std::cout << "Great! It looks like you entered:\n";
         for (double x : *result) {
             std::cout << x << "\n";
         }
     } else {
-        std::cout << "Please proceed to the recovery annex for cake.\n";
+        std::cout
+            << "Good job!  Please proceed to the recovery annex for cake.\n";
     }
 }
 //]
