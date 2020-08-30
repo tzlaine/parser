@@ -1712,8 +1712,6 @@ namespace boost { namespace parser {
     // TODO: Document the conversions that occur when comparing in char_parser
     // (uint32_t's compared to ASCII, etc.).
 
-    // TODO: C++20 concepts.
-
     // TODO: Are _val() and _attr() redundant?
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
