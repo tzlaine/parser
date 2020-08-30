@@ -53,9 +53,6 @@ namespace boost { namespace parser {
     }
 
 
-    // TODO: Consider eps(cond) -> precondition(cond).
-
-
     /** A tag type used to create tag objects that can be used as keys usable
         to access values in the parse context. */
     template<typename T>
@@ -1690,6 +1687,7 @@ namespace boost { namespace parser {
     }
 
 
+    // TODO: Consider eps(cond) -> precondition(cond).
 
     // TODO: Document term of art: semantic action.
     // TODO: Document term of art: topmost parser/rule.
