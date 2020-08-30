@@ -1810,3 +1810,22 @@ TEST(parser, combined_seq_and_or)
         }
     }
 }
+
+TEST(parser, broken_utf8)
+{
+    constexpr auto parser = *char_('\xcc');
+    {
+        std::string str = (char const *)u8"\xcc\x80"; // U+0300
+        std::string chars;
+        auto first = str.begin();
+        EXPECT_TRUE(parse(first, str.end(), parser, chars));
+        EXPECT_EQ(chars, "\xcc"); // Finds one match of the *char* 0xcc.
+    }
+    {
+        std::u8string str = u8"\xcc\x80"; // U+0300
+        std::string chars;
+        auto first = str.begin();
+        EXPECT_TRUE(parse(first, str.end(), parser, chars));
+        EXPECT_EQ(chars, ""); // Finds zero matches of the *code point* 0xcc.
+    }
+}
