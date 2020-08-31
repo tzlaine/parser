@@ -1934,6 +1934,10 @@ namespace boost { namespace parser {
             return retval;
         }
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#endif
         template<
             typename Iter1,
             typename Sentinel1,
@@ -1950,6 +1954,9 @@ namespace boost { namespace parser {
             }
             return retval;
         }
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
         template<typename I, typename S, typename T>
         std::optional<T>
