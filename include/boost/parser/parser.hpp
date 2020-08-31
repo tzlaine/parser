@@ -4867,6 +4867,9 @@ namespace boost { namespace parser {
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
 
     /** Returns a literal code point parser that produces no attribute. */
+    inline constexpr auto lit(char8_t c) noexcept { return omit[char_(c)]; }
+
+    /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
 
     template<typename StrIter, typename StrSentinel>
@@ -5894,18 +5897,45 @@ namespace boost { namespace parser {
         /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char c) { return lit(c); }
         /** Returns a literal parser equivalent to `lit(c)`. */
+        constexpr auto operator""_l(char8_t c) { return lit(c); }
+        /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char32_t c) { return lit(c); }
-        /** Returns a literal parser equivalent to `lit(c_str)`. */
-        constexpr auto operator""_l(char const * c_str) { return lit(c_str); }
-
-        /** Returns a literal parser equivalent to `lit(c)`. */
-        constexpr auto operator""_p(char c) { return char_(c); }
-        /** Returns a literal parser equivalent to `lit(c)`. */
-        constexpr auto operator""_p(char32_t c) { return char_(c); }
-        /** Returns a literal parser equivalent to `lit(c_str)`. */
-        constexpr auto operator""_p(char const * c_str)
+        /** Returns a literal parser equivalent to `lit(str)`. */
+        constexpr auto operator""_l(char const * str, std::size_t)
         {
-            return string(c_str);
+            return lit(str);
+        }
+        /** Returns a literal parser equivalent to `lit(str)`. */
+        constexpr auto operator""_l(char8_t const * str, std::size_t)
+        {
+            return lit(str);
+        }
+        /** Returns a literal parser equivalent to `lit(str)`. */
+        constexpr auto operator""_l(char32_t const * str, std::size_t)
+        {
+            return lit(str);
+        }
+
+        /** Returns a character parser equivalent to `char_(c)`. */
+        constexpr auto operator""_p(char c) { return char_(c); }
+        /** Returns a character parser equivalent to `char_(c)`. */
+        constexpr auto operator""_p(char8_t c) { return char_(c); }
+        /** Returns a character parser equivalent to `char_(c)`. */
+        constexpr auto operator""_p(char32_t c) { return char_(c); }
+        /** Returns a string parser equivalent to `string(str)`. */
+        constexpr auto operator""_p(char const * str, std::size_t)
+        {
+            return string(str);
+        }
+        /** Returns a string parser equivalent to `string(str)`. */
+        constexpr auto operator""_p(char8_t const * str, std::size_t)
+        {
+            return string(str);
+        }
+        /** Returns a string parser equivalent to `string(str)`. */
+        constexpr auto operator""_p(char32_t const * str, std::size_t)
+        {
+            return string(str);
         }
     }
 
