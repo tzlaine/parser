@@ -559,39 +559,56 @@ different parsers, `int` for _i_, `hana::tuple<char, int>` for
 `boost::parser::char_ >> boost::parser::int_`, etc.  Let's get into how this
 works with a bit more rigor.
 
+[note Some parsers have no attribute at all.  In the tables below, the type of
+the attribute is listed as "None."  There is a non-`void` type that is
+returned from each parser that lacks an attribute.  This keeps the logic
+simple; having to handle the two cases _emdash_ `void` or non-`void` _emdash_
+would make the library significantly more complicated.  The type of this
+non-`void` attribute associated with these parsers is an implementation
+detail.  The type comes from the `boost::parser::detail` namespace and is
+pretty useless.  You should never see this type in practice.  Within semantic
+actions, asking for the attribute of a non-attribute-producing parser (using
+`_attr(ctx)`) will yield a value of the special type `boost::parser::none`.
+When calling _p_ in a form that returns the attribute parsed, when there is no
+attribute, simply returns `bool`; this indicates the success of failure of the
+parse.]
+
 [heading Parser attributes]
 
 This table summarizes the attributes generated for all _Parser_ parsers.  In
 the table `x` and `y` represent arbitrary objects of any type.
 
 [table Parsers and Their Attributes
-    [[Parser]              [Attribute]]
+    [[Parser]              [Attribute]                   [Notes]]
 
-    [[ _e_ ]               [ None. ]]
-    [[ _eol_ ]             [ None. ]]
-    [[ _eoi_ ]             [ None. ]]
-    [[ _attr_np_`(x)` ]    [ `decltype(x)` ]]
-    [[ _ch_ ]              [ /See below./ ]]
-    [[ _cp_ ]              [ `uint32_t` ]]
-    [[ _cu_ ]              [ `char` ]]
-    [[ _lit_np_`(x)`]      [ None. ]]
-    [[ _str_np_`(x)`]      [ `std::string` ]]
-    [[ _b_ ]               [ `bool` ]]
+    [[ _e_ ]               [ None. ]                     []]
+    [[ _eol_ ]             [ None. ]                     []]
+    [[ _eoi_ ]             [ None. ]                     []]
+    [[ _attr_np_`(x)` ]    [ `decltype(x)` ]             []]
+    [[ _ch_ ]              [ /See below./ ]
+     [Includes all the `_p` _udls_ that take a single character.]]
+    [[ _cp_ ]              [ `uint32_t` ]                []]
+    [[ _cu_ ]              [ `char` ]                    []]
+    [[ _lit_np_`(x)`]      [ None. ]
+     [Includes all the `_l` _udls_.]]
+    [[ _str_np_`(x)`]      [ `std::string` ]
+     [Includes all the `_p` _udls_ that take a string.]]
+    [[ _b_ ]               [ `bool` ]                    []]
 
-    [[ _bin_ ]             [ `unsigned int` ]]
-    [[ _oct_ ]             [ `unsigned int` ]]
-    [[ _hex_ ]             [ `unsigned int` ]]
-    [[ _us_ ]              [ `unsigned short` ]]
-    [[ _ui_ ]              [ `unsigned int` ]]
-    [[ _ul_ ]              [ `unsigned long` ]]
-    [[ _ull_ ]             [ `unsigned long long` ]]
+    [[ _bin_ ]             [ `unsigned int` ]            []]
+    [[ _oct_ ]             [ `unsigned int` ]            []]
+    [[ _hex_ ]             [ `unsigned int` ]            []]
+    [[ _us_ ]              [ `unsigned short` ]          []]
+    [[ _ui_ ]              [ `unsigned int` ]            []]
+    [[ _ul_ ]              [ `unsigned long` ]           []]
+    [[ _ull_ ]             [ `unsigned long long` ]      []]
 
-    [[ _s_ ]               [ `short` ]]
-    [[ _i_ ]               [ `int` ]]
-    [[ _l_ ]               [ `long` ]]
-    [[ _ll_ ]              [ `long long` ]]
-    [[ _f_ ]               [ `float` ]]
-    [[ _d_ ]               [ `double` ]]
+    [[ _s_ ]               [ `short` ]                   []]
+    [[ _i_ ]               [ `int` ]                     []]
+    [[ _l_ ]               [ `long` ]                    []]
+    [[ _ll_ ]              [ `long long` ]               []]
+    [[ _f_ ]               [ `float` ]                   []]
+    [[ _d_ ]               [ `double` ]                  []]
 
     [[ _symbols_t_ ]       [ `T` ]]
 ]
@@ -606,17 +623,34 @@ attribute type is the type used to represent code points.  For typical uses,
 that type is `uint32_t`.  All parsing of UTF-8 falls under this typical case.
 The only time the code point type will be something different is if you call
 _p_ with a code point sequence whose element type is something besides
-`uint32_t`.
+`uint32_t`.  For example, when you parse plain `char`s, meaning that the
+parsing is in the non-Unicode code path, the attribute of _ch_ is `char`:
+
+    auto result = parse("some text", boost::parser::char_);
+    static_assert(std::is_same_v<decltype(result), std::optional<char>>));
+
+When you parse UTF-8, the matching is done on a code point basis, and the code
+point type is `uint32_t`, so the attribute type is `uint32_t`:
+
+    auto result = parse(boost::text::as_utf8("some text"), boost::parser::char_);
+    static_assert(std::is_same_v<decltype(result), std::optional<uint32_t>>));
+
+When you parse code points by explicitly giving a code point range to _p_, the
+attribute type is whatever the input range's element type is:
+
+    auto result = parse(U"some text", boost::parser::char_);
+    static_assert(std::is_same_v<decltype(result), std::optional<char32_t>>));
+
 
 [heading Combining operation attributes]
 
-Combining operations of course affect the generation of attributes.  In this
-table: `ATTR()` is a notional macro that expands to the attribute type of the
-parser passed to it; `m` and `n` are integral values; `c` is a
+Combining operations of course affect the generation of attributes.  In the
+tables below: `ATTR()` is a notional macro that expands to the attribute type
+of the parser passed to it; `m` and `n` are integral values; `c` is a
 condition/predicate; `x`, `y1`, `y2`, ... are arbitrary objects; `a` is a
 semantic action; and `p`, `p1`, `p2`, ... are parsers.
 
-[table Combining Operations and Their Attributes
+[table Simple Combining Operations and Their Attributes
     [[Parser]                           [Attribute]]
 
     [[`!p`]                             [None.]]
@@ -648,28 +682,42 @@ semantic action; and `p`, `p1`, `p2`, ... are parsers.
     [[_sw_np_`(x)(y1, p1)(y2, p2)...`]  [`std::variant<ATTR(p1), ATTR(p2), ...>`]]
 ]
 
-TODO: Still missing lots of case, like *char_ (string or vector?); char_ >>
+[table Complex Combining Operations and Their Attributes
+    [[Parser]                        [Attribute]]
+
+    [[`eps | p1 | p2`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
+    [[`p1 | eps | p2`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
+    [[`p1 | p2 | eps`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
+
+]
+
+TODO: Still missing lots of cases, like *char_ (string or vector?); char_ >>
 string("foo"); string("foo") >> string("bar"); *int_ >> *int_; etc.
 
 [heading Directives that affect attribute generation]
 
 _omit_np_`[p]` disables attribute generation for the parser `p`.  Not only
-does _omit_np_`[p]` have not attribute, but any attribute generation work that
+does _omit_np_`[p]` have no attribute, but any attribute generation work that
 normally happens within `p` is skipped.
 
-_raw_np_`[p]` changes the attribute from whatever `p`'s attribute is to
-_v_`<I>`, where `I` is the type of the iterator used within the parse.  Note
-that this may not be the same as the iterator type passed to _p_.  For
-instance, when parsing UTF-8, the iterator passed to _p_ may be `char8_t const
-*`, but within the parse it will be a UTF-9 to UTF-32 transcoding (converting)
-iterator.  Just like _omit_`, _raw_ causes all attribute-production work
-within `p` to be skipped.
+_raw_np_`[p]` changes the attribute from `ATTR(p)` to _v_`<I>`, where `I` is
+the type of the iterator used within the parse.  Note that this may not be the
+same as the iterator type passed to _p_.  For instance, when parsing UTF-8,
+the iterator passed to _p_ may be `char8_t const *`, but within the parse it
+will be a UTF-8 to UTF-32 transcoding (converting) iterator.  Just like
+_omit_, _raw_ causes all attribute-production work within `p` to be skipped.
 
 [endsect]
 
 [section The `parse()` API]
 
 TODO
+
+TODO: This is where attribute compatability is covered.
+
+TODO: Be sure to note that parse(as_utf8(...), p) is in the Unicode path and:
+    auto r = as_utf8(...)
+    parse(r.begin(), r.end(), p) is not.
 
 [endsect]
 
