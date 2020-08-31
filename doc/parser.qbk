@@ -49,6 +49,7 @@
 [def _v_                   [classref boost::parser::view `view`]]
 [def _n_                   [classref boost::parser::none `none`]]
 [def _symbols_             [classref boost::parser::symbols `symbols`]]
+[def _symbols_t_           [classref boost::parser::symbols `symbols<T>`]]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
@@ -66,11 +67,46 @@
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
 
-[def _lit_                 [funcref boost::parser::lit `lit()`]]
+[def _lit_np_              [funcref boost::parser::lit `lit`]]
+[def _str_np_              [funcref boost::parser::string `str`]]
+[def _attr_np_             [funcref boost::parser::attr `attr`]]
 
+[def _lit_                 [funcref boost::parser::lit `lit()`]]
+[def _str_                 [funcref boost::parser::string `str()`]]
+[def _attr_                [funcref boost::parser::attr `attr()`]]
+
+[def _e_                   [globalref boost::parser::eps `eps`]]
+[def _eol_                 [globalref boost::parser::eol `eol`]]
+[def _eoi_                 [globalref boost::parser::eoi `eoi`]]
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
+[def _cp_                  [globalref boost::parser::cp `cp`]]
+[def _cu_                  [globalref boost::parser::cu `cu`]]
+[def _b_                   [globalref boost::parser::bool_ `bool_`]]
+
+[def _bin_                 [globalref boost::parser::bin `bin`]]
+[def _oct_                 [globalref boost::parser::oct `oct`]]
+[def _hex_                 [globalref boost::parser::hex `hex`]]
+
+[def _us_                  [globalref boost::parser::ushort_ `ushort_`]]
+[def _ui_                  [globalref boost::parser::uint_ `uint_`]]
+[def _ul_                  [globalref boost::parser::ulong_ `ulong_`]]
+[def _ull_                 [globalref boost::parser::ulong_long `ulong_long`]]
+
+[def _s_                   [globalref boost::parser::short_ `short_`]]
 [def _i_                   [globalref boost::parser::int_ `int_`]]
+[def _l_                   [globalref boost::parser::long_ `long_`]]
+[def _ll_                  [globalref boost::parser::long_long `long_long`]]
+
+[def _f_                   [globalref boost::parser::float_ `float_`]]
 [def _d_                   [globalref boost::parser::double_ `double_`]]
+
+[def _omit_                [globalref boost::parser::omit `omit[]`]]
+[def _raw_                 [globalref boost::parser::raw `raw[]`]]
+[def _lexeme_              [globalref boost::parser::lexeme `lexeme[]`]]
+
+[def _omit_np_             [globalref boost::parser::omit `omit`]]
+[def _raw_np_              [globalref boost::parser::raw `raw`]]
+[def _lexeme_np_           [globalref boost::parser::lexeme `lexeme`]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]

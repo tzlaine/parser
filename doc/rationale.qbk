@@ -9,7 +9,7 @@
 
 Yes, and it's generally not a good programming practice to use a type which is
 so loose (anything can be assigned to it, it's implicitly convertible to
-anything, etc.  However, it is better than the alternative.  Consider this
+anything, etc.).  However, it is better than the alternative.  Consider this
 semantic action:
 
     [](auto & ctx) { _attr(ctx) = 42; }
