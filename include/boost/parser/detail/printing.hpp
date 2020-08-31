@@ -17,6 +17,19 @@
 
 namespace boost { namespace parser { namespace detail {
 
+    template<typename Char>
+    std::ostream & print_char(std::ostream & os, Char c)
+    {
+        if constexpr (std::is_same_v<
+                          char8_t,
+                          std::remove_cv_t<std::remove_reference_t<Char>>>) {
+            os << char(c);
+        } else {
+            os << c;
+        }
+        return os;
+    }
+
     enum { parser_component_limit = 4 };
 
 #if 0 // TODO
@@ -428,7 +441,7 @@ namespace boost { namespace parser { namespace detail {
                 os << '"';
             for (int64_t i = 0; i < trace_input_cps && first != last;
                  ++i, ++first) {
-                os << *first;
+                print_char(os, *first);
             }
             if (quote)
                 os << '"';
@@ -455,14 +468,7 @@ namespace boost { namespace parser { namespace detail {
             if (quote)
                 os << '"';
             for (Iter it = first_, end = first.base(); it != end; ++it) {
-                if constexpr (std::is_same_v<
-                                  char8_t,
-                                  std::remove_cv_t<std::remove_reference_t<
-                                      decltype(*it)>>>) {
-                    os << char(*it);
-                } else {
-                    os << *it;
-                }
+                print_char(os, *it);
             }
             if (quote)
                 os << '"';

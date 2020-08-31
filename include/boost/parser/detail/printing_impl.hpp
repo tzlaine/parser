@@ -338,7 +338,7 @@ namespace boost { namespace parser { namespace detail {
             std::array<uint32_t, 1> cps = {{(uint32_t)expected}};
             auto const r = text::as_utf8(cps);
             for (auto c : r) {
-                os << c;
+                print_char(os, c);
             }
         }
     };
@@ -456,7 +456,7 @@ namespace boost { namespace parser { namespace detail {
         os << "string(\"";
         for (auto c :
              text::as_utf8(parser.expected_first_, parser.expected_last_)) {
-            os << c;
+            print_char(os, c);
         }
         os << "\")";
     }
@@ -472,7 +472,7 @@ namespace boost { namespace parser { namespace detail {
         for (auto c : text::as_utf8(
                  parser.parser_.expected_first_,
                  parser.parser_.expected_last_)) {
-            os << c;
+            print_char(os, c);
         }
         os << "\"";
     }
