@@ -1867,8 +1867,16 @@ namespace boost { namespace parser {
         }
 
         template<typename T>
-        concept non_unicode_char_range_like = utf8_range_like<T> &&
-                                              (!utf8_view<T> && !char8_ptr<T>);
+        struct is_utf8_view : std::false_type
+        {};
+        template<typename I, typename S>
+        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
+        {};
+
+        template<typename T>
+        concept non_unicode_char_range_like =
+            utf8_range_like<T> &&
+            (!is_utf8_view<std::remove_cvref_t<T>>::value && !char8_ptr<T>);
 
         template<typename R>
         constexpr auto make_input_view(R && r) noexcept
@@ -5970,7 +5978,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
@@ -6043,7 +6052,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
@@ -6119,7 +6129,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
@@ -6201,7 +6212,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
@@ -6287,7 +6299,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::callback_parse_impl<true>(
@@ -6386,7 +6399,8 @@ namespace boost { namespace parser {
         trace trace_mode = trace::off)
     {
         if constexpr (
-            detail::non_unicode_char_range_like<view<I, S>> ||
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_ptr<I>) ||
             sizeof(*first) == 4u) {
             if (trace_mode == trace::on) {
                 return detail::callback_skip_parse_impl<true>(

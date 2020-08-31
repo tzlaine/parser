@@ -53,19 +53,6 @@ namespace boost { namespace parser {
     concept char8_range =
         utf8_range<T> && std::is_same_v<std::ranges::range_value_t<T>, char8_t>;
 
-    namespace detail {
-        template<typename T>
-        struct is_utf8_view : std::false_type
-        {};
-
-        template<typename I, typename S>
-        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
-        {};
-    }
-
-    template<typename T>
-    concept utf8_view = utf8_range<T> && detail::is_utf8_view<T>::value;
-
     template<typename T>
     concept parsable_iter = std::forward_iterator<T> &&
         std::is_integral<std::iter_value_t<T>>::value;

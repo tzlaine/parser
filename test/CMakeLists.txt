@@ -23,6 +23,7 @@ add_test(NAME parser_api COMMAND parser_api ---gtest_catch_exceptions=1)
 add_executable(
     compile_tests
     compile_tests_main.cpp
+    compile_attribute.cpp
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
 )
