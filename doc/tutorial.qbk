@@ -536,6 +536,8 @@ input.  This means that `parser_3` is equivalent to _e_ by itself.
 
 TODO
 
+TODO: Cover the various collapsing rules with op*, op+, etc.
+
 [endsect]
 
 [section Combining Operations]
@@ -554,17 +556,8 @@ TODO
 
 So far, we've seen several different types of attributes that come from
 different parsers, `int` for _i_, `hana::tuple<char, int>` for
-`boost::parser::char_ >> bppst::parser::int_`, etc.  Let's get into how this
-works with a bit more rigor.  First, a few general rules:
-
-* A sequence parser's attribute is a `hana::tuple` of its subparsers'
-  attributes.
-
-* An alternative parser's attribute is a `std::variant` of its subparsers'
-  attributes.
-
-* Literal parsers have no attributes: `"str"_l`, `lit('c')`, etc., produce no
-  attributes.
+`boost::parser::char_ >> boost::parser::int_`, etc.  Let's get into how this
+works with a bit more rigor.
 
 [heading Parser attributes]
 
@@ -572,34 +565,35 @@ This table summarizes the attributes generated for all _Parser_ parsers.  In
 the table `x` and `y` represent arbitrary objects of any type.
 
 [table Parsers and Their Attributes
-    [[Parser]         [Attribute]]
-    [[ _e_ ]          [ None. ]]
-    [[ _eol_ ]        [ None. ]]
-    [[ _eoi_ ]        [ None. ]]
-    [[ _attr_np_`(x)` ]  [ `decltype(x)` ]]
-    [[ _ch_ ]         [ /See below./ ]]
-    [[ _cp_ ]         [ `uint32_t` ]]
-    [[ _cu_ ]         [ `char` ]]
-    [[ _lit_np_`(x)`]    [ None. ]]
-    [[ _str_np_`(x)`]    [ None. ]]
-    [[ _b_ ]          [ `bool` ]]
+    [[Parser]              [Attribute]]
 
-    [[ _bin_ ]        [ `unsigned int` ]]
-    [[ _oct_ ]        [ `unsigned int` ]]
-    [[ _hex_ ]        [ `unsigned int` ]]
-    [[ _us_ ]         [ `unsigned short` ]]
-    [[ _ui_ ]         [ `unsigned int` ]]
-    [[ _ul_ ]         [ `unsigned long` ]]
-    [[ _ull_ ]        [ `unsigned long long` ]]
+    [[ _e_ ]               [ None. ]]
+    [[ _eol_ ]             [ None. ]]
+    [[ _eoi_ ]             [ None. ]]
+    [[ _attr_np_`(x)` ]    [ `decltype(x)` ]]
+    [[ _ch_ ]              [ /See below./ ]]
+    [[ _cp_ ]              [ `uint32_t` ]]
+    [[ _cu_ ]              [ `char` ]]
+    [[ _lit_np_`(x)`]      [ None. ]]
+    [[ _str_np_`(x)`]      [ `std::string` ]]
+    [[ _b_ ]               [ `bool` ]]
 
-    [[ _s_ ]          [ `short` ]]
-    [[ _i_ ]          [ `int` ]]
-    [[ _l_ ]          [ `long` ]]
-    [[ _ll_ ]         [ `long long` ]]
-    [[ _f_ ]          [ `float` ]]
-    [[ _d_ ]          [ `double` ]]
+    [[ _bin_ ]             [ `unsigned int` ]]
+    [[ _oct_ ]             [ `unsigned int` ]]
+    [[ _hex_ ]             [ `unsigned int` ]]
+    [[ _us_ ]              [ `unsigned short` ]]
+    [[ _ui_ ]              [ `unsigned int` ]]
+    [[ _ul_ ]              [ `unsigned long` ]]
+    [[ _ull_ ]             [ `unsigned long long` ]]
 
-    [[ _symbols_t_ ]  [ `T` ]]
+    [[ _s_ ]               [ `short` ]]
+    [[ _i_ ]               [ `int` ]]
+    [[ _l_ ]               [ `long` ]]
+    [[ _ll_ ]              [ `long long` ]]
+    [[ _f_ ]               [ `float` ]]
+    [[ _d_ ]               [ `double` ]]
+
+    [[ _symbols_t_ ]       [ `T` ]]
 ]
 
 Also, all parsers in the `ascii` namespace have the attribute `char`.
@@ -616,14 +610,46 @@ _p_ with a code point sequence whose element type is something besides
 
 [heading Combining operation attributes]
 
-Combining operations of course affect the generation of attributes:
+Combining operations of course affect the generation of attributes.  In this
+table: `ATTR()` is a notional macro that expands to the attribute type of the
+parser passed to it; `m` and `n` are integral values; `c` is a
+condition/predicate; `x`, `y1`, `y2`, ... are arbitrary objects; `a` is a
+semantic action; and `p`, `p1`, `p2`, ... are parsers.
 
 [table Combining Operations and Their Attributes
-    [[Parser]         [Attribute]]
+    [[Parser]                           [Attribute]]
 
-    [[foo]            [bar]]
+    [[`!p`]                             [None.]]
+    [[`&p`]                             [None.]]
+
+    [[`*p`]                             [`std::vector<ATTR(p)>`]]
+    [[`+p`]                             [`std::vector<ATTR(p)>`]]
+    [[`+*p`]                            [`std::vector<ATTR(p)>`]]
+    [[`*+p`]                            [`std::vector<ATTR(p)>`]]
+    [[`-p`]                             [`std::optional<ATTR(p)>`]]
+
+    [[`p1 >> p2`]                       [`hana::tuple<ATTR(p1), ATTR(p2)>`]]
+    [[`p1 > p2`]                        [`hana::tuple<ATTR(p1), ATTR(p2)>`]]
+    [[`p1 >> p2 >> p3`]                 [`hana::tuple<ATTR(p1), ATTR(p2), ATTR(p3)>`]]
+    [[`p1 > p2 >> p3`]                  [`hana::tuple<ATTR(p1), ATTR(p2), ATTR(p3)>`]]
+    [[`p1 >> p2 > p3`]                  [`hana::tuple<ATTR(p1), ATTR(p2), ATTR(p3)>`]]
+    [[`p1 > p2 > p3`]                   [`hana::tuple<ATTR(p1), ATTR(p2), ATTR(p3)>`]]
+
+    [[`p1 | p2`]                        [`std::variant<ATTR(p1), ATTR(p2)>`]]
+    [[`p1 | p2 | p3`]                   [`std::variant<ATTR(p1), ATTR(p2), ATTR(p3)>`]]
+
+    [[`p1 % p2`]                        [`std::vector<ATTR(p1)>`]]
+
+    [[`p[a]`]                           [None.]]
+
+    [[_rpt_np_`(n)[p]`]                 [`ATTR(p)`]]
+    [[_rpt_np_`(m, n)[p]`]              [`ATTR(p)`]]
+    [[_if_np_`(c)[p]`]                  [`std::optional<ATTR(p)>`]]
+    [[_sw_np_`(x)(y1, p1)(y2, p2)...`]  [`std::variant<ATTR(p1), ATTR(p2), ...>`]]
 ]
-TODO: Operations.  Don't forget repeat(n, m)[p], if_(c)[p], switch_(x)(y1, p1)(y2, p2)
+
+TODO: Still missing lots of case, like *char_ (string or vector?); char_ >>
+string("foo"); string("foo") >> string("bar"); *int_ >> *int_; etc.
 
 [heading Directives that affect attribute generation]
 
@@ -643,7 +669,6 @@ within `p` to be skipped.
 
 [section The `parse()` API]
 
-We've seen 
 TODO
 
 [endsect]
