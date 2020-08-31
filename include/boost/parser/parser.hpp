@@ -4049,6 +4049,8 @@ namespace boost { namespace parser {
             return parser::parser_interface{action_parser_t{parser_, action}};
         }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
         /** Returns `parser_((Arg &&)arg, (Args &&)args...)`.  This is useful
             for those parsers that have `operator()` overloads,
             e.g. `char_('x')`.  By convention, parsers' `operator()`s return
@@ -4111,6 +4113,7 @@ namespace boost { namespace parser {
         parser_type parser_;
         global_state_type globals_;
         error_handler_type error_handler_;
+#endif
     };
 
 
