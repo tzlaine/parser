@@ -400,4 +400,30 @@ void compile_seq_attribute()
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
     }
+    {
+        constexpr auto parser = int_ >> string("str") >> double_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<tuple<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = (int_ >> string("str")) >> double_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<tuple<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = int_ >> (string("str") >> double_);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<tuple<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = (int_ >> string("str")) >> (double_ >> int_);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<tuple<int, std::string, double, int>>>));
+    }
 }

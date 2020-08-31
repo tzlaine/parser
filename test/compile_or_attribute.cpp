@@ -524,11 +524,11 @@ void compile_or_attribute()
     {
         constexpr auto parser = -char_ | (*string("str") | eps);
         using attr_t = decltype(parse(first, last, parser));
-        BOOST_MPL_ASSERT((is_same<
-                          attr_t,
-                          std::optional<std::variant<
-                              std::optional<char>,
-                              std::optional<std::string>>>>));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::optional<
+                    std::variant<std::optional<char>, std::string>>>>));
     }
     {
         constexpr auto parser = eps | (-char_ | *string("str") | eps);
@@ -547,5 +547,37 @@ void compile_or_attribute()
                 attr_t,
                 std::optional<std::optional<
                     std::variant<std::optional<char>, std::string>>>>));
+    }
+    {
+        constexpr auto parser = int_ | string("str") | double_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::variant<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = (int_ | string("str")) | double_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::variant<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = int_ | (string("str") | double_);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::variant<int, std::string, double>>>));
+    }
+    {
+        constexpr auto parser = (int_ | string("str")) | (double_ | float_);
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::variant<int, std::string, double, float>>>));
     }
 }

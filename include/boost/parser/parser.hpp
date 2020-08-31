@@ -1974,6 +1974,15 @@ namespace boost { namespace parser {
                 std::decay_t<decltype(*std::declval<Context const &>()[t])>,
                 detail::nope>;
         }
+
+        // Hana's concat does not seem to do what it says on the tin.
+        // Concatenating (int, string) with (double, int) yields (int, string,
+        // double).  I maybe don't understand it well enough.
+        template<typename Tuple1, typename Tuple2>
+        constexpr auto for_real_concat(Tuple1 t1, Tuple2 t2)
+        {
+            return hana::insert_range(t1, hana::size(t1), t2);
+        }
     }
 
 
@@ -3901,6 +3910,8 @@ namespace boost { namespace parser {
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<true>(rhs);
+            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+                return rhs.parser_.template prepend<true>(*this);
             } else {
                 using parser_t = seq_parser<
                     hana::tuple<parser_type, parser_type_2>,
@@ -3935,6 +3946,8 @@ namespace boost { namespace parser {
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<false>(rhs);
+            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+                return rhs.parser_.template prepend<false>(*this);
             } else {
                 using parser_t = seq_parser<
                     hana::tuple<parser_type, parser_type_2>,
@@ -3972,6 +3985,8 @@ namespace boost { namespace parser {
         {
             if constexpr (detail::is_or_p<parser_type>{}) {
                 return parser_.append(rhs);
+            } else if constexpr (detail::is_or_p<parser_type_2>{}) {
+                return rhs.parser_.prepend(*this);
             } else {
                 return parser::parser_interface{
                     or_parser<hana::tuple<parser_type, parser_type_2>>{
@@ -4362,9 +4377,15 @@ namespace boost { namespace parser {
     constexpr auto or_parser<ParserTuple>::append(
         parser_interface<Parser> parser) const noexcept
     {
-        return parser_interface{
-            or_parser<decltype(hana::append(parsers_, parser.parser_))>{
-                hana::append(parsers_, parser.parser_)}};
+        if constexpr (detail::is_or_p<Parser>{}) {
+            return parser_interface{or_parser<decltype(
+                detail::for_real_concat(parsers_, parser.parser_.parsers_))>{
+                detail::for_real_concat(parsers_, parser.parser_.parsers_)}};
+        } else {
+            return parser_interface{
+                or_parser<decltype(hana::append(parsers_, parser.parser_))>{
+                    hana::append(parsers_, parser.parser_)}};
+        }
     }
 
     template<typename ParserTuple, typename BacktrackingTuple>
@@ -4389,13 +4410,24 @@ namespace boost { namespace parser {
     constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::append(
         parser_interface<Parser> parser) const noexcept
     {
-        using backtracking = decltype(
-            hana::append(BacktrackingTuple{}, hana::bool_c<AllowBacktracking>));
-        using parser_t = seq_parser<
-            decltype(hana::append(parsers_, parser.parser_)),
-            backtracking>;
-        return parser_interface{
-            parser_t{hana::append(parsers_, parser.parser_)}};
+        if constexpr (detail::is_seq_p<Parser>{}) {
+            using backtracking = decltype(detail::for_real_concat(
+                BacktrackingTuple{}, typename Parser::backtracking{}));
+            using parser_t = seq_parser<
+                decltype(
+                    detail::for_real_concat(parsers_, parser.parser_.parsers_)),
+                backtracking>;
+            return parser_interface{parser_t{
+                detail::for_real_concat(parsers_, parser.parser_.parsers_)}};
+        } else {
+            using backtracking = decltype(hana::append(
+                BacktrackingTuple{}, hana::bool_c<AllowBacktracking>));
+            using parser_t = seq_parser<
+                decltype(hana::append(parsers_, parser.parser_)),
+                backtracking>;
+            return parser_interface{
+                parser_t{hana::append(parsers_, parser.parser_)}};
+        }
     }
 
 #endif
@@ -5572,11 +5604,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         char rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<true>(lit(rhs));
-        } else {
-            return *this >> lit(rhs);
-        }
+        return *this >> lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5584,11 +5612,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         char32_t rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<true>(lit(rhs));
-        } else {
-            return *this >> lit(rhs);
-        }
+        return *this >> lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5597,11 +5621,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         R && r) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<true>(lit(r));
-        } else {
-            return *this >> lit(r);
-        }
+        return *this >> lit(r);
     }
 
 #endif
@@ -5646,11 +5666,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         char rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<false>(lit(rhs));
-        } else {
-            return *this > lit(rhs);
-        }
+        return *this > lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5658,11 +5674,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         char32_t rhs) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<false>(lit(rhs));
-        } else {
-            return *this > lit(rhs);
-        }
+        return *this > lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5671,11 +5683,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         R && r) const noexcept
     {
-        if constexpr (detail::is_seq_p<Parser>{}) {
-            return parser_.template append<false>(lit(r));
-        } else {
-            return *this > lit(r);
-        }
+        return *this > lit(r);
     }
 
 #endif
@@ -5720,11 +5728,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         char rhs) const noexcept
     {
-        if constexpr (detail::is_or_p<Parser>{}) {
-            return parser_.append(lit(rhs));
-        } else {
-            return *this | lit(rhs);
-        }
+        return *this | lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5732,11 +5736,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         char32_t rhs) const noexcept
     {
-        if constexpr (detail::is_or_p<Parser>{}) {
-            return parser_.append(lit(rhs));
-        } else {
-            return *this | lit(rhs);
-        }
+        return *this | lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5745,11 +5745,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         R && r) const noexcept
     {
-        if constexpr (detail::is_or_p<Parser>{}) {
-            return parser_.append(lit(r));
-        } else {
-            return *this | lit(r);
-        }
+        return *this | lit(r);
     }
 
 #endif
