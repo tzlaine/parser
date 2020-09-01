@@ -650,9 +650,10 @@ Combining operations of course affect the generation of attributes.  In the
 tables below: `ATTR()` is a notional macro that expands to the attribute type
 of the parser passed to it; `m` and `n` are integral values; `c` is a
 condition/predicate; `x`, `y1`, `y2`, ... are arbitrary objects; `a` is a
-semantic action; and `p`, `p1`, `p2`, ... are parsers.
+semantic action; and `p`, `p1`, `p2`, ... are parsers that generate
+attributes.
 
-[table Simple Combining Operations and Their Attributes
+[table Combining Operations and Their Attributes
     [[Parser]                           [Attribute]]
 
     [[`!p`]                             [None.]]
@@ -684,17 +685,137 @@ semantic action; and `p`, `p1`, `p2`, ... are parsers.
     [[_sw_np_`(x)(y1, p1)(y2, p2)...`]  [`std::variant<ATTR(p1), ATTR(p2), ...>`]]
 ]
 
-[table Complex Combining Operations and Their Attributes
-    [[Parser]                        [Attribute]]
+There are a relatively small number of rules that define how sequence parsers
+and alternative parsers's attributes are generated.  (Don't worry, there are
+examples below.)
 
-    [[`eps | p1 | p2`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
-    [[`p1 | eps | p2`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
-    [[`p1 | p2 | eps`]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
+[heading Sequence parser attribute rules]
 
+The attribute generation behavior of sequence parsers is conceptually pretty
+simple:
+
+* the attributes of subparsers form a tuple of values;
+
+* subparsers that do not generate attributes do not contribute to the
+  sequence's attribute;
+
+* subparsers that do generate attributes usually contribute an individual
+  element to the tuple result; except
+
+* when containers of the same element type are next to each other, or
+  individual elements are next to containers of their type, the two adjacent
+  attributes collapse into one attribute; and
+
+* if the result of all that is a degenerate tuple `hana::tuple<T>` (even if
+  `T` is a type that means "no attribute"), the attribute becomes `T`.
+
+More formally, the attribute generation algorithm works like this.  For a
+sequence parser `p`, let the list of attribute types for the subparsers of `p`
+be `{a0, a1, a2, ..., an}`.
+
+We get the attribute of `p` by evaluating a compile-time left fold operation,
+`left-fold({a1, a2, ..., an}, a0, OP)`.  `OP` is the combining operation that
+takes the current attribute type (initially `a0`) and the next attribute type,
+and returns the new current attribute type.  The current attribute type at the
+end is the attribute type for `p`.
+
+`OP` attempts to apply a series of rules, one at a time.  The rules are noted
+as `A >> B -> C`, where `A` is the type of the current attribute type, `B` is
+the type of the next attribute type, and `C` is the new current attribute
+type.  In these rules, `C<T>` is a container of `T`; `none` is a special type
+that indicates that there is no attribute; `T` is a type; and `Ts...` is a
+parameter pack of one or more types.  Note that `T` may be the special type
+`none`.
+
+* `T >> none -> T`
+* `C<T> >> C<T> -> C<T>`
+* `T >> T -> vector<T>`
+* `C<T> >> T -> C<T>`
+* `C<T> >> optional<T> -> C<T>`
+* `T >> C<T> -> C<T>`
+* `optional<T> >> C<T> -> C<T>`
+* `hana::tuple<none> >> T -> hana::tuple<T>`
+* `hana::tuple<Ts...> >> T -> hana::tuple<Ts..., T>`
+
+Again, if the result is that the attribute is `hana::tuple<T>`, the attribute
+becomes `T`.
+
+[note What constitutes a container in the rules above is determined by the
+`container` concept:
+    [container_concept]
 ]
 
-TODO: Still missing lots of cases, like *char_ (string or vector?); char_ >>
-string("foo"); string("foo") >> string("bar"); *int_ >> *int_; etc.
+[heading Alternative parser attribute rules]
+
+The rules for alternative parsers are much simpler.  For an alternative parer
+`p`, let the list of attribute types for the subparsers of `p` be `{a0, a1,
+a2, ..., an}`.  The attribute of `p` is `std::variant<a0, a1, a2, ..., an>`,
+with these exceptions:
+
+* all the `none` attributes are left out, but if any were taken out, the
+  attribute become a `std::optional`;
+
+* if the result is `std::variant<T>`, the result becomes `T` instead; and
+
+* if the result is `std::variant<>`, the result becomes `none` instead.
+
+[heading Formation of containers in attributes]
+
+There are no special rules for forming containers from non-containers.  For
+instance, one of the rules above for sequence containers is `T >> T ->
+vector<T>`.  So, you get a vector if you have multiple values in sequence.
+Another rule is that the attribute of `*p` is `std::vector<ATTR(p)>`.  The
+point is, _Parser_ will generate your favorite container out of sequences and
+repetitions, as long as your favorite container is `std::vector`.
+
+Another rule for sequence containers is that an value `x` and a container `c`
+containing elements of `x`'s type will form a single container.  However,
+`x`'s type must be exactly the same as the elements in `c`.  So, the attribute
+of `char_ >> string("str")` is odd.  In the non-Unicode code path, `char_`'s
+attribute type is guaranteed to be `char`, so `ATTR(char_ >> string("str"))`
+is `std::string`.  If you are parsing UTF-8 in the Unicode code path,
+`char_`'s attribute type is `uint32_t`, and `ATTR(char_ >> string("str"))` is
+therefor `hana::tuple<uint32_t, std::string>`.
+
+Again, there are no special rules here.
+
+[heading Examples of attributes generated by sequence and alternative parsers]
+
+In the table: `p`, `p1`, `p2`, ... are parsers that generate attributes, and
+`a` is a semantic action.  Note that only `>>` is used here.  `>` has the
+exact same attribute generation rules.
+
+[table (Pseudocode) Combining Operations and Their Attributes
+    [[Pseudocode]                    [Attribute]]
+
+    [[_e_` >> `_e_]                  [None.]]
+    [[`p >> `_e_]                    [`ATTR(p)`]]
+    [[_e_` >> p`]                    [`ATTR(p)`]]
+
+    [[_cu_` >> `_str_np_`("str")`]   [`std::string`]]
+    [[_str_np_`("str") >> `_cu_]     [`std::string`]]
+    [[`*`_cu_` >> `_str_np_`("str")`][`hana::tuple<std::vector<char>, std::string>`]]
+    [[_str_np_`("str") >> *`_cu_]    [`hana::tuple<std::string, std::vector<char>>`]]
+
+    [[`p >> p`]                      [`std::vector<ATTR(p)>`]]
+    [[`*p >> p`]                     [`std::vector<ATTR(p)>`]]
+    [[`p >> *p`]                     [`std::vector<ATTR(p)>`]]
+    [[`*p >> -p`]                    [`std::vector<ATTR(p)>`]]
+    [[`-p >> *p`]                    [`std::vector<ATTR(p)>`]]
+
+    [[_str_np_`("str") >> `_cu_]     [`std::string`]]
+    [[_cu_` >> `_str_np_`("str")`]   [`std::string`]]
+    [[_str_np_`("str") >> -`_cu_]    [`std::string`]]
+    [[`-`_cu_` >> `_str_np_`("str")`][`std::string`]]
+
+    [[`!p1 | p2[a]`]                 [None.]]
+    [[`p | p`]                       [`ATTR(p)`]]
+    [[`p1 | p2`]                     [`std::variant<ATTR(p1), ATTR(p2)>`]]
+    [[`p | `_e_]                     [`std::optional<ATTR(p)>`]]
+    [[`p1 | p2 | `_e_]               [`std::optional<std::variant<ATTR(p1), ATTR(p2)>>`]]
+    [[`p1 | p2[a] | p3`]             [`std::optional<std::variant<ATTR(p1), ATTR(p3)>>`]]
+]
+
 
 [heading Directives that affect attribute generation]
 
@@ -707,7 +828,7 @@ the type of the iterator used within the parse.  Note that this may not be the
 same as the iterator type passed to _p_.  For instance, when parsing UTF-8,
 the iterator passed to _p_ may be `char8_t const *`, but within the parse it
 will be a UTF-8 to UTF-32 transcoding (converting) iterator.  Just like
-_omit_, _raw_ causes all attribute-production work within `p` to be skipped.
+_omit_, _raw_ causes all attribute-generation work within `p` to be skipped.
 
 [endsect]
 

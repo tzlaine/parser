@@ -2775,7 +2775,7 @@ namespace boost { namespace parser {
                         result_back_type,
                         unwrapped_optional_x_type>{}) {
                     if constexpr (container<result_back_type>) {
-                        // C1<T> >> C2<T> -> C1<T>
+                        // C<T> >> C<T> -> C<T>
                         return hana::make_pair(
                             result,
                             hana::append(indices, hana::size(result) - one));

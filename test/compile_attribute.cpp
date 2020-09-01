@@ -512,4 +512,38 @@ void compile_attribute()
         BOOST_MPL_ASSERT(
             (is_same<attr_t, std::optional<std::variant<double, int>>>));
     }
+
+    {
+        constexpr auto parser = int_ | int_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<int>>));
+    }
+    {
+        constexpr auto parser = double_ | int_;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<attr_t, std::optional<std::variant<double, int>>>));
+    }
+    {
+        constexpr auto parser = double_ | int_ | eps;
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<std::optional<std::variant<double, int>>>>));
+    }
+
+    {
+        constexpr auto parser = *cu >> string("str");
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT(
+            (is_same<
+                attr_t,
+                std::optional<tuple<std::vector<char>, std::string>>>));
+    }
+    {
+        constexpr auto parser = cu >> string("str");
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+    }
 }
