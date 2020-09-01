@@ -10,6 +10,7 @@ namespace boost { namespace parser { namespace detail {
     struct void_
     {
         using type = void;
+        static constexpr bool value = true;
     };
 
     template<typename... T>
@@ -46,10 +47,6 @@ namespace boost { namespace parser { namespace detail {
     template<template<typename...> class Template, typename... Args>
     using is_detected =
         typename detector<nonesuch, void, Template, Args...>::value_t;
-
-    template<template<typename...> class Template, typename... Args>
-    using is_detected_v =
-        typename detector<nonesuch, void, Template, Args...>::value_t::value;
 
     template<template<typename...> class Template, typename... Args>
     using detected_t =
