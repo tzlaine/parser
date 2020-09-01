@@ -588,7 +588,7 @@ the table `x` and `y` represent arbitrary objects of any type.
     [[ _eoi_ ]             [ None. ]                     []]
     [[ _attr_np_`(x)` ]    [ `decltype(x)` ]             []]
     [[ _ch_ ]              [ /See below./ ]
-     [Includes all the `_p` _udls_ that take a single character.]]
+     [Includes all the `_p` _udls_ that take a single character, and all parsers in the `boost::parser::ascii` namespace.]]
     [[ _cp_ ]              [ `uint32_t` ]                []]
     [[ _cu_ ]              [ `char` ]                    []]
     [[ _lit_np_`(x)`]      [ None. ]
@@ -614,8 +614,6 @@ the table `x` and `y` represent arbitrary objects of any type.
 
     [[ _symbols_t_ ]       [ `T` ]]
 ]
-
-Also, all parsers in the `ascii` namespace have the attribute `char`.
 
 _ch_ is a bit odd, since its attribute type is polymorphic.  When you use _ch_
 to parse text in the non-Unicode code path (i.e. a string of `char`), the
