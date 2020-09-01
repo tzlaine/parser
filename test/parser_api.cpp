@@ -9,6 +9,8 @@
 #include <boost/parser/parser.hpp>
 #include <boost/mpl/assert.hpp>
 
+#include "ill_formed.hpp"
+
 #include <gtest/gtest.h>
 
 
