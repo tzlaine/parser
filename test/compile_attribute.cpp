@@ -102,18 +102,18 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(first, last, parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<uint32_t, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
-#endif
     }
     {
         char const chars[] = "";
@@ -135,18 +135,18 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(r, parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(r, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<uint32_t, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(r, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
-#endif
     }
 }
 
@@ -173,18 +173,18 @@ void compile_attribute_unicode_utf32()
             using attr_t = decltype(parse(first, last, parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<int, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, int>>>));
         }
-#endif
     }
     {
         uint32_t const chars[] = {0};
@@ -207,18 +207,18 @@ void compile_attribute_unicode_utf32()
             using attr_t = decltype(parse(first, last, parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<uint32_t, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
-#endif
     }
     {
         char32_t const chars[] = {0};
@@ -241,18 +241,18 @@ void compile_attribute_unicode_utf32()
             using attr_t = decltype(parse(first, last, parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<char32_t, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(first, last, parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, char32_t>>>));
         }
-#endif
     }
     {
         {
@@ -271,18 +271,18 @@ void compile_attribute_unicode_utf32()
             using attr_t = decltype(parse(U"", parser));
             BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
         }
-#if 0 // TODO: Fix or document.
         {
             constexpr auto parser = char_ >> string("foo");
             using attr_t = decltype(parse(U"", parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<char32_t, std::string>>>));
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(U"", parser));
-            BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+            BOOST_MPL_ASSERT(
+                (is_same<attr_t, std::optional<tuple<std::string, char32_t>>>));
         }
-#endif
     }
 }
 
