@@ -1487,7 +1487,7 @@ namespace boost { namespace parser {
                 detail::flags flags,
                 bool & success) const
             {
-                assert(parser_);
+                BOOST_ASSERT(parser_);
                 return parser_->call(
                     use_cbs, first, last, context, skip, flags, success);
             }
@@ -1509,7 +1509,7 @@ namespace boost { namespace parser {
                 bool & success,
                 Attribute & retval) const
             {
-                assert(parser_);
+                BOOST_ASSERT(parser_);
                 parser_->call(
                     use_cbs,
                     first,
