@@ -4,7 +4,7 @@
 #include <type_traits>
 
 
-namespace boost { namespace parser {
+namespace boost { namespace parser { namespace detail {
 
     template<typename...>
     struct void_
@@ -62,6 +62,6 @@ namespace boost { namespace parser {
     using detected_or =
         typename detector<Default, void, Template, Args...>::type;
 
-}}
+}}}
 
 #endif
