@@ -9,6 +9,21 @@
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 
+#ifdef BOOST_PARSER_DOXYGEN
+
+/** Boost.Parser uses assertions (`BOOST_ASSERT()`) in several places to
+    indicate that your use of the library has an error in it.  All of those
+    places could heve instead been ill-formed code, caught at compile time.
+    It is far quicker and easier to determine exactly where in your code such
+    an error is located if this is a runtime failure; you can just look at the
+    stack in your favorite debugger.  However, if you want to make thes kinds
+    of errors always ill-formed code, define this macro. */
+#  define BOOST_PARSER_NO_RUNTIME_ASSERTIONS
+
+// TODO #define BOOST_PARSER_DISABLE_CONCEPTS
+
+#endif
+
 #if 1
 
 #define BOOST_PARSER_USE_CONCEPTS 1

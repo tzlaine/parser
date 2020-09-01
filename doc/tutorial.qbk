@@ -386,6 +386,8 @@ stack that leads to your mistake is a far better user experience than sifting
 through compiler diagnostics.  See the rationale section for a more detailed
 explanation.]
 
+[heading TODO: extended example of deep template stack vs. debugger.]
+
 [endsect]
 
 [section Symbol Tables]

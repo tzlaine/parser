@@ -54,12 +54,12 @@ namespace boost { namespace parser {
 
 
     /** A placeholder type used to represent the absence of information,
-        value, etc., in `boost::parser`.  For instance, a parser with no
-        global data will have a `globals_` data member whose type is `none`.
-        `none` is designed to satisfy all requirements of any type that it
-        might replace, where convenient.  For instance, it has an implicit
-        conversion to `std::nullopt_t`, so that it be assigned to a
-        `std::optional<T>`. */
+        value, etc., inside semantic actions.  For instance, calling
+        `_locals(ctx)` in a semantic action associated with a parser that has
+        no locals will yield a `none`. */
+    struct none;
+
+#if !defined(BOOST_PARSER_NO_RUNTIME_ASSERTIONS)
     struct none
     {
         none() = default;
@@ -344,6 +344,7 @@ namespace boost { namespace parser {
             BOOST_ASSERT(false);
         }
     };
+#endif
 
 
     /** A tag type used to create tag objects that can be used as keys usable
@@ -757,6 +758,16 @@ namespace boost { namespace parser {
         template<typename... T>
         struct is_hana_tuple<hana::tuple<T...>> : std::true_type
         {};
+
+        template<typename T>
+        struct is_unconditional_eps : std::false_type
+        {};
+        template<>
+        struct is_unconditional_eps<eps_parser<nope>> : std::true_type
+        {};
+        template<typename T>
+        constexpr bool is_unconditional_eps_v =
+            is_unconditional_eps<std::remove_cvref_t<T>>::value;
 
         template<typename T>
         struct is_zero_plus_p : std::false_type
@@ -2764,7 +2775,7 @@ namespace boost { namespace parser {
                         result_back_type,
                         unwrapped_optional_x_type>{}) {
                     if constexpr (detail::container<result_back_type>) {
-                        // C<T> >> C<T> -> C<T>
+                        // C1<T> >> C2<T> -> C1<T>
                         return hana::make_pair(
                             result,
                             hana::append(indices, hana::size(result) - one));
@@ -3009,7 +3020,7 @@ namespace boost { namespace parser {
 #ifndef BOOST_PARSER_DOXYGEN
 
         // Invokes each parser, placing the resulting values (if any) into
-        // retval, using the index mapping in indices.  The case of a tulple
+        // retval, using the index mapping in indices.  The case of a tuple
         // containing only a single value is handled elsewhere.
         template<
             bool UseCallbacks,
@@ -4003,6 +4014,20 @@ namespace boost { namespace parser {
             } else if constexpr (detail::is_or_p<parser_type_2>{}) {
                 return rhs.parser_.prepend(*this);
             } else {
+                // If you're seeing this as a compile- or run-time failure,
+                // you've tried to put an eps parser at the beginning of an
+                // alternative-parser, such as "eps | int_".  This is not what
+                // you meant.  Since eps always matches any input, "eps |
+                // int_" is just an awkward spelling for "eps".  To fix this
+                // this, put the eps as the last alternative, so the other
+                // alternatives get a chance.  Possibly, you may have meant to
+                // add a condition to the eps, like "eps(condition) | int_",
+                // which also is meaningful, and so is allowed.
+#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
+                static_assert(!detail::is_unconditional_eps<parser_type>{});
+#else
+                BOOST_ASSERT(!detail::is_unconditional_eps<parser_type>{});
+#endif
                 return parser::parser_interface{
                     or_parser<hana::tuple<parser_type, parser_type_2>>{
                         hana::tuple<parser_type, parser_type_2>{
@@ -4382,6 +4407,20 @@ namespace boost { namespace parser {
     constexpr auto or_parser<ParserTuple>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser at the beginning of an
+        // alternative-parser, such as "eps | (int_ | double_)".  This is not
+        // what you meant.  Since eps always matches any input, "eps | (int_ |
+        // double_)" is just an awkward spelling for "eps".  To fix this this,
+        // put the eps as the last alternative, so the other alternatives get
+        // a chance.  Possibly, you may have meant to add a condition to the
+        // eps, like "eps(condition) | (int_ | double_)", which also is
+        // meaningful, and so is allowed.
+#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
+        static_assert(!detail::is_unconditional_eps<Parser>{});
+#else
+        BOOST_ASSERT(!detail::is_unconditional_eps<Parser>{});
+#endif
         return parser_interface{
             or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
                 hana::prepend(parsers_, parser.parser_)}};
@@ -4392,6 +4431,22 @@ namespace boost { namespace parser {
     constexpr auto or_parser<ParserTuple>::append(
         parser_interface<Parser> parser) const noexcept
     {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser in the middle of an alternative-parser,
+        // such as "int_ | eps | double_".  This is not what you meant.  Since
+        // eps always matches any input, "int_ | eps | double_" is just an
+        // awkward spelling for "int_ | eps".  To fix this this, put the eps
+        // as the last alternative, so the other alternatives get a chance.
+        // Possibly, you may have meant to add a condition to the eps, like
+        // "int_ | eps(condition) | double_", which also is meaningful, and so
+        // is allowed.
+#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
+        static_assert(
+            !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
+#else
+        BOOST_ASSERT(
+            !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
+#endif
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_interface{or_parser<decltype(
                 detail::for_real_concat(parsers_, parser.parser_.parsers_))>{
