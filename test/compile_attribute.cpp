@@ -546,4 +546,11 @@ void compile_attribute()
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
     }
+
+    {
+        auto a = [](auto & ctx) {};
+        constexpr auto parser = cu[a];
+        using attr_t = decltype(parse(first, last, parser));
+        BOOST_MPL_ASSERT((is_same<attr_t, bool>));
+    }
 }

@@ -644,18 +644,6 @@ TEST(parser, star_and_plus_collapsing)
 TEST(parser, action)
 {
     {
-#if 0 // TODO: Should not compile, because the action makes the parser return a
-      // nope!
-        {
-            std::string str = "";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = *char_('b')[action];
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-        }
-#endif
-
         {
             std::string str = "";
             std::stringstream ss;
@@ -684,18 +672,6 @@ TEST(parser, action)
     }
 
     {
-#if 0 // TODO: Should not compile, because the action makes the parser return a
-      // nope!
-        {
-            std::string str = "";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = +char_('b')[action];
-            std::vector<char> chars;
-            EXPECT_FALSE(parse(str, parser, chars));
-        }
-#endif
-
         {
             std::string str = "";
             std::stringstream ss;
@@ -882,35 +858,26 @@ TEST(parser, omit)
 
         {
             std::string str = "";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "z";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "zz";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "";
-            std::vector<char> chars;
             EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "z";
-            std::vector<char> chars;
             EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "zz";
-            std::vector<char> chars;
             EXPECT_TRUE(parse(str, parser));
         }
     }
@@ -920,33 +887,24 @@ TEST(parser, omit)
 
         {
             std::string str = "";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "z";
-            std::vector<char> chars;
-            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_FALSE(parse(str, parser));
         }
         {
             std::string str = "z";
-            std::vector<char> chars;
             auto first = str.c_str();
-            EXPECT_TRUE(
-                parse(first, boost::text::null_sentinel{}, parser, chars));
+            EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, parser));
         }
         {
             std::string str = "zs";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
         {
             std::string str = "zszs";
-            std::vector<char> chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, std::vector<char>());
+            EXPECT_TRUE(parse(str, parser));
         }
     }
 }
