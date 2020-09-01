@@ -246,7 +246,14 @@ namespace boost { namespace parser { namespace detail {
     template<typename Context>
     void parser_name(
         Context const & context,
-        eol_parser const & parser,
+        ws_parser<true> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void parser_name(
+        Context const & context,
+        ws_parser<false> const & parser,
         std::ostream & os,
         int components = 0);
 

@@ -206,11 +206,12 @@ namespace boost { namespace parser {
     template<typename StrIter, typename StrSentinel>
     struct string_parser;
 
-    /** Maches an end-of-line in the input; produces no attribute.
-        End-of-line is considered to be "\r\n", or any one of the line break
-        code points from the Unicode Line Break Algorithm, described in
-        https://unicode.org/reports/tr14. */
-    struct eol_parser;
+    /** Maches an end-of-line (`NewlinesOnly == true`) or whitespace
+        (`NewlinesOnly == false`) code point, based on the Unicode definitions
+        of each (also matches the two code points `"\r\n"`).  Produces no
+        attribute. */
+    template<bool NewlinesOnly>
+    struct ws_parser;
 
     /** Maches the strings "true" and "false", producing an attribute of
         `true` or `false`, respectively, and fails on any other input. */

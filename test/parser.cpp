@@ -1560,3 +1560,159 @@ TEST(parser, combined_seq_and_or)
         }
     }
 }
+
+TEST(parser, eol_)
+{
+    {
+        constexpr auto parser = eol;
+
+        {
+            std::string str = "y";
+            EXPECT_FALSE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000a";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000d\u000a";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000b";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000c";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000d";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u0085";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2028";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2029";
+            EXPECT_TRUE(parse(str, parser));
+        }
+    }
+}
+
+TEST(parser, ws_)
+{
+    {
+        constexpr auto parser = ws;
+
+        {
+            std::string str = "y";
+            EXPECT_FALSE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u0009";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000a";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000d\u000a";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000b";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000c";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u000d";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u0085";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u00a0";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u1680";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2000";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2001";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2002";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2003";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2004";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2005";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2006";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2007";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2008";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2009";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u200a";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2028";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u2029";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u202F";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u205F";
+            EXPECT_TRUE(parse(str, parser));
+        }
+        {
+            std::u8string str = u8"\u3000";
+            EXPECT_TRUE(parse(str, parser));
+        }
+    }
+}
