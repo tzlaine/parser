@@ -2250,7 +2250,7 @@ namespace boost { namespace parser {
                     set_in_apply_parser(flags),
                     success,
                     retval);
-            } else if constexpr (detail::container<attr_t>) {
+            } else if constexpr (container<attr_t>) {
                 int64_t count = 0;
 
                 for (int64_t end = detail::resolve(context, min_); count != end;
@@ -2774,7 +2774,7 @@ namespace boost { namespace parser {
                     std::is_same<
                         result_back_type,
                         unwrapped_optional_x_type>{}) {
-                    if constexpr (detail::container<result_back_type>) {
+                    if constexpr (container<result_back_type>) {
                         // C1<T> >> C2<T> -> C1<T>
                         return hana::make_pair(
                             result,
@@ -3076,8 +3076,8 @@ namespace boost { namespace parser {
                 using attr_t = decltype(parser.call(
                     use_cbs, first, last, context, skip, flags, success));
                 constexpr bool out_container =
-                    detail::container<std::decay_t<decltype(out)>>;
-                constexpr bool attr_container = detail::container<attr_t>;
+                    container<std::decay_t<decltype(out)>>;
+                constexpr bool attr_container = container<attr_t>;
 
                 if constexpr (out_container == attr_container) {
                     // TODO: Document that the user can pass anything she

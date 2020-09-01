@@ -108,15 +108,17 @@ namespace boost { namespace parser {
             t.diagnose(kind, message, context);
         };
 
-    namespace detail {
+//[ container_concept
+    template<typename T>
+    concept container = std::ranges::common_range<T> && requires(T t) {
+        { t.insert(t.begin(), *t.begin()) }
+            -> std::same_as<std::ranges::iterator_t<T>>;
+        { t.insert(t.begin(), t.begin(), t.end()) }
+            -> std::same_as<std::ranges::iterator_t<T>>;
+    };
+//]
 
-        template<typename T>
-        concept container = std::ranges::common_range<T> && requires(T t) {
-            { t.insert(t.begin(), *t.begin()) }
-                -> std::same_as<std::ranges::iterator_t<T>>;
-            { t.insert(t.begin(), t.begin(), t.end()) }
-                -> std::same_as<std::ranges::iterator_t<T>>;
-        };
+    namespace detail {
 
         template<typename T, typename U>
         concept container_and_value_type =
