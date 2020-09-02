@@ -697,6 +697,11 @@ the input they match unless otherwise stated in the table below.]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
      []]
 
+    [[ `_ch_(r)` ]
+     [ Matches the next code point in the input `n`, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
+     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
+     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the bahavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The liftime of `_ch_(r)` must be within the lifetime of r`.  This overload of _ch_ does *not* take parse arguments. ]]
+
     [[ _cp_ ]
      [ Matches a single code point. ]
      [ `uint32_t` ]
@@ -807,23 +812,48 @@ the input they match unless otherwise stated in the table below.]
      [ `unsigned int` ]
      [ For example, _bin_ would match `"101"`, and generate an attribute of `5u`. ]]
 
+    [[ `_bin_(arg0)` ]
+     [ Matches exactly the binary unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
+     []]
+
     [[ _oct_ ]
      [ Matches an octal unsigned integral value. ]
      [ `unsigned int` ]
      [ For example, _oct_ would match `"31"`, and generate an attribute of `25u`. ]]
+
+    [[ `_oct_(arg0)` ]
+     [ Matches exactly the octal unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
+     []]
 
     [[ _hex_ ]
      [ Matches a hexidecimal unsigned integral value. ]
      [ `unsigned int` ]
      [ For example, _hex_ would match `"ff"`, and generate an attribute of `255u`. ]]
 
+    [[ `_hex_(arg0)` ]
+     [ Matches exactly the hexidecimal unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
+     []]
+
     [[ _us_ ]
      [ Matches an unsigned integral value. ]
      [ `unsigned short` ]
      []]
 
+    [[ `_us_(arg0)` ]
+     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
+     []]
+
     [[ _ui_ ]
      [ Matches an unsigned integral value. ]
+     [ `unsigned int` ]
+     []]
+
+    [[ `_ui_(arg0)` ]
+     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
      [ `unsigned int` ]
      []]
 
@@ -832,9 +862,19 @@ the input they match unless otherwise stated in the table below.]
      [ `unsigned long` ]
      []]
 
+    [[ `_ul_(arg0)` ]
+     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
+     []]
+
     [[ _ull_ ]
      [ Matches an unsigned integral value. ]
      [ `unsigned long long` ]
+     []]
+
+    [[ `_ull_(arg0)` ]
+     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
+     [ `unsigned int` ]
      []]
 
     [[ _s_ ]
@@ -842,8 +882,18 @@ the input they match unless otherwise stated in the table below.]
      [ `short` ]
      []]
 
+    [[ `_s_(arg0)` ]
+     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
+     [ `int` ]
+     []]
+
     [[ _i_ ]
      [ Matches a signed integral value. ]
+     [ `int` ]
+     []]
+
+    [[ `_i_(arg0)` ]
+     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
      [ `int` ]
      []]
 
@@ -852,8 +902,18 @@ the input they match unless otherwise stated in the table below.]
      [ `long` ]
      []]
 
+    [[ `_l_(arg0)` ]
+     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
+     [ `long` ]
+     []]
+
     [[ _ll_ ]
      [ Matches a signed integral value. ]
+     [ `long long` ]
+     []]
+
+    [[ `_ll_(arg0)` ]
+     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
      [ `long long` ]
      []]
 
