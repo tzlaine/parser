@@ -45,6 +45,20 @@ to a particular parser, some parse failures cause the call to _p_ to indicate
 failure of the entire parse.  For these cases, we say that such a local
 failure "causes the top-level parse to fail".
 
+There are a couple of special kinds of parsers that come up often in this
+documentation.
+
+One is a /sequence parser/; you will see it created using `operator>>()`, as
+in `p1 >> p2 >> p3`.  A sequence parser tries to match all of its subparsers
+to the input, one at a time, in order.  It matches the input iff all its
+subparsers do.
+
+The other is an /alternative parser/; you will see it created using
+`operator|()`, as in `p1 | p2 | p3`.  A alternative parser tries to match all
+of its subparsers to the input, one at a time, in order; it stops after
+matching at most one subparser.  It matches the input iff one of its
+subparsers does.
+
 Next, we'll look at some simple programs that parse using _Parser_.  We'll
 start small and build up from there.
 
