@@ -149,6 +149,7 @@
 [include intro.qbk]
 [include tutorial.qbk]
 [include examples.qbk]
+[include concepts.qbk]
 
 [section Compiler Support]
 

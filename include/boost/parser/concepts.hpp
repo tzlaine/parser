@@ -28,6 +28,7 @@
 
 namespace boost { namespace parser {
 
+    //[ all_concepts
     template<typename T>
     concept utf8_code_unit = std::integral<T> && sizeof(T) == 1;
 
@@ -96,8 +97,6 @@ namespace boost { namespace parser {
         std::declval<detail::nope &>(),
         std::declval<detail::symbol_table_tries_t &>()));
 
-    // clang-format off
-
     template<typename T, typename I, typename S, typename GlobalState>
     concept error_handler =
         requires (
@@ -114,7 +113,7 @@ namespace boost { namespace parser {
             t.diagnose(kind, message, context);
         };
 
-//[ container_concept
+    //[ container_concept
     template<typename T>
     concept container = std::ranges::common_range<T> && requires(T t) {
         { t.insert(t.begin(), *t.begin()) }
@@ -122,7 +121,9 @@ namespace boost { namespace parser {
         { t.insert(t.begin(), t.begin(), t.end()) }
             -> std::same_as<std::ranges::iterator_t<T>>;
     };
-//]
+    //]
+
+    //]
 
     namespace detail {
 
@@ -131,8 +132,6 @@ namespace boost { namespace parser {
             container<T> && std::is_same_v<std::ranges::range_value_t<T>, U>;
 
     }
-
-    // clang-format on
 
 }}
 
