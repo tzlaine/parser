@@ -4039,11 +4039,8 @@ namespace boost { namespace parser {
                 // alternatives get a chance.  Possibly, you may have meant to
                 // add a condition to the eps, like "eps(condition) | int_",
                 // which also is meaningful, and so is allowed.
-#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
-                static_assert(!detail::is_unconditional_eps<parser_type>{});
-#else
-                BOOST_ASSERT(!detail::is_unconditional_eps<parser_type>{});
-#endif
+                BOOST_PARSER_ASSERT(
+                    !detail::is_unconditional_eps<parser_type>{});
                 return parser::parser_interface{
                     or_parser<hana::tuple<parser_type, parser_type_2>>{
                         hana::tuple<parser_type, parser_type_2>{
@@ -4298,10 +4295,10 @@ namespace boost { namespace parser {
         template<typename... T>
         constexpr auto with(T &&... x) const
         {
-            static_assert(
-                std::is_same<ParamsTuple, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on a rule, "
-                "like 'rule(foo)(bar)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<ParamsTuple, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on a rule, "
+                 "like 'rule(foo)(bar)'.  Quit it!'"));
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
             using rule_parser_type = rule_parser<
@@ -4337,10 +4334,10 @@ namespace boost { namespace parser {
         template<typename... T>
         constexpr auto with(T &&... x) const
         {
-            static_assert(
-                std::is_same<ParamsTuple, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on a "
-                "callback_rule, like 'rule(foo)(bar)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<ParamsTuple, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on a "
+                 "callback_rule, like 'rule(foo)(bar)'.  Quit it!'"));
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
             using rule_parser_type = rule_parser<
@@ -4432,11 +4429,7 @@ namespace boost { namespace parser {
         // a chance.  Possibly, you may have meant to add a condition to the
         // eps, like "eps(condition) | (int_ | double_)", which also is
         // meaningful, and so is allowed.
-#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
-        static_assert(!detail::is_unconditional_eps<Parser>{});
-#else
-        BOOST_ASSERT(!detail::is_unconditional_eps<Parser>{});
-#endif
+        BOOST_PARSER_ASSERT(!detail::is_unconditional_eps<Parser>{});
         return parser_interface{
             or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
                 hana::prepend(parsers_, parser.parser_)}};
@@ -4456,13 +4449,8 @@ namespace boost { namespace parser {
         // Possibly, you may have meant to add a condition to the eps, like
         // "int_ | eps(condition) | double_", which also is meaningful, and so
         // is allowed.
-#ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
-        static_assert(
+        BOOST_PARSER_ASSERT(
             !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
-#else
-        BOOST_ASSERT(
-            !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
-#endif
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_interface{or_parser<decltype(
                 detail::for_real_concat(parsers_, parser.parser_.parsers_))>{
@@ -4606,10 +4594,10 @@ namespace boost { namespace parser {
         template<typename SkipParser2>
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
-            static_assert(
-                std::is_same<SkipParser, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on skip, "
-                "like 'skip(foo)(bar)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<SkipParser, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on skip, "
+                 "like 'skip(foo)(bar)'.  Quit it!'"));
             return skip_directive<SkipParser2>{skip_parser};
         }
 
@@ -4681,10 +4669,10 @@ namespace boost { namespace parser {
         template<typename Predicate2>
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
-            static_assert(
-                std::is_same<Predicate, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on eps, "
-                "like 'eps(foo)(bar)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Predicate, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on eps, "
+                 "like 'eps(foo)(bar)'.  Quit it!'"));
             return parser_interface{eps_parser<Predicate2>{std::move(pred)}};
         }
 
@@ -4872,10 +4860,10 @@ namespace boost { namespace parser {
         // TODO: SFINAE version would require not-range-like constraint.
         constexpr auto operator()(T x) const noexcept
         {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_('a')('b')'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Expected, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on char_, "
+                 "like 'char_('a')('b')'.  Quit it!'"));
             return parser_interface{
                 char_parser<T, AttributeType>{std::move(x)}};
         }
@@ -4885,10 +4873,10 @@ namespace boost { namespace parser {
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_('a', 'b')('c', 'd')'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Expected, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on char_, "
+                 "like 'char_('a', 'b')('c', 'd')'.  Quit it!'"));
             using char_pair_t = detail::char_pair<LoType, HiType>;
             using char_parser_t = char_parser<char_pair_t, AttributeType>;
             return parser_interface(
@@ -4906,10 +4894,10 @@ namespace boost { namespace parser {
         template<parsable_range_like R>
         constexpr auto operator()(R const & r) const noexcept
         {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on char_, "
-                "like 'char_(char-set)(char-set)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Expected, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on char_, "
+                 "like 'char_(char-set)(char-set)'.  Quit it!'"));
             auto chars = detail::make_char_range(r);
             using char_range_t = decltype(chars);
             using char_parser_t = char_parser<char_range_t, AttributeType>;
@@ -5365,10 +5353,10 @@ namespace boost { namespace parser {
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on this "
-                "parser, like 'uint_(2)(3)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Expected, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on this "
+                 "parser, like 'uint_(2)(3)'.  Quit it!'"));
             using parser_t =
                 uint_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
             return parser_interface{parser_t{expected}};
@@ -5476,10 +5464,10 @@ namespace boost { namespace parser {
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
-            static_assert(
-                std::is_same<Expected, detail::nope>{},
-                "If you're seeing this, you tried to chain calls on this "
-                "parser, like 'int_(2)(3)'.  Quit it!'");
+            BOOST_PARSER_ASSERT(
+                (std::is_same<Expected, detail::nope>{} &&
+                 "If you're seeing this, you tried to chain calls on this "
+                 "parser, like 'int_(2)(3)'.  Quit it!'"));
             using parser_t =
                 int_parser<T, Radix, MinDigits, MaxDigits, Expected2>;
             return parser_interface{parser_t{expected}};
@@ -5632,11 +5620,11 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            static_assert(
-                !std::is_same<OrParser, detail::nope>{},
-                "It looks like you tried to write switch_(val).  You need at "
-                "least one alternative, like: switch_(val)(value_1, "
-                "parser_1)(value_2, parser_2)...");
+            BOOST_PARSER_ASSERT(
+                (!std::is_same<OrParser, detail::nope>{} &&
+                 "It looks like you tried to write switch_(val).  You need at "
+                 "least one alternative, like: switch_(val)(value_1, "
+                 "parser_1)(value_2, parser_2)..."));
             using attr_t = decltype(or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t attr{};
@@ -5663,11 +5651,11 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            static_assert(
-                !std::is_same<OrParser, detail::nope>{},
-                "It looks like you tried to write switch_(val).  You need at "
-                "least one alternative, like: switch_(val)(value_1, "
-                "parser_1)(value_2, parser_2)...");
+            BOOST_PARSER_ASSERT(
+                (!std::is_same<OrParser, detail::nope>{},
+                 "It looks like you tried to write switch_(val).  You need at "
+                 "least one alternative, like: switch_(val)(value_1, "
+                 "parser_1)(value_2, parser_2)..."));
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success, retval);
