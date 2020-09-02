@@ -2036,8 +2036,6 @@ namespace boost { namespace parser {
     }
 
 
-    // TODO: Consider eps(cond) -> precondition(cond).
-
     // TODO: Document that using char8_t or as_utf8() when passing to
     // *parse() opts you into Unicode-aware parsing.
 
