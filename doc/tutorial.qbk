@@ -867,15 +867,25 @@ the input they match unless otherwise stated in the table below.]
      [ `double` ]
      []]
 
+    [[ `_rpt_np_(arg0)[p]` ]
+     [ Matches iff `p` matches exactly `_RES_np_(arg0)` times. ]
+     [ `std::vector<_ATTR_np_(p)>` ]
+     [ The special value _inf_ may be used; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` must be implicitly convertible to `int64_t`. ]]
+
+    [[ `_rpt_np_(arg0, arg1)[p]` ]
+     [ Matches iff `p` matches between `_RES_np_(arg0)` and `_RES_np_(arg1)` times, inclusively. ]
+     [ `std::vector<_ATTR_np_(p)>` ]
+     [ The special value _inf_ may be used for the upper bound; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` and `decltype(_RES_np_(arg1))` each must be implicitly convertible to `int64_t`. ]]
+
     [[ `_if_np_(pred)[p]` ]
      [ Equivalent to `_e_(pred) >> p`. ]
-     [ `std::optional<_ATTR_(p)>` ]
-     []]
+     [ `std::optional<_ATTR_np_(p)>` ]
+     [ It is an error to write `_if_np_(pred)`.  That is, it is an error to omit the conditionally matched parser `p`. ]]
 
     [[ `_sw_np_(arg0)(arg1, p1)(arg2, p2) ...` ]
      [ Equivalent to `p1` when `_RES_np_(arg0) == _RES_np_(arg1)`, `p2` when `_RES_np_(arg0) == _RES_np_(arg2)`, etc.  If there is such no `argN`, the behavior of _sw_ is undefined. ]
-     [ `std::variant<_ATTR_np_(p1), _ATTR_np_(p1), ...>` ]
-     []]
+     [ `std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>` ]
+     [ It is an error to write `_sw_np_(arg0)`.  That is, it is an error to omit the conditionally matched parsers `p1`, `p2`, .... ]]
 
     [[ _symbols_t_ ]
      [ _symbols_ is an associative container of key, value pairs.  Each key is a `std::string` and each value has type `T`.  In the Unicode parsing path, the strings are considered to be UTF-8 encoded; in the non-Unicode path, no encoding is assumed.  _symbols_ Matches the longest prefix `pre` of the input that is equal to one of the keys `k`.  If the length `len` of `pre` is zero, and there is no zero-length key, it does not match the input.  If `len` is positive, the generated attribute is the value associated with `k`.]
@@ -1034,8 +1044,8 @@ parsers that generate attributes.
 
     [[`p[a]`]                           [None.]]
 
-    [[`_rpt_np_(arg0)[p]`]              [`_ATTR_np_(p)`]]
-    [[`_rpt_np_(arg1, arg2)[p]`]        [`_ATTR_np_(p)`]]
+    [[`_rpt_np_(arg0)[p]`]              [`std::vector<_ATTR_np_(p)>`]]
+    [[`_rpt_np_(arg0, arg1)[p]`]        [`std::vector<_ATTR_np_(p)>`]]
     [[`_if_np_(pred)[p]`]               [`std::optional<_ATTR_np_(p)>`]]
     [[`_sw_np_(arg0)(arg1, p1)(arg2, p2)...`]
      [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>`]]

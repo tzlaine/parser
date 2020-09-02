@@ -82,6 +82,8 @@
 [def _if_                  [funcref boost::parser::if_ `if_()`]]
 [def _sw_                  [funcref boost::parser::switch_ `switch_()`]]
 
+[def _inf_                 [globalref boost::parser::Inf `Inf`]]
+
 [def _e_                   [globalref boost::parser::eps `eps`]]
 [def _ws_                  [globalref boost::parser::ws `ws`]]
 [def _eol_                 [globalref boost::parser::eol `eol`]]

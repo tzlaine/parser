@@ -4568,7 +4568,7 @@ namespace boost { namespace parser {
     };
 
     /** Returns a `repeat_directive` that repeats exactly `n` times, and whose
-        `operator[]` returns an `parser_interface<omit_parser<P>>` from a
+        `operator[]` returns an `parser_interface<repeat_parser<P>>` from a
         given parser of type `parser_interface<P>`. */
     template<typename T>
     constexpr repeat_directive<T, T> repeat(T n) noexcept
@@ -4576,9 +4576,10 @@ namespace boost { namespace parser {
         return repeat_directive<T, T>{n, n};
     }
 
-    /** Returns a `repeat_directive` that repeats `[min_, max_]` times, and
-        whose `operator[]` returns an `parser_interface<omit_parser<P>>` from
-        a given parser of type `parser_interface<P>`. */
+    /** Returns a `repeat_directive` that repeats between `min_` and `max_`
+        times, inclusive, and whose `operator[]` returns an
+        `parser_interface<repeat_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
     template<typename MinType, typename MaxType>
     constexpr repeat_directive<MinType, MaxType>
     repeat(MinType min_, MaxType max_) noexcept
