@@ -59,6 +59,14 @@ of its subparsers to the input, one at a time, in order; it stops after
 matching at most one subparser.  It matches the input iff one of its
 subparsers does.
 
+_Parser_ parsers each have an attribute associated with them, or explicitly
+have no attribute.  An attribute is a value that the parser generates when it
+matches the input.  For instance, the parser _d_ generates a `double` when it
+matches the input.  Since it is not possible to write a type trait that
+returns the attribute type of a parser, we need notation for concisely
+communicating that relationship.  _ATTR_ is a notional macro that expands to
+the attribute type of the parser passed to it; `_ATTR_np_(_d_)` is `double`.
+
 Next, we'll look at some simple programs that parse using _Parser_.  We'll
 start small and build up from there.
 
@@ -693,7 +701,7 @@ on when writing complicated parsers.  For now, read the whole thing if you
 like, but better yet just look a few parsers over and keep reading.  No need
 to digest it all at once.]
 
-[table Parsers and Their Attributes
+[table Parsers and Their Semantics
     [[Parser] [Semantics] [Attribute Type] [Notes]]
 
     [[ _e_ ]
@@ -1090,9 +1098,60 @@ _space_; the second will use _ws_ as its skipper.
 
 [section Combining Operations]
 
-TODO
+Certain overloaded operators are defined for all parsers in _Parser_.  We've
+already seen some of them used in this tutorial, especially `operator>>()` and
+`operator|()`, which are used to form sequence parsers and alternative
+parsers, respectively.
 
-TODO: Cover the various collapsing rules with op*, op+, etc.
+Here are all the operators overloaded for parsers.  In the tables below:
+
+* `c` is a character of type `char` or `char32_t`;
+
+* `a` is a semantic action;
+
+* `r` is an object whose type models `parsable_range_like` (see _concepts_);
+  and
+
+* `p`, `p1`, `p2`, ... are parsers.
+
+[note Some of the expressions in this table consume no input.  All parsers
+consume the input they match unless otherwise stated in the table below.]
+
+[table Combining Operations and Their Semantics
+    [[Expression] [Semantics] [Attribute Type] [Notes]]
+
+    [[`!p`] [ Matches iff `p` does not match; consumes no input. ] [None.] []]
+    [[`&p`] [ Matches iff `p` matches; consumes no input. ] [None.] []]
+    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] []]
+    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] []]
+    [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
+    [[`p1 >> p2`] [ Matches only iff `p1` matches, and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p1 > p2`] [ Matches only iff `p1` matches, and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p1 | p2`] [ Matches only iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
+    [[`p - c`] [ Equivalent to `p - lit(c)`. ] [`_ATTR_np_(p)`] []]
+    [[`p - r`] [ Equivalent to `p - lit(r)`. ] [`_ATTR_np_(p)`] []]
+    [[`p1 % p2`] [ Equivalent to `p1 >> *(p2 >> p1)`. ] [`std::vector<_ATTR_np_(p1)>`] []]
+    [[`p % c`] [ Equivalent to `p % lit(c)`. ] [`std::vector<_ATTR_np_(p)>`] []]
+    [[`p % r`] [ Equivalent to `p % lit(r)`. ] [`std::vector<_ATTR_np_(p)>`] []]
+    [[`p[a]`] [ Matches iff `p` matches.  If `p` matches, the semantic action `a` is executed. ] [None.] []]
+]
+
+TODO collapsing rules
+
+[table Collapsing of Repetition Operations
+    [[Expression] [Equivalent Expression]]
+    [[`**p`] [ `*p` ]]
+    [[`*+p`] [ `*p` ]]
+    [[`+*p`] [ `*p` ]]
+    [[`++p`] [ `+p` ]]
+]
 
 TODO: Cover the eps within or parser special case.
 
@@ -1195,11 +1254,10 @@ a nonpolymorphic attribute type.]
 [heading Combining operation attributes]
 
 Combining operations of course affect the generation of attributes.  In the
-tables below: _ATTR_ is a notional macro that expands to the attribute type of
-the parser passed to it; `m` and `n` are parse arguments that resolve to
-integral values; `pred` is a parse predicate; `arg0`, `arg1`, `arg2`, ... are
-parse arguments; `a` is a semantic action; and `p`, `p1`, `p2`, ... are
-parsers that generate attributes.
+tables below: `m` and `n` are parse arguments that resolve to integral values;
+`pred` is a parse predicate; `arg0`, `arg1`, `arg2`, ... are parse arguments;
+`a` is a semantic action; and `p`, `p1`, `p2`, ... are parsers that generate
+attributes.
 
 [table Combining Operations and Their Attributes
     [[Parser]                           [Attribute Type]]
@@ -1330,12 +1388,11 @@ Again, there are no special rules here.
 
 [heading Examples of attributes generated by sequence and alternative parsers]
 
-In the table: _ATTR_ is a notional macro that expands to the attribute type of
-the parser passed to it; `a` is a semantic action; and `p`, `p1`, `p2`,
-... are parsers that generate attributes.  Note that only `>>` is used here.
-`>` has the exact same attribute generation rules.
+In the table: `a` is a semantic action; and `p`, `p1`, `p2`, ... are parsers
+that generate attributes.  Note that only `>>` is used here.  `>` has the
+exact same attribute generation rules.
 
-[table Combining Operations and Their Attributes
+[table Combining Sequence and Alternative Operations and Their Attributes
     [[Expression]                    [Attribute Type]]
 
     [[`_e_ >> _e_`]                  [None.]]
