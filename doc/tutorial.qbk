@@ -608,19 +608,21 @@ This may of course be a lambda:
 
 An example of how parse arguments are used:
 
+    using namesapce bp = boost::parser;
     // This parser matches one code point that is at least 'a', and at most
     // the value of last_char, which comes from the globals.
     auto last_char = [](auto & ctx) { return _globals(ctx).last_char; }
-    auto subparser = char_('a', last_char);
+    auto subparser = bp::char_('a', last_char);
 
 Don't worry for now about what the globals are for now; the take-away is that
 you can make any argument you pass to a parser depend on the current state of
 the parse, by using the parse context:
 
+    using namesapce bp = boost::parser;
     // This parser parses two code points.  For the parse to succeed, the
     // second one must be >= 'a' and <= the first one.
     auto set_last_char = [](auto & ctx) { _globals(ctx).last_char = _attr(x); };
-    auto parser = char_[set_last_char] >> subparser;
+    auto parser = bp::char_[set_last_char] >> subparser;
 
 Each callable parser returns a new parser, parameterized using the arguments
 given in the invocation.
@@ -1038,7 +1040,8 @@ where it doesn't belong.  If you are skipping whitespace in most of your
 parser, but want to parse strings that may contain spaces, you should use
 _lexeme_:
 
-    auto const string_parser = lexeme['"' >> *(!'"'_l >> char_) >> '"'];
+    using namesapce bp = boost::parser;
+    auto const string_parser = bp::lexeme['"' >> *(bp::char_ = '"') >> '"'];
 
 Without _lexeme_, our string parser would corerctly match `"foo bar"`, but the
 generated attribute would be `"foobar"`.
@@ -1049,8 +1052,9 @@ _skip_ is like the inverse of _lexeme_.  It enables skipping in the parse,
 even if it was not enabled before.  For example, within a call to _p_ that
 uses a skipper, let's say we have these parsers in use:
 
-    auto const one_or_more = +char_;
-    auto const skip_or_skip_not_there_is_no_try = lexeme[skip[one_or_more] >> one_or_more];
+    using namesapce bp = boost::parser;
+    auto const one_or_more = +bp::char_;
+    auto const skip_or_skip_not_there_is_no_try = bp::lexeme[bp::skip[one_or_more] >> one_or_more];
 
 The use of _lexeme_ disables skipping, but then the use of _skip_ turns it
 back on.  The net result is that the first occurrance of `one_or_more` will
@@ -1061,8 +1065,9 @@ change the skipper just within the scope of the directive.  Let's say we
 passed _space_ to _p_, and we're using these parsers somewhere within that
 call:
 
-    auto const zero_or_more = *char_;
-    auto const skip_both_ways = zero_or_more >> skip(ws)[zero_or_more];
+    using namesapce bp = boost::parser;
+    auto const zero_or_more = *bp::char_;
+    auto const skip_both_ways = zero_or_more >> bp::skip(bp::ws)[zero_or_more];
 
 The first occurrance of `zero_or_more` will use the skipper passed to _p_,
 _space_; the second will use _ws_ as its skipper.
