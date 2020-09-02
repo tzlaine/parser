@@ -115,10 +115,12 @@
 [def _omit_                [globalref boost::parser::omit `omit[]`]]
 [def _raw_                 [globalref boost::parser::raw `raw[]`]]
 [def _lexeme_              [globalref boost::parser::lexeme `lexeme[]`]]
+[def _skip_                [globalref boost::parser::skip `skip[]`]]
 
 [def _omit_np_             [globalref boost::parser::omit `omit`]]
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
 [def _lexeme_np_           [globalref boost::parser::lexeme `lexeme`]]
+[def _skip_np_             [globalref boost::parser::skip `skip`]]
 
 [def _alnum_               [globalref boost::parser::ascii::alnum `ascii::alnum`]]
 [def _alpha_               [globalref boost::parser::ascii::alpha `ascii::alpha`]]
@@ -139,6 +141,8 @@
 [def _ATTR_np_             ['[^ATTR]]]
 
 [def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
+[def _directives_          [link boost_parser__proposed_.tutorial.directives Directives]]
+[def _rationale_           [link boost_parser__proposed_.rationale Rationale]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]

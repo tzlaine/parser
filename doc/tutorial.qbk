@@ -234,8 +234,15 @@ to qualify them with `boost::parser::`.]
 
 [heading Accessors for data that are always available]
 
-_pass_ is a `bool` indicating the success of failure of the current parse.
-This can be used to force the current parse to pass or fail:
+By convention, the names of all _Parser_ functions that take a parse context,
+and are therefore intended for use inside semantic actions, contain a leading
+underscore.
+
+[heading _pass_]
+
+_pass_ returns a reference to a `bool` indicating the success of failure of
+the current parse.  This can be used to force the current parse to pass or
+fail:
 
     [](auto & ctx) {
         // If the attribute meets this predicate, fail the parse.
@@ -247,11 +254,15 @@ Note that for a semantic action to be executed, its associated parser must
 already have succeeded.  So unless you previously wrote `_pass(ctx) = false`
 somewhere, `_pass(ctx) = true` does nothing; it's redundant.
 
+[heading _begin_, _end_ and _where_]
+
 _begin_ and _end_ return the beginning and end of the range that you passed to
 _p_, respectively.  _where_ returns a _v_ indicating the bounds of the input
 matched by the current parse.  _where_ can be useful if you just want to parse
 some text and return a result consisting of where certain elements are
 located, without producing any other attributes.
+
+[heading _error_handler_]
 
 _error_handler_ returns a reference to the error handler associated with the
 parser passed to _p_.  Any error handler must have the following member
@@ -295,8 +306,10 @@ was found.  That may of course not be located anywhere near
         }
     }
 
+[heading _report_error_ and _report_warning_]
+
 There are also some convenience functions that make the above code a little
-less verbose (_report_error_ and _report_warning_):
+less verbose, _report_error_ and _report_warning_:
 
     [](auto & ctx) {
         // Assume we have a std::vector of open tags, and another
@@ -322,26 +335,33 @@ error handler, and you want access to some part of it's interface besides
 
 [heading Accessors for data that are only sometimes available] 
 
-_attr_ is the value of the current parser's attribute.  It is available only
-when the current parser's parse is successful.  If the parser has no semantic
-action, no attribute gets added to the parse context.  It can be used to read
-and write the current parser's attribute:
+[heading _attr_]
+
+_attr_ returns a reference to the value of the current parser's attribute.  It
+is available only when the current parser's parse is successful.  If the
+parser has no semantic action, no attribute gets added to the parse context.
+It can be used to read and write the current parser's attribute:
 
     [](auto & ctx) { _attr(ctx) = 3; }
 
 If the current parser has no attribute, a _n_ is returned.
 
-_val_ is the value of the attribute of the current rules being used to parse
-(if any), and is available even before the rule's parse is successful.  It can
-be used to set the current rule's attribute, even from a parser that is a
-subparser inside the rule.  Let's say we're writing a parser with a semantic
-action that is within a rule.  If we want to set the current rule's value to
-whatever this subparser parses, we would write this semantic action:
+[heading _val_]
+
+_val_ returns a reference to the value of the attribute of the current rule
+being used to parse (if any), and is available even before the rule's parse is
+successful.  It can be used to set the current rule's attribute, even from a
+parser that is a subparser inside the rule.  Let's say we're writing a parser
+with a semantic action that is within a rule.  If we want to set the current
+rule's value to whatever this subparser parses, we would write this semantic
+action:
 
     [](auto & ctx) { _val(ctx) = _attr(ctx); }
 
 If there is no current rule, or the current rule has no attribute, a _n_ is
 returned.
+
+[heading _globals_]
 
 _globals_ returns a reference to a user-supplied struct that contains whatever
 data you want to use during the parse.  We'll get into this more later, but
@@ -352,6 +372,8 @@ for now, here's how you might use it:
         if (_globals(ctx).black_list.contains(_attr(ctx)))
             _pass(ctx) = false;
     }
+
+[heading _locals_]
 
 _locals_ returns a reference to one or more values that are local to the
 current rule being parsed, if any.  If there are two or more local values,
@@ -369,6 +391,8 @@ haven't gotten to yet, but here is how you use _locals_:
 If there is no current rule, or the current rule has no locals, a _n_ is
 returned.
 
+[heading _params_]
+
 _params_, like _locals_, applies to the current rule being used to parse, if
 any.  It also returns a reference to a single value, if the current rule has
 only one parameter, or a `hana::tuple` to multiple values if the current rule
@@ -384,10 +408,8 @@ templated overloads for all the overloadable operators.  The intention is that
 a misuse of _val_, _globals_, etc. should compile, and produce an assertion at
 runtime.  Experience has shown that using a debugger for investigating the
 stack that leads to your mistake is a far better user experience than sifting
-through compiler diagnostics.  See the rationale section for a more detailed
+through compiler diagnostics.  See the _rationale_ section for a more detailed
 explanation.]
-
-[heading TODO: extended example of deep template stack vs. debugger.]
 
 [endsect]
 
@@ -648,6 +670,12 @@ boost::text::null_sentinel>`.]
 
 [note Some of the parsers in this table consume no input.  All parsers consume
 the input they match unless otherwise stated in the table below.]
+
+[tip This table is here so that: 1) you can get a sense of what parsers
+_Parser_ provides before we move on, and 2) so you can refer back to it later
+on when writing complicated parsers.  For now, read the whole thing if you
+like, but better yet just look a few parsers over and keep reading.  No need
+to digest it all at once.]
 
 [table Parsers and Their Attributes
     [[Parser] [Semantics] [Attribute Type] [Notes]]
@@ -961,7 +989,83 @@ can use see all the properties of the parsers in one place.]
 
 [section Directives]
 
-TODO
+A directive is an element of your parser that doesn't have any meaning by
+itself.  Some are second-order parsers that need a first-order parser to do
+the actual parsing.  Others influence the parse in some way.  Lexically, you
+can spot a directive by its use of `[]`.  Non-directives never use `[]`, and
+directives always do.
+
+The directives that are second order parsers are technically directives, but
+since they are also used to create parsers, it is more useful just to focus on
+that.  The directives _rpt_ and _if_ were already described in the section on
+parsers; we won't say more about them here.
+
+That leaves the directives that affect aspects of the parse:
+
+[heading _omit_]
+
+`_omit_np_[p]` disables attribute generation for the parser `p`.  Not only
+does `_omit_np_[p]` have no attribute, but any attribute generation work that
+normally happens within `p` is skipped.
+
+This directive can be useful in cases like this: say you have some fairly
+complicated parser `p` that generates a large and expensive-to-construct
+attribute.  Now say that you want to write a function that just counts how
+many times `p` can match a string (where the matches are non-overlapping).
+Instead of using `p` directly, and building all those attributes, or rewriting
+`p` without the attribute generation, use _omit_.
+
+[heading _raw_]
+
+`_raw_np_[p]` changes the attribute from `_ATTR_np_(p)` to to a view that
+delimits the subrange of the input that was matched by `p`.  The type of the
+view is `_v_<I>`, where `I` is the type of the iterator used within the parse.
+Note that this may not be the same as the iterator type passed to _p_.  For
+instance, when parsing UTF-8, the iterator passed to _p_ may be `char8_t const
+*`, but within the parse it will be a UTF-8 to UTF-32 transcoding (converting)
+iterator.  Just like _omit_, _raw_ causes all attribute-generation work within
+`p` to be skipped.
+
+Similar to the re-use scenario for _omit_ above, _raw_ could be used to find
+the *locations* of all non-overlapping matches of `p` in a string.
+
+[heading _lexeme_]
+
+`_lexeme_np_[p]` disables use of the skipper, if a skipper is being used,
+within the parse of `p`.  This is useful, for instance, if you want to enable
+skipping in most parts of your parser, but disable it only in one section
+where it doesn't belong.  If you are skipping whitespace in most of your
+parser, but want to parse strings that may contain spaces, you should use
+_lexeme_:
+
+    auto const string_parser = lexeme['"' >> *(!'"'_l >> char_) >> '"'];
+
+Without _lexeme_, our string parser would corerctly match `"foo bar"`, but the
+generated attribute would be `"foobar"`.
+
+[heading _skip_]
+
+_skip_ is like the inverse of _lexeme_.  It enables skipping in the parse,
+even if it was not enabled before.  For example, within a call to _p_ that
+uses a skipper, let's say we have these parsers in use:
+
+    auto const one_or_more = +char_;
+    auto const skip_or_skip_not_there_is_no_try = lexeme[skip[one_or_more] >> one_or_more];
+
+The use of _lexeme_ disables skipping, but then the use of _skip_ turns it
+back on.  The net result is that the first occurrance of `one_or_more` will
+use the skipper passed to _p_; the second will not.
+
+_skip_ has another use.  You can parameterize skip with a different parser to
+change the skipper just within the scope of the directive.  Let's say we
+passed _space_ to _p_, and we're using these parsers somewhere within that
+call:
+
+    auto const zero_or_more = *char_;
+    auto const skip_both_ways = zero_or_more >> skip(ws)[zero_or_more];
+
+The first occurrance of `zero_or_more` will use the skipper passed to _p_,
+_space_; the second will use _ws_ as its skipper.
 
 [endsect]
 
@@ -1246,17 +1350,10 @@ the parser passed to it; `a` is a semantic action; and `p`, `p1`, `p2`,
 
 [heading Directives that affect attribute generation]
 
-_omit_np_`[p]` disables attribute generation for the parser `p`.  Not only
-does _omit_np_`[p]` have no attribute, but any attribute generation work that
-normally happens within `p` is skipped.
-
-_raw_np_`[p]` changes the attribute from `_ATTR_np_(p)` to _v_`<I>`, where `I`
-is the type of the iterator used within the parse.  Note that this may not be
-the same as the iterator type passed to _p_.  For instance, when parsing
-UTF-8, the iterator passed to _p_ may be `char8_t const *`, but within the
-parse it will be a UTF-8 to UTF-32 transcoding (converting) iterator.  Just
-like _omit_, _raw_ causes all attribute-generation work within `p` to be
-skipped.
+`_omit_np_[p]` disables attribute generation for the parser `p`.
+`_raw_np_[p]` changes the attribute from `_ATTR_np_(p)` to a view that
+indicates the subrange of the input that was matched by `p`.  See _directives_
+for details.
 
 [endsect]
 

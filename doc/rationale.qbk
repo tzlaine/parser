@@ -33,4 +33,8 @@ users.  In light of just how inscrutable error messages are that come from
 parser combinator libraries, using your favorite debugger to step through the
 stack to diagnose the problem is a *much* faster way to fix problems.
 
+TODO: extended example of deep template stack vs. debugger.  Needs to include
+example of just constructing a rule with an error it that is findable at the
+time of its contruction, and another failure within a semantic action.
+
 [endsect]
