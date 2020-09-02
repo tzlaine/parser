@@ -3,7 +3,7 @@
  / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  /]
 
-[library Boost.Parser
+[library Boost.Parser (Proposed)
     [quickbook 1.3]
     [authors [Laine, Zach]]
     [copyright 2020 T. Zachary Laine]
@@ -69,20 +69,21 @@
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
 
 [def _lit_np_              [funcref boost::parser::lit `lit`]]
-[def _str_np_              [funcref boost::parser::string `str`]]
+[def _str_np_              [funcref boost::parser::string `string`]]
 [def _attr_np_             [funcref boost::parser::attr `attr`]]
 [def _rpt_np_              [funcref boost::parser::repeat `repeat`]]
 [def _if_np_               [funcref boost::parser::if_ `if_`]]
 [def _sw_np_               [funcref boost::parser::switch_ `switch_`]]
 
 [def _lit_                 [funcref boost::parser::lit `lit()`]]
-[def _str_                 [funcref boost::parser::string `str()`]]
+[def _str_                 [funcref boost::parser::string `string()`]]
 [def _attr_                [funcref boost::parser::attr `attr()`]]
 [def _rpt_                 [funcref boost::parser::repeat `repeat()`]]
 [def _if_                  [funcref boost::parser::if_ `if_()`]]
 [def _sw_                  [funcref boost::parser::switch_ `switch_()`]]
 
 [def _e_                   [globalref boost::parser::eps `eps`]]
+[def _ws_                  [globalref boost::parser::ws `ws`]]
 [def _eol_                 [globalref boost::parser::eol `eol`]]
 [def _eoi_                 [globalref boost::parser::eoi `eoi`]]
 [def _ch_                  [globalref boost::parser::char_ `char_`]]
@@ -115,12 +116,33 @@
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
 [def _lexeme_np_           [globalref boost::parser::lexeme `lexeme`]]
 
+[def _alnum_               [globalref boost::parser::ascii::alnum `ascii::alnum`]]
+[def _alpha_               [globalref boost::parser::ascii::alpha `ascii::alpha`]]
+[def _blank_               [globalref boost::parser::ascii::blank `ascii::blank`]]
+[def _cntrl_               [globalref boost::parser::ascii::cntrl `ascii::cntrl`]]
+[def _digit_               [globalref boost::parser::ascii::digit `ascii::digit`]]
+[def _graph_               [globalref boost::parser::ascii::graph `ascii::graph`]]
+[def _print_               [globalref boost::parser::ascii::print `ascii::print`]]
+[def _punct_               [globalref boost::parser::ascii::punct `ascii::punct`]]
+[def _space_               [globalref boost::parser::ascii::space `ascii::space`]]
+[def _xdigit_              [globalref boost::parser::ascii::xdigit `ascii::xdigit`]]
+[def _lower_               [globalref boost::parser::ascii::lower `ascii::lower`]]
+[def _upper_               [globalref boost::parser::ascii::upper `ascii::upper`]]
+
+[def _RES_                 ['[^RESOLVE]]`()`]
+[def _RES_np_              ['[^RESOLVE]]]
+[def _ATTR_                ['[^ATTR]]`()`]
+[def _ATTR_np_             ['[^ATTR]]]
+
+[def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
+
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
 [def _udl_                 [@https://en.cppreference.com/w/cpp/language/user_literal UDL]]
 [def _udls_                [@https://en.cppreference.com/w/cpp/language/user_literal UDLs]]
 
 [def _Spirit_              [@https://www.boost.org/doc/libs/release/libs/spirit Boost.Spirit]]
+[def _spirit_reals_        [@https://www.boost.org/doc/libs/release/libs/spirit/doc/html/spirit/qi/reference/numeric/real.html real number parsers]]
 
 [def _emdash_              \u2014]
 

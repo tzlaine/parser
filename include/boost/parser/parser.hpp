@@ -2038,12 +2038,6 @@ namespace boost { namespace parser {
 
     // TODO: Consider eps(cond) -> precondition(cond).
 
-    // TODO: Document the convention that a parser's operator() always returns
-    // a parser_interface.
-
-    // TODO: Document what a pred/pred_ is (value or invocable), and what any
-    // other value is (value or invocable).
-
     // TODO: Document that using char8_t or as_utf8() when passing to
     // *parse() opts you into Unicode-aware parsing.
 

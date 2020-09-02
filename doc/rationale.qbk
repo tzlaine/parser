@@ -5,6 +5,10 @@
 
 [section Rationale]
 
+[heading _ch_'s attribute type is polymorphic]
+
+TODO
+
 [heading _n_ is weird]
 
 Yes, and it's generally not a good programming practice to use a type which is
