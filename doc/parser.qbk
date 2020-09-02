@@ -64,9 +64,11 @@
 [def _globals_             [funcref boost::parser::_globals `_globals()`]]
 [def _locals_              [funcref boost::parser::_locals `_locals()`]]
 [def _params_              [funcref boost::parser::_params `_params()`]]
+[def _params_np_           [funcref boost::parser::_params `_params`]]
 [def _error_handler_       [funcref boost::parser::_error_handler `_error_handler()`]]
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
+[def __p_                  [globalref boost::parser::_p `_p`]]
 
 [def _lit_np_              [funcref boost::parser::lit `lit`]]
 [def _str_np_              [funcref boost::parser::string `string`]]

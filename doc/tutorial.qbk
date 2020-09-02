@@ -1276,6 +1276,17 @@ TODO: Be sure to note that parse(as_utf8(...), p) is in the Unicode path and:
 
 TODO
 
+Getting at one of a rule's arguments and passing it as an argument to another
+parser can be very verbose.  __p_ is a variable template that allows you to
+refer to the `n`th argument to the current rule, so that you can, in turn,
+pass it to on of the rule's subparsers:
+
+    auto const indent_n_def = boost::parser::repeat(boost::parser::_p<0>)[' '_l];
+
+Using __p_ can prevent you from having to write a bunch of lambdas that get
+each get an argument out of the parse context using `_params_np_(ctx)[0_c]` or
+similar.
+
 [endsect]
 
 [section Unicode Support]
