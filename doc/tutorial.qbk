@@ -558,18 +558,18 @@ have to use a mutable _symbols_ object `s`, and add the symbols by calling
 Frequently, you need to parse something that might have one of several forms.
 `operator|()` is overloaded to form alternative parsers.  For example:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const parser_1 = bp::int_ | bp::eps;
 
 `parser_1` matches an integer, or if that fails, it matches /epsilon/, the
 empty string.  This is equivalent to writing:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const parser_2 = -bp::int_;
 
 However, neither `parser_1` nor `parser_2` is equivalent to writing this:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const parser_3 = bp::eps | bp::int_;
 
 The reason is that alternative parsers try each of their subparsers, one at a
@@ -630,7 +630,7 @@ This may of course be a lambda:
 
 An example of how parse arguments are used:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     // This parser matches one code point that is at least 'a', and at most
     // the value of last_char, which comes from the globals.
     auto last_char = [](auto & ctx) { return _globals(ctx).last_char; }
@@ -640,7 +640,7 @@ Don't worry for now about what the globals are for now; the take-away is that
 you can make any argument you pass to a parser depend on the current state of
 the parse, by using the parse context:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     // This parser parses two code points.  For the parse to succeed, the
     // second one must be >= 'a' and <= the first one.
     auto set_last_char = [](auto & ctx) { _globals(ctx).last_char = _attr(x); };
@@ -648,6 +648,11 @@ the parse, by using the parse context:
 
 Each callable parser returns a new parser, parameterized using the arguments
 given in the invocation.
+
+TODO: This is way too long for a tutorial.  Put this after the examples, in a
+reference section separate from the headers-reference (consider moving other
+long tables, too).  Instead, just cover a few exemplars, like _i_, _f_, char_,
+string.
 
 This table lists all the _Parser_ parsers.  For the callable parsers, a
 separate entry exists for each possible arity of arguments.  For a parser `p`,
@@ -694,12 +699,6 @@ boost::text::null_sentinel>`.]
 
 [note Some of the parsers in this table consume no input.  All parsers consume
 the input they match unless otherwise stated in the table below.]
-
-[tip This table is here so that: 1) you can get a sense of what parsers
-_Parser_ provides before we move on, and 2) so you can refer back to it later
-on when writing complicated parsers.  For now, read the whole thing if you
-like, but better yet just look a few parsers over and keep reading.  No need
-to digest it all at once.]
 
 [table Parsers and Their Semantics
     [[Parser] [Semantics] [Attribute Type] [Notes]]
@@ -1062,7 +1061,7 @@ where it doesn't belong.  If you are skipping whitespace in most of your
 parser, but want to parse strings that may contain spaces, you should use
 _lexeme_:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const string_parser = bp::lexeme['"' >> *(bp::char_ = '"') >> '"'];
 
 Without _lexeme_, our string parser would corerctly match `"foo bar"`, but the
@@ -1074,7 +1073,7 @@ _skip_ is like the inverse of _lexeme_.  It enables skipping in the parse,
 even if it was not enabled before.  For example, within a call to _p_ that
 uses a skipper, let's say we have these parsers in use:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const one_or_more = +bp::char_;
     auto const skip_or_skip_not_there_is_no_try = bp::lexeme[bp::skip[one_or_more] >> one_or_more];
 
@@ -1087,7 +1086,7 @@ change the skipper just within the scope of the directive.  Let's say we
 passed _space_ to _p_, and we're using these parsers somewhere within that
 call:
 
-    using namesapce bp = boost::parser;
+    namespace bp = boost::parser;
     auto const zero_or_more = *bp::char_;
     auto const skip_both_ways = zero_or_more >> bp::skip(bp::ws)[zero_or_more];
 
@@ -1125,13 +1124,13 @@ consume the input they match unless otherwise stated in the table below.]
     [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] []]
     [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] []]
     [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
-    [[`p1 >> p2`] [ Matches only iff `p1` matches, and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 >> p2`] [ Matches only iff `p1` matches, and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p1)`] []]
     [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p1)`] []]
-    [[`p1 > p2`] [ Matches only iff `p1` matches, and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 > p2`] [ Matches only iff `p1` matches, and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p1)`] []]
     [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p1)`] []]
-    [[`p1 | p2`] [ Matches only iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 | p2`] [ Matches only iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p1)`] []]
     [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p1)`] []]
     [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
@@ -1143,17 +1142,18 @@ consume the input they match unless otherwise stated in the table below.]
     [[`p[a]`] [ Matches iff `p` matches.  If `p` matches, the semantic action `a` is executed. ] [None.] []]
 ]
 
-TODO collapsing rules
+There are a couple of special rules not captured in the table above:
 
-[table Collapsing of Repetition Operations
-    [[Expression] [Equivalent Expression]]
-    [[`**p`] [ `*p` ]]
-    [[`*+p`] [ `*p` ]]
-    [[`+*p`] [ `*p` ]]
-    [[`++p`] [ `+p` ]]
-]
+First, the zero-or-more and one-or-more repetitions (`operator*()` and
+`operator+()`, respectively) may collapse when combined.  For any parser `p`,
+`++p` collapses to `+p`; `**p`, `*+p`, and `+*p` each collapse to just `*p`.
 
-TODO: Cover the eps within or parser special case.
+Second, using _e_ in an alternative parser as any alternative *except* the
+last one is a common source of errors; _Parser_ disallows it.  This is true
+because, for any parser `p`, `_e_ | p` is equivalent to _e_, since _e_ always
+matches.  This is not true for _e_ parameterized with a condition.  For any
+condition `cond`, `_e_(cond)` is allowed to appear anywhere within an
+alternative parser.
 
 [endsect]
 
@@ -1392,7 +1392,7 @@ In the table: `a` is a semantic action; and `p`, `p1`, `p2`, ... are parsers
 that generate attributes.  Note that only `>>` is used here.  `>` has the
 exact same attribute generation rules.
 
-[table Combining Sequence and Alternative Operations and Their Attributes
+[table Sequence and Alternative Combining Operations and Their Attributes
     [[Expression]                    [Attribute Type]]
 
     [[`_e_ >> _e_`]                  [None.]]
@@ -1435,13 +1435,292 @@ for details.
 
 [section The `parse()` API]
 
-TODO
+There are multiple overloads of _p_.  These overloads have some things in
+common:
 
-TODO: This is where attribute compatability is covered.
+* They each return a value contextually convertible to `bool`.
 
-TODO: Be sure to note that parse(as_utf8(...), p) is in the Unicode path and:
-    auto r = as_utf8(...)
-    parse(r.begin(), r.end(), p) is not.
+* They each take at least a range to parse and a parser.  The "range to parse"
+  may be an iterator/sentinel pair or an single range-like object.
+
+* They each require forward iterability of the input.
+
+* They each accept any input range with an integral element type.  This means
+  that they can each parse ranges of `char`, `char8_t`, `uint16_t`, `int`,
+  etc.
+
+* When you call any of the iterator/sentinel pair overloads of _p_, for
+ example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
+ advancing `first` as it goes.  If the parse succeeds, the entire input may or
+ may not have been matched.  The value of `first` will indicate the last
+ location wthin the input that `p` matched.  The *whole* input was matched if
+ and only if `first == last`.
+
+* When you call any of the range-like overloads of _p_, for example `_p_np_(r,
+  p, _ws_)`, _p_ only indicates success if *all* of `r` was matched by `p`.
+
+[heading The overloads]
+
+There are eight overloads of _p_, because there are three either/or options in
+how you call it.
+
+[heading Iterator/sentinel versus range-like]
+
+You can call _p_ with an iterator and sentinel that delimit a range of
+integral values.  For example:
+
+    namespace bp = boost::parser;
+    auto const p = /* some parser ... */;
+
+    char const * str_1 = /* ... */;
+    // Using null_sentinel, str_1 can point to three billion characters, and
+    // we can call parse() without having to find the end of the string first.
+    auto result_1 = bp::parse(str_1, boost::text::null_sentinel, p, bp::ws);
+
+    char str_2[] = /* ... */;
+    auto result_2 = bp::parse(std::begin(str_2), std::end(str_2), p, bp::ws);
+
+The iterator/sentinel overloads can parse successfully without matching the
+entire input.  You can tell if the entire input was matched by checking if
+`first == last` is true after _p_ returns.
+
+You can also call _p_ with a range of integral values.  When the range is a
+reference to an array of characters, any terminating `0` is ignored; this
+allows calls like `_p_np_("str", p)` to work naturally.
+
+    namespace bp = boost::parser;
+    auto const p = /* some parser ... */;
+
+    std::u8string str_1 = "str";
+    auto result_1 = bp::parse(str_1, p, bp::ws);
+
+    // The null terminator is ignored.  This call parses s-t-r, not s-t-r-0.
+    auto result_2 = bp::parse(U"str", p, bp::ws);
+
+    char const * str_3 = "str";
+    auto result_3 = bp::parse(boost::text::as_utf16(str_3), p, bp::ws);
+
+You can also call _p_ with a pointer to a null-termianted string of integral
+values.  _p_ considers pointers to null-terminated strings to be ranges,
+since, for any pointer `T *` to a null-terminated string, `T *` is isomorphic
+with `view<T *, boost::text::null_sentinel>`.
+
+    namespace bp = boost::parser;
+    auto const p = /* some parser ... */;
+
+    char const * str_1 = /* ... */ ;
+    auto result_1 = bp::parse(str_1, p, bp::ws);
+    char8_t const * str_2 = /* ... */ ;
+    auto result_2 = bp::parse(str_2, p, bp::ws);
+    char16_t const * str_3 = /* ... */ ;
+    auto result_3 = bp::parse(str_3, p, bp::ws);
+    char32_t const * str_4 = /* ... */ ;
+    auto result_4 = bp::parse(str_4, p, bp::ws);
+
+    int const array[] = { 's', 't', 'r', 0 };
+    int const * array_ptr = array;
+    auto result_5 = bp::parse(array_ptr, p, bp::ws);
+
+Since there is no way to indicate that `p` matches the input, but only a
+prefix of the input was matched, the range-like (non-iterator/sentinel)
+overloads of _p_ indicate failure if the entire input is not matched.
+
+[heading With or without an attribute out-parameter]
+
+    namespace bp = boost::parser;
+    auto const p = '"' >> *(bp::char_ = '"') >> '"';
+    char const * str = "\"two words\"" ;
+
+    std::string result_1;
+    bool const success = bp::parse(str, p, result_1);   // success is true; result_1 is "two words"
+    auto result_2 = bp::parse(str, p);                  // !!result_2 is true; *result_2 is "two words"
+
+When you call _p_ *with* an attribute out-parameter and parser `p`, the
+expected type is *something like* `_ATTR_np_(p)`.  It doesn't have to be
+exactly that; I'll explain in a bit.  The return type is `bool`.
+
+When you call _p_ *without* an attribute out-parameter and parser `p`, the
+return type is `std::optional<_ATTR_np_(p)>`.  Note that when `_ATTR_np_(p)`
+is itself an `optional`, the return type is
+`std::optional<std::optional<...>>`.  Each of those optionals tells you
+something different.  The outer one tells you whether the parse succeeded.  If
+so, the parser was successful, but it still generates an attribute that is an
+`optional` _emdash_ that's the inner one.
+
+[heading With or without a skipper]
+
+    namespace bp = boost::parser;
+    auto const p = '"' >> *(bp::char_ = '"') >> '"';
+    char const * str = "\"two words\"" ;
+
+    auto result_1 = bp::parse(str, p);         // !!result_1 is true; *result_1 is "two words"
+    auto result_2 = bp::parse(str, p, bp::ws); // !!result_2 is true; *result_2 is "twowords"
+
+[heading Compatability of attribute out-parameters]
+
+For any call to _p_ that takes an attribute out-parameter, like `_p_np_("str",
+p, bp::ws, out)`, the call is well-formed for a number of possible types of
+`out`; `decltype(out)` does not need to be exactly `_ATTR_np_(p)`.
+
+For instance, this is valid code that does not abort (remember that the
+attribute type of _str_ is `std::string`):
+
+    namespace bp = boost::parser;
+    auto const p = bp::string("foo");
+
+    std::vector<char> result;
+    bool const success = bp::parse("foo", p, result);
+    assert(success && result == std::vector<char>({'f', 'o', 'o'}));
+
+Even though `p` generates a `std::string` attribute, when it actually takes
+the data it generates and writes it into an attribute, it only assumes that
+the attribute is a `container` (see _concepts_), not that it is some
+particular container type.  It will happily `insert()` into a `std::string` or
+a `std::vector<char>` all the same.  `std::string` and `std::vector<char>` are
+both containers of `char`, but it will also insert into a container with a
+different element type.  `p` just needs to be able to insert the elements it
+produces into the attribute-container.  As long as an implicit conversion
+allows that to work, everything is fine:
+
+    namespace bp = boost::parser;
+    auto const p = bp::string("foo");
+
+    std::vector<int> result;
+    bool const success = bp::parse("foo", p, result);
+    assert(success && result == std::vector<int>({'f', 'o', 'o'}));
+
+This works, too, even though it requires inserting elements from a generated
+sequence of `uint32_t` into a container of `char` (remember that the attribute
+type of `+_cp_` is `std::vector<uint32_t>`):
+
+    namespace bp = boost::parser;
+    auto const p = +bp::cp;
+
+    std::string result;
+    bool const success = bp::parse("foo", p, result);
+    assert(success && result == "foo");
+
+This next example works as well, even though the change to a container is not
+at the top level.  It is an element of the result tuple:
+
+    namespace bp = boost::parser;
+    // p matches one or more non-spaces, followed by a single space, followed by one or more repetitions of "foo".
+    auto const p = +(bp::cp - ' ') >> ' ' >> +string("foo");
+
+    // attr_type is the attribute type generated by p.
+    using attr_type = decltype(bp::parse(u8"", p));
+    static_assert(
+        std::is_same_v<
+            attr_type,
+            std::optional<
+                boost::hana::tuple<std::vector<uint32_t>, std::string>>>);
+
+    // This is similar to attr_type, with the std::vector<uint32_t> changed to a std::string.
+    boost::hana::tuple<std::string, std::string> result;
+    bool const success = bp::parse(u8"rôle foofoo", p, result);
+    using namespace boost::hana::literals;
+
+    assert(success);                              // p matches.
+    assert(result[0_c].size() == 5u);             // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
+    assert(result[0_c] == (char const *)u8"rôle");
+    assert(result[1_c] == "foofoo");
+
+As indicated in the inline comments, there are a couple of things to take away
+from this example:
+
+* If you change a container (such as `std::string` to `std::vector<int>`, or
+  `std::vector<uint32_t>` to `std::deque<int>`), the call to _p_ will often
+  still be well-formed
+
+* When changing out a container type, if both containers contain integral
+  values, and the removed container's element type is 4 bytes in size, and the
+  new container's element type is 1 byte in size, _Parser_ assumes that this
+  is a UTF-32-to-UTF-8 conversion, and silently transcodes the data when
+  inserting into the new container.
+
+[caution The detection of the need tp transcode from UTF-32 to UTF-8 applies to *all* integral values.  If you call _p_ with this parser:
+
+    auto const p = +boost::parser::uint_;
+
+using a `std::string` as an out-parameter, it will happily transcode your
+unsigned ints to UTF-8.  This is almost certainly not what you want.  Don't
+worry, though; this kind of case comes up pretty rarely, but wanting to parse
+in Unicode mode and catch results in UTF-8 strings comes up all the time.]
+
+Let's look at a case where another simple-seeming type replacement does *not* work:
+
+        namespace bp = boost::parser;
+        auto const p = +(bp::int_ >> +bp::cp);
+
+        using attr_type = decltype(bp::parse(u8"", p));
+        static_assert(std::is_same_v<
+                      attr_type,
+                      std::optional<std::vector<
+                          boost::hana::tuple<int, std::vector<uint32_t>>>>>);
+
+        std::vector<boost::hana::tuple<int, std::string>> result;
+    #if 0
+        bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
+    #endif
+
+In this case, removing a `std::vector<uint32_t>` and putting a `std::string`
+in its place makes the code ill-formed, even though we saw a similar
+replacement earlier.  The reason this one does not work is that the replaced
+container is part of the element type of yet another container.  At some point
+in the code, `p` would try to insert a `boost::hana::tuple<int,
+std::vector<uint32_t>>` _emdash_ the element type of the attribute type it
+normally generates _emdash_ into a vector of `boost::hana::tuple<int,
+std::string>`s.  There's no implicit conversion there, so teh code is
+ill-formed.
+
+The take-away for this last example is that the ability to arbitrarily swap
+out data types within the type of the attribute you pass to _p_ is very
+flexible, but is also limited to structurally simple cases.  When we discuss
+rules in the next section, we'll see how this flexibility in the types of
+attributes can help when writing complicated parsers.
+
+[note Those were all examples of swapping out one container type for another.
+They make good examples because that is more likely to be surprising, and so
+it's getting lots of coverage here.  You can also do much simpler things like
+parse using a _ui_, and writing its attribute into a `double`.  In general,
+you can swap any type `T` out of the attribute, as long as `T` is not part of
+the element type for some container within the attribute. ]
+
+[heading Unicode versus non-Unicode parsing]
+
+A call to _p_ either considers the entire input to be in a UTF format (UTF-8,
+UTF-16, or UTF-32), or it considers the entire input to be in some unknown
+encoding.  Here is how it deduces which case the call falls under:
+
+* If the input range is a sequence of `char8_t`, or if the input is a
+  `boost::text::utf8_view`, the input is UTF-8.
+
+* Otherwise, if the input is a sequence of 1-byte integral values, the input
+  is in an unknown encoding.
+
+* Otherwise, the input is in a UTF encoding.
+
+[tip if you want to want to parse in ASCII-only mode, or in some unkown
+enciding, using only sequences of `char`, like `std::string` or `char const
+*`.]
+
+[tip If you want to ensure all input is parsed as Unicode, pass the input
+range `r` as `boost::text::as_utf32(r)` _emdash_ that's the first thing that
+happens to it inside _p_ in the Unicode parsing path anyway.]
+
+[note Since passing `boost::text::utf8_view` is a special case, and since a
+sequence of `char` is otherwise considered an unknown encoding,
+`boost::parse::parse(boost::text::as_utf8(r), p)` treats `r` as UTF-8, whereas
+`boost::parse::parse(r.begin(), r.end(), p)` does not.]
+
+[heading The `trace_mode` parameter to _p_]
+
+Debugging parsers is notoriously difficult once they reach a certain size.  To
+get a verbose trace of your parse, pass `boost::parse::trace::on` as the final
+parameter to _p_.  It will show you the current parser being matched, the
+front of the input, and any attributes generated.  If an attribute appears
+which it cannot print using stream insertion, it prints
+`"<<unprintable-value>>"`.
 
 [endsect]
 

@@ -55,6 +55,7 @@
 [def _symbols_t_           [classref boost::parser::symbols `symbols<T>`]]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
+[def _p_np_                [funcref boost::parser::parse `parse`]]
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
 
 [def _attr_                [funcref boost::parser::_attr `_attr()`]]

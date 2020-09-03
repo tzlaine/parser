@@ -13,6 +13,8 @@
 
 #include <gtest/gtest.h>
 
+#include <deque>
+
 
 using namespace boost::parser;
 
@@ -140,6 +142,12 @@ TEST(parser, full_parse_api)
         EXPECT_TRUE(parse(str, char_));
         EXPECT_EQ(*parse(str, char_), 'a');
         EXPECT_FALSE(parse(str, char_('b')));
+    }
+    // returned attr, UTF-16
+    {
+        EXPECT_TRUE(parse(u"a", char_));
+        EXPECT_EQ(*parse(u"a", char_), 'a');
+        EXPECT_FALSE(parse(u"a", char_('b')));
     }
 
     // attr out param, using skipper
@@ -1787,5 +1795,58 @@ TEST(parser, broken_utf8)
         auto first = str.begin();
         EXPECT_TRUE(parse(first, str.end(), parser, chars));
         EXPECT_EQ(chars, ""); // Finds zero matches of the *code point* 0xcc.
+    }
+}
+
+TEST(parser, attr_out_param_compat)
+{
+    {
+        namespace bp = boost::parser;
+        auto const p = bp::string("foo");
+
+        std::vector<char> result;
+        bool const success = bp::parse("foo", p, result);
+        EXPECT_TRUE(success && result == std::vector<char>({'f', 'o', 'o'}));
+    }
+    {
+        namespace bp = boost::parser;
+        auto const p = bp::string("foo");
+
+        std::vector<int> result;
+        bool const success = bp::parse("foo", p, result);
+        EXPECT_TRUE(success && result == std::vector<int>({'f', 'o', 'o'}));
+    }
+    {
+        namespace bp = boost::parser;
+        auto const p = +(bp::cp - ' ') >> ' ' >> +string("foo");
+
+        using attr_type = decltype(bp::parse(u8"", p));
+        static_assert(
+            std::is_same_v<
+                attr_type,
+                std::optional<
+                    boost::hana::tuple<std::vector<uint32_t>, std::string>>>);
+
+        boost::hana::tuple<std::string, std::string> result;
+        bool const success = bp::parse(u8"rôle foofoo", p, result);
+        using namespace boost::hana::literals;
+        assert(
+            success && result[0_c] == (char const *)u8"rôle" &&
+            result[1_c] == "foofoo");
+    }
+    {
+        namespace bp = boost::parser;
+        auto const p = +(bp::int_ >> +bp::cp);
+
+        using attr_type = decltype(bp::parse(u8"", p));
+        static_assert(std::is_same_v<
+                      attr_type,
+                      std::optional<std::vector<
+                          boost::hana::tuple<int, std::vector<uint32_t>>>>>);
+
+        std::vector<boost::hana::tuple<int, std::string>> result;
+#if 0
+        bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
+#endif
     }
 }
