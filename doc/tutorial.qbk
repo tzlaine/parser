@@ -16,10 +16,10 @@ Simpler parsers can be combined to form more complex parsers.  Given some
 combining operation `C`, and parsers `P0`, `P1`, ... `PN`, `C(P0, P1, ... PN)`
 creates a new parser `Q`.  This creates a /parse tree/.  `Q` is the parent of
 `P1`, `P2` is the child of `Q`, etc.  The parsers are applied in the top-down
-fashion implied by this.  When you use `Q` to parse a string, it will use
-`P0`, `P1`, etc. to do the actual work.  If `P3` is being used to parse the
-input, that means that `Q` is as well, since the way `Q` parses is by
-dispatching to its children to do some or all of the work.  At any point in
+fashion implied by this toplology.  When you use `Q` to parse a string, it
+will use `P0`, `P1`, etc. to do the actual work.  If `P3` is being used to
+parse the input, that means that `Q` is as well, since the way `Q` parses is
+by dispatching to its children to do some or all of the work.  At any point in
 the parse, there will be exactly one parser without children that is being
 used to parse the input; all other parsers being used are its ancestors in the
 parse tree.
@@ -36,11 +36,11 @@ easier.  A /subrule/ is a rule that is the child of some other rule.  The
 /current rule/ or /innermost rule/ is the one rule currently being used to
 parse the input that has no subrules.  Note that while there is always exactly
 one current parser, there may or may not be a current rule _emdash_ rules are
-one kind of parser, and you may or may not be using them in your top-level
-parser.
+one kind of parser, and you may or may not be using one at a given point in
+the parse.
 
 The /top-level parse/ is the parse operation being performed by the top-level
-parser.  This term is necessary, because though most parse failures are local
+parser.  This term is necessary because, though most parse failures are local
 to a particular parser, some parse failures cause the call to _p_ to indicate
 failure of the entire parse.  For these cases, we say that such a local
 failure "causes the top-level parse to fail".
@@ -96,7 +96,7 @@ parser as one of the arguments:
     bp::parse(input, *bp::char_, result);
 
 The arguments here are: `input`, the string to parse; `*bp::char_`, the parser
-used to do the parse; and `result`, and out-parameter into which to put the
+used to do the parse; and `result`, an out-parameter into which to put the
 result of the parse.  Don't get too caught up on this method of getting the
 parse result out of _p_; there are multiple ways of doing so, and we'll cover
 all of them in subsequent examples.
@@ -119,11 +119,11 @@ trivial.  Instead of taking any old `char`s we're given, let's require some
 structure.  Let's parse one or more `double`s, separated by commas.
 
 The _Parser_ parser for `double` is _d_.  So, to parse a single `double`, we'd
-use _d_.  If we wanted to parse two `double`s in a row, we'd use:
+just use that.  If we wanted to parse two `double`s in a row, we'd use:
 
     boost::parser::double_ >> boost::parser::double_
 
-`operator>>()` in this expression is the sequence-operator; read is as
+`operator>>()` in this expression is the sequence-operator; read it as
 "followed by".  If we combine the sequence-operator with _kl_, we can get the
 parser we want by writing:
 
@@ -169,10 +169,10 @@ before or after the list of `double`s.
 
 [section A Trivial Example That Gracefully Handles Whitespace]
 
-Let's modify the trivial parser we just saw to ignore any spaces that might
-exist among the `double`s and commas.  To skip whitespace wherever we find it,
-we can pass a /skip parser/ to our call to _p_ (we don't need to touch the
-parser passed to _p_).  Here, we use `ascii::space`, which matches any ASCII
+Let's modify the trivial parser we just saw to ignore any spaces it might find
+among the `double`s and commas.  To skip whitespace wherever we find it, we
+can pass a /skip parser/ to our call to _p_ (we don't need to touch the parser
+passed to _p_).  Here, we use `ascii::space`, which matches any ASCII
 character `c` for which `std::isspace(c)` is true.
 
 [trivial_skipper_example]
@@ -203,7 +203,8 @@ mechanism for associating semantic actions with different parts of the parse.
 Here is nearly the same program as we saw in the previous example, except that
 it is implemented in terms of a semantic action that appends each parsed
 `double` to a result, instead of automatically building and returning the
-result:
+result.  To do this, we replace the _d_ from the previous example with
+`_d_[action]`; `action` is our semantic action:
 
 [semantic_action_example]
 
@@ -1295,6 +1296,10 @@ attributes.
     [[`_sw_np_(arg0)(arg1, p1)(arg2, p2)...`]
      [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>`]]
 ]
+
+[important In case you did not notice it above, adding a semantic action to a
+parser erases the parser's attribute.  The attribute is still available inside
+the semantic action as `_attr(ctx)`.]
 
 There are a relatively small number of rules that define how sequence parsers
 and alternative parsers's attributes are generated.  (Don't worry, there are
