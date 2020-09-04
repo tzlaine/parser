@@ -37,4 +37,13 @@ TODO: extended example of deep template stack vs. debugger.  Needs to include
 example of just constructing a rule with an error it that is findable at the
 time of its contruction, and another failure within a semantic action.
 
+[heading Attribute types are flexible]
+
+This is how we get genericity in attribute generation.  In the STL, we can use
+multiple types of container with the algorithms because iterators act as the
+glue that connects algorithms to containers.  With attribute generation, there
+are instead arbitrary types begin constructed and inserted into containers.
+Allowing the insertion to happen on arbitrary types that model the `container`
+concept is what allows generic use of different containers.
+
 [endsect]
