@@ -1804,7 +1804,36 @@ front of the input, and any attributes generated.  If an attribute appears
 which it cannot print using stream insertion, it prints
 `"<<unprintable-value>>"`.
 
-TODO: `with_globabls()`, `with_error_handler()`
+[heading Globals and error handlers]
+
+Each call to _p_ can optionally have a globals object associated with in.  To
+use a particular globals object with you parser, you call _w_glb_ to create a
+new parser with the globals object in it:
+
+    struct globals_t
+    {
+        int foo;
+        std::string bar;
+    };
+    auto const parser = /* ... */;
+    auto result = boost::parse::parse("str", boost::parser::with_globals(parser, globals_t{42, "yay"}));
+
+Every semantic action within that call to _p_ can access to the same
+`globals_t` object using `_globals(ctx)`.
+
+The default error handler is great for most needs, but if you want to change
+it, you can do so by creating a new parser with a call to _w_eh_:
+
+    auto const parser = /* ... */;
+    my_error_handler error_handler;
+    auto result = boost::parse::parse("str", boost::parser::error_handler(parser, error_handler));
+
+[tip If your parsing environment does not allow you to report errors to a
+terminal, you may want to use [classref boost::parser::callback_error_handler
+`callback_error_handler`] instead of the default error handler.]
+
+[important The globals and error handler on any non-top-level parser are
+ignored.]
 
 [endsect]
 
