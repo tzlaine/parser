@@ -234,6 +234,8 @@ There are lots of functions like `_attr()` that can be used to access the
 state in the parse context.  We'll cover more of them later on.  The next
 section defines what exactly the parse context is and how it works.
 
+TODO: Briefly introduce rules here.
+
 [endsect]
 
 [section The Parse Context]
@@ -1008,6 +1010,8 @@ the input they match unless otherwise stated in the table below.]
 these parsers is in the next section.  The attributes are repeated here so you
 can use see all the properties of the parsers in one place.]
 
+TODO: int<>, uint<>
+
 [endsect]
 
 [section Directives]
@@ -1721,6 +1725,8 @@ parameter to _p_.  It will show you the current parser being matched, the
 front of the input, and any attributes generated.  If an attribute appears
 which it cannot print using stream insertion, it prints
 `"<<unprintable-value>>"`.
+
+TODO: `with_globabls()`, `with_error_handler()`
 
 [endsect]
 
