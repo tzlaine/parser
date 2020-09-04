@@ -34,7 +34,7 @@ namespace boost { namespace parser { namespace detail {
 
 #if 0 // TODO
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         Parser const & parser,
         std::ostream & os,
@@ -44,100 +44,75 @@ namespace boost { namespace parser { namespace detail {
     template<
         typename Context,
         typename Parser,
-        typename MinType,
-        typename MaxType>
-    void parser_name(
-        Context const & context,
-        repeat_parser<Parser, nope, MinType, MaxType> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<
-        typename Context,
-        typename Parser,
         typename DelimiterParser,
         typename MinType,
         typename MaxType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         repeat_parser<Parser, DelimiterParser, MinType, MaxType> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         opt_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename ParserTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         or_parser<ParserTuple> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename ParserTuple, typename BacktrackingTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         seq_parser<ParserTuple, BacktrackingTuple> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Parser, typename Action>
-    void parser_name(
+    void print_parser(
         Context const & context,
         action_parser<Parser, Action> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         raw_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         lexeme_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Parser>
-    void parser_name(
-        Context const & context,
-        skip_parser<Parser, nope> const & parser,
-        std::ostream & os,
-        int components = 0);
-
     template<typename Context, typename Parser, typename SkipParser>
-    void parser_name(
+    void print_parser(
         Context const & context,
-        skip_parser<Parser> const & parser,
+        skip_parser<Parser, SkipParser> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Parser>
-    void parser_name(
+    template<typename Context, typename Parser, bool FailOnMatch>
+    void print_parser(
         Context const & context,
-        expect_parser<Parser, true> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context, typename Parser>
-    void parser_name(
-        Context const & context,
-        expect_parser<Parser, false> const & parser,
+        expect_parser<Parser, FailOnMatch> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -148,7 +123,7 @@ namespace boost { namespace parser { namespace detail {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         rule_parser<
             UseCallbacks,
@@ -160,105 +135,84 @@ namespace boost { namespace parser { namespace detail {
         int components = 0);
 
     template<typename Context, typename T>
-    void parser_name(
+    void print_parser(
         Context const & context,
         symbol_parser<T> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Predicate>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eps_parser<Predicate> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eps_parser<nope> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eoi_parser const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Atribute>
-    void parser_name(
+    void print_parser(
         Context const & context,
         attr_parser<Atribute> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename Expected, typename AttributeType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         char_parser<Expected, AttributeType> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename AttributeType>
-    void parser_name(
-        Context const & context,
-        char_parser<nope, AttributeType> const & parser,
-        std::ostream & os,
-        int components = 0);
-
     template<typename Context, typename Expected, typename AttributeType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<char_parser<Expected, AttributeType>> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename Expected>
-    void parser_name(
-        Context const & context,
-        char_parser<Expected, uint32_t> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        char_parser<nope, uint32_t> const & parser,
-        std::ostream & os,
-        int components = 0);
-
     template<typename Context, typename StrIter, typename StrSentinel>
-    void parser_name(
+    void print_parser(
         Context const & context,
         string_parser<StrIter, StrSentinel> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename StrIter, typename StrSentinel>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<string_parser<StrIter, StrSentinel>> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         ws_parser<true> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         ws_parser<false> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         bool_parser const & parser,
         std::ostream & os,
@@ -271,7 +225,7 @@ namespace boost { namespace parser { namespace detail {
         int MinDigits,
         int MaxDigits,
         typename Expected>
-    void parser_name(
+    void print_parser(
         Context const & context,
         uint_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
         std::ostream & os,
@@ -282,138 +236,37 @@ namespace boost { namespace parser { namespace detail {
         typename T,
         int Radix,
         int MinDigits,
-        int MaxDigits>
-    void parser_name(
-        Context const & context,
-        uint_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 2> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 8> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 16> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned short> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned long> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned long long> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<
-        typename Context,
-        typename T,
-        int Radix,
-        int MinDigits,
         int MaxDigits,
         typename Expected>
-    void parser_name(
+    void print_parser(
         Context const & context,
         int_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
         std::ostream & os,
         int components = 0);
 
-    template<
-        typename Context,
-        typename T,
-        int Radix,
-        int MinDigits,
-        int MaxDigits>
-    void parser_name(
-        Context const & context,
-        int_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        int_parser<short> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        int_parser<int> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        int_parser<long> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        int_parser<long long> const & parser,
-        std::ostream & os,
-        int components = 0);
-
     template<typename Context, typename T>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<T> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<float> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<double> const & parser,
         std::ostream & os,
         int components = 0);
 
     template<typename Context, typename SwitchValue, typename OrParser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         switch_parser<SwitchValue, OrParser> const & parser,
         std::ostream & os,
@@ -448,7 +301,7 @@ namespace boost { namespace parser { namespace detail {
                 os << '"';
             for (int64_t i = 0; i < trace_input_cps && first != last;
                  ++i, ++first) {
-                print_char(os, *first);
+                detail::print_char(os, *first);
             }
             if (quote)
                 os << '"';
@@ -475,7 +328,7 @@ namespace boost { namespace parser { namespace detail {
             if (quote)
                 os << '"';
             for (Iter it = first_, end = first.base(); it != end; ++it) {
-                print_char(os, *it);
+                detail::print_char(os, *it);
             }
             if (quote)
                 os << '"';
@@ -498,9 +351,9 @@ namespace boost { namespace parser { namespace detail {
     inline void trace_begin_match(
         Iter first, Sentinel last, int indent, std::string_view name)
     {
-        trace_indent(indent);
+        detail::trace_indent(indent);
         std::cout << "[begin " << name << "; input=";
-        trace_input(std::cout, first, last);
+        detail::trace_input(std::cout, first, last);
         std::cout << "]" << std::endl;
     }
 
@@ -508,9 +361,9 @@ namespace boost { namespace parser { namespace detail {
     inline void trace_end_match(
         Iter first, Sentinel last, int indent, std::string_view name)
     {
-        trace_indent(indent);
+        detail::trace_indent(indent);
         std::cout << "[end " << name << "; input=";
-        trace_input(std::cout, first, last);
+        detail::trace_input(std::cout, first, last);
         std::cout << "]" << std::endl;
     }
 
@@ -522,7 +375,7 @@ namespace boost { namespace parser { namespace detail {
         std::string_view name)
     {
         int & indent = _indent(context);
-        trace_begin_match(first, last, indent, name);
+        detail::trace_begin_match(first, last, indent, name);
         ++indent;
     }
 
@@ -535,7 +388,7 @@ namespace boost { namespace parser { namespace detail {
     {
         int & indent = _indent(context);
         --indent;
-        trace_end_match(first, last, indent, name);
+        detail::trace_end_match(first, last, indent, name);
     }
 
     template<typename T>
@@ -571,7 +424,7 @@ namespace boost { namespace parser { namespace detail {
     {
         if (c < 256) {
             os << "U";
-            print_printable(os, (char)c);
+            detail::print_printable(os, (char)c);
         } else {
             os << "U'\\U" << std::hex << std::setw(8) << std::setfill('0')
                << (uint32_t)c << "'";
@@ -583,7 +436,7 @@ namespace boost { namespace parser { namespace detail {
     {
         std::ostream & operator()(std::ostream & os, T const & x)
         {
-            print_printable(os, x);
+            detail::print_printable(os, x);
             return os;
         }
     };
@@ -608,7 +461,7 @@ namespace boost { namespace parser { namespace detail {
         hana::for_each(attr, [&](auto const & a) {
             if (first)
                 os << ", ";
-            print(os, a);
+            detail::print(os, a);
             first = false;
         });
         os << ")\n";
@@ -626,7 +479,7 @@ namespace boost { namespace parser { namespace detail {
         if (!attr)
             os << "<<empty>>";
         else
-            print(os, *attr);
+            detail::print(os, *attr);
     }
 
     template<typename Attribute>
@@ -638,9 +491,9 @@ namespace boost { namespace parser { namespace detail {
     template<typename Attribute>
     inline void print_attribute(Attribute const & attr, int indent)
     {
-        trace_indent(indent);
+        detail::trace_indent(indent);
         std::cout << "attribute: ";
-        print(std::cout, attr);
+        detail::print(std::cout, attr);
         std::cout << "\n";
     }
 
@@ -679,25 +532,26 @@ namespace boost { namespace parser { namespace detail {
             attr_(attr),
             name_(std::move(name))
         {
-            if (!do_trace(flags_))
+            if (!detail::do_trace(flags_))
                 return;
-            trace_prefix(first_, last_, context_, name_);
+            detail::trace_prefix(first_, last_, context_, name_);
         }
 
         ~scoped_trace_t()
         {
-            if (!do_trace(flags_))
+            if (!detail::do_trace(flags_))
                 return;
-            trace_indent(_indent(context_));
+            detail::trace_indent(_indent(context_));
             if (*context_[hana::type_c<pass_tag>]) {
                 std::cout << "matched ";
-                trace_input(std::cout, initial_first_, first_);
-                std::cout << "\n";
-                print_attribute(resolve(context_, attr_), _indent(context_));
+             detail::   trace_input(std::cout, initial_first_, first_);
+             std::cout << "\n";
+             detail::print_attribute(
+                 detail::resolve(context_, attr_), _indent(context_));
             } else {
                 std::cout << "no match\n";
             }
-            trace_suffix(first_, last_, context_, name_);
+            detail::trace_suffix(first_, last_, context_, name_);
         }
 
         Iter initial_first_;
@@ -724,7 +578,7 @@ namespace boost { namespace parser { namespace detail {
         Attribute const & attr)
     {
         std::stringstream oss;
-        parser_name(context, parser, oss);
+        detail::print_parser(context, parser, oss);
         return scoped_trace_t<Iter, Sentinel, Context, Attribute>(
             first, last, context, f, attr, oss.str());
     }
@@ -732,13 +586,13 @@ namespace boost { namespace parser { namespace detail {
     template<typename Context, typename Attribute>
     auto final_trace(Context const & context, flags f, Attribute const & attr)
     {
-        if (!do_trace(f))
+        if (!detail::do_trace(f))
             return;
 
         std::cout << "--------------------\n";
         if (*context[hana::type_c<pass_tag>]) {
             std::cout << "parse succeeded\n";
-            print_attribute(resolve(context, attr), 0);
+            detail::print_attribute(detail::resolve(context, attr), 0);
         } else {
             std::cout << "parse failed\n";
         }

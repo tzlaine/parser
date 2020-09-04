@@ -2036,9 +2036,6 @@ namespace boost { namespace parser {
     }
 
 
-    // TODO: Document that using char8_t or as_utf8() when passing to
-    // *parse() opts you into Unicode-aware parsing.
-
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
         `hana::tuple`.  You may write to this value in a semantic action to
@@ -3081,7 +3078,7 @@ namespace boost { namespace parser {
                         use_cbs, first, last, context, skip, flags, success);
                     if (!success && !can_backtrack) {
                         std::stringstream oss;
-                        detail::parser_name(context, parser, oss);
+                        detail::print_parser(context, parser, oss);
                         throw parse_error<Iter>(first, oss.str());
                     }
                     return;
@@ -3115,7 +3112,7 @@ namespace boost { namespace parser {
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
-                            detail::parser_name(context, parser, oss);
+                            detail::print_parser(context, parser, oss);
                             throw parse_error<Iter>(first, oss.str());
                         }
                         out = std::decay_t<decltype(out)>();
@@ -3127,7 +3124,7 @@ namespace boost { namespace parser {
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
-                            detail::parser_name(context, parser, oss);
+                            detail::print_parser(context, parser, oss);
                             throw parse_error<Iter>(first, oss.str());
                         }
                         return;
@@ -3467,6 +3464,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
+            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+
             if constexpr (std::is_same<SkipParser, detail::nope>{}) {
                 parser_.call(
                     use_cbs,

@@ -10,7 +10,7 @@ namespace boost { namespace parser { namespace detail {
 
 #if 0
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         Parser const & parser,
         std::ostream & os,
@@ -20,41 +20,57 @@ namespace boost { namespace parser { namespace detail {
     }
 #endif
 
+    template<typename Parser>
+    struct n_aray_parser : std::false_type
+    {};
+
     template<
-        typename Context,
         typename Parser,
+        typename DelimiterParser,
         typename MinType,
         typename MaxType>
-    void parser_name(
+    struct n_aray_parser<
+        repeat_parser<Parser, DelimiterParser, MinType, MaxType>>
+        : std::true_type
+    {};
+
+    template<typename Parser, typename MinType, typename MaxType>
+    struct n_aray_parser<repeat_parser<Parser, detail::nope, MinType, MaxType>>
+        : std::false_type
+    {};
+
+    template<typename Parser, typename DelimiterParser>
+    struct n_aray_parser<delimited_seq_parser<Parser, DelimiterParser>>
+        : std::true_type
+    {};
+
+    template<typename ParserTuple>
+    struct n_aray_parser<or_parser<ParserTuple>> : std::true_type
+    {};
+
+    template<typename ParserTuple, typename BacktrackingTuple>
+    struct n_aray_parser<seq_parser<ParserTuple, BacktrackingTuple>>
+        : std::true_type
+    {};
+
+    // true iff Parser is an n-ary parser (contains N>2 subparsers).
+    template<typename Parser>
+    constexpr bool n_aray_parser_v = n_aray_parser<Parser>::value;
+
+    template<typename Context, typename Expected>
+    void print_expected(
         Context const & context,
-        repeat_parser<Parser, nope, MinType, MaxType> const & parser,
         std::ostream & os,
-        int components)
+        Expected expected,
+        bool no_parens = false)
     {
-        auto const min_ = resolve(context, parser.min_);
-        auto const max_ = resolve(context, parser.max_);
-        if (min_ == 0 && max_ == Inf) {
-            os << "*";
-            parser_name(context, parser.parser_, os, components + 1);
-        } else if (min_ == 1 && max_ == Inf) {
-            os << "+";
-            parser_name(context, parser.parser_, os, components + 1);
-        } else {
-            os << "repeat(";
-            print(os, min_);
-            if (min_ == max_) {
-                os << ")[";
-            } else {
-                os << ", ";
-                if (max_ == unbounded)
-                    os << "Inf";
-                else
-                    print(os, max_);
-                os << ")[";
-            }
-            parser_name(context, parser.parser_, os, components + 1);
-            os << "]";
-        }
+        if (std::is_same_v<Expected, nope>)
+            return;
+        if (!no_parens)
+            os << "(";
+        detail::print(os, detail::resolve(context, expected));
+        if (!no_parens)
+            os << ")";
     }
 
     template<
@@ -63,30 +79,75 @@ namespace boost { namespace parser { namespace detail {
         typename DelimiterParser,
         typename MinType,
         typename MaxType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         repeat_parser<Parser, DelimiterParser, MinType, MaxType> const & parser,
         std::ostream & os,
         int components)
     {
-        parser_name(context, parser.parser_, os, components + 1);
-        os << " % ";
-        parser_name(context, parser.delimiter_parser_, os, components + 2);
+        if constexpr (std::is_same_v<DelimiterParser, nope>) {
+            auto const min_ = detail::resolve(context, parser.min_);
+            auto const max_ = detail::resolve(context, parser.max_);
+            constexpr bool n_ary_child = n_aray_parser_v<Parser>;
+            if (min_ == 0 && max_ == Inf) {
+                os << "*";
+                if (n_ary_child)
+                    os << "(";
+                detail::print_parser(
+                    context, parser.parser_, os, components + 1);
+                if (n_ary_child)
+                    os << ")";
+            } else if (min_ == 1 && max_ == Inf) {
+                os << "+";
+                if (n_ary_child)
+                    os << "(";
+                detail::print_parser(
+                    context, parser.parser_, os, components + 1);
+                if (n_ary_child)
+                    os << ")";
+            } else {
+                os << "repeat(";
+                detail::print(os, min_);
+                if (min_ == max_) {
+                    os << ")[";
+                } else {
+                    os << ", ";
+                    if (max_ == unbounded)
+                        os << "Inf";
+                    else
+                        detail::print(os, max_);
+                    os << ")[";
+                }
+                detail::print_parser(
+                    context, parser.parser_, os, components + 1);
+                os << "]";
+            }
+        } else {
+            detail::print_parser(context, parser.parser_, os, components + 1);
+            os << " % ";
+            detail::print_parser(
+                context, parser.delimiter_parser_, os, components + 2);
+        }
     }
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         opt_parser<Parser> const & parser,
         std::ostream & os,
         int components)
     {
         os << "-";
-        parser_name(context, parser.parser_, os, components + 1);
+        constexpr bool n_ary_child = n_aray_parser_v<Parser>;
+        if (n_ary_child)
+            os << "(";
+        detail::print_parser(context, parser.parser_, os, components + 1);
+        if (n_ary_child)
+            os << ")";
     }
 
     template<typename Context, typename ParserTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         or_parser<ParserTuple> const & parser,
         std::ostream & os,
@@ -103,14 +164,14 @@ namespace boost { namespace parser { namespace detail {
             }
             if (i)
                 os << " | ";
-            parser_name(context, parser, os, components);
+            detail::print_parser(context, parser, os, components);
             ++components;
             ++i;
         });
     }
 
     template<typename Context, typename ParserTuple, typename BacktrackingTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         seq_parser<ParserTuple, BacktrackingTuple> const & parser,
         std::ostream & os,
@@ -133,25 +194,25 @@ namespace boost { namespace parser { namespace detail {
                 }
                 if (i)
                     os << (backtrack ? " >> " : " > ");
-                parser_name(context, parser, os, components);
+                detail::print_parser(context, parser, os, components);
                 ++components;
                 ++i;
             });
     }
 
     template<typename Context, typename Parser, typename Action>
-    void parser_name(
+    void print_parser(
         Context const & context,
         action_parser<Parser, Action> const & parser,
         std::ostream & os,
         int components)
     {
-        parser_name(context, parser.parser_, os, components);
+        detail::print_parser(context, parser.parser_, os, components);
         os << "[<<action>>]";
     }
 
     template<typename Context, typename Parser>
-    void directive_name(
+    void print_directive(
         Context const & context,
         std::string_view name,
         Parser const & parser,
@@ -162,83 +223,79 @@ namespace boost { namespace parser { namespace detail {
         if (++components == parser_component_limit)
             os << "...";
         else
-            parser_name(context, parser, os, components + 1);
+            detail::print_parser(context, parser, os, components + 1);
         os << "]";
     }
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<Parser> const & parser,
         std::ostream & os,
         int components)
     {
-        directive_name(context, "omit", parser.parser_, os, components);
+        detail::print_directive(
+            context, "omit", parser.parser_, os, components);
     }
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         raw_parser<Parser> const & parser,
         std::ostream & os,
         int components)
     {
-        directive_name(context, "raw", parser.parser_, os, components);
+        detail::print_directive(context, "raw", parser.parser_, os, components);
     }
 
     template<typename Context, typename Parser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         lexeme_parser<Parser> const & parser,
         std::ostream & os,
         int components)
     {
-        directive_name(context, "lexeme", parser.parser_, os, components);
-    }
-
-    template<typename Context, typename Parser>
-    void parser_name(
-        Context const & context,
-        skip_parser<Parser, nope> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        directive_name(context, "skip", parser.parser_, os, components);
+        detail::print_directive(
+            context, "lexeme", parser.parser_, os, components);
     }
 
     template<typename Context, typename Parser, typename SkipParser>
-    void parser_name(
+    void print_parser(
         Context const & context,
-        skip_parser<Parser> const & parser,
+        skip_parser<Parser, SkipParser> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "skip(";
-        parser_name(context, parser.skip_parser_, os, components);
-        os << ")";
-        directive_name(context, "", parser.parser_, os, components + 1);
+        if constexpr (std::is_same_v<SkipParser, nope>) {
+            detail::print_directive(
+                context, "skip", parser.parser_, os, components);
+        } else {
+            os << "skip(";
+            detail::print_parser(
+                context, parser.skip_parser_.parser_, os, components);
+            os << ")";
+            detail::print_directive(
+                context, "", parser.parser_, os, components + 1);
+        }
     }
 
-    template<typename Context, typename Parser>
-    void parser_name(
+    template<typename Context, typename Parser, bool FailOnMatch>
+    void print_parser(
         Context const & context,
-        expect_parser<Parser, true> const & parser,
+        expect_parser<Parser, FailOnMatch> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "!";
-        parser_name(context, parser.parser_, os, components + 1);
-    }
-
-    template<typename Context, typename Parser>
-    void parser_name(
-        Context const & context,
-        expect_parser<Parser, false> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "&";
-        parser_name(context, parser.parser_, os, components + 1);
+        if (FailOnMatch)
+            os << "!";
+        else
+            os << "&";
+        constexpr bool n_ary_child = n_aray_parser_v<Parser>;
+        if (n_ary_child)
+            os << "(";
+        detail::print_parser(context, parser.parser_, os, components + 1);
+        if (n_ary_child)
+            os << ")";
     }
 
     template<
@@ -248,7 +305,7 @@ namespace boost { namespace parser { namespace detail {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    void parser_name(
+    void print_parser(
         Context const & context,
         rule_parser<
             UseCallbacks,
@@ -259,12 +316,21 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        // TODO: Print params?
         os << parser.name_;
+        if constexpr (!std::is_same_v<ParamsTuple, nope>) {
+            os << ".with(";
+            int i = 0;
+            hana::for_each(parser.params_, [&](auto const & param) {
+                if (i++)
+                    os << ", ";
+                detail::print_expected(context, os, param, true);
+            });
+            os << ")";
+        }
     }
 
     template<typename Context, typename T>
-    void parser_name(
+    void print_parser(
         Context const & context,
         symbol_parser<T> const & parser,
         std::ostream & os,
@@ -274,7 +340,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context, typename Predicate>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eps_parser<Predicate> const & parser,
         std::ostream & os,
@@ -284,7 +350,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eps_parser<nope> const & parser,
         std::ostream & os,
@@ -294,7 +360,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         eoi_parser const & parser,
         std::ostream & os,
@@ -304,150 +370,185 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context, typename Atribute>
-    void parser_name(
+    void print_parser(
         Context const & context,
         attr_parser<Atribute> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "attr(";
-        print(os, parser.attr_);
-        os << ")";
+        os << "attr";
+        detail::print_expected(context, os, parser.attr_);
     }
 
     template<
         typename Context,
-        typename Expected,
-        bool Integral = std::is_integral<Expected>{},
-        int SizeofExpected = sizeof(Expected)>
-    struct print_expected_impl
+        typename ResolvedExpected,
+        bool Integral = std::is_integral<ResolvedExpected>{},
+        int SizeofExpected = sizeof(ResolvedExpected)>
+    struct print_expected_char_impl
     {
-        static void
-        call(Context const & context, std::ostream & os, Expected expected)
+        static void call(
+            Context const & context,
+            std::ostream & os,
+            ResolvedExpected expected)
         {
-            print(os, resolve(context, expected));
+            detail::print(os, expected);
         }
     };
 
     template<typename Context, typename Expected>
-    struct print_expected_impl<Context, Expected, true, 4>
+    struct print_expected_char_impl<Context, Expected, true, 4>
     {
         static void
         call(Context const & context, std::ostream & os, Expected expected)
         {
             std::array<uint32_t, 1> cps = {{(uint32_t)expected}};
             auto const r = text::as_utf8(cps);
+            os << "'";
             for (auto c : r) {
-                print_char(os, c);
+                detail::print_char(os, c);
             }
+            os << "'";
         }
     };
 
     template<typename Context, typename Expected>
-    void print_expected(
+    void print_expected_char(
         Context const & context, std::ostream & os, Expected expected)
     {
-        print_expected_impl<Context, Expected>::call(context, os, expected);
+        auto resolved_expected = detail::resolve(context, expected);
+        detail::print_expected_char_impl<Context, decltype(resolved_expected)>::
+            call(context, os, resolved_expected);
     }
 
     template<typename Context, typename T>
-    struct char_parser_name_impl
+    struct char_print_parser_impl
     {
         static void call(Context const & context, std::ostream & os, T expected)
         {
-            os << "char_(";
-            print_expected(context, os, expected);
-            os << ")";
+            detail::print_expected_char(context, os, expected);
         }
     };
 
     template<typename Context, typename T, typename U>
-    struct char_parser_name_impl<Context, char_pair<T, U>>
+    struct char_print_parser_impl<Context, char_pair<T, U>>
     {
         static void call(
             Context const & context,
             std::ostream & os,
             char_pair<T, U> expected)
         {
-            os << "char_(";
-            print_expected(context, os, expected.lo_);
+            detail::print_expected_char(context, os, expected.lo_);
             os << ", ";
-            print_expected(context, os, expected.hi_);
-            os << ")";
+            detail::print_expected_char(context, os, expected.hi_);
         }
     };
 
     template<typename Context, typename Iter, typename Sentinel>
-    struct char_parser_name_impl<Context, char_range<Iter, Sentinel>>
+    struct char_print_parser_impl<Context, char_range<Iter, Sentinel>>
     {
         static void call(
             Context const & context,
             std::ostream & os,
             char_range<Iter, Sentinel> expected)
         {
-            os << "char_(";
-            for (auto c : expected.chars_) {
-                print_expected(context, os, c);
+            os << "\"";
+            auto const r = text::as_utf8(expected.chars_);
+            for (auto c : r) {
+                detail::print_char(os, c);
             }
-            os << ")";
+            os << "\"";
         }
     };
 
     template<typename Context, typename Expected, typename AttributeType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         char_parser<Expected, AttributeType> const & parser,
         std::ostream & os,
         int components)
     {
-        char_parser_name_impl<Context, Expected>::call(
-            context, os, parser.expected_);
-    }
-
-    template<typename Context, typename AttributeType>
-    void parser_name(
-        Context const & context,
-        char_parser<nope, AttributeType> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "char_";
+        if (std::is_same_v<
+                Expected,
+                ascii_char_class<ascii_char_class_t::alnum>>) {
+            os << "ascii::alnum";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::alpha>>) {
+            os << "ascii::alpha";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::blank>>) {
+            os << "ascii::blank";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::cntrl>>) {
+            os << "ascii::cntrl";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::digit>>) {
+            os << "ascii::digit";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::graph>>) {
+            os << "ascii::graph";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::print>>) {
+            os << "ascii::print";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::punct>>) {
+            os << "ascii::punct";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::space>>) {
+            os << "ascii::space";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::xdigit>>) {
+            os << "ascii::xdigit";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::lower>>) {
+            os << "ascii::lower";
+        } else if (std::is_same_v<
+                       Expected,
+                       ascii_char_class<ascii_char_class_t::upper>>) {
+            os << "ascii::upper";
+        } else {
+            if (std::is_same_v<AttributeType, uint32_t>)
+                os << "cp";
+            else if (std::is_same_v<AttributeType, char>)
+                os << "cu";
+            else
+                os << "char_";
+            if constexpr (!std::is_same_v<Expected, nope>) {
+                os << "(";
+                char_print_parser_impl<Context, Expected>::call(
+                    context, os, parser.expected_);
+                os << ")";
+            }
+        }
     }
 
     template<typename Context, typename Expected, typename AttributeType>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<char_parser<Expected, AttributeType>> const & parser,
         std::ostream & os,
         int components)
     {
-        parser_name(context, parser.parser_, os, components);
-    }
-
-    template<typename Context, typename Expected>
-    void parser_name(
-        Context const & context,
-        char_parser<Expected, uint32_t> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "cp(";
-        print(os, parser.expected_);
-        os << ")";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        char_parser<nope, uint32_t> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "cp";
+        if constexpr (std::is_same_v<Expected, nope>) {
+            os << "omit[char_]";
+        } else {
+            char_print_parser_impl<Context, Expected>::call(
+                context, os, parser.parser_.expected_);
+        }
     }
 
     template<typename Context, typename StrIter, typename StrSentinel>
-    void parser_name(
+    void print_parser(
         Context const & context,
         string_parser<StrIter, StrSentinel> const & parser,
         std::ostream & os,
@@ -456,13 +557,13 @@ namespace boost { namespace parser { namespace detail {
         os << "string(\"";
         for (auto c :
              text::as_utf8(parser.expected_first_, parser.expected_last_)) {
-            print_char(os, c);
+            detail::print_char(os, c);
         }
         os << "\")";
     }
 
     template<typename Context, typename StrIter, typename StrSentinel>
-    void parser_name(
+    void print_parser(
         Context const & context,
         omit_parser<string_parser<StrIter, StrSentinel>> const & parser,
         std::ostream & os,
@@ -472,13 +573,13 @@ namespace boost { namespace parser { namespace detail {
         for (auto c : text::as_utf8(
                  parser.parser_.expected_first_,
                  parser.parser_.expected_last_)) {
-            print_char(os, c);
+            detail::print_char(os, c);
         }
         os << "\"";
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         ws_parser<true> const & parser,
         std::ostream & os,
@@ -488,7 +589,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         ws_parser<false> const & parser,
         std::ostream & os,
@@ -498,7 +599,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         bool_parser const & parser,
         std::ostream & os,
@@ -514,102 +615,41 @@ namespace boost { namespace parser { namespace detail {
         int MinDigits,
         int MaxDigits,
         typename Expected>
-    void parser_name(
+    void print_parser(
         Context const & context,
         uint_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">(";
-        print(os, parser.expected_);
-        os << ")";
-    }
-
-    template<
-        typename Context,
-        typename T,
-        int Radix,
-        int MinDigits,
-        int MaxDigits>
-    void parser_name(
-        Context const & context,
-        uint_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::ostream & os,
-        int components)
-    {
+        if (MinDigits == 1 && MaxDigits == -1) {
+            if (std::is_same_v<T, unsigned short>) {
+                os << "ushort_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (std::is_same_v<T, unsigned int>) {
+                if (Radix == 2)
+                    os << "bin";
+                else if (Radix == 8)
+                    os << "oct";
+                else if (Radix == 16)
+                    os << "hex";
+                else if (Radix == 10)
+                    os << "uint_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (Radix == 10 && std::is_same_v<T, unsigned long>) {
+                os << "ulong_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (Radix == 10 && std::is_same_v<T, unsigned long long>) {
+                os << "ulong_long";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            }
+        }
         os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
            << ", " << MinDigits << ", " << MaxDigits << ">";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 2> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "bin";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 8> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "oct";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int, 16> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "hex";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned short> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "ushort_";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned int> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "uint_";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned long> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "ulong_";
-    }
-
-    template<typename Context>
-    void parser_name(
-        Context const & context,
-        uint_parser<unsigned long long> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "ulong_long";
+        detail::print_expected(context, os, parser.expected_);
     }
 
     template<
@@ -619,36 +659,38 @@ namespace boost { namespace parser { namespace detail {
         int MinDigits,
         int MaxDigits,
         typename Expected>
-    void parser_name(
+    void print_parser(
         Context const & context,
         int_parser<T, Radix, MinDigits, MaxDigits, Expected> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">(";
-        print(os, parser.expected_);
-        os << ")";
-    }
-
-    template<
-        typename Context,
-        typename T,
-        int Radix,
-        int MinDigits,
-        int MaxDigits>
-    void parser_name(
-        Context const & context,
-        int_parser<T, Radix, MinDigits, MaxDigits, nope> const & parser,
-        std::ostream & os,
-        int components)
-    {
+        if (Radix == 10 && MinDigits == 1 && MaxDigits == -1) {
+            if (std::is_same_v<T, short>) {
+                os << "short_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (std::is_same_v<T, int>) {
+                os << "int_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (std::is_same_v<T, long>) {
+                os << "long_";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            } else if (std::is_same_v<T, long long>) {
+                os << "long_long";
+                detail::print_expected(context, os, parser.expected_);
+                return;
+            }
+        }
         os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
            << ", " << MinDigits << ", " << MaxDigits << ">";
+        detail::print_expected(context, os, parser.expected_);
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         int_parser<short> const & parser,
         std::ostream & os,
@@ -658,17 +700,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
-        Context const & context,
-        int_parser<int> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "int_";
-    }
-
-    template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         int_parser<long> const & parser,
         std::ostream & os,
@@ -678,7 +710,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         int_parser<long long> const & parser,
         std::ostream & os,
@@ -688,7 +720,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context, typename T>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<T> const & parser,
         std::ostream & os,
@@ -698,7 +730,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<float> const & parser,
         std::ostream & os,
@@ -708,7 +740,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context>
-    void parser_name(
+    void print_parser(
         Context const & context,
         float_parser<double> const & parser,
         std::ostream & os,
@@ -718,7 +750,7 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Context, typename ParserTuple, typename BacktrackingTuple>
-    void switch_parser_matchers(
+    void print_switch_matchers(
         Context const & context,
         seq_parser<ParserTuple, BacktrackingTuple> const & parser,
         std::ostream & os,
@@ -726,14 +758,14 @@ namespace boost { namespace parser { namespace detail {
     {
         using namespace hana::literals;
 
-        os << "(" << resolve(context, parser.parsers_[0_c].pred_.value_)
+        os << "(" << detail::resolve(context, parser.parsers_[0_c].pred_.value_)
            << ", ";
-        parser_name(context, parser.parsers_[1_c], os, components);
+        detail::print_parser(context, parser.parsers_[1_c], os, components);
         os << ")";
     }
 
     template<typename Context, typename ParserTuple>
-    void switch_parser_matchers(
+    void print_switch_matchers(
         Context const & context,
         or_parser<ParserTuple> const & parser,
         std::ostream & os,
@@ -749,22 +781,23 @@ namespace boost { namespace parser { namespace detail {
                 printed_ellipsis = true;
                 return;
             }
-            switch_parser_matchers(context, parser, os, components);
+            detail::print_switch_matchers(context, parser, os, components);
             ++components;
         });
     }
 
     template<typename Context, typename SwitchValue, typename OrParser>
-    void parser_name(
+    void print_parser(
         Context const & context,
         switch_parser<SwitchValue, OrParser> const & parser,
         std::ostream & os,
         int components)
     {
         os << "switch_(";
-        print(os, resolve(context, parser.switch_value_));
+        detail::print(os, detail::resolve(context, parser.switch_value_));
         os << ")";
-        switch_parser_matchers(context, parser.or_parser_, os, components);
+        detail::print_switch_matchers(
+            context, parser.or_parser_, os, components);
     }
 
 }}}
