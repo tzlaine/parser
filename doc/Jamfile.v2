@@ -6,20 +6,22 @@ import path ;
 import doxygen ;
 import quickbook ;
 
-using auto-index ;
+# using auto-index ;
 using doxygen ;
 using quickbook ;
 using boostbook ;
+
+path-constant here : . ;
 
 rule run_doxygen ( files * : name : expand ? )
 {
 
     expand ?= <doxygen:param>EXPAND_ONLY_PREDEF=YES ;
 
-doxygen parser_reference
-  :
-    $(files)
-  :
+    doxygen parser_reference
+      :
+        $(files)
+      :
         <doxygen:param>EXTRACT_ALL=YES
         # note that there is no detail::unspecified -- this is a hack to get all
         # the SFINAE code out of the API docs.
@@ -37,22 +39,25 @@ doxygen parser_reference
 
 }
 
-run_doxygen [ glob ../include/boost/parser/*.hpp ] : "Reference" ;
+run_doxygen [ glob ../include/boost/parser/*.hpp ] : "Headers" ;
+
+install images_standalone : [ glob *.png ] : <location>html/stl_interfaces/img ;
+explicit images_standalone ;
+
+install images_boostdoc : [ glob *.png ] : <location>../../../doc/html/stl_interfaces/img ;
+explicit images_boostdoc ;
 
 xml parser
     :
         parser.qbk
+    :
+        <dependency>parser_reference
     ;
 
 boostbook standalone
     :
         parser
     :
-        <dependency>css
-        <dependency>images
-
-        <dependency>parser_reference
-
         # HTML options first:
         # Use graphics not text for navigation:
         <xsl:param>navig.graphics=1
@@ -90,18 +95,17 @@ boostbook standalone
         # better use SVG's instead:
         # <xsl:param>admon.graphics.extension=".svg"
 
-        <auto-index>on
-        <auto-index-verbose>on
-        <auto-index-internal>on
-        <auto-index-script>parser.idx
-        <quickbook-define>enable_index
-        <auto-index-prefix>..
-        <xsl:param>index.on.type=1
+        # <auto-index>on
+        # <auto-index-verbose>on
+        # <auto-index-internal>on
+        # <auto-index-script>parser.idx
+        # <quickbook-define>enable_index
+        # <auto-index-prefix>..
+        # <xsl:param>index.on.type=1
     ;
 
-install css : [ glob $(BOOST_ROOT)/doc/src/*.css ]
-    : <location>html ;
-install images : [ glob $(BOOST_ROOT)/doc/src/images/*.png ]
-    : <location>html/images ;
+alias boostdoc : parser : : : <dependency>images_boostdoc ;
+
+explicit boostdoc ;
 explicit css ;
 explicit images ;

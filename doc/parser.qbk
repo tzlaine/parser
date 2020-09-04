@@ -169,6 +169,8 @@ TODO
 
 [endsect]
 
+[section Reference]
 [xinclude parser_reference.xml]
+[endsect]
 
 [include rationale.qbk]
