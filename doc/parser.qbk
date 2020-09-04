@@ -54,6 +54,12 @@
 [def _n_                   [classref boost::parser::none `none`]]
 [def _symbols_             [classref boost::parser::symbols `symbols`]]
 [def _symbols_t_           [classref boost::parser::symbols `symbols<T>`]]
+[def _r_                   [classref boost::parser::rule `rule`]]
+[def _rs_                  [classref boost::parser::rule `rule`s]]
+
+[def _std_str_             `std::string`]
+[def _std_vec_char_        `std::vector<char>`]
+[def _std_vec_uint_        `std::vector<uint32_t>`]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _p_np_                [funcref boost::parser::parse `parse`]]
@@ -71,10 +77,13 @@
 [def _globals_             [funcref boost::parser::_globals `_globals()`]]
 [def _locals_              [funcref boost::parser::_locals `_locals()`]]
 [def _params_              [funcref boost::parser::_params `_params()`]]
-[def _params_np_           [funcref boost::parser::_params `_params`]]
 [def _error_handler_       [funcref boost::parser::_error_handler `_error_handler()`]]
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
+[def _val_np_              [funcref boost::parser::_val `_val`]]
+[def _locals_np_            [funcref boost::parser::_locals `_locals`]]
+[def _params_np_           [funcref boost::parser::_params `_params`]]
+
 [def __p_                  [globalref boost::parser::_p `_p`]]
 
 [def _lit_np_              [funcref boost::parser::lit `lit`]]
@@ -149,6 +158,7 @@
 
 [def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
 [def _directives_          [link boost_parser__proposed_.tutorial.directives Directives]]
+[def _eh_debugging_        [link boost_parser__proposed_.tutorial.error_handling_and_debugging Error Handling and Debugging]]
 [def _concepts_            [link boost_parser__proposed_.concepts Concepts]]
 [def _rationale_           [link boost_parser__proposed_.rationale Rationale]]
 
@@ -156,6 +166,7 @@
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
 [def _udl_                 [@https://en.cppreference.com/w/cpp/language/user_literal UDL]]
 [def _udls_                [@https://en.cppreference.com/w/cpp/language/user_literal UDLs]]
+[def _yaml_                [@https://yaml.org/spec/1.2/spec.html YAML 1.2]]
 
 [def _Spirit_              [@https://www.boost.org/doc/libs/release/libs/spirit Boost.Spirit]]
 [def _spirit_reals_        [@https://www.boost.org/doc/libs/release/libs/spirit/doc/html/spirit/qi/reference/numeric/real.html real number parsers]]

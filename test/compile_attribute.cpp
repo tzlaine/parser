@@ -286,6 +286,16 @@ void compile_attribute_unicode_utf32()
     }
 }
 
+rule<class test_rule, std::string> const test_rule = "test_rule";
+auto const test_rule_def = +char_;
+BOOST_PARSER_DEFINE_RULES(test_rule);
+
+rule<class ints, std::vector<int>> const ints = "ints";
+auto twenty_zeros = [](auto & ctx) { _val(ctx).resize(20, 0); };
+auto push_back = [](auto & ctx) { _val(ctx).push_back(_attr(ctx)); };
+auto const ints_def = lit("20-zeros")[twenty_zeros] | +int_[push_back];
+BOOST_PARSER_DEFINE_RULES(ints);
+
 void compile_attribute()
 {
     compile_attribute_non_unicode();
@@ -552,5 +562,19 @@ void compile_attribute()
         constexpr auto parser = cu[a];
         using attr_t = decltype(parse(first, last, parser));
         BOOST_MPL_ASSERT((is_same<attr_t, bool>));
+    }
+
+    {
+        using attr_t = decltype(parse(first, last, test_rule));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::string>>));
+#if 0 // Intentionally ill-formed
+        std::vector<char> vec;
+        auto result = parse(first, last, test_rule, vec);
+#endif
+    }
+
+    {
+        using attr_t = decltype(parse(first, last, ints));
+        BOOST_MPL_ASSERT((is_same<attr_t, std::optional<std::vector<int>>>));
     }
 }

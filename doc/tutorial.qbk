@@ -102,8 +102,8 @@ parse result out of _p_; there are multiple ways of doing so, and we'll cover
 all of them in subsequent examples.
 
 Also, just ignore for now the fact that _Parser_ somehow figured out that the
-result type of the `*bp::char_` parser is a `std::string`.  There are clear
-rules for this that we'll cover later.
+result type of the `*bp::char_` parser is a _std_str_.  There are clear rules
+for this that we'll cover later.
 
 The effects of this call to _p_ is not very interesting _emdash_ since the
 parser we gave it cannot ever fail, and because we're placing the output in
@@ -240,15 +240,14 @@ section defines what exactly the parse context is and how it works.
 [section Rule Parsers]
 
 This example is very similar to the others we've seen so far.  This one is
-different only because it uses a /rule/.  As an analogy, think of a parser
-like _ch_ or _d_ as an individual line of code, and a rule as a function.
-Like a function, a rule has its own name, and can even be forward declared.
-Here is how we define a rule, which is analogous to forward declaring a
-function:
+different only because it uses a _r_.  As an analogy, think of a parser like
+_ch_ or _d_ as an individual line of code, and a _r_ as a function.  Like a
+function, a _r_ has its own name, and can even be forward declared.  Here is
+how we define a _r_, which is analogous to forward declaring a function:
 
 [rule_intro_rule_definition_rule]
 
-This declares the rule itself.  The rule is a parser, and we can immediately
+This declares the rule itself.  The _r_ is a parser, and we can immediately
 use it in other parsers.  That definition is pretty dense; take note of these
 things:
 
@@ -278,12 +277,12 @@ We use a macro for that:
 
 [rule_intro_rule_definition_macro]
 
-This macro expands to two functions that each take a `struct doubles`
-parameter and parse using `doubles_def`.  The `_def` suffix is a naming
-convention that this macro relies on to work.  The tag type allows the rule
-parser, `doubles`, to call one of these overloads when used as a parser.  Now
-that we have the `doubles` parser, we can use it like we might any other
-parser:
+This macro expands to two overloads of a function called `parse_rule()` that
+each take a `struct doubles` parameter and parse using `doubles_def`.  The
+`_def` suffix is a naming convention that this macro relies on to work.  The
+tag type allows the rule parser, `doubles`, to call one of these overloads
+when used as a parser.  Now that we have the `doubles` parser, we can use it
+like we might any other parser:
 
 [rule_intro_parse_call]
 
@@ -291,8 +290,8 @@ The full program:
 
 [rule_intro_example]
 
-[note The existence of rules means that will probably never have to write a
-parser.  You can just put parsers together into rules instead.]
+[note The existence of _rs_ means that will probably never have to write a
+parser.  You can just put parsers together into _rs_ instead.]
 
 [endsect]
 
@@ -905,12 +904,12 @@ the input they match unless otherwise stated in the table below.]
 
     [[ `_str_np_(r)`]
      [ Matches exactly `r`, and generates the match as an attribute. ]
-     [ `std::string` ]
+     [ _std_str_ ]
      [ _str_ does *not* take parse arguments. ]]
 
     [[ `str_p`]
      [ Matches exactly `str`, and generates the match as an attribute. ]
-     [ `std::string` ]
+     [ _std_str_ ]
      [ This is a _udl_ that represents `_str_np_(s)`, for example `"a string"_p`. ]]
 
     [[ _b_ ]
@@ -1059,7 +1058,7 @@ the input they match unless otherwise stated in the table below.]
      [ It is an error to write `_sw_np_(arg0)`.  That is, it is an error to omit the conditionally matched parsers `p1`, `p2`, .... ]]
 
     [[ _symbols_t_ ]
-     [ _symbols_ is an associative container of key, value pairs.  Each key is a `std::string` and each value has type `T`.  In the Unicode parsing path, the strings are considered to be UTF-8 encoded; in the non-Unicode path, no encoding is assumed.  _symbols_ Matches the longest prefix `pre` of the input that is equal to one of the keys `k`.  If the length `len` of `pre` is zero, and there is no zero-length key, it does not match the input.  If `len` is positive, the generated attribute is the value associated with `k`.]
+     [ _symbols_ is an associative container of key, value pairs.  Each key is a _std_str_ and each value has type `T`.  In the Unicode parsing path, the strings are considered to be UTF-8 encoded; in the non-Unicode path, no encoding is assumed.  _symbols_ Matches the longest prefix `pre` of the input that is equal to one of the keys `k`.  If the length `len` of `pre` is zero, and there is no zero-length key, it does not match the input.  If `len` is positive, the generated attribute is the value associated with `k`.]
      [ `T` ]
      [ Unlike the other entries in this table, _symbols_ is a type, not an object. ]]
 ]
@@ -1276,7 +1275,7 @@ arbitrary objects.
     [[ _cu_ ]              [ `char` ]                    []]
     [[ `_lit_np_(x)`]      [ None. ]
      [Includes all the `_l` _udls_.]]
-    [[ `_str_np_(x)`]      [ `std::string` ]
+    [[ `_str_np_(x)`]      [ _std_str_ ]
      [Includes all the `_p` _udls_ that take a string.]]
     [[ _b_ ]               [ `bool` ]                    []]
 
@@ -1461,10 +1460,10 @@ Another rule for sequence containers is that an value `x` and a container `c`
 containing elements of `x`'s type will form a single container.  However,
 `x`'s type must be exactly the same as the elements in `c`.  So, the attribute
 of `char_ >> string("str")` is odd.  In the non-Unicode code path, `char_`'s
-attribute type is guaranteed to be `char`, so `_ATTR_np_(char_ >> string("str"))`
-is `std::string`.  If you are parsing UTF-8 in the Unicode code path,
-`char_`'s attribute type is `uint32_t`, and `_ATTR_np_(char_ >> string("str"))` is
-therefor `hana::tuple<uint32_t, std::string>`.
+attribute type is guaranteed to be `char`, so `_ATTR_np_(char_ >>
+string("str"))` is _std_str_.  If you are parsing UTF-8 in the Unicode code
+path, `char_`'s attribute type is `uint32_t`, and `_ATTR_np_(char_ >>
+string("str"))` is therefor `hana::tuple<uint32_t, std::string>`.
 
 Again, there are no special rules here.
 
@@ -1481,8 +1480,8 @@ exact same attribute generation rules.
     [[`p >> _e_`]                    [`_ATTR_np_(p)`]]
     [[`_e_ >> p`]                    [`_ATTR_np_(p)`]]
 
-    [[`_cu_ >> _str_np_("str")`]     [`std::string`]]
-    [[_str_np_`("str") >> `_cu_]     [`std::string`]]
+    [[`_cu_ >> _str_np_("str")`]     [_std_str_]]
+    [[_str_np_`("str") >> `_cu_]     [_std_str_]]
     [[`*_cu_ >> _str_np_("str")`]    [`hana::tuple<std::vector<char>, std::string>`]]
     [[`_str_np_("str") >> *_cu_`]    [`hana::tuple<std::string, std::vector<char>>`]]
 
@@ -1492,10 +1491,10 @@ exact same attribute generation rules.
     [[`*p >> -p`]                    [`std::vector<_ATTR_np_(p)>`]]
     [[`-p >> *p`]                    [`std::vector<_ATTR_np_(p)>`]]
 
-    [[`_str_np_("str") >> _cu_`]     [`std::string`]]
-    [[`_cu_ >> _str_np_("str")`]     [`std::string`]]
-    [[`_str_np_("str") >> -_cu_`]    [`std::string`]]
-    [[`-_cu_ >> _str_np_("str")`]    [`std::string`]]
+    [[`_str_np_("str") >> _cu_`]     [_std_str_]]
+    [[`_cu_ >> _str_np_("str")`]     [_std_str_]]
+    [[`_str_np_("str") >> -_cu_`]    [_std_str_]]
+    [[`-_cu_ >> _str_np_("str")`]    [_std_str_]]
 
     [[`!p1 | p2[a]`]                 [None.]]
     [[`p | p`]                       [`_ATTR_np_(p)`]]
@@ -1645,7 +1644,7 @@ p, bp::ws, out)`, the call is well-formed for a number of possible types of
 `out`; `decltype(out)` does not need to be exactly `_ATTR_np_(p)`.
 
 For instance, this is valid code that does not abort (remember that the
-attribute type of _str_ is `std::string`):
+attribute type of _str_ is _std_str_):
 
     namespace bp = boost::parser;
     auto const p = bp::string("foo");
@@ -1654,15 +1653,15 @@ attribute type of _str_ is `std::string`):
     bool const success = bp::parse("foo", p, result);
     assert(success && result == std::vector<char>({'f', 'o', 'o'}));
 
-Even though `p` generates a `std::string` attribute, when it actually takes
-the data it generates and writes it into an attribute, it only assumes that
-the attribute is a `container` (see _concepts_), not that it is some
-particular container type.  It will happily `insert()` into a `std::string` or
-a `std::vector<char>` all the same.  `std::string` and `std::vector<char>` are
-both containers of `char`, but it will also insert into a container with a
-different element type.  `p` just needs to be able to insert the elements it
-produces into the attribute-container.  As long as an implicit conversion
-allows that to work, everything is fine:
+Even though `p` generates a _std_str_ attribute, when it actually takes the
+data it generates and writes it into an attribute, it only assumes that the
+attribute is a `container` (see _concepts_), not that it is some particular
+container type.  It will happily `insert()` into a _std_str_ or a
+_std_vec_char_ all the same.  _std_str_ and _std_vec_char_ are both containers
+of `char`, but it will also insert into a container with a different element
+type.  `p` just needs to be able to insert the elements it produces into the
+attribute-container.  As long as an implicit conversion allows that to work,
+everything is fine:
 
     namespace bp = boost::parser;
     auto const p = bp::string("foo");
@@ -1673,7 +1672,7 @@ allows that to work, everything is fine:
 
 This works, too, even though it requires inserting elements from a generated
 sequence of `uint32_t` into a container of `char` (remember that the attribute
-type of `+_cp_` is `std::vector<uint32_t>`):
+type of `+_cp_` is _std_vec_uint_):
 
     namespace bp = boost::parser;
     auto const p = +bp::cp;
@@ -1710,8 +1709,8 @@ at the top level.  It is an element of the result tuple:
 As indicated in the inline comments, there are a couple of things to take away
 from this example:
 
-* If you change a container (such as `std::string` to `std::vector<int>`, or
-  `std::vector<uint32_t>` to `std::deque<int>`), the call to _p_ will often
+* If you change a container (such as _std_str_ to `std::vector<int>`, or
+  _std_vec_uint_ to `std::deque<int>`), the call to _p_ will often
   still be well-formed
 
 * When changing out a container type, if both containers contain integral
@@ -1724,10 +1723,10 @@ from this example:
 
     auto const p = +boost::parser::uint_;
 
-using a `std::string` as an out-parameter, it will happily transcode your
-unsigned ints to UTF-8.  This is almost certainly not what you want.  Don't
-worry, though; this kind of case comes up pretty rarely, but wanting to parse
-in Unicode mode and catch results in UTF-8 strings comes up all the time.]
+using a _std_str_ as an out-parameter, it will happily transcode your unsigned
+ints to UTF-8.  This is almost certainly not what you want.  Don't worry,
+though; this kind of case comes up pretty rarely, but wanting to parse in
+Unicode mode and catch results in UTF-8 strings comes up all the time.]
 
 Let's look at a case where another simple-seeming type replacement does *not* work:
 
@@ -1745,20 +1744,19 @@ Let's look at a case where another simple-seeming type replacement does *not* wo
         bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
     #endif
 
-In this case, removing a `std::vector<uint32_t>` and putting a `std::string`
-in its place makes the code ill-formed, even though we saw a similar
-replacement earlier.  The reason this one does not work is that the replaced
-container is part of the element type of yet another container.  At some point
-in the code, `p` would try to insert a `boost::hana::tuple<int,
-std::vector<uint32_t>>` _emdash_ the element type of the attribute type it
-normally generates _emdash_ into a vector of `boost::hana::tuple<int,
-std::string>`s.  There's no implicit conversion there, so teh code is
-ill-formed.
+In this case, removing a _std_vec_uint_ and putting a _std_str_ in its place
+makes the code ill-formed, even though we saw a similar replacement earlier.
+The reason this one does not work is that the replaced container is part of
+the element type of yet another container.  At some point in the code, `p`
+would try to insert a `boost::hana::tuple<int, std::vector<uint32_t>>`
+_emdash_ the element type of the attribute type it normally generates _emdash_
+into a vector of `boost::hana::tuple<int, std::string>`s.  There's no implicit
+conversion there, so teh code is ill-formed.
 
 The take-away for this last example is that the ability to arbitrarily swap
 out data types within the type of the attribute you pass to _p_ is very
 flexible, but is also limited to structurally simple cases.  When we discuss
-rules in the next section, we'll see how this flexibility in the types of
+_rs_ in the next section, we'll see how this flexibility in the types of
 attributes can help when writing complicated parsers.
 
 [note Those were all examples of swapping out one container type for another.
@@ -1783,8 +1781,7 @@ encoding.  Here is how it deduces which case the call falls under:
 * Otherwise, the input is in a UTF encoding.
 
 [tip if you want to want to parse in ASCII-only mode, or in some unkown
-enciding, using only sequences of `char`, like `std::string` or `char const
-*`.]
+enciding, using only sequences of `char`, like _std_str_ or `char const *`.]
 
 [tip If you want to ensure all input is parsed as Unicode, pass the input
 range `r` as `boost::text::as_utf32(r)` _emdash_ that's the first thing that
@@ -1800,9 +1797,8 @@ sequence of `char` is otherwise considered an unknown encoding,
 Debugging parsers is notoriously difficult once they reach a certain size.  To
 get a verbose trace of your parse, pass `boost::parse::trace::on` as the final
 parameter to _p_.  It will show you the current parser being matched, the
-front of the input, and any attributes generated.  If an attribute appears
-which it cannot print using stream insertion, it prints
-`"<<unprintable-value>>"`.
+front of the input, and any attributes generated.  See the _eh_debugging_
+section of the tutorial for details.
 
 [heading Globals and error handlers]
 
@@ -1832,14 +1828,231 @@ it, you can do so by creating a new parser with a call to _w_eh_:
 terminal, you may want to use [classref boost::parser::callback_error_handler
 `callback_error_handler`] instead of the default error handler.]
 
-[important The globals and error handler on any non-top-level parser are
-ignored.]
+[important Globals and the error handler are ignored, if present, on any
+parser except the top-level parser.]
 
 [endsect]
 
 [section Rules]
 
-TODO
+We saw in the previous section how _p_ is flexible in what types it will
+accept as attribute out-parameters.
+
+That flexibility is a blessing and a curse.  For instance, say you wanted to
+use the parser `+_ch_` to parse a _std_str_, and capture the result in a
+_std_str_.  `+_ch_` generates an attribute of _std_vec_char_ when parsing a
+sequence of `char`, so you'd have to write the result into a vector first,
+including all the allocations that implies, and then you'd have to allocate
+space in a string, and copy the entire result.  Not great.  The flexibility of
+attribute out-parameters lets you avoid that.  On the other hand, if you want
+to parse your result into a _std_vec_char_, but *accidentally* pass a
+_std_str_, the code is well-formed.  Usually, we expect type mismatches like
+this to be ill-formed in C++.  Fortunately, _rs_ help you address both these
+concerns.
+
+[heading Using _rs_ to nail down attribute flexibility]
+
+Every rule has a specific attribute type.  If one is not specified, the rule
+has no attribute.  The fact that the attribute is a specific type allows you
+to remove attribute flexibility.  For instance, say we have a rule defined
+llike this:
+
+[rule_intro_rule_definition]
+
+You can then use it in a call to _p_, and _p_ will return a
+`std::optional<std::vector<double>>`:
+
+[rule_intro_parse_call]
+
+If you call _p_ with an attribute out-parameter, it must be exactly
+`std::vector<double>`:
+
+    std::vector<double> vec_result;
+    bp::parse(input, doubles, bp::ws, vec_result); // Ok.
+    std::deque<double> deque_result;
+    bp::parse(input, doubles, bp::ws, deque_result); // Ill-formed!
+
+If we wanted to use a `std::deque<double>` as the attribute type of our rule:
+
+    // Attribute changed to std::deque<double>.
+    bp::rule<struct doubles, std::deque<double>> doubles = "doubles";
+    auto const doubles_def = bp::double_ >> *(',' >> bp::double_);
+    BOOST_PARSER_DEFINE_RULES(doubles);
+
+    int main()
+    {
+        std::deque<double> deque_result;
+        bp::parse(input, doubles, bp::ws, deque_result); // Ok.
+    }
+
+So, the attribute flexibility is still available, but only *within* the rule
+_emdash_ the parser `bp::double_ >> *(',' >> bp::double_)` can parse into a
+`std::vector<double>` or a `std::deque<double>`, but the rule `doubles` must
+parse into only the exact attribute it was declared to generate.
+
+The reason for this is that, inside the rule parsing implementation, there is
+code something like this:
+
+    using attr_t = _ATTR_np_(doubles_def);
+    attr_t attr;
+    parse(first, last, parser, attr);
+    attribute_out_param = std::move(attr);
+
+Where `attribute_out_param` is the attribute out-parameter we pass to _p_.  If
+that final move assignment is ill-formed, the call to _p_ is too.
+
+[heading Using rules to exploit attribute flexibility]
+
+So, even though a rule reduces the flexibility of attributes it can generate,
+the fact that it is so easy to write a new rule means that we can use rules
+themselves to get the attribute flexibility we want across our code:
+
+    namespace bp = boost::parser;
+
+    // We only need to write the definition once...
+    auto const generic_doubles_def = bp::double_ >> *(',' >> bp::double_);
+
+    bp::rule<struct vec_doubles, std::vector<double>> vec_doubles = "vec_doubles";
+    auto const & vec_doubles_def = generic_doubles_def; // ... and re-use it,
+    BOOST_PARSER_DEFINE_RULES(vec_doubles);
+
+    // Attribute changed to std::deque<double>.
+    bp::rule<struct deque_doubles, std::deque<double>> deque_doubles = "deque_doubles";
+    auto const & deque_doubles_def = generic_doubles_def; // .. and re-use again.
+    BOOST_PARSER_DEFINE_RULES(deque_doubles);
+
+Now we have one of each, and we did not have to copy any parsing logic that
+would have to be maintained in two places.
+
+[heading Forward declaration]
+
+One of the advantages of using rules is that you can declare all your rules up
+front and then use them immediately afterward.  This lets you make rules that
+use each other without introducing cycles:
+
+    namespace bp = boost::parser;
+
+    // Assume we have some polymorphic type that can be an object/dictionary,
+    // array, string, or int, called `value_type`.
+
+    bp::rule<class string, std::string> const string = "string";
+    bp::rule<class object_element, hana::tuple<std::string, value_type>> const object_element = "object-element";
+    bp::rule<class object, value_type> const object = "object";
+    bp::rule<class array, value_type> const array = "array";
+    bp::rule<class value_tag, value_type> const value = "value";
+
+    auto const string_def = bp::lexeme['"' >> *(bp::char_ - '"') > '"'];
+    auto const object_element_def = string > ':' > value;
+    auto const object_def = '{'_l >> -(object_element % ',') > '}';
+    auto const array_def = '['_l >> -(value % ',') > ']';
+    auto const value_def = bp::int_ | bp::bool_ | string | array | object;
+
+    BOOST_PARSER_DEFINE_RULES(string, object_element, object, array, value);
+
+Here we have a parser for a Javascript-value-like type `value_type`.
+`value_type` may be an array, which itself may contain other arrays, objects,
+strings, etc.  Since we need to be able to parse objects within arrays and
+vice versa, we need each of those two parsers to be able to refer to each
+other.
+
+[heading _val_]
+
+Inside all of a rule's semantic actions, the expression `_val_np_(ctx)` is a
+reference to the attribute that the rule generates.  This can be useful when
+you want subparsers to build up the attribute in a specific way:
+
+    namespace bp = boost::parser;
+    using namespace bp::literals;
+
+    bp::rule<class ints, std::vector<int>> const ints = "ints";
+    auto twenty_zeros = [](auto & ctx) { _val(ctx).resize(20, 0); };
+    auto push_back = [](auto & ctx) { _val(ctx).push_back(_attr(ctx)); };
+    auto const ints_def = "20-zeros"_l[twenty_zeros] | +bp::int_[push_back];
+    BOOST_PARSER_DEFINE_RULES(ints);
+
+[tip That's just an example.  It's almost always better to do things without
+using semantic actions.  We could have instead written `ints_def` as
+`"20-zeros" >> bp::attr(std::vector<int>(20)) | +bp::int_`, which has the same
+semantics, is a lot easier to read, and is a lot less code.]
+
+[heading Locals]
+
+The _r_ template takes another template parameter we have not discussed yet.
+You can pass a third parameter to _r_, which will be available within semantic
+actions used in the rule as `_locals_np_(ctx)`.  This gives your rule some
+local state, if it needs it:
+
+    struct foo_locals
+    {
+        char first_value = 0;
+    };
+
+    namespace bp = boost::parser;
+
+    bp::rule<class foo, int> const foo = "foo";
+
+    auto record_first = [](auto & ctx) { _locals(ctx).first_value = _attr(ctx); }
+    auto check_against_first = [](auto & ctx) {
+        char const first = _locals(ctx).first_value;
+        char const attr = _attr(ctx);
+        if (attr == first)
+            _pass(ctx) = false;
+        _val(ctx) = (int(first) << 8) | int(attr);
+    };
+
+    auto const foo_def = bp::cu[record_first] >> bp::cu[check_against_first];
+    BOOST_PARSER_DEFINE_RULES(foo);
+
+`foo` matches the input if it can match two elements of the input in a row,
+and if they are not the same value.  Without locals, it's a lot harder to
+write parsers that have to track state as they parse.
+
+[heading Parameters]
+
+Sometimes, it is convenient to parameterize parsers.  Consider this parsing
+rule from the _yaml_ spec:
+
+[pre
+\[137\] c-flow-sequence(n,c) ::= “\[” s-separate(n,c)?
+                               ns-s-flow-seq-entries(n,in-flow(c))? “\]”
+]
+
+This YAML rule says that the parsing should proceed into two YAML subrules,
+all or which have these `n` and `c` parameters.  It is certainly possible to
+transliterate these YAML parsing rules to something that uses unparameterized
+_Parser_ _rs_, but it is quite painful to do so.
+
+You give parameters to a _r_ by calling its `with()` member.  The values you
+pass to `with()` are used to create a `hana::tuple` that is available in
+semantic actions attached to the rule, using `_params_np_(ctx)`.
+
+    namespace bp = boost::parser;
+
+    // Declare our rules.
+    bp::rule</* ... */> foo = "foo";
+    bp::rule</* ... */> bar = "bar";
+
+    // Get the first parameter for this rule.
+    auto first_param = [](auto & ctx) {
+        using namespace boost::hana::literals;
+        return _params(ctx)[0_c];
+    };
+    auto const foo_def = bp::repeat(first_param)[' '_l]; // Match ' ' the number of times indicated by the first parameter to foo.
+
+    // Assume that bar has a locals struct with a local_indent member, and
+    // that set_local_indent and local_indent are lambdas that respectively write
+    // and read _locals(ctx).local_indent.
+
+    // Parse an integer, and then pass that as a parameter to foo.
+    auto const bar_def = bp::int_[set_local_indent] >> foo.with(local_indent);
+
+    BOOST_PARSER_DEFINE_RULES(foo, bar);
+
+Passing parameters to _rs_ like this allows you to easily write parsers that
+change the way they parse depending on contextual data that they have
+previously parsed.
+
+[heading The __p_ variable template]
 
 Getting at one of a rule's arguments and passing it as an argument to another
 parser can be very verbose.  __p_ is a variable template that allows you to
@@ -1874,7 +2087,19 @@ TODO: Parse Unicode from the start.
 
 TODO: Write rules, and test them in isolation.
 
+TODO: If your parsser takes end-user input, give rules names that you would
+want an end-user to see.
+
 TODO: Compile separately when you know the type of your input will not change.
+
+[endsect]
+
+[section Error Handling and Debugging]
+
+TODO
+
+TODO: If an attribute appears which it cannot print using stream insertion,
+"<<unprintable-value>>" is printed.
 
 [endsect]
 
