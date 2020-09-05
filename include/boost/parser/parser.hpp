@@ -1858,7 +1858,7 @@ namespace boost { namespace parser {
             detail::skip(first, last, skip, flags);
             try {
                 parser(
-                    hana::false_c, first, last, context, skip, flags, success);
+                    hana::true_c, first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     final_trace(context, flags, nope{});
