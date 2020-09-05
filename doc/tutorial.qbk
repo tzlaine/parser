@@ -1812,7 +1812,8 @@ new parser with the globals object in it:
         std::string bar;
     };
     auto const parser = /* ... */;
-    auto result = boost::parse::parse("str", boost::parser::with_globals(parser, globals_t{42, "yay"}));
+    globals_t globals{42, "yay"};
+    auto result = boost::parse::parse("str", boost::parser::with_globals(parser, globals));
 
 Every semantic action within that call to _p_ can access to the same
 `globals_t` object using `_globals(ctx)`.
@@ -2100,12 +2101,6 @@ TODO
 
 TODO: If an attribute appears which it cannot print using stream insertion,
 "<<unprintable-value>>" is printed.
-
-[endsect]
-
-[section Writing Your Own Parser]
-
-TODO
 
 [endsect]
 

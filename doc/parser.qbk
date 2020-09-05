@@ -32,6 +32,7 @@
 [import ../example/rule_intro.cpp]
 [import ../example/roman_numerals.cpp]
 [import ../example/self_filling_symbol_table.cpp]
+[import ../example/json.cpp]
 
 [import ../include/boost/parser/concepts.hpp]
 [import ../include/boost/parser/error_handling_fwd.hpp]
@@ -81,7 +82,7 @@
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
 [def _val_np_              [funcref boost::parser::_val `_val`]]
-[def _locals_np_            [funcref boost::parser::_locals `_locals`]]
+[def _locals_np_           [funcref boost::parser::_locals `_locals`]]
 [def _params_np_           [funcref boost::parser::_params `_params`]]
 
 [def __p_                  [globalref boost::parser::_p `_p`]]

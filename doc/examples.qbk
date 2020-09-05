@@ -3,8 +3,13 @@
  / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  /]
 
-[section Examples]
+[section Extended Example: Parsing JSON]
 
-TODO: JSON parser as an extended example.
+This is a conforming JSON parser.  It passes all the required tests in the
+[@https://github.com/nst/JSONTestSuite JSON Test Suite], and all but 5 of the
+optional ones.  Notice that that actual parsing bits are only about 150 lines
+of code.
+
+[extended_json_example]
 
 [endsect]

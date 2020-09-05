@@ -28,3 +28,5 @@ add_sample(semantic_actions)
 add_sample(rule_intro)
 add_sample(roman_numerals)
 add_sample(self_filling_symbol_table)
+
+add_sample(json)
