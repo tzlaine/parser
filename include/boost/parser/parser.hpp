@@ -6339,6 +6339,96 @@ namespace boost { namespace parser {
         }
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
+    template<
+        parsable_iter I,
+        std::sentinel_for<I> S,
+        typename Parser,
+        typename GlobalState,
+        error_handler<I, S, GlobalState> ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    auto parse(
+        I & first,
+        S last,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
+        trace trace_mode = trace::off)
+    {
+        if constexpr (
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_iter<I>) ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    first, last, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    first, last, parser, skip, parser.error_handler_);
+            }
+        } else {
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    f, l, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    f, l, parser, skip, parser.error_handler_);
+            }
+        }
+    }
+
+    template<
+        parsable_iter I,
+        std::sentinel_for<I> S,
+        typename Parser,
+        typename GlobalState,
+        error_handler<I, S, GlobalState> ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    auto parse(
+        I & first,
+        S last,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
+        trace trace_mode = trace::off)
+    {
+        if constexpr (
+            (detail::non_unicode_char_range_like<view<I, S>> &&
+             !char8_iter<I>) ||
+            sizeof(*first) == 4u) {
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    first, last, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    first, last, parser, skip, parser.error_handler_);
+            }
+        } else {
+            auto r = text::as_utf32(first, last);
+            auto f = r.begin();
+            auto const l = r.end();
+            auto _ = detail::scoped_base_assign(first, f);
+            if (trace_mode == trace::on) {
+                return detail::skip_parse_impl<true>(
+                    f, l, parser, skip, parser.error_handler_);
+            } else {
+                return detail::skip_parse_impl<false>(
+                    f, l, parser, skip, parser.error_handler_);
+            }
+        }
+    }
+
+#endif
+
     /** Parses `str` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
@@ -6371,6 +6461,68 @@ namespace boost { namespace parser {
         return detail::if_full_parse(
             first, last, parser::parse(first, last, parser, skip, trace_mode));
     }
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+    template<
+        parsable_range_like R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<R>,
+            std::ranges::sentinel_t<R>,
+            GlobalState>
+    auto parse(
+        // clang-format on
+        R const & r,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
+        trace trace_mode = trace::off)
+    {
+        auto r_ = detail::make_input_view(r);
+        auto first = r_.begin();
+        auto const last = r_.end();
+        return detail::if_full_parse(
+            first, last, parser::parse(first, last, parser, skip, trace_mode));
+    }
+
+    template<
+        parsable_range_like R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
+    // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<R>,
+            std::ranges::sentinel_t<R>,
+            GlobalState>
+    auto parse(
+        // clang-format on
+        R const & r,
+        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
+        trace trace_mode = trace::off)
+    {
+        auto r_ = detail::make_input_view(r);
+        auto first = r_.begin();
+        auto const last = r_.end();
+        return detail::if_full_parse(
+            first, last, parser::parse(first, last, parser, skip, trace_mode));
+    }
+
+#endif
 
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  When a callback rule `r` is successful during the
