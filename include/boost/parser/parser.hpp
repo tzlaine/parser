@@ -59,7 +59,10 @@ namespace boost { namespace parser {
         no locals will yield a `none`. */
     struct none;
 
-#if !defined(BOOST_PARSER_NO_RUNTIME_ASSERTIONS)
+#if defined(BOOST_PARSER_NO_RUNTIME_ASSERTIONS)
+    struct none
+    {};
+#else
     struct none
     {
         none() = default;
