@@ -122,12 +122,11 @@ __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
 
 To find the problem, I just had to move up the stack, with GDB's "up" command,
 until I saw that I was in my own code.  Then I listed the code surrounding the
-offending line, as you see above, at the end.  If I were to keep going up the
-stack, I would move through the exact chain of template instantiations
-_emdash_ at the exact lines of code where they appear _emdash_ in a few
-seconds.
+offending line, as you see above.  If I were to keep going up the stack, I
+would move through the exact chain of template instantiations _emdash_ at the
+exact lines of code where they appear _emdash_ in a few seconds.
 
-This is how a the same problem looks with `BOOST_PARSER_NO_RUNTIME_ASSERTIONS`
+This is how the same problem looks with `BOOST_PARSER_NO_RUNTIME_ASSERTIONS`
 defined, the definition of which makes the code we added ill-formed instead of
 a run time error:
 
