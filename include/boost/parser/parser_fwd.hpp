@@ -272,6 +272,31 @@ namespace boost { namespace parser {
         typename ErrorHandler = default_error_handler>
     struct parser_interface;
 
+    using no_attribute = detail::nope;
+    using no_local_state = detail::nope;
+    using no_params = detail::nope;
+
+    /** A type used to declare named parsing rules.  The `TagType` template
+        parameter is used to associate a particular `rule` with the
+        `rule_parser` used during parsing. */
+    template<
+        typename TagType,
+        typename Attribute = no_attribute,
+        typename LocalState = no_local_state,
+        typename ParamsTuple = no_params>
+    struct rule;
+
+    /** A type used to declare named parsing rules that support reporting of
+        attributes via callback.  The `TagType` template parameter is used to
+        associate a particular `rule` with the `rule_parser` used during
+        parsing. */
+    template<
+        typename TagType,
+        typename Attribute = no_attribute,
+        typename LocalState = no_local_state,
+        typename ParamsTuple = no_params>
+    struct callback_rule;
+
 }}
 
 #endif

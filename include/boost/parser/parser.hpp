@@ -346,7 +346,6 @@ namespace boost { namespace parser {
     };
 #endif
 
-
     /** A tag type used to create tag objects that can be used as keys usable
         to access values in the parse context. */
     template<typename T>
@@ -4116,8 +4115,6 @@ namespace boost { namespace parser {
             return parser::parser_interface{action_parser_t{parser_, action}};
         }
 
-#ifndef BOOST_PARSER_DOXYGEN
-
         /** Returns `parser_((Arg &&)arg, (Args &&)args...)`.  This is useful
             for those parsers that have `operator()` overloads,
             e.g. `char_('x')`.  By convention, parsers' `operator()`s return
@@ -4132,6 +4129,8 @@ namespace boost { namespace parser {
         {
             return parser_((Arg &&) arg, (Args &&) args...);
         }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
         /** Applies `parser_`, returning the parsed attribute, if any, unless
             the attribute is reported via callback. */
@@ -4180,6 +4179,7 @@ namespace boost { namespace parser {
         parser_type parser_;
         global_state_type globals_;
         error_handler_type error_handler_;
+
 #endif
     };
 
@@ -4273,18 +4273,11 @@ namespace boost { namespace parser {
         }
     };
 
-    using no_attribute = detail::nope;
-    using no_local_state = detail::nope;
-    using no_params = detail::nope;
-
-    /** A type used to declare named parsing rules.  The `TagType` template
-        parameter is used to associate a particular `rule` with the
-        `rule_parser` used during parsing. */
     template<
         typename TagType,
-        typename Attribute = no_attribute,
-        typename LocalState = no_local_state,
-        typename ParamsTuple = no_params>
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
     struct rule
         : parser_interface<
               rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>>
@@ -4312,15 +4305,11 @@ namespace boost { namespace parser {
         }
     };
 
-    /** A type used to declare named parsing rules that support reporting of
-        attributes via callback.  The `TagType` template parameter is used to
-        associate a particular `rule` with the `rule_parser` used during
-        parsing. */
     template<
         typename TagType,
-        typename Attribute = no_attribute,
-        typename LocalState = no_local_state,
-        typename ParamsTuple = no_params>
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple>
     struct callback_rule
         : parser_interface<
               rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>>
