@@ -3803,37 +3803,23 @@ namespace boost { namespace parser {
                 auto const & callbacks = _callbacks(context);
 
                 if constexpr (std::is_same<attr_type, detail::nope>{}) {
-                    if constexpr (detail::has_overloaded_callback_1<
-                                      decltype((callbacks)),
-                                      tag_type>{}) {
-                        callbacks(hana::type_c<tag_type>);
-                    } else {
-                        // For rules without attributes, Callbacks must be a
-                        // struct with overloads of the form
-                        // void(hana::basic_type<tag_type>) (the case above),
-                        // or Callbacks mut be a hana::map that contains a
-                        // callback of the form void() for each associated
-                        // tag_type (this case).  If you're seeing an error
-                        // here, you probably have not met this contract.
-                        callbacks[hana::type_c<tag_type>]();
-                    }
+                    // For rules without attributes, Callbacks must be a
+                    // struct with overloads of the form void(tag_type).  If
+                    // you're seeing an error here, you probably have not met
+                    // this contract.
+                    static_assert(
+                        std::invocable<decltype(callbacks), tag_type>);
+                    callbacks(tag_type{});
                 } else {
-                    if constexpr (detail::has_overloaded_callback_2<
-                                      decltype((callbacks)),
-                                      tag_type,
-                                      decltype(std::move(retval))>{}) {
-                        callbacks(hana::type_c<tag_type>, std::move(retval));
-                    } else {
-                        // For rules with attributes, Callbacks must be a
-                        // struct with overloads of the form
-                        // void(hana::basic_type<tag_type>, attr_type &) (the
-                        // case above), or Callbacks mut be a hana::map that
-                        // contains a callback of the form void(attr_type &)
-                        // for each associated tag_type (this case).  If
-                        // you're seeing an error here, you probably have not
-                        // met this contract.
-                        callbacks[hana::type_c<tag_type>](std::move(retval));
-                    }
+                    // For rules without attributes, Callbacks must be a
+                    // struct with overloads of the form void(tag_type,
+                    // attr_type).  If you're seeing an error here, you
+                    // probably have not met this contract.
+                    static_assert(std::invocable<
+                                  decltype(callbacks),
+                                  tag_type,
+                                  decltype(std::move(retval))>);
+                    callbacks(tag_type{}, std::move(retval));
                 }
 
                 return {};
@@ -6485,16 +6471,12 @@ namespace boost { namespace parser {
         was successful.  When a callback rule `r` is successful during the
         parse, one of two things happens: 1) if `r` has an attribute,
         `callbacks(tag, x)` will be called (where `tag` is
-        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
-        produced by `r`), if that call is well-formed; otherwise,
-        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
-        `callbacks(tag)` will be called, if that call is well-formed;
-        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
-        either be an invocable with the correct overloads required to support
-        all successful rule parses that might occur, or a `boost::hana::map`
-        that contains an invocable for each `boost::hana::type` that might
-        occur.  If `trace_mode == trace::on`, a verbose trace of the parse
-        will be streamed to `std::cout`. */
+        `decltype(r)::tag_type{}`, and `x` is the attribute produced by `r`);
+        or 2) if `r` has no attribute, `callbacks(tag)` will be called.
+        `Callbacks` is expected to be an invocable with the correct overloads
+        required to support all successful rule parses that might occur.  If
+        `trace_mode == trace::on`, a verbose trace of the parse will be
+        streamed to `std::cout`. */
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6540,16 +6522,12 @@ namespace boost { namespace parser {
         to be considered successful.  When a callback rule `r` is successful
         during the parse, one of two things happens: 1) if `r` has an
         attribute, `callbacks(tag, x)` will be called (where `tag` is
-        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
-        produced by `r`), if that call is well-formed; otherwise,
-        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
-        `callbacks(tag)` will be called, if that call is well-formed;
-        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
-        either be an invocable with the correct overloads required to support
-        all successful rule parses that might occur, or a `boost::hana::map`
-        that contains an invocable for each `boost::hana::type` that might
-        occur.  If `trace_mode == trace::on`, a verbose trace of the parse
-        will be streamed to `std::cout`. */
+        `decltype(r)::tag_type{}`, and `x` is the attribute produced by `r`);
+        or 2) if `r` has no attribute, `callbacks(tag)` will be called.
+        `Callbacks` is expected to be an invocable with the correct overloads
+        required to support all successful rule parses that might occur.  If
+        `trace_mode == trace::on`, a verbose trace of the parse will be
+        streamed to `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,
@@ -6583,16 +6561,12 @@ namespace boost { namespace parser {
         whether the parse was successful.  When a callback rule `r` is
         successful during the parse, one of two things happens: 1) if `r` has
         an attribute, `callbacks(tag, x)` will be called (where `tag` is
-        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
-        produced by `r`), if that call is well-formed; otherwise,
-        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
-        `callbacks(tag)` will be called, if that call is well-formed;
-        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
-        either be an invocable with the correct overloads required to support
-        all successful rule parses that might occur, or a `boost::hana::map`
-        that contains an invocable for each `boost::hana::type` that might
-        occur.  If `trace_mode == trace::on`, a verbose trace of the parse
-        will be streamed to `std::cout`. */
+        `decltype(r)::tag_type{}`, and `x` is the attribute produced by `r`);
+        or 2) if `r` has no attribute, `callbacks(tag)` will be called.
+        `Callbacks` is expected to be an invocable with the correct overloads
+        required to support all successful rule parses that might occur.  If
+        `trace_mode == trace::on`, a verbose trace of the parse will be
+        streamed to `std::cout`. */
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6651,16 +6625,12 @@ namespace boost { namespace parser {
         the parse to be considered successful.  When a callback rule `r` is
         successful during the parse, one of two things happens: 1) if `r` has
         an attribute, `callbacks(tag, x)` will be called (where `tag` is
-        `boost::hana::type<decltype(r)::tag_type>{}`, and `x` is the attribute
-        produced by `r`), if that call is well-formed; otherwise,
-        `callbacks[tag](x)` is called; or 2) if `r` has no attribute,
-        `callbacks(tag)` will be called, if that call is well-formed;
-        otherwise, `callbacks[tag]()` is called.  `Callbacks` is expected to
-        either be an invocable with the correct overloads required to support
-        all successful rule parses that might occur, or a `boost::hana::map`
-        that contains an invocable for each `boost::hana::type` that might
-        occur.  If `trace_mode == trace::on`, a verbose trace of the parse
-        will be streamed to `std::cout`. */
+        `decltype(r)::tag_type{}`, and `x` is the attribute produced by `r`);
+        or 2) if `r` has no attribute, `callbacks(tag)` will be called.
+        `Callbacks` is expected to be an invocable with the correct overloads
+        required to support all successful rule parses that might occur.  If
+        `trace_mode == trace::on`, a verbose trace of the parse will be
+        streamed to `std::cout`. */
     template<
         parsable_range_like R,
         typename Parser,

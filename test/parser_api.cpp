@@ -99,6 +99,9 @@ constexpr callback_rule<struct callback_char_rule_tag, char>
 constexpr auto callback_char_rule_def = char_;
 BOOST_PARSER_DEFINE_RULES(callback_char_rule);
 
+struct callback_char_rule_tag
+{};
+
 TEST(parser, full_parse_api)
 {
     constexpr auto skip_ws = ascii::space;

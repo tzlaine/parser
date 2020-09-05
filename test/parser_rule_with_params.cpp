@@ -179,15 +179,18 @@ constexpr callback_rule<struct callback_void_rule_tag> callback_void_rule =
 constexpr auto callback_void_rule_def = string("abc") | string("def");
 BOOST_PARSER_DEFINE_RULES(callback_void_rule);
 
+struct callback_vector_rule_tag
+{};
+struct callback_void_rule_tag
+{};
+
 struct callbacks_t
 {
-    void operator()(
-        boost::hana::basic_type<callback_vector_rule_tag>,
-        std::vector<char> && vec) const
+    void operator()(callback_vector_rule_tag, std::vector<char> && vec) const
     {
         all_results.push_back(std::move(vec));
     }
-    void operator()(boost::hana::basic_type<callback_void_rule_tag>) const
+    void operator()(callback_void_rule_tag) const
     {
         void_callback_called = true;
     }
@@ -247,11 +250,10 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "xyz";
         std::vector<std::vector<char>> all_results;
-        auto record_results = [&all_results](std::vector<char> && vec) {
-            all_results.push_back(std::move(vec));
-        };
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_vector_rule_tag>, record_results));
+        auto callbacks =
+            [&all_results](callback_vector_rule_tag, std::vector<char> && vec) {
+                all_results.push_back(std::move(vec));
+            };
         EXPECT_FALSE(callback_parse(
             str, callback_vector_rule.with(15.0, make_13), callbacks));
         EXPECT_EQ(all_results.size(), 0u);
@@ -259,11 +261,10 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "abc";
         std::vector<std::vector<char>> all_results;
-        auto record_results = [&all_results](std::vector<char> && vec) {
-            all_results.push_back(std::move(vec));
-        };
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_vector_rule_tag>, record_results));
+        auto callbacks =
+            [&all_results](callback_vector_rule_tag, std::vector<char> && vec) {
+                all_results.push_back(std::move(vec));
+            };
         EXPECT_TRUE(callback_parse(
             str, callback_vector_rule.with(15.0, make_13), callbacks));
         EXPECT_EQ(all_results.size(), 1u);
@@ -272,11 +273,10 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "def";
         std::vector<std::vector<char>> all_results;
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_vector_rule_tag>,
-            [&all_results](std::vector<char> && vec) {
+        auto callbacks =
+            [&all_results](callback_vector_rule_tag, std::vector<char> && vec) {
                 all_results.push_back(std::move(vec));
-            }));
+            };
         EXPECT_TRUE(callback_parse(
             str, callback_vector_rule.with(15.0, make_13), callbacks));
         EXPECT_EQ(all_results.size(), 1u);
@@ -286,11 +286,9 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "xyz";
         bool void_callback_called = false;
-        auto record_results = [&void_callback_called]() {
+        auto callbacks = [&void_callback_called](callback_void_rule_tag) {
             void_callback_called = true;
         };
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_void_rule_tag>, record_results));
         EXPECT_FALSE(callback_parse(
             str, callback_void_rule.with(15.0, make_13), callbacks));
         EXPECT_FALSE(void_callback_called);
@@ -298,11 +296,9 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "abc";
         bool void_callback_called = false;
-        auto record_results = [&void_callback_called]() {
+        auto callbacks = [&void_callback_called](callback_void_rule_tag) {
             void_callback_called = true;
         };
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_void_rule_tag>, record_results));
         EXPECT_TRUE(callback_parse(
             str, callback_void_rule.with(15.0, make_13), callbacks));
         EXPECT_TRUE(void_callback_called);
@@ -310,9 +306,9 @@ TEST(param_parser, callback_rules)
     {
         std::string const str = "def";
         bool void_callback_called = false;
-        auto callbacks = boost::hana::make_map(boost::hana::make_pair(
-            boost::hana::type_c<callback_void_rule_tag>,
-            [&void_callback_called]() { void_callback_called = true; }));
+        auto callbacks = [&void_callback_called](callback_void_rule_tag) {
+            void_callback_called = true;
+        };
         EXPECT_TRUE(callback_parse(
             str, callback_void_rule.with(15.0, make_13), callbacks));
         EXPECT_TRUE(void_callback_called);
