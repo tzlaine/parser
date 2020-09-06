@@ -216,7 +216,6 @@ TEST(parser, full_parse_api)
         EXPECT_EQ(out, 'a');
     }
 
-#if 0 // TODO: Fix!
     // callback, using skipper
     {
         char out = 0;
@@ -239,7 +238,6 @@ TEST(parser, full_parse_api)
             callback_parse(str, callback_char_rule, skip_ws, callbacks));
         EXPECT_EQ(out, 'a');
     }
-#endif
 }
 
 TEST(parser, basic)

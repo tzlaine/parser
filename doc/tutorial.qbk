@@ -301,13 +301,14 @@ Now would be a good time to describe the parse context in some detail.  Any
 semantic action that you write will need to use the state in the parse
 context, so you need to know what's available.
 
-The parse context is a `hana::map` from tag types to elements.  Elements are
-added to or removevd from it at different times during the parse.  For
-instance, when a parser with a semantic action succeeds, it adds the attribute
-it produces to the parse context, then calls the invocable semantic action.
-This is efficient to do, because the `hana::map` remains fairly small, usually
-around ten elements, and each element is stored as a pointer.  Copying the
-entire map when mutating the context is therefore fast.
+The parse context is a class template.  Values are "added" to or "removed"
+from it at different times during the parse, by changing the template's
+parameters, and/or assigning over the existing data members.  For instance,
+when a parser with a semantic action succeeds, it adds the attribute it
+produces to the parse context, then calls the invocable semantic action.  This
+is efficient to do, because the parse context has only about a dozen data
+members, and each data member is less than or equal to the size of a pointer.
+Copying the entire map when mutating the context is therefore fast.
 
 [note All these functions that take the parse context as their first parameter
 will find by found by Argument-Dependent Lookup.  You will probably never need

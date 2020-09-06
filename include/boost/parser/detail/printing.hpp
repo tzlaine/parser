@@ -542,7 +542,7 @@ namespace boost { namespace parser { namespace detail {
             if (!detail::do_trace(flags_))
                 return;
             detail::trace_indent(_indent(context_));
-            if (*context_[hana::type_c<pass_tag>]) {
+            if (*context_.pass_) {
                 std::cout << "matched ";
              detail::   trace_input(std::cout, initial_first_, first_);
              std::cout << "\n";
@@ -590,7 +590,7 @@ namespace boost { namespace parser { namespace detail {
             return;
 
         std::cout << "--------------------\n";
-        if (*context[hana::type_c<pass_tag>]) {
+        if (*context.pass_) {
             std::cout << "parse succeeded\n";
             detail::print_attribute(detail::resolve(context, attr), 0);
         } else {

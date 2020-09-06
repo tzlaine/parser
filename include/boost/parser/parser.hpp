@@ -349,11 +349,6 @@ namespace boost { namespace parser {
     };
 #endif
 
-    /** A tag type used to create tag objects that can be used as keys usable
-        to access values in the parse context. */
-    template<typename T>
-    constexpr hana::type<T> tag{};
-
     namespace detail {
         // Utility types.
 
@@ -392,6 +387,253 @@ namespace boost { namespace parser {
 
         inline nope global_nope;
 
+        template<typename T, bool AlwaysConst = false>
+        using nope_or_pointer_t = std::conditional_t<
+            std::is_same_v<std::remove_const_t<T>, nope>,
+            nope,
+            std::conditional_t<AlwaysConst, T const *, T *>>;
+
+        template<
+            typename I,
+            typename S,
+            typename ErrorHandler,
+            typename GlobalState = nope,
+            typename Callbacks = nope,
+            typename Attr = nope,
+            typename Val = nope,
+            typename RuleLocals = nope,
+            typename RuleParams = nope,
+            typename Where = nope>
+        struct parse_context
+        {
+            parse_context() = default;
+            parse_context(parse_context const &) = default;
+            parse_context & operator=(parse_context const &) = default;
+
+            I first_;
+            S last_;
+            bool * pass_ = nullptr;
+            int * trace_indent_ = nullptr;
+            symbol_table_tries_t * symbol_table_tries_ = nullptr;
+            ErrorHandler const * error_handler_ = nullptr;
+            nope_or_pointer_t<GlobalState> globals_{};
+            nope_or_pointer_t<Callbacks, true> callbacks_{};
+            nope_or_pointer_t<Attr> attr_{};
+            nope_or_pointer_t<Val> val_{};
+            nope_or_pointer_t<RuleLocals> locals_{};
+            nope_or_pointer_t<RuleParams, true> params_{};
+            nope_or_pointer_t<Where, true> where_{};
+
+            template<typename T>
+            auto nope_or_address(T & x)
+            {
+                if constexpr (std::is_same_v<std::remove_const_t<T>, nope>)
+                    return nope{};
+                else
+                    return std::addressof(x);
+            }
+
+            template<typename T, typename U>
+            auto other_or_address(T other, U & x)
+            {
+                if constexpr (std::is_same_v<std::remove_const_t<U>, nope>)
+                    return other;
+                else
+                    return std::addressof(x);
+            }
+
+            parse_context(
+                I & first,
+                S last,
+                bool & success,
+                int & indent,
+                ErrorHandler const & error_handler,
+                GlobalState & globals,
+                symbol_table_tries_t & symbol_table_tries) :
+                first_(first),
+                last_(last),
+                pass_(std::addressof(success)),
+                trace_indent_(std::addressof(indent)),
+                symbol_table_tries_(std::addressof(symbol_table_tries)),
+                error_handler_(std::addressof(error_handler)),
+                globals_(nope_or_address(globals))
+            {}
+
+            // With callbacks.
+            parse_context(
+                I & first,
+                S last,
+                bool & success,
+                int & indent,
+                ErrorHandler const & error_handler,
+                Callbacks const & callbacks,
+                GlobalState & globals,
+                symbol_table_tries_t & symbol_table_tries) :
+                first_(first),
+                last_(last),
+                pass_(std::addressof(success)),
+                trace_indent_(std::addressof(indent)),
+                symbol_table_tries_(std::addressof(symbol_table_tries)),
+                error_handler_(std::addressof(error_handler)),
+                globals_(nope_or_address(globals)),
+                callbacks_(std::addressof(callbacks))
+            {}
+
+            // For making rule contexts.
+            template<
+                typename OldVal,
+                typename OldRuleLocals,
+                typename OldRuleParams,
+                typename NewVal,
+                typename NewRuleLocals,
+                typename NewRuleParams>
+            parse_context(
+                parse_context<
+                    I,
+                    S,
+                    ErrorHandler,
+                    GlobalState,
+                    Callbacks,
+                    Attr,
+                    OldVal,
+                    OldRuleLocals,
+                    OldRuleParams> const & other,
+                NewVal & value,
+                NewRuleLocals & locals,
+                NewRuleParams const & params) :
+                first_(other.first_),
+                last_(other.last_),
+                pass_(other.pass_),
+                trace_indent_(other.trace_indent_),
+                symbol_table_tries_(other.symbol_table_tries_),
+                error_handler_(other.error_handler_),
+                globals_(other.globals_),
+                callbacks_(other.callbacks_),
+                attr_(other.attr_),
+                val_(other_or_address(other.val_, value)),
+                locals_(other_or_address(other.locals_, locals)),
+                params_(other_or_address(other.params_, params))
+            {}
+
+            // For making action contexts.
+            template<typename OldAttr, typename OldWhere>
+            parse_context(
+                parse_context<
+                    I,
+                    S,
+                    ErrorHandler,
+                    GlobalState,
+                    Callbacks,
+                    OldAttr,
+                    Val,
+                    RuleLocals,
+                    RuleParams,
+                    OldWhere> const & other,
+                Attr & attr,
+                Where const & where) :
+                first_(other.first_),
+                last_(other.last_),
+                pass_(other.pass_),
+                trace_indent_(other.trace_indent_),
+                symbol_table_tries_(other.symbol_table_tries_),
+                error_handler_(other.error_handler_),
+                globals_(other.globals_),
+                callbacks_(other.callbacks_),
+                attr_(nope_or_address(attr)),
+                val_(other.val_),
+                locals_(other.locals_),
+                params_(other.params_),
+                where_(nope_or_address(where))
+            {}
+        };
+
+        template<
+            typename I,
+            typename S,
+            typename ErrorHandler,
+            typename GlobalState,
+            typename Callbacks,
+            typename Val,
+            typename RuleLocals,
+            typename RuleParams,
+            typename Attr,
+            typename Where,
+            typename OldAttr>
+        auto make_action_context(
+            parse_context<
+                I,
+                S,
+                ErrorHandler,
+                GlobalState,
+                Callbacks,
+                OldAttr,
+                Val,
+                RuleLocals,
+                RuleParams> const & context,
+            Attr & attr,
+            Where const & where)
+        {
+            using result_type = parse_context<
+                I,
+                S,
+                ErrorHandler,
+                GlobalState,
+                Callbacks,
+                Attr,
+                Val,
+                RuleLocals,
+                RuleParams,
+                Where>;
+            return result_type(context, attr, where);
+        }
+
+        template<
+            typename I,
+            typename S,
+            typename ErrorHandler,
+            typename GlobalState,
+            typename Callbacks,
+            typename Attr,
+            typename Val,
+            typename RuleLocals,
+            typename RuleParams,
+            typename NewVal,
+            typename NewRuleLocals,
+            typename NewRuleParams>
+        auto make_rule_context(
+            parse_context<
+                I,
+                S,
+                ErrorHandler,
+                GlobalState,
+                Callbacks,
+                Attr,
+                Val,
+                RuleLocals,
+                RuleParams> const & context,
+            NewVal & value,
+            NewRuleLocals & locals,
+            NewRuleParams const & params)
+        {
+            using result_type = parse_context<
+                I,
+                S,
+                ErrorHandler,
+                GlobalState,
+                Callbacks,
+                Attr,
+                std::conditional_t<std::is_same_v<NewVal, nope>, Val, NewVal>,
+                std::conditional_t<
+                    std::is_same_v<NewRuleLocals, nope>,
+                    RuleLocals,
+                    NewRuleLocals>,
+                std::conditional_t<
+                    std::is_same_v<NewRuleParams, nope>,
+                    RuleParams,
+                    NewRuleParams>>;
+            return result_type(context, value, locals, params);
+        }
+
         template<typename Iter, typename Sentinel, typename ErrorHandler>
         inline auto make_context(
             Iter first,
@@ -399,24 +641,17 @@ namespace boost { namespace parser {
             bool & success,
             int & indent,
             ErrorHandler const & error_handler,
-            nope &,
+            nope & n,
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
-            return hana::make_map(
-                hana::make_pair(hana::type_c<begin_tag>, first),
-                hana::make_pair(hana::type_c<end_tag>, last),
-                hana::make_pair(hana::type_c<pass_tag>, &success),
-                hana::make_pair(hana::type_c<val_tag>, global_nope),
-                hana::make_pair(hana::type_c<attr_tag>, global_nope),
-                hana::make_pair(hana::type_c<locals_tag>, global_nope),
-                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
-                hana::make_pair(hana::type_c<globals_tag>, global_nope),
-                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
-                hana::make_pair(
-                    hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, global_nope),
-                hana::make_pair(
-                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
+            return parse_context(
+                first,
+                last,
+                success,
+                indent,
+                error_handler,
+                n,
+                symbol_table_tries);
         }
 
         template<
@@ -433,21 +668,14 @@ namespace boost { namespace parser {
             GlobalState & globals,
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
-            return hana::make_map(
-                hana::make_pair(hana::type_c<begin_tag>, first),
-                hana::make_pair(hana::type_c<end_tag>, last),
-                hana::make_pair(hana::type_c<pass_tag>, &success),
-                hana::make_pair(hana::type_c<val_tag>, global_nope),
-                hana::make_pair(hana::type_c<attr_tag>, global_nope),
-                hana::make_pair(hana::type_c<locals_tag>, global_nope),
-                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
-                hana::make_pair(hana::type_c<globals_tag>, &globals),
-                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
-                hana::make_pair(
-                    hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, global_nope),
-                hana::make_pair(
-                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
+            return parse_context(
+                first,
+                last,
+                success,
+                indent,
+                error_handler,
+                globals,
+                symbol_table_tries);
         }
 
         template<
@@ -462,24 +690,18 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks,
-            nope &,
+            nope & n,
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
-            return hana::make_map(
-                hana::make_pair(hana::type_c<begin_tag>, first),
-                hana::make_pair(hana::type_c<end_tag>, last),
-                hana::make_pair(hana::type_c<pass_tag>, &success),
-                hana::make_pair(hana::type_c<val_tag>, global_nope),
-                hana::make_pair(hana::type_c<attr_tag>, global_nope),
-                hana::make_pair(hana::type_c<locals_tag>, global_nope),
-                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
-                hana::make_pair(hana::type_c<globals_tag>, global_nope),
-                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
-                hana::make_pair(
-                    hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks),
-                hana::make_pair(
-                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
+            return parse_context(
+                first,
+                last,
+                success,
+                indent,
+                error_handler,
+                callbacks,
+                n,
+                symbol_table_tries);
         }
 
         template<
@@ -498,21 +720,15 @@ namespace boost { namespace parser {
             GlobalState & globals,
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
-            return hana::make_map(
-                hana::make_pair(hana::type_c<begin_tag>, first),
-                hana::make_pair(hana::type_c<end_tag>, last),
-                hana::make_pair(hana::type_c<pass_tag>, &success),
-                hana::make_pair(hana::type_c<val_tag>, global_nope),
-                hana::make_pair(hana::type_c<attr_tag>, global_nope),
-                hana::make_pair(hana::type_c<locals_tag>, global_nope),
-                hana::make_pair(hana::type_c<rule_params_tag>, global_nope),
-                hana::make_pair(hana::type_c<globals_tag>, &globals),
-                hana::make_pair(hana::type_c<trace_indent_tag>, &indent),
-                hana::make_pair(
-                    hana::type_c<error_handler_tag>, &error_handler),
-                hana::make_pair(hana::type_c<callbacks_tag>, &callbacks),
-                hana::make_pair(
-                    hana::type_c<symbol_table_tries_tag>, &symbol_table_tries));
+            return parse_context(
+                first,
+                last,
+                success,
+                indent,
+                error_handler,
+                callbacks,
+                globals,
+                symbol_table_tries);
         }
 
 
@@ -596,137 +812,17 @@ namespace boost { namespace parser {
                     type{});
         }
 
-        template<
-            typename Context,
-            typename AttributeType,
-            typename LocalState,
-            typename ParamsTuple>
-        inline auto make_rule_context(
-            Context const & context,
-            AttributeType & value,
-            LocalState & locals,
-            ParamsTuple const & params) noexcept
-        {
-            // Replace the context's current locals and params with these, and
-            // its current val with value.
-            return hana::insert(
-                hana::insert(
-                    hana::insert(
-                        hana::erase_key(
-                            hana::erase_key(
-                                hana::erase_key(
-                                    context, hana::type_c<locals_tag>),
-                                hana::type_c<val_tag>),
-                            hana::type_c<rule_params_tag>),
-                        hana::make_pair(hana::type_c<locals_tag>, &locals)),
-                    hana::make_pair(hana::type_c<val_tag>, &value)),
-                hana::make_pair(hana::type_c<rule_params_tag>, &params));
-        }
-
-        template<typename Context, typename AttributeType, typename LocalState>
-        inline auto make_rule_context(
-            Context const & context,
-            AttributeType & value,
-            LocalState & locals,
-            nope & params) noexcept
-        {
-            return hana::insert(
-                hana::insert(
-                    hana::erase_key(
-                        hana::erase_key(context, hana::type_c<locals_tag>),
-                        hana::type_c<val_tag>),
-                    hana::make_pair(hana::type_c<locals_tag>, &locals)),
-                hana::make_pair(hana::type_c<val_tag>, &value));
-        }
-
-        template<typename Context, typename LocalState, typename ParamsTuple>
-        inline auto make_rule_context(
-            Context const & context,
-            nope & value,
-            LocalState & locals,
-            ParamsTuple const & params) noexcept
-        {
-            return hana::insert(
-                hana::insert(
-                    hana::erase_key(
-                        hana::erase_key(context, hana::type_c<locals_tag>),
-                        hana::type_c<rule_params_tag>),
-                    hana::make_pair(hana::type_c<locals_tag>, &locals)),
-                hana::make_pair(hana::type_c<rule_params_tag>, &params));
-        }
-
-        template<typename Context, typename LocalState>
-        inline auto make_rule_context(
-            Context const & context,
-            nope & value,
-            LocalState & locals,
-            nope & params) noexcept
-        {
-            return hana::insert(
-                hana::erase_key(context, hana::type_c<locals_tag>),
-                hana::make_pair(hana::type_c<locals_tag>, &locals));
-        }
-
-        template<typename Context, typename AttributeType, typename ParamsTuple>
-        inline auto make_rule_context(
-            Context const & context,
-            AttributeType & value,
-            nope & locals,
-            ParamsTuple const & params) noexcept
-        {
-            return hana::insert(
-                hana::insert(
-                    hana::erase_key(
-                        hana::erase_key(context, hana::type_c<val_tag>),
-                        hana::type_c<rule_params_tag>),
-                    hana::make_pair(hana::type_c<val_tag>, &value)),
-                hana::make_pair(hana::type_c<rule_params_tag>, &params));
-        }
-
-        template<typename Context, typename AttributeType>
-        inline auto make_rule_context(
-            Context const & context,
-            AttributeType & value,
-            nope & locals,
-            nope & params) noexcept
-        {
-            return hana::insert(
-                hana::erase_key(context, hana::type_c<val_tag>),
-                hana::make_pair(hana::type_c<val_tag>, &value));
-        }
-
-        template<typename Context, typename ParamsTuple>
-        inline auto make_rule_context(
-            Context const & context,
-            nope & value,
-            nope & locals,
-            ParamsTuple const & params) noexcept
-        {
-            return hana::insert(
-                hana::erase_key(context, hana::type_c<rule_params_tag>),
-                hana::make_pair(hana::type_c<rule_params_tag>, &params));
-        }
-
-        template<typename Context>
-        inline auto make_rule_context(
-            Context const & context,
-            nope & value,
-            nope & locals,
-            nope & params) noexcept
-        {
-            return context;
-        }
 
         template<typename Context>
         inline decltype(auto) _indent(Context const & context)
         {
-            return *context[hana::type_c<trace_indent_tag>];
+            return *context.trace_indent_;
         }
 
         template<typename Context>
         inline decltype(auto) _callbacks(Context const & context)
         {
-            return *context[hana::type_c<callbacks_tag>];
+            return *context.callbacks_;
         }
 
         template<typename Context, typename T>
@@ -735,7 +831,7 @@ namespace boost { namespace parser {
         {
             using trie_t = text::trie<std::vector<uint32_t>, T>;
             symbol_table_tries_t & symbol_table_tries =
-                *context[hana::type_c<symbol_table_tries_tag>];
+                *context.symbol_table_tries_;
             any & a = symbol_table_tries[(void *)&symbol_parser];
             trie_t * trie_ptr = nullptr;
             if (a.empty()) {
@@ -752,6 +848,15 @@ namespace boost { namespace parser {
 
 
         // Type traits.
+
+        template<typename T>
+        struct is_nope : std::false_type
+        {};
+        template<>
+        struct is_nope<nope> : std::true_type
+        {};
+        template<typename T>
+        constexpr bool is_nope_v = is_nope<std::remove_cvref_t<T>>::value;
 
         template<typename T>
         struct is_hana_tuple : std::false_type
@@ -1872,17 +1977,6 @@ namespace boost { namespace parser {
             }
         }
 
-        inline constexpr auto val_ = tag<val_tag>;
-        inline constexpr auto attr_ = tag<attr_tag>;
-        inline constexpr auto where_ = tag<where_tag>;
-        inline constexpr auto begin_ = tag<begin_tag>;
-        inline constexpr auto end_ = tag<end_tag>;
-        inline constexpr auto pass_ = tag<pass_tag>;
-        inline constexpr auto locals_ = tag<locals_tag>;
-        inline constexpr auto params_ = tag<rule_params_tag>;
-        inline constexpr auto globals_ = tag<globals_tag>;
-        inline constexpr auto error_handler_ = tag<error_handler_tag>;
-
         template<typename I, typename S>
         text::utf32_view<I, S>
         remove_utf32_terminator(text::utf32_view<I, S> view)
@@ -2019,14 +2113,6 @@ namespace boost { namespace parser {
             return retval;
         }
 
-        template<typename Context, typename Tag>
-        constexpr bool yields_nope(Tag t)
-        {
-            return std::is_same_v<
-                std::decay_t<decltype(*std::declval<Context const &>()[t])>,
-                detail::nope>;
-        }
-
         // Hana's concat does not seem to do what it says on the tin.
         // Concatenating (int, string) with (double, int) yields (int, string,
         // double).  I maybe don't understand it well enough.
@@ -2046,10 +2132,10 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _val(Context const & context)
     {
-        if constexpr (detail::yields_nope<Context>(detail::val_))
+        if constexpr (detail::is_nope_v<decltype(*context.val_)>)
             return none{};
         else
-            return *context[detail::val_];
+            return *context.val_;
     }
     /** Returns a reference to the attribute or attributes already produced by
         the innermost parser; multiple attributes will be stored within a
@@ -2058,17 +2144,17 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _attr(Context const & context)
     {
-        if constexpr (detail::yields_nope<Context>(detail::attr_))
+        if constexpr (detail::is_nope_v<decltype(*context.attr_)>)
             return none{};
         else
-            return *context[detail::attr_];
+            return *context.attr_;
     }
     /** Returns a `view` that describes the matched range of the innermost
         parser. */
     template<typename Context>
     inline decltype(auto) _where(Context const & context)
     {
-        return *context[detail::where_];
+        return *context.where_;
     }
     /** Returns an iterator to the beginning of the entire sequence being
         parsed.  The effect of calling this within a semantic action
@@ -2076,13 +2162,13 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _begin(Context const & context)
     {
-        return context[detail::begin_];
+        return context.first_;
     }
     /** Returns an iterator to the end of the entire sequence being parsed. */
     template<typename Context>
     inline decltype(auto) _end(Context const & context)
     {
-        return context[detail::end_];
+        return context.last_;
     }
     /** Returns a reference to a `bool` that represents the success or failure
         of the innermost parser.  You can assign `false` to this within a
@@ -2090,7 +2176,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _pass(Context const & context)
     {
-        return *context[detail::pass_];
+        return *context.pass_;
     }
     /** Returns a reference to one or more local values that the innermost
         rule is declared to have; multiple values will be stored within a
@@ -2099,10 +2185,10 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _locals(Context const & context)
     {
-        if constexpr (detail::yields_nope<Context>(detail::locals_))
+        if constexpr (detail::is_nope_v<decltype(*context.locals_)>)
             return none{};
         else
-            return *context[detail::locals_];
+            return *context.locals_;
     }
     /** Returns a reference to one or more parameters passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
@@ -2112,10 +2198,10 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _params(Context const & context)
     {
-        if constexpr (detail::yields_nope<Context>(detail::params_))
+        if constexpr (detail::is_nope_v<decltype(*context.params_)>)
             return none{};
         else
-            return *context[detail::params_];
+            return *context.params_;
     }
     /** Returns a reference to the globals object associated with the
         innermost parser.  Returns `none` if there is no associated globals
@@ -2123,10 +2209,10 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _globals(Context const & context)
     {
-        if constexpr (detail::yields_nope<Context>(detail::globals_))
+        if constexpr (detail::is_nope_v<decltype(*context.globals_)>)
             return none{};
         else
-            return *context[detail::globals_];
+            return *context.globals_;
     }
     /** Returns a reference to the error handler object associated with the
         innermost parser.  Returns `none` if there is no associated error
@@ -2134,7 +2220,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline decltype(auto) _error_handler(Context const & context)
     {
-        return *context[detail::error_handler_];
+        return *context.error_handler_;
     }
 
     /** Report that the error described in `message` occurred at `location`,
@@ -2143,7 +2229,7 @@ namespace boost { namespace parser {
     inline void _report_error(
         Context const & context, std::string_view message, Iter location)
     {
-        return context[detail::error_handler_]->diagnose(
+        return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context, location);
     }
     /** Report that the error described in `message` occurred at
@@ -2151,7 +2237,7 @@ namespace boost { namespace parser {
     template<typename Context>
     inline void _report_error(Context const & context, std::string_view message)
     {
-        return context[detail::error_handler_]->diagnose(
+        return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context);
     }
     /** Report that the warning described in `message` occurred at `location`,
@@ -2160,7 +2246,7 @@ namespace boost { namespace parser {
     inline void _report_warning(
         Context const & context, std::string_view message, Iter location)
     {
-        return context[detail::error_handler_]->diagnose(
+        return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context, location);
     }
     /** Report that the warning described in `message` occurred at
@@ -2169,7 +2255,7 @@ namespace boost { namespace parser {
     inline void
     _report_warning(Context const & context, std::string_view message)
     {
-        return context[detail::error_handler_]->diagnose(
+        return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context);
     }
 
@@ -3206,13 +3292,8 @@ namespace boost { namespace parser {
                 success);
             view const where(initial_first, first);
             if (success) {
-                // Replace the context's current attribute with attr, and add
-                // where to the context.
-                auto const action_context = hana::insert(
-                    hana::insert(
-                        hana::erase_key(context, detail::attr_),
-                        hana::make_pair(detail::attr_, &attr)),
-                    hana::make_pair(detail::where_, &where));
+                auto const action_context =
+                    detail::make_action_context(context, attr, where);
                 action_(action_context);
             }
         }
@@ -4611,8 +4692,8 @@ namespace boost { namespace parser {
             auto _ = scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             view const where(first, first);
-            auto const predicate_context =
-                hana::insert(context, hana::make_pair(detail::where_, &where));
+            auto const predicate_context = detail::make_action_context(
+                context, detail::global_nope, where);
             success = pred_(predicate_context);
             return {};
         }
@@ -4636,8 +4717,8 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
             view const where(first, first);
-            auto const predicate_context =
-                hana::insert(context, hana::make_pair(detail::where_, &where));
+            auto const predicate_context = detail::make_action_context(
+                context, detail::global_nope, where);
             success = pred_(predicate_context);
         }
 
