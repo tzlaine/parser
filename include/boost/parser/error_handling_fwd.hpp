@@ -111,13 +111,8 @@ namespace boost { namespace parser {
             formatted parse-expectation failure is printed to `std::cout`.
             Always returns `error_handler_result::fail`. */
         template<typename Iter, typename Sentinel>
-        error_handler_result
-        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
-        {
-            parser::write_formatted_expectation_failure_error_message(
-                std::cout, "", first, last, e);
-            return error_handler_result::fail;
-        }
+        error_handler_result operator()(
+            Iter first, Sentinel last, parse_error<Iter> const & e) const;
 
         /** Prints `message` to `std::cout`.  The diagnostic is printed with
             the given `kind`, indicating the location as being at `it`.  This
@@ -129,12 +124,8 @@ namespace boost { namespace parser {
             diagnostic_kind kind,
             std::string_view message,
             Context const & context,
-            Iter it) const
+            Iter it) const;
         //]
-        {
-            parser::write_formatted_message(
-                std::cout, "", _begin(context), it, _end(context), message);
-        }
 
         /** Prints `message` to `std::cout`.  The diagnostic is printed with
             the given `kind`, at no particular location.  This must be called
@@ -144,11 +135,8 @@ namespace boost { namespace parser {
         void diagnose(
             diagnostic_kind kind,
             std::string_view message,
-            Context const & context) const
+            Context const & context) const;
         //]
-        {
-            diagnose(kind, message, context, _where(context).begin());
-        }
     };
 
     /** Prints warnings and errors to the `std::ostream` provided by the user,
@@ -185,12 +173,7 @@ namespace boost { namespace parser {
             `error_handler_result::fail`. */
         template<typename Iter, typename Sentinel>
         error_handler_result
-        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const
-        {
-            parser::write_formatted_expectation_failure_error_message(
-                os_, filename_, first, last, e);
-            return error_handler_result::fail;
-        }
+        operator()(Iter first, Sentinel last, parse_error<Iter> const & e) const;
 
         /** Prints `message` to `*os_` when `os_` is non-null, or `std::cout`
             otherwise.  The diagnostic is printed with the given `kind`,
@@ -201,11 +184,7 @@ namespace boost { namespace parser {
             diagnostic_kind kind,
             std::string_view message,
             Context const & context,
-            Iter it) const
-        {
-            parser::write_formatted_message(
-                os_, filename_, _begin(context), it, _end(context), message);
-        }
+            Iter it) const;
 
         /** Prints `message` to `*os_` when `os_` is non-null, or `std::cout`
             otherwise.  The diagnostic is printed with the given `kind`, at no
@@ -215,10 +194,7 @@ namespace boost { namespace parser {
         void diagnose(
             diagnostic_kind kind,
             std::string_view message,
-            Context const & context) const
-        {
-            diagnose(kind, message, context, _where(context).begin());
-        }
+            Context const & context) const;
 
     private:
         std::string filename_;

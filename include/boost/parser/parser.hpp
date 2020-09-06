@@ -425,7 +425,7 @@ namespace boost { namespace parser {
             nope_or_pointer_t<Where, true> where_{};
 
             template<typename T>
-            auto nope_or_address(T & x)
+            static auto nope_or_address(T & x)
             {
                 if constexpr (std::is_same_v<std::remove_const_t<T>, nope>)
                     return nope{};
@@ -434,7 +434,7 @@ namespace boost { namespace parser {
             }
 
             template<typename T, typename U>
-            auto other_or_address(T other, U & x)
+            static auto other_or_address(T other, U & x)
             {
                 if constexpr (std::is_same_v<std::remove_const_t<U>, nope>)
                     return other;
@@ -635,7 +635,7 @@ namespace boost { namespace parser {
         }
 
         template<typename Iter, typename Sentinel, typename ErrorHandler>
-        inline auto make_context(
+        auto make_context(
             Iter first,
             Sentinel last,
             bool & success,
@@ -659,7 +659,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename ErrorHandler,
             typename GlobalState>
-        inline auto make_context(
+        auto make_context(
             Iter first,
             Sentinel last,
             bool & success,
@@ -683,7 +683,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename ErrorHandler,
             typename Callbacks>
-        inline auto make_context(
+        auto make_context(
             Iter first,
             Sentinel last,
             bool & success,
@@ -710,7 +710,7 @@ namespace boost { namespace parser {
             typename ErrorHandler,
             typename Callbacks,
             typename GlobalState>
-        inline auto make_context(
+        auto make_context(
             Iter first,
             Sentinel last,
             bool & success,
@@ -738,7 +738,7 @@ namespace boost { namespace parser {
             template<typename Context>
             decltype(auto) operator()(Context const & context) const
             {
-                return _params(context)[hana::llong<I>{}];
+                return parser::_params(context)[hana::llong<I>{}];
             }
         };
 
@@ -778,15 +778,16 @@ namespace boost { namespace parser {
 
 
         template<typename Context, typename ParamsTuple>
-        inline auto
+        auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
-            return hana::transform(
-                params, [&](auto const & x) { return resolve(context, x); });
+            return hana::transform(params, [&](auto const & x) {
+                return detail::resolve(context, x);
+            });
         }
 
         template<typename Context>
-        inline nope resolve_rule_params(Context const & context, nope)
+        nope resolve_rule_params(Context const & context, nope)
         {
             return {};
         }
@@ -806,7 +807,7 @@ namespace boost { namespace parser {
         template<typename LocalsType, typename Context>
         LocalsType make_locals(Context const & context)
         {
-            return make_locals_impl<LocalsType>(
+            return detail::make_locals_impl<LocalsType>(
                 context,
                 typename std::is_convertible<Context const &, LocalsType>::
                     type{});
@@ -814,19 +815,19 @@ namespace boost { namespace parser {
 
 
         template<typename Context>
-        inline decltype(auto) _indent(Context const & context)
+        decltype(auto) _indent(Context const & context)
         {
             return *context.trace_indent_;
         }
 
         template<typename Context>
-        inline decltype(auto) _callbacks(Context const & context)
+        decltype(auto) _callbacks(Context const & context)
         {
             return *context.callbacks_;
         }
 
         template<typename Context, typename T>
-        inline decltype(auto) get_trie(
+        decltype(auto) get_trie(
             Context const & context, symbol_parser<T> const & symbol_parser)
         {
             using trie_t = text::trie<std::vector<uint32_t>, T>;
@@ -836,12 +837,12 @@ namespace boost { namespace parser {
             trie_t * trie_ptr = nullptr;
             if (a.empty()) {
                 a = trie_t{};
-                trie_ptr = any_cast<trie_t>(&a);
+                trie_ptr = boost::any_cast<trie_t>(&a);
                 for (auto const & e : symbol_parser.initial_elements()) {
                     trie_ptr->insert(text::as_utf32(e.first), e.second);
                 }
             } else {
-                trie_ptr = any_cast<trie_t>(&a);
+                trie_ptr = boost::any_cast<trie_t>(&a);
             }
             return *trie_ptr;
         }
@@ -1215,14 +1216,14 @@ namespace boost { namespace parser {
         void
         skip(Iter & first, Sentinel last, SkipParser const & skip_, flags f)
         {
-            if (!use_skip(f))
+            if (!detail::use_skip(f))
                 return;
             bool success = true;
             int indent = 0;
             rethrow_error_handler eh;
             nope n;
             symbol_table_tries_t symbol_table_tries;
-            auto const context = make_context(
+            auto const context = detail::make_context(
                 first, last, success, indent, eh, n, symbol_table_tries);
             while (success) {
                 skip_(
@@ -1231,7 +1232,7 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip_skipper{},
-                    disable_trace(disable_skip(f)),
+                    detail::disable_trace(detail::disable_skip(f)),
                     success);
             }
         }
@@ -1308,7 +1309,7 @@ namespace boost { namespace parser {
             static bool
             call(Context const & context, CharType c, Expected const & expected)
             {
-                return c != resolve(context, expected);
+                return c != detail::resolve(context, expected);
             }
         };
 
@@ -1340,13 +1341,13 @@ namespace boost { namespace parser {
             char_pair<LoType, HiType> const & expected)
         {
             {
-                auto lo = resolve(context, expected.lo_);
+                auto lo = detail::resolve(context, expected.lo_);
                 using common_t = std::common_type_t<CharType, decltype(lo)>;
                 if ((common_t)c < (common_t)lo)
                     return true;
             }
             {
-                auto hi = resolve(context, expected.hi_);
+                auto hi = detail::resolve(context, expected.hi_);
                 using common_t = std::common_type_t<CharType, decltype(hi)>;
                 if ((common_t)hi < (common_t)c)
                     return true;
@@ -1696,8 +1697,9 @@ namespace boost { namespace parser {
                 error_handler,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
-                                     : detail::flags::gen_attrs;
+            auto const flags =
+                Debug ? detail::enable_trace(detail::flags::gen_attrs)
+                      : detail::flags::gen_attrs;
             try {
                 parser(
                     hana::false_c,
@@ -1709,7 +1711,7 @@ namespace boost { namespace parser {
                     success,
                     attr);
                 if (Debug)
-                    final_trace(context, flags, attr);
+                    detail::final_trace(context, flags, attr);
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1744,8 +1746,9 @@ namespace boost { namespace parser {
                 error_handler,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
-                                     : detail::flags::gen_attrs;
+            auto const flags =
+                Debug ? detail::enable_trace(detail::flags::gen_attrs)
+                      : detail::flags::gen_attrs;
             using attr_t = decltype(parser(
                 hana::false_c,
                 first,
@@ -1764,7 +1767,7 @@ namespace boost { namespace parser {
                     flags,
                     success);
                 if (Debug)
-                    final_trace(context, flags, nope{});
+                    detail::final_trace(context, flags, nope{});
                 return detail::make_parse_result(attr_, success);
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1803,8 +1806,9 @@ namespace boost { namespace parser {
                 callbacks,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::flags::gen_attrs)
-                                     : detail::flags::gen_attrs;
+            auto const flags =
+                Debug ? detail::enable_trace(detail::flags::gen_attrs)
+                      : detail::flags::gen_attrs;
             try {
                 parser(
                     hana::true_c,
@@ -1815,7 +1819,7 @@ namespace boost { namespace parser {
                     flags,
                     success);
                 if (Debug)
-                    final_trace(context, flags, nope{});
+                    detail::final_trace(context, flags, nope{});
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1854,8 +1858,9 @@ namespace boost { namespace parser {
                 error_handler,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::default_flags())
-                                     : detail::default_flags();
+            auto const flags =
+                Debug ? detail::enable_trace(detail::default_flags())
+                      : detail::default_flags();
             detail::skip(first, last, skip, flags);
             try {
                 parser(
@@ -1869,7 +1874,7 @@ namespace boost { namespace parser {
                     attr);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
-                    final_trace(context, flags, attr);
+                    detail::final_trace(context, flags, attr);
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1906,8 +1911,9 @@ namespace boost { namespace parser {
                 error_handler,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::default_flags())
-                                     : detail::default_flags();
+            auto const flags =
+                Debug ? detail::enable_trace(detail::default_flags())
+                      : detail::default_flags();
             detail::skip(first, last, skip, flags);
             using attr_t = decltype(parser(
                 hana::false_c, first, last, context, skip, flags, success));
@@ -1916,7 +1922,7 @@ namespace boost { namespace parser {
                     hana::false_c, first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
-                    final_trace(context, flags, nope{});
+                    detail::final_trace(context, flags, nope{});
                 return detail::make_parse_result(attr_, success);
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -1957,15 +1963,16 @@ namespace boost { namespace parser {
                 callbacks,
                 parser.globals_,
                 symbol_table_tries);
-            auto const flags = Debug ? enable_trace(detail::default_flags())
-                                     : detail::default_flags();
+            auto const flags =
+                Debug ? detail::enable_trace(detail::default_flags())
+                      : detail::default_flags();
             detail::skip(first, last, skip, flags);
             try {
                 parser(
                     hana::true_c, first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
-                    final_trace(context, flags, nope{});
+                    detail::final_trace(context, flags, nope{});
                 return success;
             } catch (parse_error<Iter> const & e) {
                 if (error_handler(initial_first, last, e) ==
@@ -2123,136 +2130,106 @@ namespace boost { namespace parser {
     }
 
 
-    /** Returns a reference to the attribute(s) (i.e. return value) of the
-        innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  You may write to this value in a semantic action to
-        control what attribute value(s) the associated parser produces.
-        Returns `none` if the innermost parser does produce an attribute. */
     template<typename Context>
-    inline decltype(auto) _val(Context const & context)
+    decltype(auto) _val(Context const & context)
     {
         if constexpr (detail::is_nope_v<decltype(*context.val_)>)
             return none{};
         else
             return *context.val_;
     }
-    /** Returns a reference to the attribute or attributes already produced by
-        the innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  Returns `none` if the innermost parser does produce an
-        attribute. */
+
     template<typename Context>
-    inline decltype(auto) _attr(Context const & context)
+    decltype(auto) _attr(Context const & context)
     {
         if constexpr (detail::is_nope_v<decltype(*context.attr_)>)
             return none{};
         else
             return *context.attr_;
     }
-    /** Returns a `view` that describes the matched range of the innermost
-        parser. */
+
     template<typename Context>
-    inline decltype(auto) _where(Context const & context)
+    decltype(auto) _where(Context const & context)
     {
         return *context.where_;
     }
-    /** Returns an iterator to the beginning of the entire sequence being
-        parsed.  The effect of calling this within a semantic action
-        associated with a skip-parser is undefined */
+
     template<typename Context>
-    inline decltype(auto) _begin(Context const & context)
+    decltype(auto) _begin(Context const & context)
     {
         return context.first_;
     }
-    /** Returns an iterator to the end of the entire sequence being parsed. */
+
     template<typename Context>
-    inline decltype(auto) _end(Context const & context)
+    decltype(auto) _end(Context const & context)
     {
         return context.last_;
     }
-    /** Returns a reference to a `bool` that represents the success or failure
-        of the innermost parser.  You can assign `false` to this within a
-        semantic action to force a parser to fail its parse. */
+
     template<typename Context>
-    inline decltype(auto) _pass(Context const & context)
+    decltype(auto) _pass(Context const & context)
     {
         return *context.pass_;
     }
-    /** Returns a reference to one or more local values that the innermost
-        rule is declared to have; multiple values will be stored within a
-        `hana::tuple`.  Returns `none` if there is no innermost rule, or if
-        that rule has no locals. */
+
     template<typename Context>
-    inline decltype(auto) _locals(Context const & context)
+    decltype(auto) _locals(Context const & context)
     {
         if constexpr (detail::is_nope_v<decltype(*context.locals_)>)
             return none{};
         else
             return *context.locals_;
     }
-    /** Returns a reference to one or more parameters passed to the innermost
-        rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
-        multiple values will be stored within a `hana::tuple`.  Returns `none`
-        if there is no innermost rule, or if that rule was not given any
-        parameters. */
+
     template<typename Context>
-    inline decltype(auto) _params(Context const & context)
+    decltype(auto) _params(Context const & context)
     {
         if constexpr (detail::is_nope_v<decltype(*context.params_)>)
             return none{};
         else
             return *context.params_;
     }
-    /** Returns a reference to the globals object associated with the
-        innermost parser.  Returns `none` if there is no associated globals
-        object. */
+
     template<typename Context>
-    inline decltype(auto) _globals(Context const & context)
+    decltype(auto) _globals(Context const & context)
     {
         if constexpr (detail::is_nope_v<decltype(*context.globals_)>)
             return none{};
         else
             return *context.globals_;
     }
-    /** Returns a reference to the error handler object associated with the
-        innermost parser.  Returns `none` if there is no associated error
-        handler. */
+
     template<typename Context>
-    inline decltype(auto) _error_handler(Context const & context)
+    decltype(auto) _error_handler(Context const & context)
     {
         return *context.error_handler_;
     }
 
-    /** Report that the error described in `message` occurred at `location`,
-        using the context's error handler. */
     template<typename Iter, typename Context>
-    inline void _report_error(
+    void _report_error(
         Context const & context, std::string_view message, Iter location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context, location);
     }
-    /** Report that the error described in `message` occurred at
-        `_where(context).begin()`, using the context's error handler. */
+
     template<typename Context>
-    inline void _report_error(Context const & context, std::string_view message)
+    void _report_error(Context const & context, std::string_view message)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context);
     }
-    /** Report that the warning described in `message` occurred at `location`,
-        using the context's error handler. */
+
     template<typename Iter, typename Context>
-    inline void _report_warning(
+    void _report_warning(
         Context const & context, std::string_view message, Iter location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context, location);
     }
-    /** Report that the warning described in `message` occurred at
-        `_where(context).begin()`, using the context's error handler. */
+
     template<typename Context>
-    inline void
-    _report_warning(Context const & context, std::string_view message)
+    void _report_warning(Context const & context, std::string_view message)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context);
@@ -2327,12 +2304,13 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this,
                 first,
                 last,
                 context,
-                in_apply_parser(flags) ? disable_trace(flags) : flags,
+                detail::in_apply_parser(flags) ? detail::disable_trace(flags)
+                                               : flags,
                 retval);
 
             using attr_t = decltype(parser_.call(
@@ -2347,7 +2325,7 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip,
-                    set_in_apply_parser(flags),
+                    detail::set_in_apply_parser(flags),
                     success,
                     retval);
             } else if constexpr (container<attr_t>) {
@@ -2416,7 +2394,7 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, min_); count != end;
                      ++count) {
                     detail::skip(first, last, skip, flags);
-                    if (gen_attrs(flags)) {
+                    if (detail::gen_attrs(flags)) {
                         attr = parser_.call(
                             use_cbs,
                             first,
@@ -2439,7 +2417,8 @@ namespace boost { namespace parser {
                         detail::assign(retval, Attribute());
                         return;
                     }
-                    detail::append(retval, std::move(attr), gen_attrs(flags));
+                    detail::append(
+                        retval, std::move(attr), detail::gen_attrs(flags));
                 }
 
                 for (int64_t end = detail::resolve(context, max_); count != end;
@@ -2462,7 +2441,7 @@ namespace boost { namespace parser {
                     }
 
                     detail::skip(first, last, skip, flags);
-                    if (gen_attrs(flags)) {
+                    if (detail::gen_attrs(flags)) {
                         attr = parser_.call(
                             use_cbs,
                             first,
@@ -2486,7 +2465,8 @@ namespace boost { namespace parser {
                         first = prev_first;
                         break;
                     }
-                    detail::append(retval, std::move(attr), gen_attrs(flags));
+                    detail::append(
+                        retval, std::move(attr), detail::gen_attrs(flags));
                 }
             }
         }
@@ -2572,11 +2552,12 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             detail::skip(first, last, skip, flags);
 
-            if (!gen_attrs(flags)) {
+            if (!detail::gen_attrs(flags)) {
                 parser_.call(
                     use_cbs, first, last, context, skip, flags, success);
                 success = true;
@@ -2750,7 +2731,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             use_parser_t<
                 UseCallbacks,
@@ -2765,7 +2747,7 @@ namespace boost { namespace parser {
                                   auto const & parser) {
                 if (done)
                     return;
-                if (gen_attrs(flags)) {
+                if (detail::gen_attrs(flags)) {
                     use_parser(parser, retval);
                     if (!success)
                         detail::assign(retval, Attribute());
@@ -2998,12 +2980,13 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success)))>
                 retval;
 
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this,
                 first_,
                 last,
                 context,
-                in_apply_parser(flags) ? disable_trace(flags) : flags,
+                detail::in_apply_parser(flags) ? detail::disable_trace(flags)
+                                               : flags,
                 retval);
 
             std::decay_t<decltype(hana::second(make_temp_result(
@@ -3049,12 +3032,13 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this,
                 first_,
                 last,
                 context,
-                in_apply_parser(flags) ? disable_trace(flags) : flags,
+                detail::in_apply_parser(flags) ? detail::disable_trace(flags)
+                                               : flags,
                 retval);
 
             Iter first = first_;
@@ -3070,7 +3054,7 @@ namespace boost { namespace parser {
                     last,
                     context,
                     skip,
-                    set_in_apply_parser(flags),
+                    detail::set_in_apply_parser(flags),
                     success,
                     retval);
             } else if constexpr (detail::is_optional<Attribute>{}) {
@@ -3091,7 +3075,7 @@ namespace boost { namespace parser {
                     retval,
                     indices);
 
-                if (!success || !gen_attrs(flags))
+                if (!success || !detail::gen_attrs(flags))
                     detail::assign(retval, Attribute());
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
@@ -3107,7 +3091,7 @@ namespace boost { namespace parser {
                     temp_retval,
                     indices);
 
-                if (success && gen_attrs(flags))
+                if (success && detail::gen_attrs(flags))
                     detail::assign(retval, hana::front(temp_retval));
             }
 
@@ -3158,7 +3142,7 @@ namespace boost { namespace parser {
                 auto const & parser = parser_index_and_backtrack[0_c];
                 bool const can_backtrack = parser_index_and_backtrack[2_c];
 
-                if (!gen_attrs(flags)) {
+                if (!detail::gen_attrs(flags)) {
                     parser.call(
                         use_cbs, first, last, context, skip, flags, success);
                     if (!success && !can_backtrack) {
@@ -3276,7 +3260,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             auto const initial_first = first;
             auto attr = parser_.call(
@@ -3317,7 +3302,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
 
             parser_.call(
@@ -3348,7 +3333,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             parser_.call(
                 use_cbs,
@@ -3411,7 +3397,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             auto const initial_first = first;
             parser_.call(
@@ -3478,7 +3465,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             parser_.call(
                 use_cbs,
@@ -3544,7 +3532,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             if constexpr (detail::is_nope_v<SkipParser>) {
                 parser_.call(
@@ -3621,7 +3610,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             auto first_copy = first;
             parser_.call(
@@ -3719,7 +3709,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             text::trie<std::vector<uint32_t>, T> const & trie_ =
                 detail::get_trie(context, ref());
@@ -3778,9 +3769,9 @@ namespace boost { namespace parser {
             locals_type locals = detail::make_locals<locals_type>(context);
             auto params = detail::resolve_rule_params(context, params_);
             auto const rule_context =
-                make_rule_context(context, retval, locals, params);
-            auto _ =
-                scoped_trace(*this, first, last, rule_context, flags, retval);
+                detail::make_rule_context(context, retval, locals, params);
+            auto _ = detail::scoped_trace(
+                *this, first, last, rule_context, flags, retval);
             tag_type * const tag_ptr = nullptr;
             parse_rule(
                 tag_ptr,
@@ -3860,8 +3851,8 @@ namespace boost { namespace parser {
                 locals_type locals = detail::make_locals<locals_type>(context);
                 auto params = detail::resolve_rule_params(context, params_);
                 auto const rule_context =
-                    make_rule_context(context, retval, locals, params);
-                auto _ = scoped_trace(
+                    detail::make_rule_context(context, retval, locals, params);
+                auto _ = detail::scoped_trace(
                     *this, first, last, rule_context, flags, retval);
                 tag_type * const tag_ptr = nullptr;
                 parse_rule(
@@ -4686,7 +4677,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const noexcept
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
@@ -4712,7 +4703,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
@@ -4756,7 +4748,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             if (first != last)
                 success = false;
@@ -4780,7 +4772,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             if (first != last)
                 success = false;
         }
@@ -4807,7 +4800,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool &) const
         {
-            auto _ = scoped_trace(
+            auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             return detail::resolve(context, attr_);
         }
@@ -4829,8 +4822,9 @@ namespace boost { namespace parser {
             bool & success,
             Attribute_ & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
-            if (gen_attrs(flags))
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+            if (detail::gen_attrs(flags))
                 detail::assign_copy(retval, detail::resolve(context, attr_));
         }
 
@@ -4840,7 +4834,7 @@ namespace boost { namespace parser {
     /** Returns an `attr_parser` which matches anything, and consumes no
         input, and which produces `a` as its attribute. */
     template<typename Attribute>
-    inline constexpr auto attr(Attribute a) noexcept
+    constexpr auto attr(Attribute a) noexcept
     {
         return parser_interface{attr_parser<Attribute>{std::move(a)}};
     }
@@ -4894,7 +4888,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
@@ -5042,7 +5037,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
@@ -5059,7 +5055,8 @@ namespace boost { namespace parser {
                     return;
                 }
 
-                detail::append(retval, first, mismatch.first, gen_attrs(flags));
+                detail::append(
+                    retval, first, mismatch.first, detail::gen_attrs(flags));
 
                 first = mismatch.first;
             } else {
@@ -5070,7 +5067,8 @@ namespace boost { namespace parser {
                     return;
                 }
 
-                detail::append(retval, first, mismatch.first, gen_attrs(flags));
+                detail::append(
+                    retval, first, mismatch.first, detail::gen_attrs(flags));
 
                 first = mismatch.first;
             }
@@ -5097,7 +5095,7 @@ namespace boost { namespace parser {
     template<parsable_range_like R>
     constexpr auto lit(R && str) noexcept
     {
-        return omit[string(str)];
+        return omit[parser::string(str)];
     }
 
     template<bool NewlinesOnly>
@@ -5142,7 +5140,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
@@ -5305,7 +5304,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
 
             // The lambda quiets a signed/unsigned mismatch warning when
             // comparing the chars here to code points.
@@ -5392,7 +5392,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             using extract =
                 detail_spirit_x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
@@ -5502,7 +5503,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             using extract =
                 detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
@@ -5589,7 +5591,8 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             spirit::x3::real_policies<T> policies;
             using extract =
                 detail_spirit_x3::extract_real<T, spirit::x3::real_policies<T>>;
@@ -5683,7 +5686,8 @@ namespace boost { namespace parser {
             using attr_t = decltype(or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t attr{};
-            auto _ = scoped_trace(*this, first, last, context, flags, attr);
+            auto _ =
+                detail::scoped_trace(*this, first, last, context, flags, attr);
             attr = or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success);
             return attr;
@@ -5711,7 +5715,8 @@ namespace boost { namespace parser {
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
-            auto _ = scoped_trace(*this, first, last, context, flags, retval);
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
             or_parser_.call(
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
@@ -5775,7 +5780,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         char rhs) const noexcept
     {
-        return *this >> lit(rhs);
+        return *this >> parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5783,7 +5788,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         char32_t rhs) const noexcept
     {
-        return *this >> lit(rhs);
+        return *this >> parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5792,7 +5797,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         R && r) const noexcept
     {
-        return *this >> lit(r);
+        return *this >> parser::lit(r);
     }
 
 #endif
@@ -5802,9 +5807,9 @@ namespace boost { namespace parser {
     constexpr auto operator>>(char c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<true>(lit(c));
+            return rhs.parser_.template prepend<true>(parser::lit(c));
         } else {
-            return lit(c) >> rhs;
+            return parser::lit(c) >> rhs;
         }
     }
 
@@ -5813,9 +5818,9 @@ namespace boost { namespace parser {
     constexpr auto operator>>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<true>(lit(c));
+            return rhs.parser_.template prepend<true>(parser::lit(c));
         } else {
-            return lit(c) >> rhs;
+            return parser::lit(c) >> rhs;
         }
     }
 
@@ -5824,9 +5829,9 @@ namespace boost { namespace parser {
     constexpr auto operator>>(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<true>(lit(r));
+            return rhs.parser_.template prepend<true>(parser::lit(r));
         } else {
-            return lit(r) >> rhs;
+            return parser::lit(r) >> rhs;
         }
     }
 
@@ -5837,7 +5842,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         char rhs) const noexcept
     {
-        return *this > lit(rhs);
+        return *this > parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5845,7 +5850,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         char32_t rhs) const noexcept
     {
-        return *this > lit(rhs);
+        return *this > parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5854,7 +5859,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         R && r) const noexcept
     {
-        return *this > lit(r);
+        return *this > parser::lit(r);
     }
 
 #endif
@@ -5864,9 +5869,9 @@ namespace boost { namespace parser {
     constexpr auto operator>(char c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<false>(lit(c));
+            return rhs.parser_.template prepend<false>(parser::lit(c));
         } else {
-            return lit(c) > rhs;
+            return parser::lit(c) > rhs;
         }
     }
 
@@ -5875,9 +5880,9 @@ namespace boost { namespace parser {
     constexpr auto operator>(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<false>(lit(c));
+            return rhs.parser_.template prepend<false>(parser::lit(c));
         } else {
-            return lit(c) > rhs;
+            return parser::lit(c) > rhs;
         }
     }
 
@@ -5886,9 +5891,9 @@ namespace boost { namespace parser {
     constexpr auto operator>(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            return rhs.parser_.template prepend<false>(lit(r));
+            return rhs.parser_.template prepend<false>(parser::lit(r));
         } else {
-            return lit(r) > rhs;
+            return parser::lit(r) > rhs;
         }
     }
 
@@ -5899,7 +5904,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         char rhs) const noexcept
     {
-        return *this | lit(rhs);
+        return *this | parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5907,7 +5912,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         char32_t rhs) const noexcept
     {
-        return *this | lit(rhs);
+        return *this | parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5916,7 +5921,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         R && r) const noexcept
     {
-        return *this | lit(r);
+        return *this | parser::lit(r);
     }
 
 #endif
@@ -5926,9 +5931,9 @@ namespace boost { namespace parser {
     constexpr auto operator|(char c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
-            return rhs.parser_.prepend(lit(c));
+            return rhs.parser_.prepend(parser::lit(c));
         } else {
-            return lit(c) | rhs;
+            return parser::lit(c) | rhs;
         }
     }
 
@@ -5937,9 +5942,9 @@ namespace boost { namespace parser {
     constexpr auto operator|(char32_t c, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
-            return rhs.parser_.prepend(lit(c));
+            return rhs.parser_.prepend(parser::lit(c));
         } else {
-            return lit(c) | rhs;
+            return parser::lit(c) | rhs;
         }
     }
 
@@ -5948,9 +5953,9 @@ namespace boost { namespace parser {
     constexpr auto operator|(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
-            return rhs.parser_.prepend(lit(r));
+            return rhs.parser_.prepend(parser::lit(r));
         } else {
-            return lit(r) | rhs;
+            return parser::lit(r) | rhs;
         }
     }
 
@@ -5961,7 +5966,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
         char rhs) const noexcept
     {
-        return !lit(rhs) >> *this;
+        return !parser::lit(rhs) >> *this;
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5969,7 +5974,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
         char32_t rhs) const noexcept
     {
-        return !lit(rhs) >> *this;
+        return !parser::lit(rhs) >> *this;
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -5978,7 +5983,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
         R && r) const noexcept
     {
-        return !lit(r) >> *this;
+        return !parser::lit(r) >> *this;
     }
 
 #endif
@@ -5987,21 +5992,21 @@ namespace boost { namespace parser {
     template<typename Parser>
     constexpr auto operator-(char c, parser_interface<Parser> rhs) noexcept
     {
-        return !rhs >> lit(c);
+        return !rhs >> parser::lit(c);
     }
 
     /** Returns a parser equivalent to `!rhs >> lit(c)`. */
     template<typename Parser>
     constexpr auto operator-(char32_t c, parser_interface<Parser> rhs) noexcept
     {
-        return !rhs >> lit(c);
+        return !rhs >> parser::lit(c);
     }
 
     /** Returns a parser equivalent to `!rhs >> lit(str)`. */
     template<parsable_range_like R, typename Parser>
     constexpr auto operator-(R && r, parser_interface<Parser> rhs) noexcept
     {
-        return !rhs >> lit(r);
+        return !rhs >> parser::lit(r);
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -6011,7 +6016,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
         char rhs) const noexcept
     {
-        return *this % lit(rhs);
+        return *this % parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -6019,7 +6024,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
         char32_t rhs) const noexcept
     {
-        return *this % lit(rhs);
+        return *this % parser::lit(rhs);
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
@@ -6028,7 +6033,7 @@ namespace boost { namespace parser {
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
         R && r) const noexcept
     {
-        return *this % lit(r);
+        return *this % parser::lit(r);
     }
 
 #endif
@@ -6037,21 +6042,21 @@ namespace boost { namespace parser {
     template<typename Parser>
     constexpr auto operator%(char c, parser_interface<Parser> rhs) noexcept
     {
-        return lit(c) % rhs;
+        return parser::lit(c) % rhs;
     }
 
     /** Returns a parser equivalent to `lit(c) % rhs`. */
     template<typename Parser>
     constexpr auto operator%(char32_t c, parser_interface<Parser> rhs) noexcept
     {
-        return lit(c) % rhs;
+        return parser::lit(c) % rhs;
     }
 
     /** Returns a parser equivalent to `lit(str) % rhs`. */
     template<parsable_range_like R, typename Parser>
     constexpr auto operator%(R && r, parser_interface<Parser> rhs) noexcept
     {
-        return lit(r) % rhs;
+        return parser::lit(r) % rhs;
     }
 
 }}
@@ -6091,7 +6096,8 @@ namespace boost { namespace parser {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
-            static_assert(decltype(has_attribute(first, last, parser)){});
+            static_assert(
+                decltype(detail::has_attribute(first, last, parser)){});
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
                     first, last, parser, parser.error_handler_, attr);
@@ -6107,7 +6113,7 @@ namespace boost { namespace parser {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
-            static_assert(decltype(has_attribute(f, l, parser)){});
+            static_assert(decltype(detail::has_attribute(f, l, parser)){});
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
                     f, l, parser, parser.error_handler_, attr);
@@ -6250,7 +6256,8 @@ namespace boost { namespace parser {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
-            static_assert(decltype(has_attribute(first, last, parser)){});
+            static_assert(
+                decltype(detail::has_attribute(first, last, parser)){});
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
                     first, last, parser, skip, parser.error_handler_, attr);
@@ -6266,7 +6273,7 @@ namespace boost { namespace parser {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
-            static_assert(decltype(has_attribute(f, l, parser)){});
+            static_assert(decltype(detail::has_attribute(f, l, parser)){});
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
                     f, l, parser, skip, parser.error_handler_, attr);
@@ -6742,25 +6749,25 @@ namespace boost { namespace parser {
 
     namespace literals {
         /** Returns a literal parser equivalent to `lit(c)`. */
-        constexpr auto operator""_l(char c) { return lit(c); }
+        constexpr auto operator""_l(char c) { return parser::lit(c); }
         /** Returns a literal parser equivalent to `lit(c)`. */
-        constexpr auto operator""_l(char8_t c) { return lit(c); }
+        constexpr auto operator""_l(char8_t c) { return parser::lit(c); }
         /** Returns a literal parser equivalent to `lit(c)`. */
-        constexpr auto operator""_l(char32_t c) { return lit(c); }
+        constexpr auto operator""_l(char32_t c) { return parser::lit(c); }
         /** Returns a literal parser equivalent to `lit(str)`. */
         constexpr auto operator""_l(char const * str, std::size_t)
         {
-            return lit(str);
+            return parser::lit(str);
         }
         /** Returns a literal parser equivalent to `lit(str)`. */
         constexpr auto operator""_l(char8_t const * str, std::size_t)
         {
-            return lit(str);
+            return parser::lit(str);
         }
         /** Returns a literal parser equivalent to `lit(str)`. */
         constexpr auto operator""_l(char32_t const * str, std::size_t)
         {
-            return lit(str);
+            return parser::lit(str);
         }
 
         /** Returns a character parser equivalent to `char_(c)`. */
@@ -6772,17 +6779,17 @@ namespace boost { namespace parser {
         /** Returns a string parser equivalent to `string(str)`. */
         constexpr auto operator""_p(char const * str, std::size_t)
         {
-            return string(str);
+            return parser::string(str);
         }
         /** Returns a string parser equivalent to `string(str)`. */
         constexpr auto operator""_p(char8_t const * str, std::size_t)
         {
-            return string(str);
+            return parser::string(str);
         }
         /** Returns a string parser equivalent to `string(str)`. */
         constexpr auto operator""_p(char32_t const * str, std::size_t)
         {
-            return string(str);
+            return parser::string(str);
         }
     }
 

@@ -78,7 +78,7 @@ namespace boost { namespace parser {
     {
         if (!filename.empty())
             os << filename << ':';
-        auto const position = find_line_position(first, it);
+        auto const position = parser::find_line_position(first, it);
         os << (position.line_number + 1) << ':' << position.column_number
            << ": " << message << " here";
         if (it == last)
@@ -99,7 +99,7 @@ namespace boost { namespace parser {
             (int64_t)underlining.size() + max_after_caret);
 
         int64_t i = (int64_t)underlining.size();
-        auto const line_end = find_line_end(std::next(it), last);
+        auto const line_end = parser::find_line_end(std::next(it), last);
         detail::trace_input(os, it, line_end, false, limit - i);
 
         os << '\n' << underlining << '\n';
@@ -121,7 +121,7 @@ namespace boost { namespace parser {
     {
         auto const r = text::as_utf8(filename);
         std::string s(r.begin(), r.end());
-        return write_formatted_message(
+        return parser::write_formatted_message(
             os,
             s,
             first,
@@ -145,7 +145,7 @@ namespace boost { namespace parser {
     {
         std::string message = "error: Expected ";
         message += e.what();
-        return write_formatted_message(
+        return parser::write_formatted_message(
             os,
             filename,
             first,
@@ -169,7 +169,7 @@ namespace boost { namespace parser {
     {
         auto const r = text::as_utf8(filename);
         std::string s(r.begin(), r.end());
-        return write_formatted_expectation_failure_error_message(
+        return parser::write_formatted_expectation_failure_error_message(
             os, s, first, last, e, preferred_max_line_length, max_after_caret);
     }
 #endif
@@ -207,7 +207,7 @@ namespace boost { namespace parser {
         {
             if (error_) {
                 std::stringstream ss;
-                write_formatted_expectation_failure_error_message(
+                parser::write_formatted_expectation_failure_error_message(
                     ss, filename_, first, last, e);
                 error_(ss.str());
             }
@@ -227,7 +227,12 @@ namespace boost { namespace parser {
                 return;
             std::stringstream ss;
             parser::write_formatted_message(
-                ss, filename_, _begin(context), it, _end(context), message);
+                ss,
+                filename_,
+                parser::_begin(context),
+                it,
+                parser::_end(context),
+                message);
             cb(ss.str());
         }
 
@@ -237,7 +242,7 @@ namespace boost { namespace parser {
             std::string_view message,
             Context const & context) const
         {
-            diagnose(kind, message, context, _where(context).begin());
+            diagnose(kind, message, context, parser::_where(context).begin());
         }
 
         callback_type error_;
@@ -271,6 +276,77 @@ namespace boost { namespace parser {
             Context const & context) const
         {}
     };
+
+
+    // implementations
+
+    template<typename Iter, typename Sentinel>
+    error_handler_result default_error_handler::operator()(
+        Iter first, Sentinel last, parse_error<Iter> const & e) const
+    {
+        parser::write_formatted_expectation_failure_error_message(
+            std::cout, "", first, last, e);
+        return error_handler_result::fail;
+    }
+
+    template<typename Context, typename Iter>
+    void default_error_handler::diagnose(
+        diagnostic_kind kind,
+        std::string_view message,
+        Context const & context,
+        Iter it) const
+    {
+        parser::write_formatted_message(
+            std::cout,
+            "",
+            parser::_begin(context),
+            it,
+            parser::_end(context),
+            message);
+    }
+
+    template<typename Context>
+    void default_error_handler::diagnose(
+        diagnostic_kind kind,
+        std::string_view message,
+        Context const & context) const
+    {
+        diagnose(kind, message, context, parser::_where(context).begin());
+    }
+
+    template<typename Iter, typename Sentinel>
+    error_handler_result stream_error_handler::operator()(
+        Iter first, Sentinel last, parse_error<Iter> const & e) const
+    {
+        parser::write_formatted_expectation_failure_error_message(
+            os_, filename_, first, last, e);
+        return error_handler_result::fail;
+    }
+
+    template<typename Context, typename Iter>
+    void stream_error_handler::diagnose(
+        diagnostic_kind kind,
+        std::string_view message,
+        Context const & context,
+        Iter it) const
+    {
+        parser::write_formatted_message(
+            os_,
+            filename_,
+            parser::_begin(context),
+            it,
+            parser::_end(context),
+            message);
+    }
+
+    template<typename Context>
+    void stream_error_handler::diagnose(
+        diagnostic_kind kind,
+        std::string_view message,
+        Context const & context) const
+    {
+        diagnose(kind, message, context, parser::_where(context).begin());
+    }
 
 }}
 

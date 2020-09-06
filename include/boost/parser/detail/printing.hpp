@@ -17,6 +17,9 @@
 
 namespace boost { namespace parser { namespace detail {
 
+    template<typename Context>
+    decltype(auto) _indent(Context const & context);
+
     template<typename Char>
     std::ostream & print_char(std::ostream & os, Char c)
     {
@@ -374,7 +377,7 @@ namespace boost { namespace parser { namespace detail {
         Context const & context,
         std::string_view name)
     {
-        int & indent = _indent(context);
+        int & indent = detail::_indent(context);
         detail::trace_begin_match(first, last, indent, name);
         ++indent;
     }
@@ -386,7 +389,7 @@ namespace boost { namespace parser { namespace detail {
         Context const & context,
         std::string_view name)
     {
-        int & indent = _indent(context);
+        int & indent = detail::_indent(context);
         --indent;
         detail::trace_end_match(first, last, indent, name);
     }
@@ -541,13 +544,14 @@ namespace boost { namespace parser { namespace detail {
         {
             if (!detail::do_trace(flags_))
                 return;
-            detail::trace_indent(_indent(context_));
+            detail::trace_indent(detail::_indent(context_));
             if (*context_.pass_) {
                 std::cout << "matched ";
                 detail::trace_input(std::cout, initial_first_, first_);
                 std::cout << "\n";
                 detail::print_attribute(
-                    detail::resolve(context_, attr_), _indent(context_));
+                    detail::resolve(context_, attr_),
+                    detail::_indent(context_));
             } else {
                 std::cout << "no match\n";
             }
