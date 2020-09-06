@@ -352,6 +352,26 @@ namespace boost { namespace parser {
     namespace detail {
         // Utility types.
 
+        struct common_type_equal
+        {
+            template<typename T, typename U>
+            bool operator()(T x, U y)
+            {
+                using common_t = std::common_type_t<decltype(x), decltype(y)>;
+                return (common_t)x == (common_t)y;
+            }
+        };
+
+        struct common_type_less
+        {
+            template<typename T, typename U>
+            bool operator()(T x, U y)
+            {
+                using common_t = std::common_type_t<decltype(x), decltype(y)>;
+                return (common_t)x < (common_t)y;
+            }
+        };
+
         struct nope
         {
             template<typename T>
@@ -1318,8 +1338,7 @@ namespace boost { namespace parser {
         {
             static bool call(Context const &, CharType c, Expected expected)
             {
-                using common_t = std::common_type_t<CharType, Expected>;
-                return (common_t)c != (common_t)expected;
+                return !common_type_equal{}(c, expected);
             }
         };
 
@@ -1340,16 +1359,15 @@ namespace boost { namespace parser {
             CharType c,
             char_pair<LoType, HiType> const & expected)
         {
+            common_type_less less;
             {
                 auto lo = detail::resolve(context, expected.lo_);
-                using common_t = std::common_type_t<CharType, decltype(lo)>;
-                if ((common_t)c < (common_t)lo)
+                if (less(c, lo))
                     return true;
             }
             {
                 auto hi = detail::resolve(context, expected.hi_);
-                using common_t = std::common_type_t<CharType, decltype(hi)>;
-                if ((common_t)hi < (common_t)c)
+                if (less(hi, c))
                     return true;
             }
             return false;
@@ -2079,10 +2097,6 @@ namespace boost { namespace parser {
             return retval;
         }
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#endif
         template<
             typename Iter1,
             typename Sentinel1,
@@ -2091,17 +2105,9 @@ namespace boost { namespace parser {
         std::pair<Iter1, Iter2>
         mismatch(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
         {
-            std::pair<Iter1, Iter2> retval{first1, first2};
-            while (retval.first != last1 && retval.second != last2 &&
-                   *retval.first == *retval.second) {
-                ++retval.first;
-                ++retval.second;
-            }
-            return retval;
+            return detail::mismatch(
+                first1, last1, first2, last2, common_type_equal{});
         }
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
 
         template<typename I, typename S, typename T>
         std::optional<T>

@@ -149,7 +149,7 @@ TEST(parser, full_parse_api)
     // returned attr, UTF-16
     {
         EXPECT_TRUE(parse(u"a", char_));
-        EXPECT_EQ(*parse(u"a", char_), 'a');
+        EXPECT_EQ(*parse(u"a", char_), uint16_t('a'));
         EXPECT_FALSE(parse(u"a", char_('b')));
     }
 

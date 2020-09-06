@@ -709,11 +709,6 @@ the parse, by using the parse context:
 Each callable parser returns a new parser, parameterized using the arguments
 given in the invocation.
 
-TODO: This is way too long for a tutorial.  Put this after the examples, in a
-reference section separate from the headers-reference (consider moving other
-long tables, too).  Instead, just cover a few exemplars, like _i_, _f_, char_,
-string.
-
 This table lists all the _Parser_ parsers.  For the callable parsers, a
 separate entry exists for each possible arity of arguments.  For a parser `p`,
 if there is no entry for `p` without arguments, `p` is a function, and cannot
