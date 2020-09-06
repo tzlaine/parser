@@ -60,8 +60,8 @@ namespace boost { namespace parser {
         utf8_range<T> && std::is_same_v<std::ranges::range_value_t<T>, char8_t>;
 
     template<typename T>
-    concept parsable_iter = std::forward_iterator<T> &&
-        std::is_integral<std::iter_value_t<T>>::value;
+    concept parsable_iter =
+        std::forward_iterator<T> && std::is_integral_v<std::iter_value_t<T>>;
 
     template<typename T>
     concept code_point_iter = parsable_iter<T> &&
@@ -70,11 +70,11 @@ namespace boost { namespace parser {
     //[ parsable_range_like_concept
     template<typename T>
     concept parsable_range = std::ranges::forward_range<T> &&
-        std::is_integral<std::ranges::range_value_t<T>>::value;
+        std::integral<std::ranges::range_value_t<T>>;
 
     template<typename T>
-    concept parsable_pointer = std::is_pointer<std::decay_t<T>>::value &&
-        std::is_integral<std::remove_pointer_t<std::decay_t<T>>>::value;
+    concept parsable_pointer = std::is_pointer_v<std::decay_t<T>> &&
+        std::integral<std::remove_pointer_t<std::decay_t<T>>>;
 
     template<typename T>
     concept parsable_range_like = parsable_range<T> || parsable_pointer<T>;

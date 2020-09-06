@@ -64,7 +64,7 @@ namespace boost { namespace parser { namespace detail {
         Expected expected,
         bool no_parens = false)
     {
-        if (std::is_same_v<Expected, nope>)
+        if (is_nope_v<Expected>)
             return;
         if (!no_parens)
             os << "(";
@@ -85,7 +85,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        if constexpr (std::is_same_v<DelimiterParser, nope>) {
+        if constexpr (is_nope_v<DelimiterParser>) {
             auto const min_ = detail::resolve(context, parser.min_);
             auto const max_ = detail::resolve(context, parser.max_);
             constexpr bool n_ary_child = n_aray_parser_v<Parser>;
@@ -266,7 +266,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        if constexpr (std::is_same_v<SkipParser, nope>) {
+        if constexpr (is_nope_v<SkipParser>) {
             detail::print_directive(
                 context, "skip", parser.parser_, os, components);
         } else {
@@ -317,7 +317,7 @@ namespace boost { namespace parser { namespace detail {
         int components)
     {
         os << parser.name_;
-        if constexpr (!std::is_same_v<ParamsTuple, nope>) {
+        if constexpr (!is_nope_v<ParamsTuple>) {
             os << ".with(";
             int i = 0;
             hana::for_each(parser.params_, [&](auto const & param) {
@@ -523,7 +523,7 @@ namespace boost { namespace parser { namespace detail {
                 os << "cu";
             else
                 os << "char_";
-            if constexpr (!std::is_same_v<Expected, nope>) {
+            if constexpr (!is_nope_v<Expected>) {
                 os << "(";
                 char_print_parser_impl<Context, Expected>::call(
                     context, os, parser.expected_);
@@ -539,7 +539,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        if constexpr (std::is_same_v<Expected, nope>) {
+        if constexpr (is_nope_v<Expected>) {
             os << "omit[char_]";
         } else {
             char_print_parser_impl<Context, Expected>::call(

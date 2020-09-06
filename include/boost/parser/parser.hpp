@@ -1290,7 +1290,7 @@ namespace boost { namespace parser {
         template<typename R>
         constexpr auto make_char_range(R && r) noexcept
         {
-            if constexpr (std::is_pointer<std::decay_t<R>>::value) {
+            if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return detail::make_char_range(r, text::null_sentinel{});
             } else {
                 return detail::make_char_range(r.begin(), r.end());
@@ -2033,7 +2033,7 @@ namespace boost { namespace parser {
         template<typename R>
         constexpr auto make_view_begin(R & r) noexcept
         {
-            if constexpr (std::is_pointer<std::decay_t<R>>::value) {
+            if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return r;
             } else {
                 return std::begin(r);
@@ -2043,7 +2043,7 @@ namespace boost { namespace parser {
         template<typename R>
         constexpr auto make_view_end(R & r) noexcept
         {
-            if constexpr (std::is_pointer<std::decay_t<R>>::value) {
+            if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return text::null_sentinel{};
             } else {
                 return std::end(r);
