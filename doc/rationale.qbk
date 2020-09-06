@@ -162,7 +162,8 @@ make: *** [Makefile:827: json] Error 2
 Some very familiar problems should be noted here:
 
 * Most of the template instantiation stack is missing (20 instantiation
-  contexts, as you can see indicated in the middle).
+  contexts, as you can see indicated in the middle).  If the problem occurred
+  there, it's that much harder to find.
 
 * That's a lot of text to try and read and understand (try scrolling
   horizontally, there's a lot more).
