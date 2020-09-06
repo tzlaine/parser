@@ -1489,7 +1489,7 @@ namespace boost { namespace parser {
                     flags,
                     success,
                     retval);
-            } else if constexpr (std::is_same<attr_t, nope>{}) {
+            } else if constexpr (is_nope_v<attr_t>) {
                 parser.call(
                     use_cbs, first, last, context, skip, flags, success);
             } else {
@@ -1655,8 +1655,7 @@ namespace boost { namespace parser {
                 detail::null_parser{},
                 flags,
                 std::declval<bool &>()));
-            return std::
-                integral_constant<bool, !std::is_same<attr_t, nope>::value>{};
+            return std::integral_constant<bool, !is_nope_v<attr_t>>{};
         }
 
         template<typename BaseIter, typename Iter>
@@ -2378,7 +2377,7 @@ namespace boost { namespace parser {
                     // This is only ever used in delimited_parser, which
                     // always has a min=1; we therefore know we're after a
                     // previous element when this executes.
-                    if constexpr (!std::is_same<DelimiterParser, detail::nope>{}) {
+                    if constexpr (!detail::is_nope_v<DelimiterParser>) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2446,7 +2445,7 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, max_); count != end;
                      ++count) {
                     auto const prev_first = first;
-                    if constexpr (!std::is_same<DelimiterParser, detail::nope>{}) {
+                    if constexpr (!detail::is_nope_v<DelimiterParser>) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
                             use_cbs,
@@ -2702,7 +2701,7 @@ namespace boost { namespace parser {
             // optional.
             auto append_unique = [](auto result, auto x) {
                 using x_type = typename decltype(x)::type;
-                if constexpr (std::is_same<x_type, detail::nope>{}) {
+                if constexpr (detail::is_nope_v<x_type>) {
                     return hana::make_pair(
                         hana::first(result), std::true_type{});
                 } else if constexpr (hana::contains(hana::first(result), x)) {
@@ -2865,7 +2864,7 @@ namespace boost { namespace parser {
                 constexpr auto one = hana::size_c<1>;
                 (void)one;
 
-                if constexpr (std::is_same<x_type, detail::nope>{}) {
+                if constexpr (detail::is_nope_v<x_type>) {
                     // T >> nope -> T
                     return hana::make_pair(
                         result,
@@ -2910,9 +2909,7 @@ namespace boost { namespace parser {
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
-                } else if constexpr (std::is_same<
-                                         result_back_type,
-                                         detail::nope>{}) {
+                } else if constexpr (detail::is_nope_v<result_back_type>) {
                     // hana::tuple<nope> >> T -> hana::tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
@@ -3549,7 +3546,7 @@ namespace boost { namespace parser {
         {
             auto _ = scoped_trace(*this, first, last, context, flags, retval);
 
-            if constexpr (std::is_same<SkipParser, detail::nope>{}) {
+            if constexpr (detail::is_nope_v<SkipParser>) {
                 parser_.call(
                     use_cbs,
                     first,
@@ -3883,7 +3880,7 @@ namespace boost { namespace parser {
 
                 auto const & callbacks = _callbacks(context);
 
-                if constexpr (std::is_same<attr_type, detail::nope>{}) {
+                if constexpr (detail::is_nope_v<attr_type>) {
                     // For rules without attributes, Callbacks must be a
                     // struct with overloads of the form void(tag_type).  If
                     // you're seeing an error here, you probably have not met
@@ -4358,7 +4355,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<ParamsTuple, detail::nope>{} &&
+                (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a rule, "
                  "like 'rule(foo)(bar)'.  Quit it!'"));
             using params_tuple_type =
@@ -4393,7 +4390,7 @@ namespace boost { namespace parser {
         constexpr auto with(T &&... x) const
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<ParamsTuple, detail::nope>{} &&
+                (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a "
                  "callback_rule, like 'rule(foo)(bar)'.  Quit it!'"));
             using params_tuple_type =
@@ -4454,7 +4451,7 @@ namespace boost { namespace parser {
         auto const & parser = BOOST_PP_CAT(name_, _def);                       \
         using attr_t = decltype(                                               \
             parser(use_cbs, first, last, context, skip, flags, success));      \
-        if constexpr (std::is_same<attr_t, boost::parser::detail::nope>{})     \
+        if constexpr (boost::parser::detail::is_nope_v<attr_t>)                \
             parser(use_cbs, first, last, context, skip, flags, success);       \
         else                                                                   \
             parser(                                                            \
@@ -4653,7 +4650,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(SkipParser2 skip_parser) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<SkipParser, detail::nope>{} &&
+                (detail::is_nope_v<SkipParser> &&
                  "If you're seeing this, you tried to chain calls on skip, "
                  "like 'skip(foo)(bar)'.  Quit it!'"));
             return skip_directive<SkipParser2>{skip_parser};
@@ -4728,7 +4725,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Predicate, detail::nope>{} &&
+                (detail::is_nope_v<Predicate> &&
                  "If you're seeing this, you tried to chain calls on eps, "
                  "like 'eps(foo)(bar)'.  Quit it!'"));
             return parser_interface{eps_parser<Predicate2>{std::move(pred)}};
@@ -4919,7 +4916,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(T x) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Expected, detail::nope>{} &&
+                (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_('a')('b')'.  Quit it!'"));
             return parser_interface{
@@ -4932,7 +4929,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Expected, detail::nope>{} &&
+                (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_('a', 'b')('c', 'd')'.  Quit it!'"));
             using char_pair_t = detail::char_pair<LoType, HiType>;
@@ -4953,7 +4950,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(R const & r) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Expected, detail::nope>{} &&
+                (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_(char-set)(char-set)'.  Quit it!'"));
             auto chars = detail::make_char_range(r);
@@ -5412,7 +5409,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Expected, detail::nope>{} &&
+                (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on this "
                  "parser, like 'uint_(2)(3)'.  Quit it!'"));
             using parser_t =
@@ -5523,7 +5520,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(Expected2 expected) const noexcept
         {
             BOOST_PARSER_ASSERT(
-                (std::is_same<Expected, detail::nope>{} &&
+                (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on this "
                  "parser, like 'int_(2)(3)'.  Quit it!'"));
             using parser_t =
@@ -5679,7 +5676,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             BOOST_PARSER_ASSERT(
-                (!std::is_same<OrParser, detail::nope>{} &&
+                (!detail::is_nope_v<OrParser> &&
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
@@ -5710,7 +5707,7 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             BOOST_PARSER_ASSERT(
-                (!std::is_same<OrParser, detail::nope>{},
+                (!detail::is_nope_v<OrParser>,
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
