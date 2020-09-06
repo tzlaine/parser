@@ -16,7 +16,7 @@ Simpler parsers can be combined to form more complex parsers.  Given some
 combining operation `C`, and parsers `P0`, `P1`, ... `PN`, `C(P0, P1, ... PN)`
 creates a new parser `Q`.  This creates a /parse tree/.  `Q` is the parent of
 `P1`, `P2` is the child of `Q`, etc.  The parsers are applied in the top-down
-fashion implied by this toplology.  When you use `Q` to parse a string, it
+fashion implied by this topology.  When you use `Q` to parse a string, it
 will use `P0`, `P1`, etc. to do the actual work.  If `P3` is being used to
 parse the input, that means that `Q` is as well, since the way `Q` parses is
 by dispatching to its children to do some or all of the work.  At any point in
@@ -647,7 +647,7 @@ object, or a `constexpr` function.  Some of the non-functions are also
 callable, such as _ch_, which may be used directly, or with arguments, as in
 _ch_`('a', 'z')`.  Any parser that can be called, whether a function or
 callable object, will be called a /callable parser/ from now on.  Note that
-there are no nullary calalble parsers; they each take one or more arguments.
+there are no nullary callable parsers; they each take one or more arguments.
 
 Each callable parser takes one or more /parse arguments/.  A parse argument
 may be a value or an invocable object that accepts a reference to the parse
@@ -723,7 +723,7 @@ itself be used as a parser; it must be called.  In the table below:
   otherwise noted;
 
 * "code point" is used to refer to the elements of the input range, which
-  asumes that the parse is being done in the Unicode-aware code path (if the
+  assumes that the parse is being done in the Unicode-aware code path (if the
   parse is being done in the non-Unicode code path, read "code point" as
   "`char`");
 
@@ -811,7 +811,7 @@ the input they match unless otherwise stated in the table below.]
     [[ `_ch_(r)` ]
      [ Matches the next code point in the input `n`, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the bahavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The liftime of `_ch_(r)` must be within the lifetime of r`.  This overload of _ch_ does *not* take parse arguments. ]]
+     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of r`.  This overload of _ch_ does *not* take parse arguments. ]]
 
     [[ _cp_ ]
      [ Matches a single code point. ]
@@ -1142,7 +1142,7 @@ _lexeme_:
     namespace bp = boost::parser;
     auto const string_parser = bp::lexeme['"' >> *(bp::char_ = '"') >> '"'];
 
-Without _lexeme_, our string parser would corerctly match `"foo bar"`, but the
+Without _lexeme_, our string parser would correctly match `"foo bar"`, but the
 generated attribute would be `"foobar"`.
 
 [heading _skip_]
@@ -1156,7 +1156,7 @@ uses a skipper, let's say we have these parsers in use:
     auto const skip_or_skip_not_there_is_no_try = bp::lexeme[bp::skip[one_or_more] >> one_or_more];
 
 The use of _lexeme_ disables skipping, but then the use of _skip_ turns it
-back on.  The net result is that the first occurrance of `one_or_more` will
+back on.  The net result is that the first occurrence of `one_or_more` will
 use the skipper passed to _p_; the second will not.
 
 _skip_ has another use.  You can parameterize skip with a different parser to
@@ -1168,7 +1168,7 @@ call:
     auto const zero_or_more = *bp::char_;
     auto const skip_both_ways = zero_or_more >> bp::skip(bp::ws)[zero_or_more];
 
-The first occurrance of `zero_or_more` will use the skipper passed to _p_,
+The first occurrence of `zero_or_more` will use the skipper passed to _p_,
 _space_; the second will use _ws_ as its skipper.
 
 [endsect]
@@ -1326,7 +1326,7 @@ attribute type is whatever the input range's element type is:
 
 [tip If you know or suspect that you will want to use the same parser in
 Unicode and non-Unicode parsing modes, you can use _cp_ and/or _cu_ to enforce
-a nonpolymorphic attribute type.]
+a non-polymorphic attribute type.]
 
 
 [heading Combining operation attributes]
@@ -1375,7 +1375,7 @@ parser erases the parser's attribute.  The attribute is still available inside
 the semantic action as `_attr(ctx)`.]
 
 There are a relatively small number of rules that define how sequence parsers
-and alternative parsers's attributes are generated.  (Don't worry, there are
+and alternative parsers' attributes are generated.  (Don't worry, there are
 examples below.)
 
 [heading Sequence parser attribute rules]
@@ -1535,7 +1535,7 @@ common:
  example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
  advancing `first` as it goes.  If the parse succeeds, the entire input may or
  may not have been matched.  The value of `first` will indicate the last
- location wthin the input that `p` matched.  The *whole* input was matched if
+ location within the input that `p` matched.  The *whole* input was matched if
  and only if `first == last`.
 
 * When you call any of the range-like overloads of _p_, for example `_p_np_(r,
@@ -1582,7 +1582,7 @@ allows calls like `_p_np_("str", p)` to work naturally.
     char const * str_3 = "str";
     auto result_3 = bp::parse(boost::text::as_utf16(str_3), p, bp::ws);
 
-You can also call _p_ with a pointer to a null-termianted string of integral
+You can also call _p_ with a pointer to a null-terminated string of integral
 values.  _p_ considers pointers to null-terminated strings to be ranges,
 since, for any pointer `T *` to a null-terminated string, `T *` is isomorphic
 with `view<T *, boost::text::null_sentinel>`.
@@ -1638,7 +1638,7 @@ so, the parser was successful, but it still generates an attribute that is an
     auto result_1 = bp::parse(str, p);         // !!result_1 is true; *result_1 is "two words"
     auto result_2 = bp::parse(str, p, bp::ws); // !!result_2 is true; *result_2 is "twowords"
 
-[heading Compatability of attribute out-parameters]
+[heading Compatibility of attribute out-parameters]
 
 For any call to _p_ that takes an attribute out-parameter, like `_p_np_("str",
 p, bp::ws, out)`, the call is well-formed for a number of possible types of
@@ -1720,7 +1720,7 @@ from this example:
   is a UTF-32-to-UTF-8 conversion, and silently transcodes the data when
   inserting into the new container.
 
-[caution The detection of the need tp transcode from UTF-32 to UTF-8 applies to *all* integral values.  If you call _p_ with this parser:
+[caution The detection of the need to transcode from UTF-32 to UTF-8 applies to *all* integral values.  If you call _p_ with this parser:
 
     auto const p = +boost::parser::uint_;
 
@@ -1752,7 +1752,7 @@ the element type of yet another container.  At some point in the code, `p`
 would try to insert a `boost::hana::tuple<int, std::vector<uint32_t>>`
 _emdash_ the element type of the attribute type it normally generates _emdash_
 into a vector of `boost::hana::tuple<int, std::string>`s.  There's no implicit
-conversion there, so teh code is ill-formed.
+conversion there, so the code is ill-formed.
 
 The take-away for this last example is that the ability to arbitrarily swap
 out data types within the type of the attribute you pass to _p_ is very
@@ -1781,8 +1781,8 @@ encoding.  Here is how it deduces which case the call falls under:
 
 * Otherwise, the input is in a UTF encoding.
 
-[tip if you want to want to parse in ASCII-only mode, or in some unkown
-enciding, using only sequences of `char`, like _std_str_ or `char const *`.]
+[tip if you want to want to parse in ASCII-only mode, or in some unknown
+encoding, using only sequences of `char`, like _std_str_ or `char const *`.]
 
 [tip If you want to ensure all input is parsed as Unicode, pass the input
 range `r` as `boost::text::as_utf32(r)` _emdash_ that's the first thing that
@@ -1857,7 +1857,7 @@ concerns.
 Every rule has a specific attribute type.  If one is not specified, the rule
 has no attribute.  The fact that the attribute is a specific type allows you
 to remove attribute flexibility.  For instance, say we have a rule defined
-llike this:
+like this:
 
 [rule_intro_rule_definition]
 
@@ -2089,7 +2089,7 @@ TODO: Parse Unicode from the start.
 
 TODO: Write rules, and test them in isolation.
 
-TODO: If your parsser takes end-user input, give rules names that you would
+TODO: If your parser takes end-user input, give rules names that you would
 want an end-user to see.
 
 TODO: Compile separately when you know the type of your input will not change.

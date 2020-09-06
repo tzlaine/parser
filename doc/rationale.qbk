@@ -13,12 +13,12 @@ case of Unicode, that "just working" implies that every element of the input
 range should be a code point.
 
 Some users will insist that their parsing needs are entirely ASCII.  Yet other
-users cannot use Unicode, becasue they use some encoding that is not a subset
+users cannot use Unicode, because they use some encoding that is not a subset
 of the Unicode encoding, like EBCDIC.  For these users, they can just parse
 input sequences of `char`, and that will "just work" for them.  For them, this
 means that every element of the input range that is parsed should be a `char`.
 
-This is exacty what _ch_ does, and why it does it.
+This is exactly what _ch_ does, and why it does it.
 
 [heading _n_ is weird]
 
@@ -39,7 +39,7 @@ arbitrarily-deep template instantiation stack _emdash_ and baffling type of
 ill-formed.
 
 The use of _n_ turns an entirely compile-time debugging operation into a
-run-time debugging one.  Ususally, this is the opposite of what we want as C++
+run-time debugging one.  Usually, this is the opposite of what we want as C++
 users.  In light of just how inscrutable error messages are that come from
 parser combinator libraries, using your favorite debugger to step through the
 stack to diagnose the problem is a *much* faster way to fix problems.
@@ -172,7 +172,7 @@ Some very familiar problems should be noted here:
   have locals, and some of which do not.  While it's nice that the last line
   of the error diagnostic points us to the ill-formed use of a _n_, we don't
   know which *parser plus semantic action* is the problem.  With a stack trace
-  in a debuger, we would know that in a few seconds.  In this case, we'd have
+  in a debugger, we would know that in a few seconds.  In this case, we'd have
   a long slog trying to figure out exactly where the problem lies.
 
 [heading Attribute types are flexible]
