@@ -2297,8 +2297,14 @@ namespace boost { namespace parser {
                     }
                 }
 
-                for (int64_t end = detail::resolve(context, max_); count != end;
-                     ++count) {
+                int64_t const end = detail::resolve(context, max_);
+
+                // It looks like you've created a repeated epsilon parser, by
+                // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
+                BOOST_ASSERT(
+                    !detail::is_unconditional_eps<Parser>{} || end < Inf);
+
+                for (; count != end; ++count) {
                     auto const prev_first = first;
                     // This is only ever used in delimited_parser, which
                     // always has a min=1; we therefore know we're after a
@@ -2369,8 +2375,14 @@ namespace boost { namespace parser {
                         retval, std::move(attr), detail::gen_attrs(flags));
                 }
 
-                for (int64_t end = detail::resolve(context, max_); count != end;
-                     ++count) {
+                int64_t const end = detail::resolve(context, max_);
+
+                // It looks like you've created a repeated epsilon parser, by
+                // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
+                BOOST_ASSERT(
+                    !detail::is_unconditional_eps<Parser>{} || end < Inf);
+
+                for (; count != end; ++count) {
                     auto const prev_first = first;
                     if constexpr (!detail::is_nope_v<DelimiterParser>) {
                         detail::skip(first, last, skip, flags);
