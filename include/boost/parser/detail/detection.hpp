@@ -26,7 +26,8 @@ namespace boost { namespace parser { namespace detail {
     template<
         typename Default,
         typename AlwaysVoid,
-        template<typename...> class Template,
+        template<typename...>
+        class Template,
         typename... Args>
     struct detector
     {
@@ -36,7 +37,8 @@ namespace boost { namespace parser { namespace detail {
 
     template<
         typename Default,
-        template<typename...> class Template,
+        template<typename...>
+        class Template,
         typename... Args>
     struct detector<Default, void_t<Template<Args...>>, Template, Args...>
     {
@@ -54,7 +56,8 @@ namespace boost { namespace parser { namespace detail {
 
     template<
         typename Default,
-        template<typename...> class Template,
+        template<typename...>
+        class Template,
         typename... Args>
     using detected_or =
         typename detector<Default, void, Template, Args...>::type;

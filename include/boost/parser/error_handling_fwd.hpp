@@ -123,14 +123,14 @@ namespace boost { namespace parser {
             the given `kind`, indicating the location as being at `it`.  This
             must be called within a parser semantic action, providing the
             parse context. */
-//[ error_handler_api_1
+        //[ error_handler_api_1
         template<typename Context, typename Iter>
         void diagnose(
             diagnostic_kind kind,
             std::string_view message,
             Context const & context,
             Iter it) const
-//]
+        //]
         {
             parser::write_formatted_message(
                 std::cout, "", _begin(context), it, _end(context), message);
@@ -139,13 +139,13 @@ namespace boost { namespace parser {
         /** Prints `message` to `std::cout`.  The diagnostic is printed with
             the given `kind`, at no particular location.  This must be called
             within a parser semantic action, providing the parse context. */
-//[ error_handler_api_2
+        //[ error_handler_api_2
         template<typename Context>
         void diagnose(
             diagnostic_kind kind,
             std::string_view message,
             Context const & context) const
-//]
+        //]
         {
             diagnose(kind, message, context, _where(context).begin());
         }

@@ -220,8 +220,9 @@ namespace boost { namespace parser {
     /** Matches an unsigned number of radix `Radix`, of at least `MinDigits`
         and at most `MaxDigits`, producing an attribute of type `T`.  Fails on
         any other input.  The parse will also fail if `Expected` is anything
-        but `detail::nope` (which it is by default), and the produced attribute is not
-        equal to `expected_`.  `Radix` must be in `[2, 36]`. */
+        but `detail::nope` (which it is by default), and the produced
+        attribute is not equal to `expected_`.  `Radix` must be in `[2,
+        36]`. */
     template<
         typename T,
         int Radix = 10,

@@ -544,10 +544,10 @@ namespace boost { namespace parser { namespace detail {
             detail::trace_indent(_indent(context_));
             if (*context_.pass_) {
                 std::cout << "matched ";
-             detail::   trace_input(std::cout, initial_first_, first_);
-             std::cout << "\n";
-             detail::print_attribute(
-                 detail::resolve(context_, attr_), _indent(context_));
+                detail::trace_input(std::cout, initial_first_, first_);
+                std::cout << "\n";
+                detail::print_attribute(
+                    detail::resolve(context_, attr_), _indent(context_));
             } else {
                 std::cout << "no match\n";
             }
