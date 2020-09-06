@@ -1592,64 +1592,6 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);
         }
 
-        template<typename Parser>
-        struct ref_parser
-        {
-            ref_parser() : parser_(nullptr) {}
-            ref_parser(Parser const * parser) : parser_(parser) {}
-
-            template<
-                bool UseCallbacks,
-                typename Iter,
-                typename Sentinel,
-                typename Context,
-                typename SkipParser>
-            auto call(
-                hana::bool_<UseCallbacks> use_cbs,
-                Iter & first,
-                Sentinel last,
-                Context const & context,
-                SkipParser const & skip,
-                detail::flags flags,
-                bool & success) const
-            {
-                BOOST_ASSERT(parser_);
-                return parser_->call(
-                    use_cbs, first, last, context, skip, flags, success);
-            }
-
-            template<
-                bool UseCallbacks,
-                typename Iter,
-                typename Sentinel,
-                typename Context,
-                typename SkipParser,
-                typename Attribute>
-            void call(
-                hana::bool_<UseCallbacks> use_cbs,
-                Iter & first,
-                Sentinel last,
-                Context const & context,
-                SkipParser const & skip,
-                detail::flags flags,
-                bool & success,
-                Attribute & retval) const
-            {
-                BOOST_ASSERT(parser_);
-                parser_->call(
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
-            }
-
-            Parser const * parser_;
-        };
-
 
 
         // API implementations
