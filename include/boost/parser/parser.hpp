@@ -4237,15 +4237,15 @@ namespace boost { namespace parser {
     {
         constexpr rule(char const * name) { this->parser_.name_ = name; }
 
-        template<typename... T>
-        constexpr auto with(T &&... x) const
+        template<typename T, typename... Ts>
+        constexpr auto with(T && x, Ts &&... xs) const
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a rule, "
                  "like 'rule.with(foo).with(bar)'.  Quit it!'"));
-            using params_tuple_type =
-                decltype(hana::make_tuple(static_cast<T &&>(x)...));
+            using params_tuple_type = decltype(hana::make_tuple(
+                static_cast<T &&>(x), static_cast<Ts &&>(xs)...));
             using rule_parser_type = rule_parser<
                 false,
                 TagType,
@@ -4254,7 +4254,8 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             return parser_interface{rule_parser_type{
                 this->parser_.name_,
-                hana::make_tuple(static_cast<T &&>(x)...)}};
+                hana::make_tuple(
+                    static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
 
@@ -4272,15 +4273,15 @@ namespace boost { namespace parser {
             this->parser_.name_ = name;
         }
 
-        template<typename... T>
-        constexpr auto with(T &&... x) const
+        template<typename T, typename... Ts>
+        constexpr auto with(T && x, Ts &&... xs) const
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a "
                  "callback_rule, like 'rule.with(foo).with(bar)'.  Quit it!'"));
-            using params_tuple_type =
-                decltype(hana::make_tuple(static_cast<T &&>(x)...));
+            using params_tuple_type = decltype(hana::make_tuple(
+                static_cast<T &&>(x), static_cast<Ts &&>(xs)...));
             using rule_parser_type = rule_parser<
                 true,
                 TagType,
@@ -4289,7 +4290,8 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             return parser_interface{rule_parser_type{
                 this->parser_.name_,
-                hana::make_tuple(static_cast<T &&>(x)...)}};
+                hana::make_tuple(
+                    static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
 
