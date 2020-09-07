@@ -281,8 +281,6 @@ namespace json {
         // below.
         auto const range = boost::text::as_utf32(str);
         using iter_t = decltype(range.begin());
-        auto first = range.begin();
-        auto const last = range.end();
 
         if (max_recursion <= 0)
             max_recursion = INT_MAX;
@@ -303,7 +301,7 @@ namespace json {
             // convert to false if the parse failed.  Note that the
             // failed-expectation exception is caught internally, and used to
             // generate an error message.
-            return bp::parse(first, last, parser, ws);
+            return bp::parse(range, parser, ws);
         } catch (excessive_nesting<iter_t> const & e) {
             // If we catch an excessive_nesting exception, just reported it
             // and return an empty/failure result.
@@ -313,7 +311,7 @@ namespace json {
                                             ") of open arrays and/or objects";
                 std::stringstream ss;
                 bp::write_formatted_message(
-                    ss, "", range.begin(), e.iter, last, message);
+                    ss, "", range.begin(), e.iter, range.end(), message);
                 errors_callback(ss.str());
             }
         }
@@ -330,6 +328,8 @@ std::string file_slurp(std::ifstream & ifs)
         char const c = ifs.get();
         retval += c;
     }
+    if (!retval.empty() && retval[retval.back() == -1])
+        retval.pop_back();
     return retval;
 }
 
@@ -356,8 +356,7 @@ int main(int argc, char * argv[])
         exit(1);
     }
 
-    std::cout << "Parse successful; contents:\n";
-    std::cout << *json;
+    std::cout << "Parse successful; contents:\n" << *json << "\n";
 
     return 0;
 }

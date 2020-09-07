@@ -33,6 +33,7 @@
 [import ../example/roman_numerals.cpp]
 [import ../example/self_filling_symbol_table.cpp]
 [import ../example/json.cpp]
+[import ../example/callback_json.cpp]
 
 [import ../include/boost/parser/concepts.hpp]
 [import ../include/boost/parser/error_handling_fwd.hpp]

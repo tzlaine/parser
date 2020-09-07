@@ -30,3 +30,4 @@ add_sample(roman_numerals)
 add_sample(self_filling_symbol_table)
 
 add_sample(json)
+add_sample(callback_json)
