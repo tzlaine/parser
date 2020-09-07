@@ -3761,10 +3761,10 @@ namespace boost { namespace parser {
                         std::invocable<decltype(callbacks), tag_type>);
                     callbacks(tag_type{});
                 } else {
-                    // For rules without attributes, Callbacks must be a
-                    // struct with overloads of the form void(tag_type,
-                    // attr_type).  If you're seeing an error here, you
-                    // probably have not met this contract.
+                    // For rules with attributes, Callbacks must be a struct
+                    // with overloads of the form void(tag_type, attr_type).
+                    // If you're seeing an error here, you probably have not
+                    // met this contract.
                     static_assert(std::invocable<
                                   decltype(callbacks),
                                   tag_type,
