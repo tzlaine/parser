@@ -4308,7 +4308,7 @@ namespace boost { namespace parser {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a rule, "
-                 "like 'rule(foo)(bar)'.  Quit it!'"));
+                 "like 'rule.with(foo).with(bar)'.  Quit it!'"));
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
             using rule_parser_type = rule_parser<
@@ -4343,7 +4343,7 @@ namespace boost { namespace parser {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a "
-                 "callback_rule, like 'rule(foo)(bar)'.  Quit it!'"));
+                 "callback_rule, like 'rule.with(foo).with(bar)'.  Quit it!'"));
             using params_tuple_type =
                 decltype(hana::make_tuple(static_cast<T &&>(x)...));
             using rule_parser_type = rule_parser<
