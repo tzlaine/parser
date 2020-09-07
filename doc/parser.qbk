@@ -57,6 +57,8 @@
 [def _symbols_t_           [classref boost::parser::symbols `symbols<T>`]]
 [def _r_                   [classref boost::parser::rule `rule`]]
 [def _rs_                  [classref boost::parser::rule `rule`s]]
+[def _cb_r_                [classref boost::parser::callback_rule `callback_rule`]]
+[def _cb_rs_               [classref boost::parser::callback_rules `callback_rule`s]]
 
 [def _std_str_             `std::string`]
 [def _std_vec_char_        `std::vector<char>`]

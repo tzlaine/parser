@@ -2188,7 +2188,58 @@ instance, though the entire interface of _symbols_ uses `std::string` or
 
 [section Callback Parsing]
 
-TODO
+In most parsing cases, being able to generate an attribute that represents the
+result of the parse, or being able to parse into such an attribute, is
+sufficient.  Sometimes, it is not.  If you need to parse a very large chunk of
+text, the generated attribute may be too large to fit in memory.  Other times,
+you may want to generate attributes sometimes, and not others.  For these
+kinds of use _cb_rs_ exist. A _cb_r_ is just like a rule, except that it
+allows the rule's attribute to be returned to the caller via a callback, as
+long as the parse is started with a call to _cbp_ instead of _p_.  Within a
+call to _p_, a _cb_r_ is identical to a regular _r_.
+
+For a rule with no attribute, the signature of a callback function is `void
+(tag)`, where `tag` is the tag-type used when declaring the rule.  For a rule
+with an attribute `attr`, the signature is `void (tag, attr)`.  For instance,
+with this rule:
+
+    boost::parser::callback_rule<struct foo_tag> foo = "foo";
+
+this would be an appropriate callback function:
+
+    void foo_callback(foo_tag)
+    {
+        std::cout << "Parsed a 'foo'!\n";
+    }
+
+For this rule:
+
+    boost::parser::callback_rule<struct bar_tag> bar = "bar";
+
+this would be an appropriate callback function:
+
+    void bar_callback(bar_tag, std::string const & s)
+    {
+        std::cout << "Parsed a 'bar' containing " << s << "!\n";
+    }
+
+[important In the case of `bar_callback()`, we don't need to do anything with
+`s` besides insert it into a stream, so we took it as a `const` lvalue
+reference.  _Parser_ moves all attributes into callbacks, so the signature
+could also have been `void bar_callback(bar_tag, std::string s)` or `void
+bar_callback(bar_tag, std::string && s)`.]
+
+You opt into callback parsing by parsing with a call to _cbp_ instead of _p_.
+If you use _cb_rs_ with _p_, they're just regular _rs_.  This allows you to
+choose whether to do "normal" attribute-generating or attribute-assigning
+parsing with _p_, or callback parsing with _cbp_, without rewriting much
+parsing code, if any.
+
+The only reason all _rs_ are not _cb_rs_ is that you may want to have some
+_rs_ use callbacks within a parse, and have some that do not.  For instance,
+if you want to report the attribute of _cb_r_ `r1` via callback, `r1`'s
+implementation may use some rule `r2` to generate some or all of its
+attribute.
 
 [endsect]
 
