@@ -160,6 +160,7 @@
 [def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
 [def _directives_          [link boost_parser__proposed_.tutorial.directives Directives]]
 [def _eh_debugging_        [link boost_parser__proposed_.tutorial.error_handling_and_debugging Error Handling and Debugging]]
+[def _unicode_             [link boost_parser__proposed_.tutorial.unicode_support Unicode Support]]
 [def _concepts_            [link boost_parser__proposed_.concepts Concepts]]
 [def _ex_json_             [link boost_parser__proposed_.extended_example__parsing_json Extended JSON Example]]
 [def _rationale_           [link boost_parser__proposed_.rationale Rationale]]

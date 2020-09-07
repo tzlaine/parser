@@ -561,6 +561,12 @@ single number, so it was removed.
 
 [roman_numeral_example]
 
+[important _symbols_ stores all its strings in UTF-32 internally.  If you do
+Unicode or ASCII parsing, this will not matter to you at all.  If you do
+non-Unicode parsing of a character encoding that is not a subset of Unicode
+(EBCDIC, for instance), it could cause problems.  See the section on _unicode_
+for more information.]
+
 [endsect]
 
 [section Mutable Symbol Tables]
@@ -610,6 +616,12 @@ The full program:
 [note It is possible to add symbols to a _symbols_ permanently.  To do so, you
 have to use a mutable _symbols_ object `s`, and add the symbols by calling
 `s.add()`, instead of `s.insert()`.]
+
+[important _symbols_ stores all its strings in UTF-32 internally.  If you do
+Unicode or ASCII parsing, this will not matter to you at all.  If you do
+non-Unicode parsing of a character encoding that is not a subset of Unicode
+(EBCDIC, for instance), it could cause problems.  See the section on _unicode_
+for more information.]
 
 [endsect]
 
@@ -2066,9 +2078,111 @@ similar.
 
 [section Unicode Support]
 
-TODO
+_Parser_ was designed from the start to be Unicode friendly.  There are
+numerous references to the "Unicode code path" and the "non-Unicode code path"
+in the _Parser_ documentation.  Though there are in fact two code paths for
+Unicode and non-Unicode parsing, the code is not very different in the two
+code paths, as they are written generically.  The only difference is that the
+Unicode code path parses the input as a range of code points, and the
+non-Unicode path does not.  In effect, this means that when you call
+`_p_np_(r, p)` for some input range `r` and some parser `p`, the parse happens
+as if you called `_p_np_(boost::text::as_utf32(r), p)` instead.  (Of course,
+it does not matter if `r` is a null-terminated pointer, a proper range, or an
+iterator/sentinel pair; those all work fine with `boost::text::as_utf32()`.)
 
-TODO: Unicode in symbol tables
+Matching "characters" within _Parser_'s parsers is assumed to be a code point
+match.  In the Unicode path there is a code point from the input that is
+matched to each _ch_ parser.  In the non-Unicode path, the encoding is
+unknown, and still each element of the input is considered to be a whole
+"character" in the input encoding, analogous to a code point.  From this point
+on, I will therefore refer to a single element of the input exclusively as a
+code point.
+
+So, let's say we write this parser:
+
+    constexpr auto char8_parser = boost::parser::char_('\xcc');
+
+For any _ch_ parser that should match a value or values, the type of the value
+to match is retained.  So `char8_parser` contains a `char` that it will use
+for matching.  If we had written:
+
+    constexpr auto char32_parser = boost::parser::char_(U'\xcc');
+
+`char32_parser` would instead contain a `char32_t` that it would use for
+matching.
+
+So, at any point during the parse, if `char8_parser` were being used to match
+a code point from the input `next_cp`, we would see the moral equivalent of
+`next_cp == '\xcc'`, and if `char32_parser` were being used to match
+`next_cp`, we'd see the equivalent of `next_cp == U'\xcc'`.  The take-away
+here is that you can write _ch_ parsers that match specific values, without
+worrying if the input is Unicode or not because, under the covers, what takes
+place is a simple comparison of two integral values.
+
+[note _Parser_ actually promotes any two values to a common type using
+`std::common_type` before comparing them.  This is almost always works because
+the input and any parameter passed to _ch_ must me integral types.  You're on
+your own if you want to use some non-builtin type `I` that models
+`std::integral` but that breaks when _Parser_ tries to find its common type
+with `char`s, `uint32_t`'s, etc. ]
+
+Since matches are always done at a code point level (remember, a "code point"
+in the non-Unicode path is assumed to be a single `char`), you get different
+results trying to match UTF-8 input in the Unicode and non-Unicode code paths:
+
+    namespace bp = boost::parser;
+
+    {
+        std::string str = (char const *)u8"\xcc\x80"; // encodes the code point U+0300
+        auto first = str.begin();
+
+        // Since we've done nothing to indicate that we want to do Unicode
+        // parsing, and we've passed a range of char to parse(), this will do
+        // non-Unicode parsing.
+        std::string chars;
+        assert(bp::parse(first, str.end(), *bp::char_('\xcc'), chars));
+
+        // Finds one match of the *char* 0xcc, because the value in the parser
+        // (0xcc) was matched against the two code points in the input (0xcc and
+        // 0x80), an the first one was a match.
+        assert(chars == "\xcc");
+    }
+    {
+        std::u8string str = u8"\xcc\x80"; // encodes the code point U+0300
+        auto first = str.begin();
+
+        // Since the input is a range of char8_t, this will do Unicode
+        // parsing.  The same thing would have happened if we passed
+        // boost::text::as_utf32(str) or even boost::text::as_utf8(str).
+        std::string chars;
+        assert(bp::parse(first, str.end(), *bp::char_('\xcc'), chars));
+
+        // Finds zero matches of the *code point* 0xcc, because the value in
+        // the parser (0xcc) was matched against the single code point in the
+        // input, 0x0300.
+        assert(chars == "");
+    }
+
+
+[heading Transcoding]
+
+Additionally, it is expected that most programs will use UTF-8 for the
+encoding of Unicode strings.  _Parser_ is written with this assumption in
+mind.  This means that if you are parsing 32-bit code points (as you always
+are in the Unicode path), and you want to catch the result in a container `C`
+of 1-byte integral values, _Parser_ will silently transcode from UTF-32 to
+UTF-8 and write the attribute into `C`.  This means that `std::string`,
+`std::u8string`, etc. are fine to use as attribute out-parameters for `*_ch_`,
+and the result will be UTF-8.  This is true whether the parsing is
+Unicode-aware or not.
+
+[note UTF-16 strings as attributes are not supported directly.  If you want to
+use UTF-16 strings as attributes, you may need to do so by transcoding a UTF-8
+or UTF-32 attribute to UTF-16 within a semantic action.]
+
+The treatment of strings as UTF-8 is ubiquitous within _Parser_.  For
+instance, though the entire interface of _symbols_ uses `std::string` or
+`std::string_view`, UTF-32 strings are used internally.
 
 [endsect]
 
