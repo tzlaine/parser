@@ -3735,18 +3735,18 @@ namespace boost { namespace parser {
                 *this, first, last, rule_context, flags, retval);
             tag_type * const tag_ptr = nullptr;
 
-            if constexpr (CanUseCallbacks && UseCallbacks) {
-                parse_rule(
-                    tag_ptr,
-                    hana::true_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
+            parse_rule(
+                tag_ptr,
+                use_cbs,
+                first,
+                last,
+                rule_context,
+                skip,
+                flags,
+                success,
+                retval);
 
+            if constexpr (CanUseCallbacks && UseCallbacks) {
                 if (!success)
                     return {};
 
@@ -3774,16 +3774,6 @@ namespace boost { namespace parser {
 
                 return {};
             } else {
-                parse_rule(
-                    tag_ptr,
-                    hana::false_c,
-                    first,
-                    last,
-                    rule_context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
                 if (!success)
                     detail::assign(retval, attr_type());
                 return retval;
