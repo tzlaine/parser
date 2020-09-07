@@ -22,21 +22,6 @@ namespace boost { namespace parser {
             in_apply_parser = 1 << 3
         };
 
-        // Built-in tags for use with the context.
-        struct val_tag;
-        struct attr_tag;
-        struct where_tag;
-        struct begin_tag;
-        struct end_tag;
-        struct pass_tag;
-        struct locals_tag;
-        struct rule_params_tag;
-        struct globals_tag;
-        struct trace_indent_tag;
-        struct error_handler_tag;
-        struct callbacks_tag;
-        struct symbol_table_tries_tag;
-
         using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
 
         template<typename Iter, typename Sentinel, typename ErrorHandler>
