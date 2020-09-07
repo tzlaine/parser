@@ -149,13 +149,14 @@ namespace boost { namespace parser {
         object of type `LocalState`, and a default-constructed object of type
         `ParamsTuple`, are added to the parse context before the associated
         parser is applied.  The parse succeeds iff `p` succeeds.  If
-        `UseCallbacks` is `true`, the attribute is produced via callback;
-        otherwise, the attribute is produced as normal (as a return value, or
-        as an out-param).  The rule may be constructed with a user-friendly
-        name that will appear if the top-level parse is executed with
-        `trace_mode == boost::parser::trace::on`. */
+        `CanUseCallbacks` is `true`, and within a call to `callback_parse()`,
+        the attribute is produced via callback; otherwise, the attribute is
+        produced as normal (as a return value, or as an out-param).  The rule
+        may be constructed with a user-friendly name that will appear if the
+        top-level parse is executed with `trace_mode ==
+        boost::parser::trace::on`. */
     template<
-        bool UseCallbacks,
+        bool CanUseCallbacks,
         typename TagType,
         typename Attribute,
         typename LocalState,

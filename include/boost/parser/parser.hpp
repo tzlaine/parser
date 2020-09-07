@@ -3700,11 +3700,12 @@ namespace boost { namespace parser {
     };
 
     template<
+        bool CanUseCallbacks,
         typename TagType,
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    struct rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
+    struct rule_parser
     {
         using tag_type = TagType;
         using attr_type = Attribute;
@@ -3733,88 +3734,8 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, rule_context, flags, retval);
             tag_type * const tag_ptr = nullptr;
-            parse_rule(
-                tag_ptr,
-                hana::false_c,
-                first,
-                last,
-                rule_context,
-                skip,
-                flags,
-                success,
-                retval);
-            if (!success)
-                detail::assign(retval, attr_type());
-            return retval;
-        }
 
-        template<
-            bool UseCallbacks,
-            typename Iter,
-            typename Sentinel,
-            typename Context,
-            typename SkipParser,
-            typename Attribute_>
-        void call(
-            hana::bool_<UseCallbacks> use_cbs,
-            Iter & first,
-            Sentinel last,
-            Context const & context,
-            SkipParser const & skip,
-            detail::flags flags,
-            bool & success,
-            Attribute_ & retval) const
-        {
-            attr_type attr =
-                call(use_cbs, first, last, context, skip, flags, success);
-            if (success)
-                detail::assign(retval, attr);
-        }
-
-        std::string_view name_;
-        ParamsTuple params_;
-    };
-
-    template<
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple>
-    struct rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>
-    {
-        using tag_type = TagType;
-        using attr_type = Attribute;
-        using locals_type = LocalState;
-
-        template<
-            bool UseCallbacks,
-            typename Iter,
-            typename Sentinel,
-            typename Context,
-            typename SkipParser>
-        attr_type call(
-            hana::bool_<UseCallbacks> use_cbs,
-            Iter & first,
-            Sentinel last,
-            Context const & context,
-            SkipParser const & skip,
-            detail::flags flags,
-            bool & success) const
-        {
-            if constexpr (!UseCallbacks) {
-                rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
-                    without_callbacks{name_, params_};
-                return without_callbacks.call(
-                    use_cbs, first, last, context, skip, flags, success);
-            } else {
-                attr_type retval{};
-                locals_type locals = detail::make_locals<locals_type>(context);
-                auto params = detail::resolve_rule_params(context, params_);
-                auto const rule_context =
-                    detail::make_rule_context(context, retval, locals, params);
-                auto _ = detail::scoped_trace(
-                    *this, first, last, rule_context, flags, retval);
-                tag_type * const tag_ptr = nullptr;
+            if constexpr (CanUseCallbacks && UseCallbacks) {
                 parse_rule(
                     tag_ptr,
                     hana::true_c,
@@ -3852,6 +3773,20 @@ namespace boost { namespace parser {
                 }
 
                 return {};
+            } else {
+                parse_rule(
+                    tag_ptr,
+                    hana::false_c,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+                if (!success)
+                    detail::assign(retval, attr_type());
+                return retval;
             }
         }
 
@@ -3870,15 +3805,15 @@ namespace boost { namespace parser {
             SkipParser const & skip,
             detail::flags flags,
             bool & success,
-            Attribute_ & attr) const
+            Attribute_ & retval) const
         {
-            if (!UseCallbacks) {
-                rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>
-                    without_callbacks{name_, params_};
-                without_callbacks.call(
-                    use_cbs, first, last, context, skip, flags, success, attr);
-            } else {
+            if constexpr (CanUseCallbacks && UseCallbacks) {
                 call(use_cbs, first, last, context, skip, flags, success);
+            } else {
+                attr_type attr =
+                    call(use_cbs, first, last, context, skip, flags, success);
+                if (success)
+                    detail::assign(retval, attr);
             }
         }
 
