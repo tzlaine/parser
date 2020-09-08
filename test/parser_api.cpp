@@ -108,7 +108,7 @@ TEST(parser, full_parse_api)
 
     std::string const str = "a";
 
-    // attr out param
+    // attr out param, iter/sent
     {
         char out = 0;
         auto first = str.c_str();
@@ -121,7 +121,7 @@ TEST(parser, full_parse_api)
             !parse(first, boost::text::null_sentinel{}, char_('b'), out));
         EXPECT_EQ(out, 0);
     }
-    // attr out param
+    // attr out param, range
     {
         char out = 0;
         EXPECT_TRUE(parse(str, char_, out));
@@ -130,8 +130,17 @@ TEST(parser, full_parse_api)
         EXPECT_FALSE(parse(str, char_('b'), out));
         EXPECT_EQ(out, 0);
     }
+    // attr out param, pointer-as-range
+    {
+        char out = 0;
+        EXPECT_TRUE(parse(str.c_str(), char_, out));
+        EXPECT_EQ(out, 'a');
+        out = 0;
+        EXPECT_FALSE(parse(str.c_str(), char_('b'), out));
+        EXPECT_EQ(out, 0);
+    }
 
-    // returned attr
+    // returned attr, iter/sent
     {
         auto first = str.c_str();
         EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, char_));
@@ -140,11 +149,17 @@ TEST(parser, full_parse_api)
         first = str.c_str();
         EXPECT_FALSE(parse(first, boost::text::null_sentinel{}, char_('b')));
     }
-    // returned attr
+    // returned attr, range
     {
         EXPECT_TRUE(parse(str, char_));
         EXPECT_EQ(*parse(str, char_), 'a');
         EXPECT_FALSE(parse(str, char_('b')));
+    }
+    // returned attr, pointer-as-range
+    {
+        EXPECT_TRUE(parse(str.c_str(), char_));
+        EXPECT_EQ(*parse(str.c_str(), char_), 'a');
+        EXPECT_FALSE(parse(str.c_str(), char_('b')));
     }
     // returned attr, UTF-16
     {
@@ -153,7 +168,7 @@ TEST(parser, full_parse_api)
         EXPECT_FALSE(parse(u"a", char_('b')));
     }
 
-    // attr out param, using skipper
+    // attr out param, using skipper, iter/sent
     {
         char out = 0;
         auto first = str.c_str();
@@ -167,7 +182,7 @@ TEST(parser, full_parse_api)
             first, boost::text::null_sentinel{}, char_('b'), skip_ws, out));
         EXPECT_EQ(out, 0);
     }
-    // attr out param, using skipper
+    // attr out param, using skipper, range
     {
         char out = 0;
         EXPECT_TRUE(parse(str, char_, skip_ws, out));
@@ -176,8 +191,17 @@ TEST(parser, full_parse_api)
         EXPECT_FALSE(parse(str, char_('b'), skip_ws, out));
         EXPECT_EQ(out, 0);
     }
+    // attr out param, using skipper, pointer-as-range
+    {
+        char out = 0;
+        EXPECT_TRUE(parse(str.c_str(), char_, skip_ws, out));
+        EXPECT_EQ(out, 'a');
+        out = 0;
+        EXPECT_FALSE(parse(str.c_str(), char_('b'), skip_ws, out));
+        EXPECT_EQ(out, 0);
+    }
 
-    // returned attr, using skipper
+    // returned attr, using skipper, iter/sent
     {
         auto first = str.c_str();
         EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, char_, skip_ws));
@@ -188,14 +212,20 @@ TEST(parser, full_parse_api)
         EXPECT_TRUE(
             !parse(first, boost::text::null_sentinel{}, char_('b'), skip_ws));
     }
-    // returned attr, using skipper
+    // returned attr, using skipper, range
     {
         EXPECT_TRUE(parse(str, char_, skip_ws));
         EXPECT_EQ(*parse(str, char_, skip_ws), 'a');
         EXPECT_FALSE(parse(str, char_('b'), skip_ws));
     }
+    // returned attr, using skipper, pointer-as-range
+    {
+        EXPECT_TRUE(parse(str.c_str(), char_, skip_ws));
+        EXPECT_EQ(*parse(str.c_str(), char_, skip_ws), 'a');
+        EXPECT_FALSE(parse(str.c_str(), char_('b'), skip_ws));
+    }
 
-    // callback
+    // callback, iter/sent
     {
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
@@ -208,15 +238,22 @@ TEST(parser, full_parse_api)
         first = str.c_str();
         EXPECT_EQ(out, 'a');
     }
-    // callback
+    // callback, range
     {
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
         EXPECT_TRUE(callback_parse(str, callback_char_rule, callbacks));
         EXPECT_EQ(out, 'a');
     }
+    // callback, pointer-as-range
+    {
+        char out = 0;
+        auto callbacks = [&out](auto tag, auto x) { out = x; };
+        EXPECT_TRUE(callback_parse(str.c_str(), callback_char_rule, callbacks));
+        EXPECT_EQ(out, 'a');
+    }
 
-    // callback, using skipper
+    // callback, using skipper, iter/sent
     {
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
@@ -230,12 +267,20 @@ TEST(parser, full_parse_api)
         first = str.c_str();
         EXPECT_EQ(out, 'a');
     }
-    // callback, using skipper
+    // callback, using skipper, range
     {
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
         EXPECT_TRUE(
             callback_parse(str, callback_char_rule, skip_ws, callbacks));
+        EXPECT_EQ(out, 'a');
+    }
+    // callback, using skipper, pointer-as-range
+    {
+        char out = 0;
+        auto callbacks = [&out](auto tag, auto x) { out = x; };
+        EXPECT_TRUE(callback_parse(
+            str.c_str(), callback_char_rule, skip_ws, callbacks));
         EXPECT_EQ(out, 'a');
     }
 }

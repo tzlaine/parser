@@ -6032,18 +6032,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Attr>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     bool parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6104,17 +6104,17 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6194,19 +6194,19 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Attr>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     bool parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6366,18 +6366,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6397,18 +6397,18 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6426,18 +6426,18 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6515,18 +6515,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Callbacks>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     bool callback_parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6619,19 +6619,19 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Callbacks>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
     bool callback_parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
