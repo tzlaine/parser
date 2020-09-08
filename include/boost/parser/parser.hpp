@@ -5488,9 +5488,9 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            spirit::x3::real_policies<T> policies;
-            using extract =
-                detail_spirit_x3::extract_real<T, spirit::x3::real_policies<T>>;
+            detail_spirit_x3::real_policies<T> policies;
+            using extract = detail_spirit_x3::
+                extract_real<T, detail_spirit_x3::real_policies<T>>;
             T attr = 0;
             auto const initial = first;
             success = extract::parse(first, last, attr, policies);
