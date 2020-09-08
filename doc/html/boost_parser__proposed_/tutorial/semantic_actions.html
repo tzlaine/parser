@@ -1,0 +1,120 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Semantic Actions</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="a_trivial_example_that_gracefully_handles_whitespace.html" title="A Trivial Example That Gracefully Handles Whitespace">
+<link rel="next" href="rule_parsers.html" title="Rule Parsers">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="a_trivial_example_that_gracefully_handles_whitespace.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parsers.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_parser__proposed_.tutorial.semantic_actions"></a><a class="link" href="semantic_actions.html" title="Semantic Actions">Semantic
+      Actions</a>
+</h3></div></div></div>
+<p>
+        Like all parsing systems (lex &amp; yacc, <a href="https://www.boost.org/doc/libs/release/libs/spirit" target="_top">Boost.Spirit</a>,
+        etc.), Boost.Parser has a mechanism for associating semantic actions with
+        different parts of the parse. Here is nearly the same program as we saw in
+        the previous example, except that it is implemented in terms of a semantic
+        action that appends each parsed <code class="computeroutput"><span class="keyword">double</span></code>
+        to a result, instead of automatically building and returning the result.
+        To do this, we replace the <code class="computeroutput"><a class="link" href="../../boost/parser/double_.html" title="Global double_">double_</a></code> from the previous
+        example with <code class="computeroutput"><a class="link" href="../../boost/parser/double_.html" title="Global double_">double_</a><span class="special">[</span><span class="identifier">action</span><span class="special">]</span></code>;
+        <code class="computeroutput"><span class="identifier">action</span></code> is our semantic action:
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">parser</span><span class="special">/</span><span class="identifier">parser</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">iostream</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">string</span><span class="special">&gt;</span>
+
+
+<span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+
+<span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
+<span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Enter a list of doubles, separated by commas. "</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">input</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">getline</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">cin</span><span class="special">,</span> <span class="identifier">input</span><span class="special">);</span>
+
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">action</span> <span class="special">=</span> <span class="special">[&amp;</span><span class="identifier">result</span><span class="special">](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Got one!\n"</span><span class="special">;</span>
+        <span class="identifier">result</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">));</span>
+    <span class="special">};</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">action_parser</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">[</span><span class="identifier">action</span><span class="special">];</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span>
+        <span class="identifier">input</span><span class="special">,</span> <span class="identifier">action_parser</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">action_parser</span><span class="special">),</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ascii</span><span class="special">::</span><span class="identifier">space</span><span class="special">);</span>
+
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">success</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"You entered:\n"</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span><span class="keyword">double</span> <span class="identifier">x</span> <span class="special">:</span> <span class="identifier">result</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">x</span> <span class="special">&lt;&lt;</span> <span class="string">"\n"</span><span class="special">;</span>
+        <span class="special">}</span>
+    <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Parse failure.\n"</span><span class="special">;</span>
+    <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+<p>
+      </p>
+<p>
+        Run in a shell, it looks like this:
+      </p>
+<pre class="programlisting">$ example/semantic_actions
+Enter a list of doubles, separated by commas. 4,3
+Got one!
+Got one!
+You entered:
+4
+3
+</pre>
+<p>
+        In Boost.Parser, semantic actions are implemented in terms of invocable objects
+        that take a single parameter to a parse-context object. In the example we
+        used this lambda as our invocable:
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">action</span> <span class="special">=</span> <span class="special">[&amp;</span><span class="identifier">result</span><span class="special">](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Got one!\n"</span><span class="special">;</span>
+    <span class="identifier">result</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">));</span>
+<span class="special">};</span>
+</pre>
+<p>
+      </p>
+<p>
+        We're both printing a message to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span></code>
+        and recording a parsed result in the lambda. It could do both, either, or
+        neither of these things if you like. The way we get the parsed <code class="computeroutput"><span class="keyword">double</span></code> in the lambda is by asking the parse
+        context for it. <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code> is
+        how you ask the parse context for the attribute produced by the parser to
+        which the semantic action is attached. There are lots of functions like
+        <code class="computeroutput"><span class="identifier">_attr</span><span class="special">()</span></code>
+        that can be used to access the state in the parse context. We'll cover more
+        of them later on. The next section defines what exactly the parse context
+        is and how it works.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="a_trivial_example_that_gracefully_handles_whitespace.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parsers.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

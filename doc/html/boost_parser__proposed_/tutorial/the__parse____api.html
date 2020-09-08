@@ -1,0 +1,512 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>The parse() API</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="attribute_generation.html" title="Attribute Generation">
+<link rel="next" href="rules.html" title="Rules">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="attribute_generation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rules.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_parser__proposed_.tutorial.the__parse____api"></a><a class="link" href="the__parse____api.html" title="The parse() API">The
+      <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+      API</a>
+</h3></div></div></div>
+<p>
+        There are multiple overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>.
+        These overloads have some things in common:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            They each return a value contextually convertible to <code class="computeroutput"><span class="keyword">bool</span></code>.
+          </li>
+<li class="listitem">
+            They each take at least a range to parse and a parser. The "range
+            to parse" may be an iterator/sentinel pair or an single range-like
+            object.
+          </li>
+<li class="listitem">
+            They each require forward iterability of the input.
+          </li>
+<li class="listitem">
+            They each accept any input range with an integral element type. This
+            means that they can each parse ranges of <code class="computeroutput"><span class="keyword">char</span></code>,
+            <code class="computeroutput"><span class="identifier">char8_t</span></code>, <code class="computeroutput"><span class="identifier">uint16_t</span></code>, <code class="computeroutput"><span class="keyword">int</span></code>,
+            etc.
+          </li>
+<li class="listitem">
+            When you call any of the iterator/sentinel pair overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>, for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>,
+            it parses the range <code class="computeroutput"><span class="special">[</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">)</span></code>, advancing <code class="computeroutput"><span class="identifier">first</span></code>
+            as it goes. If the parse succeeds, the entire input may or may not have
+            been matched. The value of <code class="computeroutput"><span class="identifier">first</span></code>
+            will indicate the last location within the input that <code class="computeroutput"><span class="identifier">p</span></code>
+            matched. The <span class="bold"><strong>whole</strong></span> input was matched
+            if and only if <code class="computeroutput"><span class="identifier">first</span> <span class="special">==</span> <span class="identifier">last</span></code>.
+          </li>
+<li class="listitem">
+            When you call any of the range-like overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>,
+            for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+            only indicates success if <span class="bold"><strong>all</strong></span> of <code class="computeroutput"><span class="identifier">r</span></code> was matched by <code class="computeroutput"><span class="identifier">p</span></code>.
+          </li>
+</ul></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h0"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.the_overloads"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.the_overloads">The
+        overloads</a>
+      </h5>
+<p>
+        There are eight overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>,
+        because there are three either/or options in how you call it.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h1"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.iterator_sentinel_versus_range_like"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.iterator_sentinel_versus_range_like">Iterator/sentinel
+        versus range-like</a>
+      </h5>
+<p>
+        You can call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> with an iterator and sentinel
+        that delimit a range of integral values. For example:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="comment">/* some parser ... */</span><span class="special">;</span>
+
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_1</span> <span class="special">=</span> <span class="comment">/* ... */</span><span class="special">;</span>
+<span class="comment">// Using null_sentinel, str_1 can point to three billion characters, and</span>
+<span class="comment">// we can call parse() without having to find the end of the string first.</span>
+<span class="keyword">auto</span> <span class="identifier">result_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_1</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">null_sentinel</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+
+<span class="keyword">char</span> <span class="identifier">str_2</span><span class="special">[]</span> <span class="special">=</span> <span class="comment">/* ... */</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">begin</span><span class="special">(</span><span class="identifier">str_2</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">end</span><span class="special">(</span><span class="identifier">str_2</span><span class="special">),</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+</pre>
+<p>
+        The iterator/sentinel overloads can parse successfully without matching the
+        entire input. You can tell if the entire input was matched by checking if
+        <code class="computeroutput"><span class="identifier">first</span> <span class="special">==</span>
+        <span class="identifier">last</span></code> is true after <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> returns.
+      </p>
+<p>
+        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        with a range of integral values. When the range is a reference to an array
+        of characters, any terminating <code class="computeroutput"><span class="number">0</span></code>
+        is ignored; this allows calls like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
+        <span class="identifier">p</span><span class="special">)</span></code>
+        to work naturally.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="comment">/* some parser ... */</span><span class="special">;</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">u8string</span> <span class="identifier">str_1</span> <span class="special">=</span> <span class="string">"str"</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_1</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+
+<span class="comment">// The null terminator is ignored.  This call parses s-t-r, not s-t-r-0.</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">U</span><span class="string">"str"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_3</span> <span class="special">=</span> <span class="string">"str"</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_3</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf16</span><span class="special">(</span><span class="identifier">str_3</span><span class="special">),</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+</pre>
+<p>
+        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        with a pointer to a null-terminated string of integral values. <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> considers pointers to null-terminated
+        strings to be ranges, since, for any pointer <code class="computeroutput"><span class="identifier">T</span>
+        <span class="special">*</span></code> to a null-terminated string, <code class="computeroutput"><span class="identifier">T</span> <span class="special">*</span></code> is
+        isomorphic with <code class="computeroutput"><span class="identifier">view</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">null_sentinel</span><span class="special">&gt;</span></code>.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="comment">/* some parser ... */</span><span class="special">;</span>
+
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_1</span> <span class="special">=</span> <span class="comment">/* ... */</span> <span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_1</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+<span class="identifier">char8_t</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_2</span> <span class="special">=</span> <span class="comment">/* ... */</span> <span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_2</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+<span class="keyword">char16_t</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_3</span> <span class="special">=</span> <span class="comment">/* ... */</span> <span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_3</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_3</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+<span class="keyword">char32_t</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str_4</span> <span class="special">=</span> <span class="comment">/* ... */</span> <span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_4</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str_4</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+
+<span class="keyword">int</span> <span class="keyword">const</span> <span class="identifier">array</span><span class="special">[]</span> <span class="special">=</span> <span class="special">{</span> <span class="char">'s'</span><span class="special">,</span> <span class="char">'t'</span><span class="special">,</span> <span class="char">'r'</span><span class="special">,</span> <span class="number">0</span> <span class="special">};</span>
+<span class="keyword">int</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">array_ptr</span> <span class="special">=</span> <span class="identifier">array</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result_5</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">array_ptr</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
+</pre>
+<p>
+        Since there is no way to indicate that <code class="computeroutput"><span class="identifier">p</span></code>
+        matches the input, but only a prefix of the input was matched, the range-like
+        (non-iterator/sentinel) overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        indicate failure if the entire input is not matched.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h2"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.with_or_without_an_attribute_out_parameter"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.with_or_without_an_attribute_out_parameter">With
+        or without an attribute out-parameter</a>
+      </h5>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="char">'"'</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">=</span> <span class="char">'"'</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="char">'"'</span><span class="special">;</span>
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str</span> <span class="special">=</span> <span class="string">"\"two words\""</span> <span class="special">;</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result_1</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">result_1</span><span class="special">);</span>   <span class="comment">// success is true; result_1 is "two words"</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span>                  <span class="comment">// !!result_2 is true; *result_2 is "two words"</span>
+</pre>
+<p>
+        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>with</strong></span>
+        an attribute out-parameter and parser <code class="computeroutput"><span class="identifier">p</span></code>,
+        the expected type is <span class="bold"><strong>something like</strong></span> <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>.
+        It doesn't have to be exactly that; I'll explain in a bit. The return type
+        is <code class="computeroutput"><span class="keyword">bool</span></code>.
+      </p>
+<p>
+        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>without</strong></span>
+        an attribute out-parameter and parser <code class="computeroutput"><span class="identifier">p</span></code>,
+        the return type is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)&gt;</span></code>.
+        Note that when <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
+        is itself an <code class="computeroutput"><span class="identifier">optional</span></code>, the
+        return type is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;...&gt;&gt;</span></code>. Each of those optionals tells
+        you something different. The outer one tells you whether the parse succeeded.
+        If so, the parser was successful, but it still generates an attribute that
+        is an <code class="computeroutput"><span class="identifier">optional</span></code> &#8212; that's
+        the inner one.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h3"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.with_or_without_a_skipper"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.with_or_without_a_skipper">With
+        or without a skipper</a>
+      </h5>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="char">'"'</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">=</span> <span class="char">'"'</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="char">'"'</span><span class="special">;</span>
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str</span> <span class="special">=</span> <span class="string">"\"two words\""</span> <span class="special">;</span>
+
+<span class="keyword">auto</span> <span class="identifier">result_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span>         <span class="comment">// !!result_1 is true; *result_1 is "two words"</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span> <span class="comment">// !!result_2 is true; *result_2 is "twowords"</span>
+</pre>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h4"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.compatibility_of_attribute_out_parameters"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.compatibility_of_attribute_out_parameters">Compatibility
+        of attribute out-parameters</a>
+      </h5>
+<p>
+        For any call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> that takes an attribute
+        out-parameter, like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
+        <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">,</span> <span class="identifier">out</span><span class="special">)</span></code>,
+        the call is well-formed for a number of possible types of <code class="computeroutput"><span class="identifier">out</span></code>;
+        <code class="computeroutput"><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">out</span><span class="special">)</span></code> does
+        not need to be exactly <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>.
+      </p>
+<p>
+        For instance, this is valid code that does not abort (remember that the attribute
+        type of <code class="computeroutput"><a class="link" href="../../boost/parser/string.html" title="Function template string">string()</a></code> is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>):
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"foo"</span><span class="special">);</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"foo"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">success</span> <span class="special">&amp;&amp;</span> <span class="identifier">result</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;({</span><span class="char">'f'</span><span class="special">,</span> <span class="char">'o'</span><span class="special">,</span> <span class="char">'o'</span><span class="special">}));</span>
+</pre>
+<p>
+        Even though <code class="computeroutput"><span class="identifier">p</span></code> generates a
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> attribute, when it actually takes
+        the data it generates and writes it into an attribute, it only assumes that
+        the attribute is a <code class="computeroutput"><span class="identifier">container</span></code>
+        (see <a class="link" href="../concepts.html" title="Concepts">Concepts</a>), not
+        that it is some particular container type. It will happily <code class="computeroutput"><span class="identifier">insert</span><span class="special">()</span></code>
+        into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> or a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;</span></code>
+        all the same. <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;</span></code>
+        are both containers of <code class="computeroutput"><span class="keyword">char</span></code>,
+        but it will also insert into a container with a different element type.
+        <code class="computeroutput"><span class="identifier">p</span></code> just needs to be able to
+        insert the elements it produces into the attribute-container. As long as
+        an implicit conversion allows that to work, everything is fine:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"foo"</span><span class="special">);</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"foo"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">success</span> <span class="special">&amp;&amp;</span> <span class="identifier">result</span> <span class="special">==</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;({</span><span class="char">'f'</span><span class="special">,</span> <span class="char">'o'</span><span class="special">,</span> <span class="char">'o'</span><span class="special">}));</span>
+</pre>
+<p>
+        This works, too, even though it requires inserting elements from a generated
+        sequence of <code class="computeroutput"><span class="identifier">uint32_t</span></code> into
+        a container of <code class="computeroutput"><span class="keyword">char</span></code> (remember
+        that the attribute type of <code class="computeroutput"><span class="special">+</span><a class="link" href="../../boost/parser/cp.html" title="Global cp">cp</a></code>
+        is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;</span></code>):
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="special">+</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">cp</span><span class="special">;</span>
+
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"foo"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">success</span> <span class="special">&amp;&amp;</span> <span class="identifier">result</span> <span class="special">==</span> <span class="string">"foo"</span><span class="special">);</span>
+</pre>
+<p>
+        This next example works as well, even though the change to a container is
+        not at the top level. It is an element of the result tuple:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="comment">// p matches one or more non-spaces, followed by a single space, followed by one or more repetitions of "foo".</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="special">+(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">cp</span> <span class="special">-</span> <span class="char">' '</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="char">' '</span> <span class="special">&gt;&gt;</span> <span class="special">+</span><span class="identifier">string</span><span class="special">(</span><span class="string">"foo"</span><span class="special">);</span>
+
+<span class="comment">// attr_type is the attribute type generated by p.</span>
+<span class="keyword">using</span> <span class="identifier">attr_type</span> <span class="special">=</span> <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">u8</span><span class="string">""</span><span class="special">,</span> <span class="identifier">p</span><span class="special">));</span>
+<span class="keyword">static_assert</span><span class="special">(</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span>
+        <span class="identifier">attr_type</span><span class="special">,</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span>
+            <span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;&gt;&gt;);</span>
+
+<span class="comment">// This is similar to attr_type, with the std::vector&lt;uint32_t&gt; changed to a std::string.</span>
+<span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">u8</span><span class="string">"r&#244;le foofoo"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+<span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">literals</span><span class="special">;</span>
+
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">success</span><span class="special">);</span>                              <span class="comment">// p matches.</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">[</span><span class="number">0</span><span class="identifier">_c</span><span class="special">].</span><span class="identifier">size</span><span class="special">()</span> <span class="special">==</span> <span class="number">5u</span><span class="special">);</span>             <span class="comment">// The 4 code points "r&#244;le" get transcoded to 5 UTF-8 code points to fit in the std::string.</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">[</span><span class="number">0</span><span class="identifier">_c</span><span class="special">]</span> <span class="special">==</span> <span class="special">(</span><span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*)</span><span class="identifier">u8</span><span class="string">"r&#244;le"</span><span class="special">);</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span><span class="special">[</span><span class="number">1</span><span class="identifier">_c</span><span class="special">]</span> <span class="special">==</span> <span class="string">"foofoo"</span><span class="special">);</span>
+</pre>
+<p>
+        As indicated in the inline comments, there are a couple of things to take
+        away from this example:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            If you change a container (such as <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+            to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
+            or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;</span></code>
+            to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">deque</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>),
+            the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> will often still be
+            well-formed
+          </li>
+<li class="listitem">
+            When changing out a container type, if both containers contain integral
+            values, and the removed container's element type is 4 bytes in size,
+            and the new container's element type is 1 byte in size, Boost.Parser
+            assumes that this is a UTF-32-to-UTF-8 conversion, and silently transcodes
+            the data when inserting into the new container.
+          </li>
+</ul></div>
+<div class="caution"><table border="0" summary="Caution">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../images/caution.png"></td>
+<th align="left">Caution</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          The detection of the need to transcode from UTF-32 to UTF-8 applies to
+          <span class="bold"><strong>all</strong></span> integral values. If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> with this parser:
+        </p>
+<p>
+          auto const p = +boost::parser::uint_;
+        </p>
+<p>
+          using a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> as an out-parameter, it will happily
+          transcode your unsigned ints to UTF-8. This is almost certainly not what
+          you want. Don't worry, though; this kind of case comes up pretty rarely,
+          but wanting to parse in Unicode mode and catch results in UTF-8 strings
+          comes up all the time.
+        </p>
+</td></tr>
+</table></div>
+<p>
+        Let's look at a case where another simple-seeming type replacement does
+        <span class="bold"><strong>not</strong></span> work:
+      </p>
+<pre class="programlisting">    <span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="special">+(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span> <span class="special">&gt;&gt;</span> <span class="special">+</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">cp</span><span class="special">);</span>
+
+    <span class="keyword">using</span> <span class="identifier">attr_type</span> <span class="special">=</span> <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">u8</span><span class="string">""</span><span class="special">,</span> <span class="identifier">p</span><span class="special">));</span>
+    <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span>
+                  <span class="identifier">attr_type</span><span class="special">,</span>
+                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span>
+                      <span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;&gt;&gt;&gt;);</span>
+
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;&gt;</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="preprocessor">#if</span> <span class="number">0</span>
+    <span class="keyword">bool</span> <span class="keyword">const</span> <span class="identifier">success</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">u8</span><span class="string">"42 r&#244;le"</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span> <span class="comment">// ill-formed!</span>
+<span class="preprocessor">#endif</span>
+</pre>
+<p>
+        In this case, removing a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;</span></code> and putting a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+        in its place makes the code ill-formed, even though we saw a similar replacement
+        earlier. The reason this one does not work is that the replaced container
+        is part of the element type of yet another container. At some point in the
+        code, <code class="computeroutput"><span class="identifier">p</span></code> would try to insert
+        a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;</span></code> &#8212; the element type of the
+        attribute type it normally generates &#8212; into a vector of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>s. There's no implicit conversion there,
+        so the code is ill-formed.
+      </p>
+<p>
+        The take-away for this last example is that the ability to arbitrarily swap
+        out data types within the type of the attribute you pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> is very flexible, but is
+        also limited to structurally simple cases. When we discuss <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> in the next section,
+        we'll see how this flexibility in the types of attributes can help when writing
+        complicated parsers.
+      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          Those were all examples of swapping out one container type for another.
+          They make good examples because that is more likely to be surprising, and
+          so it's getting lots of coverage here. You can also do much simpler things
+          like parse using a <code class="computeroutput"><a class="link" href="../../boost/parser/uint_.html" title="Global uint_">uint_</a></code>, and writing its attribute
+          into a <code class="computeroutput"><span class="keyword">double</span></code>. In general,
+          you can swap any type <code class="computeroutput"><span class="identifier">T</span></code>
+          out of the attribute, as long as <code class="computeroutput"><span class="identifier">T</span></code>
+          is not part of the element type for some container within the attribute.
+        </p></td></tr>
+</table></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h5"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.unicode_versus_non_unicode_parsing"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.unicode_versus_non_unicode_parsing">Unicode
+        versus non-Unicode parsing</a>
+      </h5>
+<p>
+        A call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> either considers the entire
+        input to be in a UTF format (UTF-8, UTF-16, or UTF-32), or it considers the
+        entire input to be in some unknown encoding. Here is how it deduces which
+        case the call falls under:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            If the input range is a sequence of <code class="computeroutput"><span class="identifier">char8_t</span></code>,
+            or if the input is a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">utf8_view</span></code>,
+            the input is UTF-8.
+          </li>
+<li class="listitem">
+            Otherwise, if the input is a sequence of 1-byte integral values, the
+            input is in an unknown encoding.
+          </li>
+<li class="listitem">
+            Otherwise, the input is in a UTF encoding.
+          </li>
+</ul></div>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          if you want to want to parse in ASCII-only mode, or in some unknown encoding,
+          using only sequences of <code class="computeroutput"><span class="keyword">char</span></code>,
+          like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> or <code class="computeroutput"><span class="keyword">char</span>
+          <span class="keyword">const</span> <span class="special">*</span></code>.
+        </p></td></tr>
+</table></div>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          If you want to ensure all input is parsed as Unicode, pass the input range
+          <code class="computeroutput"><span class="identifier">r</span></code> as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
+          &#8212; that's the first thing that happens to it inside <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> in the Unicode parsing
+          path anyway.
+        </p></td></tr>
+</table></div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          Since passing <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">utf8_view</span></code> is a special case, and since
+          a sequence of <code class="computeroutput"><span class="keyword">char</span></code> is otherwise
+          considered an unknown encoding, <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf8</span><span class="special">(</span><span class="identifier">r</span><span class="special">),</span>
+          <span class="identifier">p</span><span class="special">)</span></code>
+          treats <code class="computeroutput"><span class="identifier">r</span></code> as UTF-8, whereas
+          <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">r</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">end</span><span class="special">(),</span> <span class="identifier">p</span><span class="special">)</span></code> does not.
+        </p></td></tr>
+</table></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h6"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.the__code__phrase_role__identifier__trace_mode__phrase___code__parameter_to__functionname_alt__boost__parser__parse___code__phrase_role__identifier__parse__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.the__code__phrase_role__identifier__trace_mode__phrase___code__parameter_to__functionname_alt__boost__parser__parse___code__phrase_role__identifier__parse__phrase__phrase_role__special______phrase___code___functionname_">The
+        <code class="computeroutput"><span class="identifier">trace_mode</span></code> parameter to
+        parse()</a>
+      </h5>
+<p>
+        Debugging parsers is notoriously difficult once they reach a certain size.
+        To get a verbose trace of your parse, pass <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">trace</span><span class="special">::</span><span class="identifier">on</span></code> as
+        the final parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>.
+        It will show you the current parser being matched, the front of the input,
+        and any attributes generated. See the <a class="link" href="error_handling_and_debugging.html" title="Error Handling and Debugging">Error
+        Handling and Debugging</a> section of the tutorial for details.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.the__parse____api.h7"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the__parse____api.globals_and_error_handlers"></a></span><a class="link" href="the__parse____api.html#boost_parser__proposed_.tutorial.the__parse____api.globals_and_error_handlers">Globals
+        and error handlers</a>
+      </h5>
+<p>
+        Each call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> can optionally have a globals
+        object associated with in. To use a particular globals object with you parser,
+        you call <code class="computeroutput"><a class="link" href="../../boost/parser/with_globals.html" title="Function template with_globals">with_globals()</a></code> to create a new parser with
+        the globals object in it:
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">globals_t</span>
+<span class="special">{</span>
+    <span class="keyword">int</span> <span class="identifier">foo</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">bar</span><span class="special">;</span>
+<span class="special">};</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser</span> <span class="special">=</span> <span class="comment">/* ... */</span><span class="special">;</span>
+<span class="identifier">globals_t</span> <span class="identifier">globals</span><span class="special">{</span><span class="number">42</span><span class="special">,</span> <span class="string">"yay"</span><span class="special">};</span>
+<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"str"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">with_globals</span><span class="special">(</span><span class="identifier">parser</span><span class="special">,</span> <span class="identifier">globals</span><span class="special">));</span>
+</pre>
+<p>
+        Every semantic action within that call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        can access to the same <code class="computeroutput"><span class="identifier">globals_t</span></code>
+        object using <code class="computeroutput"><span class="identifier">_globals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>.
+      </p>
+<p>
+        The default error handler is great for most needs, but if you want to change
+        it, you can do so by creating a new parser with a call to <code class="computeroutput"><a class="link" href="../../boost/parser/with_error_handler.html" title="Function template with_error_handler">with_error_handler()</a></code>:
+      </p>
+<pre class="programlisting"><span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser</span> <span class="special">=</span> <span class="comment">/* ... */</span><span class="special">;</span>
+<span class="identifier">my_error_handler</span> <span class="identifier">error_handler</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"str"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">error_handler</span><span class="special">(</span><span class="identifier">parser</span><span class="special">,</span> <span class="identifier">error_handler</span><span class="special">));</span>
+</pre>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          If your parsing environment does not allow you to report errors to a terminal,
+          you may want to use <code class="computeroutput"><a class="link" href="../../boost/parser/callback_error_handler.html" title="Struct callback_error_handler">callback_error_handler</a></code> instead
+          of the default error handler.
+        </p></td></tr>
+</table></div>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          Globals and the error handler are ignored, if present, on any parser except
+          the top-level parser.
+        </p></td></tr>
+</table></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="attribute_generation.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rules.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

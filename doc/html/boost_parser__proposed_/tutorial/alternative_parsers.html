@@ -1,0 +1,67 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Alternative Parsers</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="up" href="../tutorial.html" title="Tutorial">
+<link rel="prev" href="mutable_symbol_tables.html" title="Mutable Symbol Tables">
+<link rel="next" href="the_parsers_and_their_uses.html" title="The Parsers And Their Uses">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="mutable_symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="the_parsers_and_their_uses.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="boost_parser__proposed_.tutorial.alternative_parsers"></a><a class="link" href="alternative_parsers.html" title="Alternative Parsers">Alternative
+      Parsers</a>
+</h3></div></div></div>
+<p>
+        Frequently, you need to parse something that might have one of several forms.
+        <code class="computeroutput"><span class="keyword">operator</span><span class="special">|()</span></code>
+        is overloaded to form alternative parsers. For example:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">eps</span><span class="special">;</span>
+</pre>
+<p>
+        <code class="computeroutput"><span class="identifier">parser_1</span></code> matches an integer,
+        or if that fails, it matches <span class="emphasis"><em>epsilon</em></span>, the empty string.
+        This is equivalent to writing:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser_2</span> <span class="special">=</span> <span class="special">-</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">;</span>
+</pre>
+<p>
+        However, neither <code class="computeroutput"><span class="identifier">parser_1</span></code>
+        nor <code class="computeroutput"><span class="identifier">parser_2</span></code> is equivalent
+        to writing this:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser_3</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">eps</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">;</span>
+</pre>
+<p>
+        The reason is that alternative parsers try each of their subparsers, one
+        at a time, and stop on the first one that matches. <span class="emphasis"><em>Epsilon</em></span>
+        matches anything, since it is zero length and consumes no input. It even
+        matches the end of input. This means that <code class="computeroutput"><span class="identifier">parser_3</span></code>
+        is equivalent to <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
+        by itself.
+      </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="mutable_symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="the_parsers_and_their_uses.html"><img src="../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Header &lt;boost/parser/parser_fwd.hpp&gt;</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="up" href="../../../reference.html" title="Reference">
+<link rel="prev" href="../../../BOOST_PARSER_DEFINE_RULES.html" title="Macro BOOST_PARSER_DEFINE_RULES">
+<link rel="next" href="../../../boost/parser/action_parser.html" title="Struct template action_parser">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/action_parser.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="header.boost.parser.parser_fwd_hpp"></a>Header &lt;<a href="../../../../../boost/parser/parser_fwd.hpp" target="_top">boost/parser/parser_fwd.hpp</a>&gt;</h3></div></div></div>
+<pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
+  <span class="keyword">namespace</span> <span class="identifier">parser</span> <span class="special">{</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">typename</span> Action<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/action_parser.html" title="Struct template action_parser">action_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Attribute<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/attr_parser.html" title="Struct template attr_parser">attr_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> TagType<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">,</span> <span class="keyword">typename</span> LocalState<span class="special">,</span> 
+             <span class="keyword">typename</span> ParamsTuple<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/callback_rule.html" title="Struct template callback_rule">callback_rule</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Expected<span class="special">,</span> <span class="keyword">typename</span> AttributeType<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/char_parser.html" title="Struct template char_parser">char_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">typename</span> DelimiterParser<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/delimited_seq_parser.html" title="Struct template delimited_seq_parser">delimited_seq_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Predicate<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/eps_parser.html" title="Struct template eps_parser">eps_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">bool</span> FailOnMatch<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/expect_parser.html" title="Struct template expect_parser">expect_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/float_parser.html" title="Struct template float_parser">float_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">int</span> Radix<span class="special">,</span> <span class="keyword">int</span> MinDigits<span class="special">,</span> <span class="keyword">int</span> MaxDigits<span class="special">,</span> 
+             <span class="keyword">typename</span> Expected<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/int_parser.html" title="Struct template int_parser">int_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/lexeme_parser.html" title="Struct template lexeme_parser">lexeme_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/omit_parser.html" title="Struct template omit_parser">omit_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/one_plus_parser.html" title="Struct template one_plus_parser">one_plus_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/opt_parser.html" title="Struct template opt_parser">opt_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ParserTuple<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/or_parser.html" title="Struct template or_parser">or_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">typename</span> GlobalState<span class="special">,</span> <span class="keyword">typename</span> ErrorHandler<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/raw_parser.html" title="Struct template raw_parser">raw_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">typename</span> DelimiterParser<span class="special">,</span> <span class="keyword">typename</span> MinType<span class="special">,</span> 
+             <span class="keyword">typename</span> MaxType<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/repeat_parser.html" title="Struct template repeat_parser">repeat_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> TagType<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">,</span> <span class="keyword">typename</span> LocalState<span class="special">,</span> 
+             <span class="keyword">typename</span> ParamsTuple<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/rule.html" title="Struct template rule">rule</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> CanUseCallbacks<span class="special">,</span> <span class="keyword">typename</span> TagType<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">,</span> 
+             <span class="keyword">typename</span> LocalState<span class="special">,</span> <span class="keyword">typename</span> ParamsTuple<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/rule_parser.html" title="Struct template rule_parser">rule_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ParserTuple<span class="special">,</span> <span class="keyword">typename</span> BacktrackingTuple<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/seq_parser.html" title="Struct template seq_parser">seq_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">,</span> <span class="keyword">typename</span> SkipParser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/skip_parser.html" title="Struct template skip_parser">skip_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> StrIter<span class="special">,</span> <span class="keyword">typename</span> StrSentinel<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/string_parser.html" title="Struct template string_parser">string_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> SwitchValue<span class="special">,</span> <span class="keyword">typename</span> OrParser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/switch_parser.html" title="Struct template switch_parser">switch_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/symbol_parser.html" title="Struct template symbol_parser">symbol_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">int</span> Radix<span class="special">,</span> <span class="keyword">int</span> MinDigits<span class="special">,</span> <span class="keyword">int</span> MaxDigits<span class="special">,</span> 
+             <span class="keyword">typename</span> Expected<span class="special">&gt;</span> 
+      <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/uint_parser.html" title="Struct template uint_parser">uint_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> NewlinesOnly<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/ws_parser.html" title="Struct template ws_parser">ws_parser</a><span class="special">;</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/zero_plus_parser.html" title="Struct template zero_plus_parser">zero_plus_parser</a><span class="special">;</span>
+
+    <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_attribute"></a><span class="identifier">no_attribute</span><span class="special">;</span>
+    <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_local_state"></a><span class="identifier">no_local_state</span><span class="special">;</span>
+    <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_params"></a><span class="identifier">no_params</span><span class="special">;</span>
+  <span class="special">}</span>
+<span class="special">}</span></pre>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/action_parser.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>

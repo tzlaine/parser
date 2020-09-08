@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Chapter&#160;1.&#160;Boost.Parser (Proposed)</title>
+<link rel="stylesheet" href="boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="next" href="boost_parser__proposed_/introduction.html" title="Introduction">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav"><a accesskey="n" href="boost_parser__proposed_/introduction.html"><img src="images/next.png" alt="Next"></a></div>
+<div class="chapter">
+<div class="titlepage"><div>
+<div><h2 class="title">
+<a name="parser"></a>Chapter&#160;1.&#160;Boost.Parser (Proposed)</h2></div>
+<div><div class="author"><h3 class="author">
+<span class="firstname">Zach</span> <span class="surname">Laine</span>
+</h3></div></div>
+<div><p class="copyright">Copyright &#169; 2020 T. Zachary Laine</p></div>
+<div><div class="legalnotice">
+<a name="parser.legal"></a><p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></div>
+</div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="section"><a href="boost_parser__proposed_/introduction.html">Introduction</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/this_library_s_relationship_to_boost_spirit.html">This
+    Library's Relationship to Boost.Spirit</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial.html">Tutorial</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/terminology.html">Terminology</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/hello__whomever.html">Hello,
+      Whomever</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/a_trivial_example.html">A
+      Trivial Example</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/a_trivial_example_that_gracefully_handles_whitespace.html">A
+      Trivial Example That Gracefully Handles Whitespace</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/semantic_actions.html">Semantic
+      Actions</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/rule_parsers.html">Rule Parsers</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/the_parse_context.html">The
+      Parse Context</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/symbol_tables.html">Symbol
+      Tables</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/mutable_symbol_tables.html">Mutable
+      Symbol Tables</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/alternative_parsers.html">Alternative
+      Parsers</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/the_parsers_and_their_uses.html">The
+      Parsers And Their Uses</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/directives.html">Directives</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/combining_operations.html">Combining
+      Operations</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/attribute_generation.html">Attribute
+      Generation</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/the__parse____api.html">The
+      <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+      API</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/rules.html">Rules</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/unicode_support.html">Unicode
+      Support</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/callback_parsing.html">Callback
+      Parsing</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/error_handling_and_debugging.html">Error
+      Handling and Debugging</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/memory_allocation.html">Memory
+      Allocation</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/tutorial/best_practices.html">Best
+      Practices</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="boost_parser__proposed_/extended_examples.html">Extended Examples</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="boost_parser__proposed_/extended_examples/parsing_json.html">Parsing
+      JSON</a></span></dt>
+<dt><span class="section"><a href="boost_parser__proposed_/extended_examples/parsing_json_with_callbacks.html">Parsing
+      JSON With Callbacks</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="boost_parser__proposed_/concepts.html">Concepts</a></span></dt>
+<dt><span class="section"><a href="parser/compiler_support.html">Compiler Support</a></span></dt>
+<dt><span class="section"><a href="reference.html">Reference</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="header/boost/parser/concepts_hpp.html">Header &lt;boost/parser/concepts.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+<dt><span class="section"><a href="header/boost/parser/config_hpp.html">Header &lt;boost/parser/config.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+<dt><span class="section"><a href="header/boost/parser/error_handling_hpp.html">Header &lt;boost/parser/error_handling.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+<dt><span class="section"><a href="header/boost/parser/error_handling_fwd_hpp.html">Header &lt;boost/parser/error_handling_fwd.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+<dt><span class="section"><a href="header/boost/parser/parser_hpp.html">Header &lt;boost/parser/parser.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+<dt><span class="section"><a href="header/boost/parser/parser_fwd_hpp.html">Header &lt;boost/parser/parser_fwd.hpp&gt;</a></span></dt>
+<dd><dl></dl></dd>
+</dl></dd>
+<dt><span class="section"><a href="boost_parser__proposed_/rationale.html">Rationale</a></span></dt>
+</dl>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"><p><small>Last revised: September 08, 2020 at 05:05:24 GMT</small></p></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav"><a accesskey="n" href="boost_parser__proposed_/introduction.html"><img src="images/next.png" alt="Next"></a></div>
+</body>
+</html>

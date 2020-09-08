@@ -1,0 +1,109 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>This Library's Relationship to Boost.Spirit</title>
+<link rel="stylesheet" href="../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="up" href="../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="prev" href="introduction.html" title="Introduction">
+<link rel="next" href="tutorial.html" title="Tutorial">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="introduction.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="tutorial.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="boost_parser__proposed_.this_library_s_relationship_to_boost_spirit"></a><a class="link" href="this_library_s_relationship_to_boost_spirit.html" title="This Library's Relationship to Boost.Spirit">This
+    Library's Relationship to Boost.Spirit</a>
+</h2></div></div></div>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        If you are familiar with Spirit 2 and/or Spirit X3, you may be interested
+        in this section. If you are not, and you have not ready the tutorial for
+        Boost.Parser yet, very little of this will make sense.
+      </p></td></tr>
+</table></div>
+<p>
+      <a href="https://www.boost.org/doc/libs/release/libs/spirit" target="_top">Boost.Spirit</a>
+      is a library that is already in Boost, and it has been around for a long time.
+    </p>
+<p>
+      However, it does not suit user needs in some ways.
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          Spirit 2 suffers from very long compile times.
+        </li>
+<li class="listitem">
+          Spirit 2 has error reporting that requires a lot of user intervention to
+          work.
+        </li>
+<li class="listitem">
+          Spirit 2 requires user intervention, including a (long) recompile, to enable
+          parse tracing.
+        </li>
+<li class="listitem">
+          Spirit X3 has rules that do not compose well &#8212; the attributes produced
+          by a rule can change depending on the context in which you use the rule.
+        </li>
+<li class="listitem">
+          Spirit X3 is missing many of the convenient interface to parsers that Spirit
+          2 had. For instance, you cannot use a parser in a parameterized fashion.
+        </li>
+<li class="listitem">
+          All versions of Spirit have Unicode support, but it is quite difficult
+          to get working.
+        </li>
+</ul></div>
+<p>
+      I wanted a library that does not suffer from any of the above limitations.
+      It should be noted that while Spirit X3 only has some of couple of flaws in
+      the list above, the one related to rules is a deal-breaker. The ability to
+      write rules, test them in isolation, and then re-use them throughout a complex
+      parser is essential.
+    </p>
+<p>
+      Though no version of <a href="https://www.boost.org/doc/libs/release/libs/spirit" target="_top">Boost.Spirit</a>
+      (Spirit 2 or Spirit X3) suffers from all those limitations, there also does
+      not exist any one version that avoids all of them. Boost.Parser does so. However,
+      there are a lot of great ideas in <a href="https://www.boost.org/doc/libs/release/libs/spirit" target="_top">Boost.Spirit</a>
+      that have been retained in Boost.Parser. Both libraries:
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          use the same operator overloads to combine parsers;
+        </li>
+<li class="listitem">
+          use approximately the same set of directives to influence the parse (e.g.
+          <code class="computeroutput"><span class="identifier">lexeme</span><span class="special">[]</span></code>);
+        </li>
+<li class="listitem">
+          provide loosely-coupled rules that are separately compilable (at least
+          for Spirit X3); and
+        </li>
+<li class="listitem">
+          are built around a flexible parse context object that has state added to
+          and removed from it during the parse (again, comparing to Spirit X3).
+        </li>
+</ul></div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="introduction.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a><a accesskey="n" href="tutorial.html"><img src="../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
