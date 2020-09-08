@@ -2241,6 +2241,8 @@ if you want to report the attribute of _cb_r_ `r1` via callback, `r1`'s
 implementation may use some rule `r2` to generate some or all of its
 attribute.
 
+See _ex_cb_json_ for an extended example of callback parsing.
+
 [endsect]
 
 [section Best Practices]

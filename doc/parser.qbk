@@ -165,7 +165,8 @@
 [def _eh_debugging_        [link boost_parser__proposed_.tutorial.error_handling_and_debugging Error Handling and Debugging]]
 [def _unicode_             [link boost_parser__proposed_.tutorial.unicode_support Unicode Support]]
 [def _concepts_            [link boost_parser__proposed_.concepts Concepts]]
-[def _ex_json_             [link boost_parser__proposed_.extended_example__parsing_json Extended JSON Example]]
+[def _ex_json_             [link boost_parser__proposed_.extended_examples.parsing_json Parsing JSON]]
+[def _ex_cb_json_          [link boost_parser__proposed_.extended_examples.parsing_json_with_callbacks Parsing JSON With Callbacks]]
 [def _rationale_           [link boost_parser__proposed_.rationale Rationale]]
 
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]

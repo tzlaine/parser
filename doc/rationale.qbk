@@ -51,8 +51,8 @@ To demonstrate the difference, I added these three lines to the end of the
     if (x)
         std::cout << "Oops!  What x?";
 
-Note that `object_init` has no locals.  Here is an example of how you can
-investigate this error at run time:
+Note that the parser that `object_init` is attached to has no locals.  Here is
+an example of how you can investigate this error at run time:
 
 [teletype]``
 $ gdb --args example/json ../meta/libraries.json 
