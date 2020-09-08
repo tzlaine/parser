@@ -2171,7 +2171,7 @@ encoding of Unicode strings.  _Parser_ is written with this assumption in
 mind.  This means that if you are parsing 32-bit code points (as you always
 are in the Unicode path), and you want to catch the result in a container `C`
 of 1-byte integral values, _Parser_ will silently transcode from UTF-32 to
-UTF-8 and write the attribute into `C`.  This means that `std::string`,
+UTF-8 and write the attribute into `C`.  This means that _std_str_,
 `std::u8string`, etc. are fine to use as attribute out-parameters for `*_ch_`,
 and the result will be UTF-8.  This is true whether the parsing is
 Unicode-aware or not.
@@ -2181,7 +2181,7 @@ use UTF-16 strings as attributes, you may need to do so by transcoding a UTF-8
 or UTF-32 attribute to UTF-16 within a semantic action.]
 
 The treatment of strings as UTF-8 is ubiquitous within _Parser_.  For
-instance, though the entire interface of _symbols_ uses `std::string` or
+instance, though the entire interface of _symbols_ uses _std_str_ or
 `std::string_view`, UTF-32 strings are used internally.
 
 [endsect]
@@ -2242,6 +2242,40 @@ implementation may use some rule `r2` to generate some or all of its
 attribute.
 
 See _ex_cb_json_ for an extended example of callback parsing.
+
+[endsect]
+
+[section Memory Allocation]
+
+_Parser_ seldom allocates memory.  The exceptions to this are:
+
+* _symbols_ allocates memory to contain each symbol it matches, and the
+  attribute value associated with each symbol.  If symbols are added during
+  the parse, allocations must also occur then.
+
+* The error handlers that can take a file name allocate memory for the file
+  name if one is provided.
+
+* If trace is turned on by passing `boost::parser::trace::on` to a top-level
+  parsing function, the names of parsers are allocated.
+
+* When a failed expectation is encountered (using `operator>()`), the name of
+  the failed parser is placed into a _std_str_, which will usually cause an
+  allocation.
+
+* _str_'s attribute is a _std_str_, the use of which implies allocation.  You
+  can avoid this allocation by explicitly using a different string type for
+  the attribute that does not allocate.
+
+* The attribute for `_rpt_np_(p)` in all its forms, including `operator*()`,
+  `operator+()`, and `operator%()`, is `std::vector<_ATTR_np_(p)>`,the use of
+  which implies allocation.  You can avoid this allocation by explicitly using
+  a different sequence container for the attribute that does not allocate.
+
+With the exception of allocating the name of the parser that was expected in a
+failed expectation situation, _Parser_ does not does not allocate unless you
+tell it to, by using _symbols_, using a particular error_handler, turning on
+trace, or parsing into attributes that allocate.
 
 [endsect]
 
