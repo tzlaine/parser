@@ -4525,13 +4525,14 @@ namespace boost { namespace parser {
 
         /** Returns a `skip_directive` with `skip_parser` as its skipper. */
         template<typename SkipParser2>
-        constexpr auto operator()(SkipParser2 skip_parser) const noexcept
+        constexpr auto
+        operator()(parser_interface<SkipParser2> skip_parser) const noexcept
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<SkipParser> &&
                  "If you're seeing this, you tried to chain calls on skip, "
                  "like 'skip(foo)(bar)'.  Quit it!'"));
-            return skip_directive<SkipParser2>{skip_parser};
+            return skip_directive<parser_interface<SkipParser2>>{skip_parser};
         }
 
         SkipParser skip_parser_;
@@ -4569,6 +4570,10 @@ namespace boost { namespace parser {
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
+            // Predicate must be a parse predicate.  If you see an error here,
+            // you have not met this contract.  See the terminology section of
+            // the online docs if you don't know what that a parse predicate
+            // is.
             success = pred_(predicate_context);
             return {};
         }
@@ -4595,6 +4600,10 @@ namespace boost { namespace parser {
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
+            // Predicate must be a parse predicate.  If you see an error here,
+            // you have not met this contract.  See the terminology section of
+            // the online docs if you don't know what that a parse predicate
+            // is.
             success = pred_(predicate_context);
         }
 
