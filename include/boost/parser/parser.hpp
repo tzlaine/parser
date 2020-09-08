@@ -1978,11 +1978,10 @@ namespace boost { namespace parser {
         template<typename R>
         constexpr auto make_input_view(R && r) noexcept
         {
-            if constexpr (non_unicode_char_range_like<R>) {
-                if constexpr (utf8_pointer<R>) {
+            if constexpr (non_unicode_char_range_like<std::remove_cvref_t<R>>) {
+                if constexpr (utf8_pointer<std::remove_cvref_t<R>>) {
                     return parser::make_view(r, text::null_sentinel{});
-                } else if constexpr (std::is_array_v<
-                                         std::remove_reference_t<R>>) {
+                } else if constexpr (std::is_array_v<std::remove_cvref_t<R>>) {
                     auto first = std::begin(r);
                     auto last = std::end(r);
                     if (first != last && *std::prev(last) == 0)
