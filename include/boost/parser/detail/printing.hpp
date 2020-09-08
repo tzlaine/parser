@@ -582,7 +582,8 @@ namespace boost { namespace parser { namespace detail {
         Attribute const & attr)
     {
         std::stringstream oss;
-        detail::print_parser(context, parser, oss);
+        if (detail::do_trace(f))
+            detail::print_parser(context, parser, oss);
         return scoped_trace_t<Iter, Sentinel, Context, Attribute>(
             first, last, context, f, attr, oss.str());
     }
