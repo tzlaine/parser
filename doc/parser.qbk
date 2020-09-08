@@ -61,6 +61,12 @@
 [def _cb_r_                [classref boost::parser::callback_rule `callback_rule`]]
 [def _cb_rs_               [classref boost::parser::callback_rules `callback_rule`s]]
 
+[def _default_eh_          [classref boost::parser::default_error_handler `default_error_handler`]]
+[def _stream_eh_           [classref boost::parser::stream_error_handler `stream_error_handler`]]
+[def _cb_eh_               [classref boost::parser::callback_error_handler `callback_error_handler`]]
+[def _rethrow_eh_          [classref boost::parser::rethrow_error_handler `rethrow_error_handler`]]
+
+
 [def _std_str_             `std::string`]
 [def _std_vec_char_        `std::vector<char>`]
 [def _std_vec_uint_        `std::vector<uint32_t>`]
@@ -168,7 +174,7 @@
 [def _ex_json_             [link boost_parser__proposed_.extended_examples.parsing_json Parsing JSON]]
 [def _ex_cb_json_          [link boost_parser__proposed_.extended_examples.parsing_json_with_callbacks Parsing JSON With Callbacks]]
 [def _rationale_           [link boost_parser__proposed_.rationale Rationale]]
-
+[def _n_is_weird_          [link boost_parser__proposed_.rationale._classname_alt__boost__parser__none___code__phrase_role__identifier__none__phrase___code___classname__is_weird `none` is weird]]
 [def _kl_                  [@https://en.wikipedia.org/wiki/Kleene_star Kleene star]]
 [def _comb_                [@https://en.wikipedia.org/wiki/Parser_combinator parser combinator]]
 [def _udl_                 [@https://en.cppreference.com/w/cpp/language/user_literal UDL]]

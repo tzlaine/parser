@@ -2245,6 +2245,262 @@ See _ex_cb_json_ for an extended example of callback parsing.
 
 [endsect]
 
+[section Error Handling and Debugging]
+
+[heading Error handling]
+
+_Parser_ has good error reporting built into it.  Consider what happens when
+we fail to parse at an expectation point (created using `operator>()`).  If I
+feed the parser from the _ex_cb_json_ example a file called sample.json
+containing this input (note the unmatched `'['`):
+
+[teletype]``
+{
+    "key": "value",
+    "foo": [, "bar": []
+}
+``
+
+This is the error message that is printed to the terminal:
+
+[teletype]``
+sample.json:3:12: error: Expected ']' here:
+    "foo": [, "bar": []
+            ^
+``
+
+That message is formatted like the diagnostics produced by Clang and GCC: it
+quotes the line on which the failure occurred, and even puts a caret under the
+exact position at which the parse failed.  This error message is suitable for
+many kinds of end-users, and interoperates well with anything that supports
+Clang and/or GCC diagnostics.
+
+Most of _Parser_'s error handlers format their diagnostics this way, though
+you are bound by that.  You can make an error handler type that does whatever
+you want, as long as it meets the error handler interface.  See the
+`error_handler` in _concepts_ for details.
+
+The _Parser_ error handlers are:
+
+* _default_eh_: Produces formatted diagnostics like the one above, and prints
+  them to `std::cout`.  _default_eh_ has no associated file name, and both
+  errors and diagnostics are printed to `std::cout`.  This handler is
+  `constexpr`-friendly.
+
+* _stream_eh_: Produces formatted diagnostics.  One or two streams may be
+  used.  If two are used, errors go to one stream and warnings go to the
+  other.  A file name can be associated with the parse; if it is, that file
+  name will appear in all diagnostics.
+
+* _cb_eh_: Produces formatted diagnostics.  Calls a callback with the
+  diagnostic message to report the diagnostic, rather than streaming out the
+  diagnostic.  A file name can be associated with the parse; if it is, that
+  file name will appear in all diagnostics.  This handler is useful for
+  recording the diagnostics in memory.
+
+* _rethrow_eh_: Does nothing but re-throw any exception that it is asked to
+  handle.  Its `diagnose()` member functions are no-ops.
+
+[tip If you want to provide your own error handler, but still want to use the
+same formatting as _Parser_ error handlers, you can use the functions
+`write_formatted_message()` and
+`write_formatted_expectation_failure_error_message()` to do that for you.]
+
+[heading Fixing ill-formed code]
+
+Sometimes, during the writing of a parser, you make a simple mistake that is
+diagnosed horrifyingly, due to the high number of template instantiations
+between the line you just wrote and the point of use (usually, the call to
+_p_).  By "sometimes", I mean "almost always many, many times".  _Parser_ has
+a workaround for situations like this.  The workaround is to make the
+ill-formed code well-formed in as many circumstances as possible, and then do
+a runtime assert instead.
+
+Usually, C++ programmers try whenever they can to catch mistakes as early as
+they can.  That usually means making as much bad code ill-formed as possible.
+Counter-intuitively, this does not work well in parser combinator situations.
+For an example of just how dramatically different these two debugging
+scenarios can be with _Parser_, please see the very long discussion in the
+_n_is_weird_ section of _rationale_.
+
+If you are morally opposed to this approach, or just hate fun, good news: you
+can turn off the use of this technique entirely by defining
+`BOOST_PARSER_NO_RUNTIME_ASSERTIONS`.
+
+[heading Runtime Debugging]
+
+Debugging parsers is hard.  Any parser above a certain complexity level is
+nearly impossible to debug simply by looking at the parser's code.  Stepping
+through the parse in a debugger is even worse.  To provide a reasonable chance
+of debugging your parsers, _Parser_ has a trace mode that you can turn on
+simply by providing an extra parameter to _p_ or _cbp_:
+
+    boost::parser::parse(input, parser, boost::parser::trace::on);
+
+Every overload of _p_ and _cbp_ takes this final parameter, which is defaulted
+to `boost::parser::trace::off`.
+
+If we trace a substantial parser, we will see a *lot* of output.  Each code
+point of the input must be considered, one at a time, to see if a certain rule
+matches.  An an example, let's trace a parse using the JSON parser from
+_ex_json_.  The input is `"null"`.  `null` is one of the types that a
+Javascript value can have; the top-level parser in the JSON parser example is:
+
+    auto const value_p_def =
+        number | bp::bool_ | null | string | array_p | object_p;
+
+So, a JSON value can be a number, or a Boolean, a `null`, etc.  During the
+parse, each alternative will be tried in turn, until one is matched.  I picked
+`null` because it is relatively close to the beginning of the `value_p_def`
+alternative parser.  Even so, the output is pretty huge.  Let's break it down
+as we go:
+
+[teletype]``
+[begin value; input="null"]
+``
+
+Each parser is traced as `[begin foo; ...]`, then the parsing operations
+themselves, and then `[end foo; ...]`.  The name of a rule is used as its name
+in the `begin` and `end` parts of the trace.  Non-rules have a name that is
+similar to the way the parser looked when you wrote it.  Most lines will have
+the next few code points of the input quoted, as we have here
+(`input="null"`).
+
+[teletype]``
+  [begin number | bool_ | null | string | ...; input="null"]
+``
+
+This shows the beginning of the parser *inside* the rule `value` _emdash_ the
+parser that actually does all the work.  In the example code, this parser is
+called `value_p_def`.  Since it isn't a rule, we have no name for it, so we
+show its implementation in terms of subparsers.  Since it is a bit long, we
+don't print the entire thing.  That's why that ellipsis is there.
+
+[teletype]``
+    [begin number; input="null"]
+      [begin raw[lexeme[ >> ...]][<<action>>]; input="null"]
+``
+
+Now we're starting to see the real work being done.  `number` is a somewhat
+complicated parser that does not match `"null"`, so there's a lot to wade
+through when following the trace of its attempt to do so.  One thing to note
+is that, since we cannot print a name for an action, we just print
+`"<<action>>"`.  Something similar happens when we come to an attribute that
+we cannot print, because it has no stream insertion operation.  In that case,
+`"<<unprintable-value>>"` is printed.
+
+[teletype]``
+        [begin raw[lexeme[ >> ...]]; input="null"]
+          [begin lexeme[-char_('-') >> char_('1', '9') >> ... | ... >> ...]; input="null"]
+            [begin -char_('-') >> char_('1', '9') >> *ascii::digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
+              [begin -char_('-'); input="null"]
+                [begin char_('-'); input="null"]
+                  no match
+                [end char_('-'); input="null"]
+                matched ""
+                attribute: <<empty>>
+              [end -char_('-'); input="null"]
+              [begin char_('1', '9') >> *ascii::digit | char_('0'); input="null"]
+                [begin char_('1', '9') >> *ascii::digit; input="null"]
+                  [begin char_('1', '9'); input="null"]
+                    no match
+                  [end char_('1', '9'); input="null"]
+                  no match
+                [end char_('1', '9') >> *ascii::digit; input="null"]
+                [begin char_('0'); input="null"]
+                  no match
+                [end char_('0'); input="null"]
+                no match
+              [end char_('1', '9') >> *ascii::digit | char_('0'); input="null"]
+              no match
+            [end -char_('-') >> char_('1', '9') >> *ascii::digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
+            no match
+          [end lexeme[-char_('-') >> char_('1', '9') >> ... | ... >> ...]; input="null"]
+          no match
+        [end raw[lexeme[ >> ...]]; input="null"]
+        no match
+      [end raw[lexeme[ >> ...]][<<action>>]; input="null"]
+      no match
+    [end number; input="null"]
+    [begin bool_; input="null"]
+      no match
+    [end bool_; input="null"]
+``
+
+`number` and `boost::parser::bool_` did not match, but `null` will:
+
+[teletype]``
+    [begin null; input="null"]
+      [begin "null" >> attr(null); input="null"]
+        [begin "null"; input="null"]
+          [begin string("null"); input="null"]
+            matched "null"
+            attribute: 
+          [end string("null"); input=""]
+          matched "null"
+          attribute: null
+``
+
+Finally, this parser actually matched, and the match generated the attribute
+`null`, which is a special value of the type `json::value`.  Since we were
+matching a string literal `"null"`, earlier there was no attribute until we
+reached the `attr(null)` parser.
+
+[teletype]``
+        [end "null"; input=""]
+        [begin attr(null); input=""]
+          matched ""
+          attribute: null
+        [end attr(null); input=""]
+        matched "null"
+        attribute: null
+      [end "null" >> attr(null); input=""]
+      matched "null"
+      attribute: null
+    [end null; input=""]
+    matched "null"
+    attribute: null
+  [end number | bool_ | null | string | ...; input=""]
+  matched "null"
+  attribute: null
+[end value; input=""]
+--------------------
+parse succeeded
+--------------------
+``
+
+At the very end of the parse, the trace code prints out whether the top-level
+parse succeeded or failed.
+
+Some things to be aware of when looking at _Parser_ trace output:
+
+* There are some parsers you don't know about, because they are not directly
+  documented.  For instance, `p[a]` forms an `action_parser` containing the
+  parser `p` and semantic action `a`.  This is essentially an implementation
+  detail, but unfortunately the trace output does not hide this from you.
+
+* For a parser `p`, the trace-name may be intentionally different from the
+  actual structure of `p`.  For example, in the trace above, you see a parser
+  called simply `"null"`.  This parser is actually
+  `boost::parser::omit[boost::parser::string("null")]`, but what you typically
+  write is just `"null"`, so that's the name used.  There are two special
+  cases like this: the one described here for `omit[string]`, and another for
+  `omit[char_]`.
+
+* Since there are no other special cases for how parser names are printed, you
+  may see parsers that are unlike what you wrote in your code.  In the
+  sections about the parsers and combining operations, you will sometimes see
+  a parser or combining operation described in terms of an equivalent parser.
+  For example, `if_(pred)[p]` is described as "Equivalent to `_e_(pred) >>
+  p`".  In a trace, you will not see `if_`; you will see _e_ and `p` instead.
+
+* The values of arguments passed to parsers is printed whenever possible.
+  Sometimes, a parse argument is not a value itself, but a callable that
+  produces that value.  In these cases, you'll see the resolved value of the
+  parse argument.
+
+[endsect]
+
 [section Memory Allocation]
 
 _Parser_ seldom allocates memory.  The exceptions to this are:
@@ -2290,14 +2546,9 @@ want an end-user to see.
 
 TODO: Compile separately when you know the type of your input will not change.
 
-[endsect]
-
-[section Error Handling and Debugging]
-
-TODO
-
-TODO: If an attribute appears which it cannot print using stream insertion,
-"<<unprintable-value>>" is printed.
+TODO: Have a simple test that you can run to find ill-formed-code-as-asserts.
+Most of these errors are found at parser construction time, so no actual
+parsing is even necessary.
 
 [endsect]
 
