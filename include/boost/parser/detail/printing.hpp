@@ -23,9 +23,15 @@ namespace boost { namespace parser { namespace detail {
     template<typename Char>
     std::ostream & print_char(std::ostream & os, Char c)
     {
-        if constexpr (std::is_same_v<
-                          char8_t,
-                          std::remove_cv_t<std::remove_reference_t<Char>>>) {
+        if constexpr (
+#if defined(__cpp_char8_t)
+            std::is_same_v<
+                char8_t,
+                std::remove_cv_t<std::remove_reference_t<Char>>>
+#else
+            false
+#endif
+        ) {
             os << char(c);
         } else {
             os << c;

@@ -18,7 +18,6 @@
 
 using namespace boost::parser;
 
-
 static_assert(boost::parser::detail::non_unicode_char_range_like<char const *>);
 static_assert(boost::parser::detail::non_unicode_char_range_like<char *>);
 static_assert(
@@ -34,6 +33,9 @@ static_assert(
     !boost::parser::detail::non_unicode_char_range_like<char8_t const *>);
 static_assert(!boost::parser::detail::non_unicode_char_range_like<char8_t *>);
 #endif
+static_assert(boost::parser::detail::non_unicode_char_range_like<
+              boost::parser::view<char const *, boost::text::null_sentinel>>);
+
 static_assert(
     !boost::parser::detail::non_unicode_char_range_like<char16_t const *>);
 static_assert(!boost::parser::detail::non_unicode_char_range_like<char16_t *>);
@@ -1835,6 +1837,7 @@ TEST(parser, broken_utf8)
         EXPECT_TRUE(parse(first, str.end(), parser, chars));
         EXPECT_EQ(chars, "\xcc"); // Finds one match of the *char* 0xcc.
     }
+#if defined(__cpp_char8_t)
     {
         std::u8string str = u8"\xcc\x80"; // U+0300
         std::string chars;
@@ -1842,6 +1845,7 @@ TEST(parser, broken_utf8)
         EXPECT_TRUE(parse(first, str.end(), parser, chars));
         EXPECT_EQ(chars, ""); // Finds zero matches of the *code point* 0xcc.
     }
+#endif
 }
 
 TEST(parser, attr_out_param_compat)
@@ -1874,7 +1878,8 @@ TEST(parser, attr_out_param_compat)
                     boost::hana::tuple<std::vector<uint32_t>, std::string>>>);
 
         boost::hana::tuple<std::string, std::string> result;
-        bool const success = bp::parse(u8"rôle foofoo", p, result);
+        bool const success =
+            bp::parse(boost::text::as_utf8(u8"rôle foofoo"), p, result);
         using namespace boost::hana::literals;
         assert(
             success && result[0_c] == (char const *)u8"rôle" &&

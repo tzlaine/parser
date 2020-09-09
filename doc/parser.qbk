@@ -195,6 +195,13 @@
 
 TODO
 
+[heading C++20 Support]
+
+C++20 concept-based constraints on template parameters are used if you build
+in C++20 (or later) mode, and the compiler defines `__cpp_lib_concepts`.  In
+C++17 mode, SFINAE constraints are used instead.  If you want to disable the
+use of concepts entirely, you can define `BOOST_PARSER_DISABLE_CONCEPTS`.
+
 [endsect]
 
 [xinclude parser_reference.xml]

@@ -222,6 +222,7 @@ namespace boost { namespace parser {
         std::ostream * err_os_;
         std::ostream * warn_os_;
     };
+
 }}
 
 #endif

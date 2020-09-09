@@ -114,6 +114,7 @@ void compile_attribute_non_unicode()
 
 void compile_attribute_unicode_utf8()
 {
+#if defined(__cpp_char8_t)
     {
         char8_t const chars[] = u8"";
         auto first = std::begin(chars);
@@ -148,6 +149,7 @@ void compile_attribute_unicode_utf8()
                 (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
     }
+#endif
     {
         char const chars[] = "";
         auto const r = boost::text::as_utf8(chars);
@@ -181,6 +183,7 @@ void compile_attribute_unicode_utf8()
                 (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
     }
+#if defined(__cpp_char8_t)
     {
         char8_t const r[] = u8"";
 
@@ -245,6 +248,7 @@ void compile_attribute_unicode_utf8()
                 (is_same<attr_t, std::optional<tuple<std::string, uint32_t>>>));
         }
     }
+#endif
 }
 
 void compile_attribute_unicode_utf32()
