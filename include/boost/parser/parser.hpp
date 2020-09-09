@@ -3886,20 +3886,20 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator>>(parser_interface<parser_type_2> rhs) const noexcept
+        operator>>(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<true>(rhs);
-            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_seq_p<ParserType2>{}) {
                 return rhs.parser_.template prepend<true>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, parser_type_2>,
+                    hana::tuple<parser_type, ParserType2>,
                     hana::tuple<hana::true_, hana::true_>>;
                 return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, parser_type_2>{
+                    parser_t{hana::tuple<parser_type, ParserType2>{
                         parser_, rhs.parser_}}};
             }
         }
@@ -3922,20 +3922,20 @@ namespace boost { namespace parser {
             back-tracking is allowed after `parser_` succeeds; if
             `rhs.parser_` fails after `parser_` succeeds, the top-level parse
             fails. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator>(parser_interface<parser_type_2> rhs) const noexcept
+        operator>(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<false>(rhs);
-            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_seq_p<ParserType2>{}) {
                 return rhs.parser_.template prepend<false>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, parser_type_2>,
+                    hana::tuple<parser_type, ParserType2>,
                     hana::tuple<hana::true_, hana::false_>>;
                 return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, parser_type_2>{
+                    parser_t{hana::tuple<parser_type, ParserType2>{
                         parser_, rhs.parser_}}};
             }
         }
@@ -3961,13 +3961,13 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator|(parser_interface<parser_type_2> rhs) const noexcept
+        operator|(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_or_p<parser_type>{}) {
                 return parser_.append(rhs);
-            } else if constexpr (detail::is_or_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_or_p<ParserType2>{}) {
                 return rhs.parser_.prepend(*this);
             } else {
                 // If you're seeing this as a compile- or run-time failure,
@@ -3982,8 +3982,8 @@ namespace boost { namespace parser {
                 BOOST_PARSER_ASSERT(
                     !detail::is_unconditional_eps<parser_type>{});
                 return parser::parser_interface{
-                    or_parser<hana::tuple<parser_type, parser_type_2>>{
-                        hana::tuple<parser_type, parser_type_2>{
+                    or_parser<hana::tuple<parser_type, ParserType2>>{
+                        hana::tuple<parser_type, ParserType2>{
                             parser_, rhs.parser_}}};
             }
         }
@@ -4003,9 +4003,9 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!rhs >> *this`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator-(parser_interface<parser_type_2> rhs) const noexcept
+        operator-(parser_interface<ParserType2> rhs) const noexcept
         {
             return !rhs >> *this;
         }
@@ -4025,12 +4025,12 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator%(parser_interface<parser_type_2> rhs) const noexcept
+        operator%(parser_interface<ParserType2> rhs) const noexcept
         {
             return parser::parser_interface{
-                delimited_seq_parser<parser_type, parser_type_2>(
+                delimited_seq_parser<parser_type, ParserType2>(
                     parser_, rhs.parser_)};
         }
 
