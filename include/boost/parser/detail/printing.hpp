@@ -35,15 +35,6 @@ namespace boost { namespace parser { namespace detail {
 
     enum { parser_component_limit = 4 };
 
-#if 0 // TODO
-    template<typename Context, typename Parser>
-    void print_parser(
-        Context const & context,
-        Parser const & parser,
-        std::ostream & os,
-        int components = 0);
-#endif
-
     template<
         typename Context,
         typename Parser,
