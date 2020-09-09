@@ -21,7 +21,7 @@
 namespace boost { namespace parser {
 
     /** A simple view type used throughout the rest of the library. */
-    template<typename I, std::sentinel_for<I> S = I>
+    template<std::forward_iterator I, std::sentinel_for<I> S = I>
     struct view : stl_interfaces::view_interface<view<I, S>>
     {
         using iterator = I;
