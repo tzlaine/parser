@@ -46,7 +46,7 @@ namespace boost { namespace parser {
     };
 
     /** Makes a `view<I>` from two `I`s. */
-    template<typename I, typename S>
+    template<std::forward_iterator I, std::sentinel_for<I> S>
     constexpr view<I, S> make_view(I first, S last) noexcept
     {
         return view<I, S>(first, last);
@@ -2152,9 +2152,9 @@ namespace boost { namespace parser {
         return *context.error_handler_;
     }
 
-    template<typename Iter, typename Context>
-    void _report_error(
-        Context const & context, std::string_view message, Iter location)
+    template<std::forward_iterator I, typename Context>
+    void
+    _report_error(Context const & context, std::string_view message, I location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context, location);
@@ -2167,9 +2167,9 @@ namespace boost { namespace parser {
             diagnostic_kind::error, message, context);
     }
 
-    template<typename Iter, typename Context>
+    template<std::forward_iterator I, typename Context>
     void _report_warning(
-        Context const & context, std::string_view message, Iter location)
+        Context const & context, std::string_view message, I location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context, location);
