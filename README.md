@@ -49,6 +49,6 @@ This library targets submission to Boost.
 
 Online docs: https://tzlaine.github.io/parser
 
-[![Build Status](https://travis-ci.org/tzlaine/text.svg?branch=master)](https://travis-ci.org/tzlaine/parser)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/tzlaine/text?branch=master&svg=true)](https://ci.appveyor.com/project/tzlaine/parser)
+[![Build Status](https://travis-ci.org/tzlaine/parser.svg?branch=master)](https://travis-ci.org/tzlaine/parser)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/tzlaine/parser?branch=master&svg=true)](https://ci.appveyor.com/project/tzlaine/parser)
 [![License](https://img.shields.io/badge/license-boost-brightgreen.svg)](LICENSE_1_0.txt)
