@@ -1829,13 +1829,16 @@ TEST(parser, combined_seq_and_or)
 
 TEST(parser, broken_utf8)
 {
-    constexpr auto parser = *char_('\xcc');
+    constexpr char c = 0xcc;
+    constexpr auto parser = *char_(c);
     {
-        std::string str = (char const *)u8"\xcc\x80"; // U+0300
+        char const array[3] = {0xcc, 0x80, 0}; // U+0300
+        std::string str = array;
         std::string chars;
         auto first = str.begin();
         EXPECT_TRUE(parse(first, str.end(), parser, chars));
-        EXPECT_EQ(chars, "\xcc"); // Finds one match of the *char* 0xcc.
+        char const expected[2] = {0xcc, 0};
+        EXPECT_EQ(chars, expected); // Finds one match of the *char* 0xcc.
     }
 #if defined(__cpp_char8_t)
     {

@@ -13,11 +13,17 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -j4 -C ${CMAKE_CFG_INTDIR
 add_executable(parser_ parser.cpp)
 set_property(TARGET parser_ PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parser_ parser gtest gtest_main ${link_flags})
+if (MSVC)
+    target_compile_options(parser_ PRIVATE /source-charset:utf-8)
+endif ()
 add_test(NAME parser_ COMMAND parser_ ---gtest_catch_exceptions=1)
 
 add_executable(parser_api parser_api.cpp)
 set_property(TARGET parser_api PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(parser_api parser gtest gtest_main ${link_flags})
+if (MSVC)
+    target_compile_options(parser_api PRIVATE /source-charset:utf-8)
+endif ()
 add_test(NAME parser_api COMMAND parser_api ---gtest_catch_exceptions=1)
 
 add_executable(
@@ -34,6 +40,9 @@ macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
     target_link_libraries(${name} parser gtest gtest_main ${link_flags})
+    if (MSVC)
+        target_compile_options(${name} PRIVATE /source-charset:utf-8)
+    endif ()
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 

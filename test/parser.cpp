@@ -554,7 +554,6 @@ TEST(parser, star_as_string_or_vector)
             {
                 std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_FALSE(chars);
-                EXPECT_EQ(*chars, "");
             }
             {
                 auto first = str.c_str();
