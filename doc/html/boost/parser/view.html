@@ -22,39 +22,39 @@
 <h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
 <div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">boost/parser/parser.hpp</a>&gt;
 
-</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> I<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">sentinel_for</span><span class="special">&lt;</span> <span class="identifier">I</span> <span class="special">&gt;</span> S <span class="special">=</span> <span class="identifier">I</span><span class="special">&gt;</span> 
+</span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> I<span class="special">,</span> <span class="keyword">typename</span> S <span class="special">=</span> <span class="identifier">I</span><span class="special">&gt;</span> 
 <span class="keyword">struct</span> <a class="link" href="view.html" title="Struct template view">view</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">stl_interfaces</span><span class="special">::</span><span class="identifier">view_interface</span><span class="special">&lt;</span> <span class="identifier">view</span><span class="special">&lt;</span> <span class="identifier">I</span><span class="special">,</span> <span class="identifier">I</span> <span class="special">&gt;</span> <span class="special">&gt;</span> <span class="special">{</span>
   <span class="comment">// types</span>
   <span class="keyword">typedef</span> <span class="identifier">I</span> <a name="boost.parser.view.iterator"></a><span class="identifier">iterator</span><span class="special">;</span>
   <span class="keyword">typedef</span> <span class="identifier">S</span> <a name="boost.parser.view.sentinel"></a><span class="identifier">sentinel</span><span class="special">;</span>
 
   <span class="comment">// <a class="link" href="view.html#boost.parser.viewconstruct-copy-destruct">construct/copy/destruct</a></span>
-  <a class="link" href="view.html#idm16589-bb"><span class="identifier">view</span></a><span class="special">(</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
-  <a class="link" href="view.html#idm16590-bb"><span class="identifier">view</span></a><span class="special">(</span><span class="identifier">iterator</span><span class="special">,</span> <span class="identifier">sentinel</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="view.html#idm16600-bb"><span class="identifier">view</span></a><span class="special">(</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+  <a class="link" href="view.html#idm16601-bb"><span class="identifier">view</span></a><span class="special">(</span><span class="identifier">iterator</span><span class="special">,</span> <span class="identifier">sentinel</span><span class="special">)</span><span class="special">;</span>
 
-  <span class="comment">// <a class="link" href="view.html#idm16584-bb">public member functions</a></span>
-  <span class="keyword">constexpr</span> <span class="identifier">iterator</span> <a class="link" href="view.html#idm16585-bb"><span class="identifier">begin</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
-  <span class="keyword">constexpr</span> <span class="identifier">sentinel</span> <a class="link" href="view.html#idm16587-bb"><span class="identifier">end</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="comment">// <a class="link" href="view.html#idm16595-bb">public member functions</a></span>
+  <span class="keyword">constexpr</span> <span class="identifier">iterator</span> <a class="link" href="view.html#idm16596-bb"><span class="identifier">begin</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+  <span class="keyword">constexpr</span> <span class="identifier">sentinel</span> <a class="link" href="view.html#idm16598-bb"><span class="identifier">end</span></a><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm22070"></a><h2>Description</h2>
+<a name="idm22177"></a><h2>Description</h2>
 <p>A simple view type used throughout the rest of the library. </p>
 <div class="refsect2">
-<a name="idm22073"></a><h3>
+<a name="idm22180"></a><h3>
 <a name="boost.parser.viewconstruct-copy-destruct"></a><code class="computeroutput">view</code> 
         public
        construct/copy/destruct</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem"><pre class="literallayout"><a name="idm16589-bb"></a><span class="identifier">view</span><span class="special">(</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span></pre></li>
-<li class="listitem"><pre class="literallayout"><a name="idm16590-bb"></a><span class="identifier">view</span><span class="special">(</span><span class="identifier">iterator</span> first<span class="special">,</span> <span class="identifier">sentinel</span> last<span class="special">)</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idm16600-bb"></a><span class="identifier">view</span><span class="special">(</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><a name="idm16601-bb"></a><span class="identifier">view</span><span class="special">(</span><span class="identifier">iterator</span> first<span class="special">,</span> <span class="identifier">sentinel</span> last<span class="special">)</span><span class="special">;</span></pre></li>
 </ol></div>
 </div>
 <div class="refsect2">
-<a name="idm22099"></a><h3>
-<a name="idm16584-bb"></a><code class="computeroutput">view</code> public member functions</h3>
+<a name="idm22206"></a><h3>
+<a name="idm16595-bb"></a><code class="computeroutput">view</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
-<li class="listitem"><pre class="literallayout"><span class="keyword">constexpr</span> <span class="identifier">iterator</span> <a name="idm16585-bb"></a><span class="identifier">begin</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
-<li class="listitem"><pre class="literallayout"><span class="keyword">constexpr</span> <span class="identifier">sentinel</span> <a name="idm16587-bb"></a><span class="identifier">end</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">constexpr</span> <span class="identifier">iterator</span> <a name="idm16596-bb"></a><span class="identifier">begin</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
+<li class="listitem"><pre class="literallayout"><span class="keyword">constexpr</span> <span class="identifier">sentinel</span> <a name="idm16598-bb"></a><span class="identifier">end</span><span class="special">(</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
 </ol></div>
 </div>
 </div>

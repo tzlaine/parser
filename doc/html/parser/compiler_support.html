@@ -18,7 +18,29 @@
 <a name="parser.compiler_support"></a><a class="link" href="compiler_support.html" title="Compiler Support">Compiler Support</a>
 </h2></div></div></div>
 <p>
-      TODO
+      Boost.Parser requires C++17 or later. It is known to work with these compilers:
+    </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+          GCC 8 and later
+        </li>
+<li class="listitem">
+          Clang 7 and later (equivalent to XCode 10.3 and later)
+        </li>
+<li class="listitem">
+          Visual Studio 2017 and later
+        </li>
+</ul></div>
+<h4>
+<a name="parser.compiler_support.h0"></a>
+      <span class="phrase"><a name="parser.compiler_support.c__20_support"></a></span><a class="link" href="compiler_support.html#parser.compiler_support.c__20_support">C++20
+      Support</a>
+    </h4>
+<p>
+      C++20 concept-based constraints on template parameters are used if you build
+      in C++20 (or later) mode, and the compiler defines <code class="computeroutput">__cpp_lib_concepts</code>.
+      In C++17 mode, SFINAE constraints are used instead. If you want to disable
+      the use of concepts entirely, you can define <code class="computeroutput">BOOST_PARSER_DISABLE_CONCEPTS</code>.
     </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>

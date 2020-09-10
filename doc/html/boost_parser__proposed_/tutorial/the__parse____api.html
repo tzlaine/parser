@@ -20,7 +20,7 @@
       API</a>
 </h3></div></div></div>
 <p>
-        There are multiple overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>.
+        There are multiple overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>.
         These overloads have some things in common:
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -42,7 +42,7 @@
             etc.
           </li>
 <li class="listitem">
-            When you call any of the iterator/sentinel pair overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>, for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>,
+            When you call any of the iterator/sentinel pair overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>, for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>,
             it parses the range <code class="computeroutput"><span class="special">[</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">)</span></code>, advancing <code class="computeroutput"><span class="identifier">first</span></code>
             as it goes. If the parse succeeds, the entire input may or may not have
             been matched. The value of <code class="computeroutput"><span class="identifier">first</span></code>
@@ -51,8 +51,8 @@
             if and only if <code class="computeroutput"><span class="identifier">first</span> <span class="special">==</span> <span class="identifier">last</span></code>.
           </li>
 <li class="listitem">
-            When you call any of the range-like overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>,
-            for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+            When you call any of the range-like overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>,
+            for example <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">,</span> <a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a><span class="special">)</span></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
             only indicates success if <span class="bold"><strong>all</strong></span> of <code class="computeroutput"><span class="identifier">r</span></code> was matched by <code class="computeroutput"><span class="identifier">p</span></code>.
           </li>
 </ul></div>
@@ -62,7 +62,7 @@
         overloads</a>
       </h5>
 <p>
-        There are eight overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>,
+        There are eight overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>,
         because there are three either/or options in how you call it.
       </p>
 <h5>
@@ -71,7 +71,7 @@
         versus range-like</a>
       </h5>
 <p>
-        You can call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> with an iterator and sentinel
+        You can call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> with an iterator and sentinel
         that delimit a range of integral values. For example:
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
@@ -89,13 +89,13 @@
         The iterator/sentinel overloads can parse successfully without matching the
         entire input. You can tell if the entire input was matched by checking if
         <code class="computeroutput"><span class="identifier">first</span> <span class="special">==</span>
-        <span class="identifier">last</span></code> is true after <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> returns.
+        <span class="identifier">last</span></code> is true after <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> returns.
       </p>
 <p>
-        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
         with a range of integral values. When the range is a reference to an array
         of characters, any terminating <code class="computeroutput"><span class="number">0</span></code>
-        is ignored; this allows calls like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
+        is ignored; this allows calls like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
         <span class="identifier">p</span><span class="special">)</span></code>
         to work naturally.
       </p>
@@ -112,8 +112,8 @@
 <span class="keyword">auto</span> <span class="identifier">result_3</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf16</span><span class="special">(</span><span class="identifier">str_3</span><span class="special">),</span> <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
 </pre>
 <p>
-        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
-        with a pointer to a null-terminated string of integral values. <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> considers pointers to null-terminated
+        You can also call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
+        with a pointer to a null-terminated string of integral values. <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> considers pointers to null-terminated
         strings to be ranges, since, for any pointer <code class="computeroutput"><span class="identifier">T</span>
         <span class="special">*</span></code> to a null-terminated string, <code class="computeroutput"><span class="identifier">T</span> <span class="special">*</span></code> is
         isomorphic with <code class="computeroutput"><span class="identifier">view</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">null_sentinel</span><span class="special">&gt;</span></code>.
@@ -137,7 +137,7 @@
 <p>
         Since there is no way to indicate that <code class="computeroutput"><span class="identifier">p</span></code>
         matches the input, but only a prefix of the input was matched, the range-like
-        (non-iterator/sentinel) overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        (non-iterator/sentinel) overloads of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
         indicate failure if the entire input is not matched.
       </p>
 <h5>
@@ -154,14 +154,14 @@
 <span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span>                  <span class="comment">// !!result_2 is true; *result_2 is "two words"</span>
 </pre>
 <p>
-        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>with</strong></span>
+        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>with</strong></span>
         an attribute out-parameter and parser <code class="computeroutput"><span class="identifier">p</span></code>,
         the expected type is <span class="bold"><strong>something like</strong></span> <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>.
         It doesn't have to be exactly that; I'll explain in a bit. The return type
         is <code class="computeroutput"><span class="keyword">bool</span></code>.
       </p>
 <p>
-        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>without</strong></span>
+        When you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> <span class="bold"><strong>without</strong></span>
         an attribute out-parameter and parser <code class="computeroutput"><span class="identifier">p</span></code>,
         the return type is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)&gt;</span></code>.
         Note that when <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
@@ -190,8 +190,8 @@
         of attribute out-parameters</a>
       </h5>
 <p>
-        For any call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> that takes an attribute
-        out-parameter, like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
+        For any call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> that takes an attribute
+        out-parameter, like <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="string">"str"</span><span class="special">,</span>
         <span class="identifier">p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">,</span> <span class="identifier">out</span><span class="special">)</span></code>,
         the call is well-formed for a number of possible types of <code class="computeroutput"><span class="identifier">out</span></code>;
         <code class="computeroutput"><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">out</span><span class="special">)</span></code> does
@@ -280,7 +280,7 @@
             to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>,
             or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;</span></code>
             to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">deque</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span></code>),
-            the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> will often still be
+            the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> will often still be
             well-formed
           </li>
 <li class="listitem">
@@ -299,7 +299,7 @@
 <tr><td align="left" valign="top">
 <p>
           The detection of the need to transcode from UTF-32 to UTF-8 applies to
-          <span class="bold"><strong>all</strong></span> integral values. If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> with this parser:
+          <span class="bold"><strong>all</strong></span> integral values. If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> with this parser:
         </p>
 <p>
           auto const p = +boost::parser::uint_;
@@ -343,7 +343,7 @@
       </p>
 <p>
         The take-away for this last example is that the ability to arbitrarily swap
-        out data types within the type of the attribute you pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> is very flexible, but is
+        out data types within the type of the attribute you pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> is very flexible, but is
         also limited to structurally simple cases. When we discuss <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> in the next section,
         we'll see how this flexibility in the types of attributes can help when writing
         complicated parsers.
@@ -370,7 +370,7 @@
         versus non-Unicode parsing</a>
       </h5>
 <p>
-        A call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> either considers the entire
+        A call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> either considers the entire
         input to be in a UTF format (UTF-8, UTF-16, or UTF-32), or it considers the
         entire input to be in some unknown encoding. Here is how it deduces which
         case the call falls under:
@@ -409,7 +409,7 @@
 <tr><td align="left" valign="top"><p>
           If you want to ensure all input is parsed as Unicode, pass the input range
           <code class="computeroutput"><span class="identifier">r</span></code> as <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
-          &#8212; that's the first thing that happens to it inside <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> in the Unicode parsing
+          &#8212; that's the first thing that happens to it inside <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> in the Unicode parsing
           path anyway.
         </p></td></tr>
 </table></div>
@@ -436,7 +436,7 @@
 <p>
         Debugging parsers is notoriously difficult once they reach a certain size.
         To get a verbose trace of your parse, pass <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">trace</span><span class="special">::</span><span class="identifier">on</span></code> as
-        the final parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>.
+        the final parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>.
         It will show you the current parser being matched, the front of the input,
         and any attributes generated. See the <a class="link" href="error_handling_and_debugging.html" title="Error Handling and Debugging">Error
         Handling and Debugging</a> section of the tutorial for details.
@@ -447,7 +447,7 @@
         and error handlers</a>
       </h5>
 <p>
-        Each call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code> can optionally have a globals
+        Each call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> can optionally have a globals
         object associated with in. To use a particular globals object with you parser,
         you call <code class="computeroutput"><a class="link" href="../../boost/parser/with_globals.html" title="Function template with_globals">with_globals()</a></code> to create a new parser with
         the globals object in it:
@@ -462,7 +462,7 @@
 <span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parse</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"str"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">with_globals</span><span class="special">(</span><span class="identifier">parser</span><span class="special">,</span> <span class="identifier">globals</span><span class="special">));</span>
 </pre>
 <p>
-        Every semantic action within that call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17522.html" title="Function template parse">parse()</a></code>
+        Every semantic action within that call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
         can access to the same <code class="computeroutput"><span class="identifier">globals_t</span></code>
         object using <code class="computeroutput"><span class="identifier">_globals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>.
       </p>
