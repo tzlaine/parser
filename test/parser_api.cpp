@@ -1832,12 +1832,12 @@ TEST(parser, broken_utf8)
     constexpr char c = 0xcc;
     constexpr auto parser = *char_(c);
     {
-        char const array[3] = {0xcc, 0x80, 0}; // U+0300
+        char const array[3] = {(char)0xcc, (char)0x80, 0}; // U+0300
         std::string str = array;
         std::string chars;
         auto first = str.begin();
         EXPECT_TRUE(parse(first, str.end(), parser, chars));
-        char const expected[2] = {0xcc, 0};
+        char const expected[2] = {(char)0xcc, 0};
         EXPECT_EQ(chars, expected); // Finds one match of the *char* 0xcc.
     }
 #if defined(__cpp_char8_t)
