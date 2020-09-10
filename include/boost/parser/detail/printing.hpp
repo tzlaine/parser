@@ -14,6 +14,8 @@
 #include <string>
 #include <variant>
 
+#include <cctype>
+
 
 namespace boost { namespace parser { namespace detail {
 
