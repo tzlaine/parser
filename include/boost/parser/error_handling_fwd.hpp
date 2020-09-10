@@ -3,6 +3,8 @@
 
 #include <boost/parser/config.hpp>
 
+#include <boost/text/transcode_view.hpp>
+
 #include <iostream>
 #include <string_view>
 
@@ -222,6 +224,7 @@ namespace boost { namespace parser {
         std::ostream * err_os_;
         std::ostream * warn_os_;
     };
+
 }}
 
 #endif

@@ -12,7 +12,6 @@
 #ifndef BOOST_PARSER_DETAIL_NUMERIC_HPP
 #define BOOST_PARSER_DETAIL_NUMERIC_HPP
 
-#include <boost/spirit/home/x3/numeric/real_policies.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/detail/extract_int.hpp>
 #include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
 
@@ -472,6 +471,248 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             // Success!!!
             return true;
         }
+    };
+
+    // Copied from
+    // boost/spirit/home/x3/string/detail/string_parse.hpp
+    // (Boost 1.47),and modified for use with iterator, sentinel pairs:
+
+    template <typename Char, typename Iterator, typename Sentinel, typename Attribute, typename CaseCompareFunc>
+    inline bool string_parse(
+        Char const* str
+      , Iterator& first, Sentinel const& last, Attribute& attr, CaseCompareFunc const& compare) 
+    {
+        Iterator i = first;
+        Char ch = *str;
+
+        for (; !!ch; ++i)
+        {
+            if (i == last || (compare(ch, *i) != 0))
+                return false;
+            ch = *++str;
+        }
+
+        spirit::x3::traits::move_to(first, i, attr);
+        first = i;
+        return true;
+    }
+
+    template <typename String, typename Iterator, typename Sentinel, typename Attribute, typename CaseCompareFunc>
+    inline bool string_parse(
+        String const& str
+      , Iterator& first, Sentinel const& last, Attribute& attr, CaseCompareFunc const& compare)
+    {
+        Iterator i = first;
+        typename String::const_iterator stri = str.begin();
+        typename String::const_iterator str_last = str.end();
+
+        for (; stri != str_last; ++stri, ++i)
+            if (i == last || (compare(*stri, *i) != 0))
+                return false;
+        spirit::x3::traits::move_to(first, i, attr);
+        first = i;
+        return true;
+    }
+
+    struct common_type_equal
+    {
+        template<typename T, typename U>
+        bool operator()(T x, U y)
+        {
+            using common_t = std::common_type_t<decltype(x), decltype(y)>;
+            return (common_t)x == (common_t)y;
+        }
+    };
+
+    template <typename Char, typename Iterator, typename Sentinel, typename Attribute>
+    inline bool string_parse(
+        Char const* uc_i, Char const* lc_i
+      , Iterator& first, Sentinel const& last, Attribute& attr)
+    {
+        Iterator i = first;
+
+        common_type_equal eq;
+
+        for (; *uc_i && *lc_i; ++uc_i, ++lc_i, ++i)
+            if (i == last || (!eq(*uc_i, *i) && !eq(*lc_i, *i)))
+                return false;
+        spirit::x3::traits::move_to(first, i, attr);
+        first = i;
+        return true;
+    }
+
+    template <typename String, typename Iterator, typename Sentinel, typename Attribute>
+    inline bool string_parse(
+        String const& ucstr, String const& lcstr
+      , Iterator& first, Sentinel const& last, Attribute& attr)
+    {
+        typename String::const_iterator uc_i = ucstr.begin();
+        typename String::const_iterator uc_last = ucstr.end();
+        typename String::const_iterator lc_i = lcstr.begin();
+        Iterator i = first;
+
+        for (; uc_i != uc_last; ++uc_i, ++lc_i, ++i)
+            if (i == last || ((*uc_i != *i) && (*lc_i != *i)))
+                return false;
+        spirit::x3::traits::move_to(first, i, attr);
+        first = i;
+        return true;
+    }
+
+    // Copied from
+    // boost/spirit/home/x3/numeric/real_policies.hpp
+    // (Boost 1.47),and modified for use with iterator, sentinel pairs:
+
+    ///////////////////////////////////////////////////////////////////////////
+    //  Default (unsigned) real number policies
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    struct ureal_policies
+    {
+        // trailing dot policy suggested by Gustavo Guerra
+        static bool const allow_leading_dot = true;
+        static bool const allow_trailing_dot = true;
+        static bool const expect_dot = false;
+
+        template <typename Iterator, typename Sentinel>
+        static bool
+        parse_sign(Iterator& /*first*/, Iterator const& /*last*/)
+        {
+            return false;
+        }
+
+        template <typename Iterator, typename Sentinel, typename Attribute>
+        static bool
+        parse_n(Iterator& first, Sentinel const& last, Attribute& attr_)
+        {
+            return extract_uint<T, 10, 1, -1>::call(first, last, attr_);
+        }
+
+        template <typename Iterator, typename Sentinel>
+        static bool
+        parse_dot(Iterator& first, Sentinel const& last)
+        {
+            if (first == last || *first != '.')
+                return false;
+            ++first;
+            return true;
+        }
+
+        template <typename Iterator, typename Sentinel, typename Attribute>
+        static bool
+        parse_frac_n(Iterator& first, Sentinel const& last, Attribute& attr_)
+        {
+            return extract_uint<T, 10, 1, -1, true>::call(first, last, attr_);
+        }
+
+        template <typename Iterator, typename Sentinel>
+        static bool
+        parse_exp(Iterator& first, Sentinel const& last)
+        {
+            if (first == last || (*first != 'e' && *first != 'E'))
+                return false;
+            ++first;
+            return true;
+        }
+
+        template <typename Iterator, typename Sentinel>
+        static bool
+        parse_exp_n(Iterator& first, Sentinel const& last, int& attr_)
+        {
+            return extract_int<int, 10, 1, -1>::call(first, last, attr_);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+        //  The parse_nan() and parse_inf() functions get called whenever
+        //  a number to parse does not start with a digit (after having
+        //  successfully parsed an optional sign).
+        //
+        //  The functions should return true if a Nan or Inf has been found. In
+        //  this case the attr should be set to the matched value (NaN or
+        //  Inf). The optional sign will be automatically applied afterwards.
+        //
+        //  The default implementation below recognizes representations of NaN
+        //  and Inf as mandated by the C99 Standard and as proposed for
+        //  inclusion into the C++0x Standard: nan, nan(...), inf and infinity
+        //  (the matching is performed case-insensitively).
+        ///////////////////////////////////////////////////////////////////////
+        template <typename Iterator, typename Sentinel, typename Attribute>
+        static bool
+        parse_nan(Iterator& first, Sentinel const& last, Attribute& attr_)
+        {
+            if (first == last)
+                return false;   // end of input reached
+
+            if (*first != 'n' && *first != 'N')
+                return false;   // not "nan"
+
+            // nan[(...)] ?
+            if (detail_spirit_x3::string_parse("nan", "NAN", first, last, spirit::x3::unused))
+            {
+                if (first != last && *first == '(')
+                {
+                    // skip trailing (...) part
+                    Iterator i = first;
+
+                    while (++i != last && *i != ')')
+                        ;
+                    if (i == last)
+                        return false;     // no trailing ')' found, give up
+
+                    first = ++i;
+                }
+                attr_ = std::numeric_limits<T>::quiet_NaN();
+                return true;
+            }
+            return false;
+        }
+
+        template <typename Iterator, typename Sentinel, typename Attribute>
+        static bool
+        parse_inf(Iterator& first, Sentinel const& last, Attribute& attr_)
+        {
+            if (first == last)
+                return false;   // end of input reached
+
+            if (*first != 'i' && *first != 'I')
+                return false;   // not "inf"
+
+            // inf or infinity ?
+            if (detail_spirit_x3::string_parse("inf", "INF", first, last, spirit::x3::unused))
+            {
+                // skip allowed 'inity' part of infinity
+                detail_spirit_x3::string_parse("inity", "INITY", first, last, spirit::x3::unused);
+                attr_ = std::numeric_limits<T>::infinity();
+                return true;
+            }
+            return false;
+        }
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    //  Default (signed) real number policies
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    struct real_policies : ureal_policies<T>
+    {
+        template <typename Iterator, typename Sentinel>
+        static bool
+        parse_sign(Iterator& first, Sentinel const& last)
+        {
+            return extract_sign(first, last);
+        }
+    };
+
+    template <typename T>
+    struct strict_ureal_policies : ureal_policies<T>
+    {
+        static bool const expect_dot = true;
+    };
+
+    template <typename T>
+    struct strict_real_policies : real_policies<T>
+    {
+        static bool const expect_dot = true;
     };
 
 }}}

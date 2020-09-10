@@ -14,6 +14,8 @@
 #include <string>
 #include <variant>
 
+#include <cctype>
+
 
 namespace boost { namespace parser { namespace detail {
 
@@ -23,9 +25,15 @@ namespace boost { namespace parser { namespace detail {
     template<typename Char>
     std::ostream & print_char(std::ostream & os, Char c)
     {
-        if constexpr (std::is_same_v<
-                          char8_t,
-                          std::remove_cv_t<std::remove_reference_t<Char>>>) {
+        if constexpr (
+#if defined(__cpp_char8_t)
+            std::is_same_v<
+                char8_t,
+                std::remove_cv_t<std::remove_reference_t<Char>>>
+#else
+            false
+#endif
+        ) {
             os << char(c);
         } else {
             os << c;
@@ -34,15 +42,6 @@ namespace boost { namespace parser { namespace detail {
     }
 
     enum { parser_component_limit = 4 };
-
-#if 0 // TODO
-    template<typename Context, typename Parser>
-    void print_parser(
-        Context const & context,
-        Parser const & parser,
-        std::ostream & os,
-        int components = 0);
-#endif
 
     template<
         typename Context,

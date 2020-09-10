@@ -418,61 +418,59 @@ TEST(parser, star_and_plus_collapsing)
 
 TEST(parser, action)
 {
-    {
-        {
-            std::string str = "";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = *char_('b')[action];
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "");
-        }
-        {
-            std::string str = "b";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = *char_('b')[action];
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "b");
-        }
-        {
-            std::string str = "bb";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = *char_('b')[action];
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "bbbb");
-        }
-    }
+    {{std::string str = "";
+    std::stringstream ss;
+    auto action = [&ss](auto & context) { ss << _attr(context); };
+    auto parser = *char_('b')[action];
+    EXPECT_TRUE(parse(str, parser));
+    EXPECT_EQ(ss.str(), "");
+}
+{
+    std::string str = "b";
+    std::stringstream ss;
+    auto action = [&ss](auto & context) { ss << _attr(context); };
+    auto parser = *char_('b')[action];
+    EXPECT_TRUE(parse(str, parser));
+    EXPECT_EQ(ss.str(), "b");
+}
+{
+    std::string str = "bb";
+    std::stringstream ss;
+    auto action = [&ss](auto & context) { ss << _attr(context); };
+    auto parser = *char_('b')[action];
+    EXPECT_TRUE(parse(str, parser));
+    EXPECT_TRUE(parse(str, parser));
+    EXPECT_EQ(ss.str(), "bbbb");
+}
+}
 
+{
     {
-        {
-            std::string str = "";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = +char_('b')[action];
-            EXPECT_FALSE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "");
-        }
-        {
-            std::string str = "b";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = +char_('b')[action];
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "b");
-        }
-        {
-            std::string str = "bb";
-            std::stringstream ss;
-            auto action = [&ss](auto & context) { ss << _attr(context); };
-            auto parser = +char_('b')[action];
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_TRUE(parse(str, parser));
-            EXPECT_EQ(ss.str(), "bbbb");
-        }
+        std::string str = "";
+        std::stringstream ss;
+        auto action = [&ss](auto & context) { ss << _attr(context); };
+        auto parser = +char_('b')[action];
+        EXPECT_FALSE(parse(str, parser));
+        EXPECT_EQ(ss.str(), "");
     }
+    {
+        std::string str = "b";
+        std::stringstream ss;
+        auto action = [&ss](auto & context) { ss << _attr(context); };
+        auto parser = +char_('b')[action];
+        EXPECT_TRUE(parse(str, parser));
+        EXPECT_EQ(ss.str(), "b");
+    }
+    {
+        std::string str = "bb";
+        std::stringstream ss;
+        auto action = [&ss](auto & context) { ss << _attr(context); };
+        auto parser = +char_('b')[action];
+        EXPECT_TRUE(parse(str, parser));
+        EXPECT_TRUE(parse(str, parser));
+        EXPECT_EQ(ss.str(), "bbbb");
+    }
+}
 }
 
 TEST(parser, star_as_string_or_vector)
@@ -556,7 +554,6 @@ TEST(parser, star_as_string_or_vector)
             {
                 std::optional<std::string> const chars = parse(str, parser);
                 EXPECT_FALSE(chars);
-                EXPECT_EQ(*chars, "");
             }
             {
                 auto first = str.c_str();
@@ -1571,35 +1568,43 @@ TEST(parser, eol_)
             EXPECT_FALSE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000a";
+            std::string s = (char const *)u8"\u000a";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000d\u000a";
+            std::string s = (char const *)u8"\u000d\u000a";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000b";
+            std::string s = (char const *)u8"\u000b";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000c";
+            std::string s = (char const *)u8"\u000c";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000d";
+            std::string s = (char const *)u8"\u000d";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u0085";
+            std::string s = (char const *)u8"\u0085";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2028";
+            std::string s = (char const *)u8"\u2028";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2029";
+            std::string s = (char const *)u8"\u2029";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
     }
@@ -1615,103 +1620,128 @@ TEST(parser, ws_)
             EXPECT_FALSE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u0009";
+            std::string s = (char const *)u8"\u0009";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000a";
+            std::string s = (char const *)u8"\u000a";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000d\u000a";
+            std::string s = (char const *)u8"\u000d\u000a";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000b";
+            std::string s = (char const *)u8"\u000b";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000c";
+            std::string s = (char const *)u8"\u000c";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u000d";
+            std::string s = (char const *)u8"\u000d";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u0085";
+            std::string s = (char const *)u8"\u0085";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u00a0";
+            std::string s = (char const *)u8"\u00a0";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u1680";
+            std::string s = (char const *)u8"\u1680";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2000";
+            std::string s = (char const *)u8"\u2000";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2001";
+            std::string s = (char const *)u8"\u2001";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2002";
+            std::string s = (char const *)u8"\u2002";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2003";
+            std::string s = (char const *)u8"\u2003";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2004";
+            std::string s = (char const *)u8"\u2004";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2005";
+            std::string s = (char const *)u8"\u2005";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2006";
+            std::string s = (char const *)u8"\u2006";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2007";
+            std::string s = (char const *)u8"\u2007";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2008";
+            std::string s = (char const *)u8"\u2008";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2009";
+            std::string s = (char const *)u8"\u2009";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u200a";
+            std::string s = (char const *)u8"\u200a";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2028";
+            std::string s = (char const *)u8"\u2028";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u2029";
+            std::string s = (char const *)u8"\u2029";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u202F";
+            std::string s = (char const *)u8"\u202F";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u205F";
+            std::string s = (char const *)u8"\u205F";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
         {
-            std::u8string str = u8"\u3000";
+            std::string s = (char const *)u8"\u3000";
+            auto str = boost::text::as_utf8(s);
             EXPECT_TRUE(parse(str, parser));
         }
     }

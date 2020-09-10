@@ -21,7 +21,11 @@
 namespace boost { namespace parser {
 
     /** A simple view type used throughout the rest of the library. */
-    template<typename I, std::sentinel_for<I> S = I>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, std::sentinel_for<I> S = I>
+#else
+    template<typename I, typename S = I>
+#endif
     struct view : stl_interfaces::view_interface<view<I, S>>
     {
         using iterator = I;
@@ -46,7 +50,11 @@ namespace boost { namespace parser {
     };
 
     /** Makes a `view<I>` from two `I`s. */
-    template<typename I, typename S>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, std::sentinel_for<I> S = I>
+#else
+    template<typename I, typename S = I>
+#endif
     constexpr view<I, S> make_view(I first, S last) noexcept
     {
         return view<I, S>(first, last);
@@ -763,8 +771,8 @@ namespace boost { namespace parser {
         };
 
 
-        template<typename T, typename U>
-        using callable = decltype(std::declval<T>()(std::declval<U>()));
+        template<typename T, typename... Args>
+        using callable = decltype(std::declval<T>()(std::declval<Args>()...));
 
         template<
             typename Context,
@@ -871,13 +879,25 @@ namespace boost { namespace parser {
         // Type traits.
 
         template<typename T>
+        using remove_cv_ref_t = typename std::remove_cv<
+            typename std::remove_reference<T>::type>::type;
+
+        template<typename T, typename U>
+        using comparison = decltype(std::declval<T>() == std::declval<U>());
+
+        template<typename T, typename U>
+        struct is_equality_comparable_with
+            : std::integral_constant<bool, is_detected<comparison, T, U>::value>
+        {};
+
+        template<typename T>
         struct is_nope : std::false_type
         {};
         template<>
         struct is_nope<nope> : std::true_type
         {};
         template<typename T>
-        constexpr bool is_nope_v = is_nope<std::remove_cvref_t<T>>::value;
+        constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
         struct is_hana_tuple : std::false_type
@@ -895,7 +915,7 @@ namespace boost { namespace parser {
         {};
         template<typename T>
         constexpr bool is_unconditional_eps_v =
-            is_unconditional_eps<std::remove_cvref_t<T>>::value;
+            is_unconditional_eps<remove_cv_ref_t<T>>::value;
 
         template<typename T>
         struct is_zero_plus_p : std::false_type
@@ -955,6 +975,182 @@ namespace boost { namespace parser {
             : is_detected<overloaded_callback_2, Callbacks, TagType, ResultType>
         {};
 
+        template<typename T>
+        struct is_utf8_view : std::false_type
+        {};
+        template<typename I, typename S>
+        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
+        {};
+
+        template<typename F, typename... Args>
+        struct is_invocable : std::integral_constant<
+                                  bool,
+                                  is_detected<callable, F, Args...>::value>
+        {};
+
+        template<typename T, typename... Args>
+        constexpr bool is_invocable_v = is_invocable<T, Args...>::value;
+
+#if BOOST_PARSER_USE_CONCEPTS
+
+        template<typename T>
+        using iterator_t = std::ranges::iterator_t<T>;
+        template<typename T>
+        using sentinel_t = std::ranges::sentinel_t<T>;
+        template<typename T>
+        using iter_value_t = std::iter_value_t<T>;
+        template<typename T>
+        using iter_reference_t = std::iter_reference_t<T>;
+        template<typename T>
+        using range_value_t = std::ranges::range_value_t<T>;
+
+        template<typename T>
+        concept non_unicode_char_range_like =
+            utf8_range_like<T> &&
+            (!is_utf8_view<remove_cv_ref_t<T>>::value && !char8_pointer<T>);
+
+#else
+
+        template<typename T>
+        using iterator_t = decltype(std::begin(std::declval<T &>()));
+        template<typename Range>
+        using sentinel_t = decltype(std::end(std::declval<Range>()));
+        template<typename T>
+        using iter_value_t = typename std::iterator_traits<T>::value_type;
+        template<typename T>
+        using iter_reference_t = decltype(*std::declval<T &>());
+        template<typename T>
+        using range_value_t = iter_value_t<iterator_t<T>>;
+
+        template<typename T, int N>
+        struct is_integral_and_n_bytes
+            : std::integral_constant<
+                  bool,
+                  std::is_integral_v<T> && sizeof(T) == N>
+        {};
+
+        template<typename T>
+        struct is_utf8_pointer
+            : std::integral_constant<
+                  bool,
+                  std::is_pointer_v<T> &&
+                      is_integral_and_n_bytes<detected_t<iter_value_t, T>, 1>::
+                          value>
+        {};
+
+        template<typename T>
+        constexpr bool utf8_pointer = is_utf8_pointer<T>::value;
+
+        template<typename T>
+        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        template<typename T>
+        using has_end = decltype(std::end(std::declval<T &>()));
+
+        template<typename T>
+        using is_utf8_range = std::integral_constant<
+            bool,
+            (is_integral_and_n_bytes<
+                 remove_cv_ref_t<detected_t<has_begin, T>>,
+                 1>::value &&
+             is_detected<has_end, T>::value)>;
+
+        template<typename T>
+        using is_utf8_range_like = std::
+            integral_constant<bool, is_utf8_range<T>::value || utf8_pointer<T>>;
+
+#if defined(__cpp_char8_t)
+        template<typename T>
+        struct is_char8_pointer
+            : std::integral_constant<
+                  bool,
+                  std::is_pointer_v<T> &&
+                      std::is_same_v<detected_t<iter_value_t, T>, char8_t>>
+        {};
+#else
+        template<typename T>
+        struct is_char8_pointer : std::false_type
+        {};
+#endif
+
+        template<typename T>
+        struct is_non_unicode_char_range_like
+            : std::integral_constant<
+                  bool,
+                  is_utf8_range_like<T>::value && !is_utf8_view<T>::value &&
+                      !is_char8_pointer<T>::value>
+        {};
+
+        template<typename T>
+        constexpr bool non_unicode_char_range_like =
+            is_non_unicode_char_range_like<T>::value;
+
+        template<typename T>
+        using has_insert = decltype(std::declval<T>().insert(
+            std::declval<T>().begin(), *std::declval<T>().begin()));
+        template<typename T>
+        using has_range_insert = decltype(std::declval<T>().insert(
+            std::declval<T>().begin(),
+            std::declval<T>().begin(),
+            std::declval<T>().end()));
+
+        template<typename T>
+        struct is_container : std::integral_constant<
+                                  bool,
+                                  is_detected<has_insert, T>::value &&
+                                      is_detected<has_range_insert, T>::value>
+        {};
+
+        template<typename T, typename U>
+        struct is_container_and_value_type
+            : std::integral_constant<
+                  bool,
+                  is_container<T>::value &&
+                      std::is_same_v<detected_t<range_value_t, T>, U>>
+        {};
+
+        template<typename T, typename U>
+        constexpr bool container_and_value_type =
+            is_container_and_value_type<T, U>::value;
+
+        template<typename T>
+        struct is_parsable_iter
+            : std::integral_constant<
+                  bool,
+                  std::is_integral_v<
+                      remove_cv_ref_t<detected_t<iter_value_t, T>>>>
+        {};
+
+        template<typename T>
+        struct is_parsable_range
+            : std::integral_constant<
+                  bool,
+                  std::is_integral_v<
+                      remove_cv_ref_t<detected_t<has_begin, T>>> &&
+                      is_detected<has_end, T>::value>
+        {};
+
+        template<typename T>
+        struct is_parsable_pointer
+            : std::integral_constant<
+                  bool,
+                  std::is_pointer_v<std::decay_t<T>> &&
+                      std::is_integral_v<
+                          std::remove_pointer_t<std::decay_t<T>>>>
+        {};
+
+        template<typename T>
+        struct is_parsable_range_like
+            : std::integral_constant<
+                  bool,
+                  is_parsable_range<T>::value || is_parsable_pointer<T>::value>
+        {};
+    }
+
+    template<typename T>
+    constexpr bool container = detail::is_container<T>::value;
+
+    namespace detail {
+#endif
 
 
         // Metafunctions.
@@ -1091,10 +1287,9 @@ namespace boost { namespace parser {
             if (!gen_attrs)
                 return;
             if constexpr (
-                std::integral<std::ranges::range_value_t<Container>> &&
-                std::integral<T> &&
-                sizeof(std::ranges::range_value_t<Container>) == 1 &&
-                sizeof(T) == 4) {
+                std::is_integral_v<range_value_t<Container>> &&
+                std::is_integral_v<T> &&
+                sizeof(range_value_t<Container>) == 1 && sizeof(T) == 4) {
                 uint32_t cps[1] = {(uint32_t)x};
                 auto const r = text::as_utf8(cps);
                 c.insert(c.end(), r.begin(), r.end());
@@ -1118,11 +1313,11 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs)
                 return;
-            using container_value_type = std::ranges::range_value_t<Container>;
-            using iter_value_type = std::iter_value_t<Iter>;
+            using container_value_type = range_value_t<Container>;
+            using iter_value_type = iter_value_t<Iter>;
             if constexpr (
-                std::integral<container_value_type> &&
-                std::integral<iter_value_type> &&
+                std::is_integral_v<container_value_type> &&
+                std::is_integral_v<iter_value_type> &&
                 sizeof(container_value_type) == 1 &&
                 sizeof(iter_value_type) == 4) {
                 auto const r = text::as_utf8(first, last);
@@ -1963,26 +2158,13 @@ namespace boost { namespace parser {
             return detail::remove_utf32_terminator(text::as_utf32(r));
         }
 
-        template<typename T>
-        struct is_utf8_view : std::false_type
-        {};
-        template<typename I, typename S>
-        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
-        {};
-
-        template<typename T>
-        concept non_unicode_char_range_like =
-            utf8_range_like<T> &&
-            (!is_utf8_view<std::remove_cvref_t<T>>::value && !char8_pointer<T>);
-
         template<typename R>
         constexpr auto make_input_view(R && r) noexcept
         {
-            if constexpr (non_unicode_char_range_like<R>) {
-                if constexpr (utf8_pointer<R>) {
+            if constexpr (non_unicode_char_range_like<remove_cv_ref_t<R>>) {
+                if constexpr (utf8_pointer<remove_cv_ref_t<R>>) {
                     return parser::make_view(r, text::null_sentinel{});
-                } else if constexpr (std::is_array_v<
-                                         std::remove_reference_t<R>>) {
+                } else if constexpr (std::is_array_v<remove_cv_ref_t<R>>) {
                     auto first = std::begin(r);
                     auto last = std::end(r);
                     if (first != last && *std::prev(last) == 0)
@@ -2153,9 +2335,13 @@ namespace boost { namespace parser {
         return *context.error_handler_;
     }
 
-    template<typename Iter, typename Context>
-    void _report_error(
-        Context const & context, std::string_view message, Iter location)
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
+    void
+    _report_error(Context const & context, std::string_view message, I location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::error, message, context, location);
@@ -2168,9 +2354,13 @@ namespace boost { namespace parser {
             diagnostic_kind::error, message, context);
     }
 
-    template<typename Iter, typename Context>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
     void _report_warning(
-        Context const & context, std::string_view message, Iter location)
+        Context const & context, std::string_view message, I location)
     {
         return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context, location);
@@ -3758,14 +3948,14 @@ namespace boost { namespace parser {
                     // you're seeing an error here, you probably have not met
                     // this contract.
                     static_assert(
-                        std::invocable<decltype(callbacks), tag_type>);
+                        detail::is_invocable_v<decltype(callbacks), tag_type>);
                     callbacks(tag_type{});
                 } else {
                     // For rules with attributes, Callbacks must be a struct
                     // with overloads of the form void(tag_type, attr_type).
                     // If you're seeing an error here, you probably have not
                     // met this contract.
-                    static_assert(std::invocable<
+                    static_assert(detail::is_invocable_v<
                                   decltype(callbacks),
                                   tag_type,
                                   decltype(std::move(retval))>);
@@ -3887,20 +4077,20 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator>>(parser_interface<parser_type_2> rhs) const noexcept
+        operator>>(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<true>(rhs);
-            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_seq_p<ParserType2>{}) {
                 return rhs.parser_.template prepend<true>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, parser_type_2>,
+                    hana::tuple<parser_type, ParserType2>,
                     hana::tuple<hana::true_, hana::true_>>;
                 return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, parser_type_2>{
+                    parser_t{hana::tuple<parser_type, ParserType2>{
                         parser_, rhs.parser_}}};
             }
         }
@@ -3915,7 +4105,14 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to a
             `seq_parser` containing `parser_` followed by `lit(rhs)`. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator>>(R && r) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to a
@@ -3923,20 +4120,20 @@ namespace boost { namespace parser {
             back-tracking is allowed after `parser_` succeeds; if
             `rhs.parser_` fails after `parser_` succeeds, the top-level parse
             fails. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator>(parser_interface<parser_type_2> rhs) const noexcept
+        operator>(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_seq_p<parser_type>{}) {
                 return parser_.template append<false>(rhs);
-            } else if constexpr (detail::is_seq_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_seq_p<ParserType2>{}) {
                 return rhs.parser_.template prepend<false>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, parser_type_2>,
+                    hana::tuple<parser_type, ParserType2>,
                     hana::tuple<hana::true_, hana::false_>>;
                 return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, parser_type_2>{
+                    parser_t{hana::tuple<parser_type, ParserType2>{
                         parser_, rhs.parser_}}};
             }
         }
@@ -3957,18 +4154,25 @@ namespace boost { namespace parser {
             `seq_parser` containing `parser_` followed by `lit(rhs)`.  No
             back-tracking is allowed after `parser_` succeeds; if `lit(rhs)`
             fails after `parser_` succeeds, the top-level parse fails. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator>(R && r) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator|(parser_interface<parser_type_2> rhs) const noexcept
+        operator|(parser_interface<ParserType2> rhs) const noexcept
         {
             if constexpr (detail::is_or_p<parser_type>{}) {
                 return parser_.append(rhs);
-            } else if constexpr (detail::is_or_p<parser_type_2>{}) {
+            } else if constexpr (detail::is_or_p<ParserType2>{}) {
                 return rhs.parser_.prepend(*this);
             } else {
                 // If you're seeing this as a compile- or run-time failure,
@@ -3983,8 +4187,8 @@ namespace boost { namespace parser {
                 BOOST_PARSER_ASSERT(
                     !detail::is_unconditional_eps<parser_type>{});
                 return parser::parser_interface{
-                    or_parser<hana::tuple<parser_type, parser_type_2>>{
-                        hana::tuple<parser_type, parser_type_2>{
+                    or_parser<hana::tuple<parser_type, ParserType2>>{
+                        hana::tuple<parser_type, ParserType2>{
                             parser_, rhs.parser_}}};
             }
         }
@@ -3999,14 +4203,21 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator|(R && r) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!rhs >> *this`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator-(parser_interface<parser_type_2> rhs) const noexcept
+        operator-(parser_interface<ParserType2> rhs) const noexcept
         {
             return !rhs >> *this;
         }
@@ -4021,17 +4232,24 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to
             `!lit(rhs) >> *this`. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator-(R && r) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `rhs.parser_`. */
-        template<typename parser_type_2>
+        template<typename ParserType2>
         constexpr auto
-        operator%(parser_interface<parser_type_2> rhs) const noexcept
+        operator%(parser_interface<ParserType2> rhs) const noexcept
         {
             return parser::parser_interface{
-                delimited_seq_parser<parser_type, parser_type_2>(
+                delimited_seq_parser<parser_type, ParserType2>(
                     parser_, rhs.parser_)};
         }
 
@@ -4045,7 +4263,14 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a parser equivalent to an
            `delimited_seq_parser` containing `parser_` and `lit(rhs)`. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator%(R && r) const noexcept;
 
         /** Returns a `parser_interface` containing a parser equivalent to an
@@ -4242,7 +4467,8 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface{rule_parser_type{
+            using result_type = parser_interface<rule_parser_type>;
+            return result_type{rule_parser_type{
                 this->parser_.name_,
                 hana::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
@@ -4278,7 +4504,8 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface{rule_parser_type{
+            using result_type = parser_interface<rule_parser_type>;
+            return result_type{rule_parser_type{
                 this->parser_.name_,
                 hana::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
@@ -4525,13 +4752,14 @@ namespace boost { namespace parser {
 
         /** Returns a `skip_directive` with `skip_parser` as its skipper. */
         template<typename SkipParser2>
-        constexpr auto operator()(SkipParser2 skip_parser) const noexcept
+        constexpr auto
+        operator()(parser_interface<SkipParser2> skip_parser) const noexcept
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<SkipParser> &&
                  "If you're seeing this, you tried to chain calls on skip, "
                  "like 'skip(foo)(bar)'.  Quit it!'"));
-            return skip_directive<SkipParser2>{skip_parser};
+            return skip_directive<parser_interface<SkipParser2>>{skip_parser};
         }
 
         SkipParser skip_parser_;
@@ -4569,6 +4797,10 @@ namespace boost { namespace parser {
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
+            // Predicate must be a parse predicate.  If you see an error here,
+            // you have not met this contract.  See the terminology section of
+            // the online docs if you don't know what that a parse predicate
+            // is.
             success = pred_(predicate_context);
             return {};
         }
@@ -4595,6 +4827,10 @@ namespace boost { namespace parser {
             view const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
+            // Predicate must be a parse predicate.  If you see an error here,
+            // you have not met this contract.  See the terminology section of
+            // the online docs if you don't know what that a parse predicate
+            // is.
             success = pred_(predicate_context);
         }
 
@@ -4734,7 +4970,7 @@ namespace boost { namespace parser {
 
         template<typename T>
         using attribute_t = std::conditional_t<
-            std::is_same<AttributeType, void>{},
+            std::is_same_v<AttributeType, void>,
             std::decay_t<T>,
             AttributeType>;
 
@@ -4793,8 +5029,14 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a `char_parser` that
             matches `x`. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
-        // TODO: SFINAE version would require not-range-like constraint.
+#else
+        template<
+            typename T,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like<T>::value>>
+#endif
         constexpr auto operator()(T x) const noexcept
         {
             BOOST_PARSER_ASSERT(
@@ -4828,7 +5070,14 @@ namespace boost { namespace parser {
             compared to the elements of `r`.  The presumed encoding of `r` is
             considered UTF-8, UTF-16, or UTF-32, if the size of the elements
             of `r` are 1-, 2- or 4-bytes in size, respectively. */
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr auto operator()(R const & r) const noexcept
         {
             BOOST_PARSER_ASSERT(
@@ -4871,8 +5120,10 @@ namespace boost { namespace parser {
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
 
+#if defined(__cpp_char8_t) || defined(BOOST_PARSER_DOXYGEN)
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char8_t c) noexcept { return omit[char_(c)]; }
+#endif
 
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
@@ -4881,7 +5132,15 @@ namespace boost { namespace parser {
     struct string_parser
     {
         constexpr string_parser() : expected_first_(), expected_last_() {}
+
+#if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
         constexpr string_parser(R && r) :
             expected_first_(detail::make_view_begin(r)),
             expected_last_(detail::make_view_end(r))
@@ -4965,21 +5224,33 @@ namespace boost { namespace parser {
         StrSentinel expected_last_;
     };
 
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R>
+#endif
     string_parser(R r) -> string_parser<
         decltype(detail::make_view_begin(r)),
         decltype(detail::make_view_end(r))>;
 
     /** Returns a parser that matches `str` that produces the matched string
         as its attribute. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R>
+#endif
     constexpr auto string(R && str) noexcept
     {
         return parser_interface{string_parser(str)};
     }
 
     /** Returns a parser that matches `str` that produces no attribute. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R>
+#endif
     constexpr auto lit(R && str) noexcept
     {
         return omit[parser::string(str)];
@@ -5480,9 +5751,9 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            spirit::x3::real_policies<T> policies;
-            using extract =
-                detail_spirit_x3::extract_real<T, spirit::x3::real_policies<T>>;
+            detail_spirit_x3::real_policies<T> policies;
+            using extract = detail_spirit_x3::
+                extract_real<T, detail_spirit_x3::real_policies<T>>;
             T attr = 0;
             auto const initial = first;
             success = extract::parse(first, last, attr, policies);
@@ -5679,7 +5950,11 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R, typename>
+#endif
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
         R && r) const noexcept
@@ -5712,7 +5987,15 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) >> rhs`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R, typename Parser>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     constexpr auto operator>>(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
@@ -5741,7 +6024,11 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R, typename>
+#endif
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
         R && r) const noexcept
@@ -5774,7 +6061,15 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) > rhs`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R, typename Parser>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     constexpr auto operator>(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
@@ -5803,7 +6098,11 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R, typename>
+#endif
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
         R && r) const noexcept
@@ -5836,7 +6135,15 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) | rhs`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R, typename Parser>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     constexpr auto operator|(R && r, parser_interface<Parser> rhs) noexcept
     {
         if constexpr (detail::is_or_p<Parser>{}) {
@@ -5865,7 +6172,11 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R, typename>
+#endif
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
         R && r) const noexcept
@@ -5890,7 +6201,15 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `!rhs >> lit(str)`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R, typename Parser>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     constexpr auto operator-(R && r, parser_interface<Parser> rhs) noexcept
     {
         return !rhs >> parser::lit(r);
@@ -5915,7 +6234,11 @@ namespace boost { namespace parser {
     }
 
     template<typename Parser, typename GlobalState, typename ErrorHandler>
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
+#else
+    template<typename R, typename>
+#endif
     constexpr auto
     parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
         R && r) const noexcept
@@ -5940,7 +6263,15 @@ namespace boost { namespace parser {
     }
 
     /** Returns a parser equivalent to `lit(str) % rhs`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R, typename Parser>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     constexpr auto operator%(R && r, parser_interface<Parser> rhs) noexcept
     {
         return parser::lit(r) % rhs;
@@ -5952,6 +6283,27 @@ namespace boost { namespace parser {
 
 namespace boost { namespace parser {
 
+#if !BOOST_PARSER_USE_CONCEPTS
+#if defined(__cpp_char8_t)
+    template<typename T>
+    struct is_char8_iter
+        : std::integral_constant<
+              bool,
+              (std::is_integral_v<detail::detected_t<detail::value_type_, T>> &&
+               std::is_same_v<
+                   detail::remove_cv_ref_t<
+                       detail::detected_t<detail::value_type_, T>>,
+                   char8_t>)>
+    {};
+
+    template<typename T>
+    constexpr bool char8_iter = is_char8_iter<T>::value;
+#else
+    template<typename T>
+    constexpr bool char8_iter = false;
+#endif
+#endif
+
     /** An enumeration used for parameters to enable and disable trace in the
         `*parse()` functions. */
     enum class trace { on, off };
@@ -5962,6 +6314,7 @@ namespace boost { namespace parser {
         was successful.  On success, `attr` will be assigned the value of the
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -5969,6 +6322,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
         typename Attr>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Attr,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     bool parse(
         I & first,
         S last,
@@ -6017,24 +6382,37 @@ namespace boost { namespace parser {
         value of the attribute produced by `parser`.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
         `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename Attr>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Attr,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     bool parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6047,12 +6425,24 @@ namespace boost { namespace parser {
         containing the attribute produced by `parser` on parse success, and
         `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     auto parse(
         I & first,
         S last,
@@ -6090,22 +6480,34 @@ namespace boost { namespace parser {
         parse failure.  The entire input range `r` must be consumed for the
         parse to be considered successful.  If `trace_mode == trace::on`, a
         verbose trace of the parse will be streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6120,6 +6522,7 @@ namespace boost { namespace parser {
         the value of the attribute produced by `parser`.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
         `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6128,6 +6531,19 @@ namespace boost { namespace parser {
         error_handler<I, S, GlobalState> ErrorHandler,
         typename SkipParser,
         typename Attr>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Attr,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     bool parse(
         I & first,
         S last,
@@ -6178,6 +6594,7 @@ namespace boost { namespace parser {
         assigned the value of the attribute produced by `parser`.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
         streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
@@ -6185,19 +6602,32 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Attr>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Attr,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     bool parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6214,6 +6644,7 @@ namespace boost { namespace parser {
         success, and `std::nullopt` on parse failure.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
         `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6221,6 +6652,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
         typename SkipParser>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     auto parse(
         I & first,
         S last,
@@ -6256,6 +6699,7 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6266,6 +6710,21 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     auto parse(
         I & first,
         S last,
@@ -6299,6 +6758,7 @@ namespace boost { namespace parser {
         }
     }
 
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6309,6 +6769,21 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     auto parse(
         I & first,
         S last,
@@ -6351,24 +6826,37 @@ namespace boost { namespace parser {
         consumed for the parse to be considered successful.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
         `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6379,6 +6867,7 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
@@ -6388,18 +6877,33 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6408,6 +6912,7 @@ namespace boost { namespace parser {
             first, last, parser::parse(first, last, parser, skip, trace_mode));
     }
 
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
@@ -6417,18 +6922,33 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename TagType,
+        typename Attribute,
+        typename LocalState,
+        typename ParamsTuple,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     auto parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6449,6 +6969,7 @@ namespace boost { namespace parser {
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
         streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6456,6 +6977,18 @@ namespace boost { namespace parser {
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
         typename Callbacks>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Callbacks,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     bool callback_parse(
         I & first,
         S last,
@@ -6500,24 +7033,37 @@ namespace boost { namespace parser {
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
         streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
         typename Callbacks>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename Callbacks,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     bool callback_parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6539,6 +7085,7 @@ namespace boost { namespace parser {
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
         streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
         std::sentinel_for<I> S,
@@ -6547,6 +7094,19 @@ namespace boost { namespace parser {
         error_handler<I, S, GlobalState> ErrorHandler,
         typename SkipParser,
         typename Callbacks>
+#else
+    template<
+        typename I,
+        typename S,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Callbacks,
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_iter<I>::value &&
+            detail::is_equality_comparable_with<I, S>::value>>
+#endif
     bool callback_parse(
         I & first,
         S last,
@@ -6603,6 +7163,7 @@ namespace boost { namespace parser {
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
         streamed to `std::cout`. */
+#if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
         typename Parser,
@@ -6610,19 +7171,32 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Callbacks>
-    // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<R>,
-            std::ranges::sentinel_t<R>,
-            GlobalState>
+#else
+    template<
+        typename R,
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        typename SkipParser,
+        typename Callbacks,
+        typename Enable =
+            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+#endif
     bool callback_parse(
-        // clang-format on
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires error_handler<
+            ErrorHandler,
+            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            GlobalState>
+    // clang-format on
+#endif
     {
         auto r_ = detail::make_input_view(r);
         auto first = r_.begin();
@@ -6637,8 +7211,10 @@ namespace boost { namespace parser {
     namespace literals {
         /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char c) { return parser::lit(c); }
+#if defined(__cpp_char8_t) || defined(BOOST_PARSER_DOXYGEN)
         /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char8_t c) { return parser::lit(c); }
+#endif
         /** Returns a literal parser equivalent to `lit(c)`. */
         constexpr auto operator""_l(char32_t c) { return parser::lit(c); }
         /** Returns a literal parser equivalent to `lit(str)`. */
@@ -6646,11 +7222,13 @@ namespace boost { namespace parser {
         {
             return parser::lit(str);
         }
+#if defined(__cpp_char8_t) || defined(BOOST_PARSER_DOXYGEN)
         /** Returns a literal parser equivalent to `lit(str)`. */
         constexpr auto operator""_l(char8_t const * str, std::size_t)
         {
             return parser::lit(str);
         }
+#endif
         /** Returns a literal parser equivalent to `lit(str)`. */
         constexpr auto operator""_l(char32_t const * str, std::size_t)
         {
@@ -6659,8 +7237,10 @@ namespace boost { namespace parser {
 
         /** Returns a character parser equivalent to `char_(c)`. */
         constexpr auto operator""_p(char c) { return char_(c); }
+#if defined(__cpp_char8_t) || defined(BOOST_PARSER_DOXYGEN)
         /** Returns a character parser equivalent to `char_(c)`. */
         constexpr auto operator""_p(char8_t c) { return char_(c); }
+#endif
         /** Returns a character parser equivalent to `char_(c)`. */
         constexpr auto operator""_p(char32_t c) { return char_(c); }
         /** Returns a string parser equivalent to `string(str)`. */
@@ -6668,11 +7248,13 @@ namespace boost { namespace parser {
         {
             return parser::string(str);
         }
+#if defined(__cpp_char8_t) || defined(BOOST_PARSER_DOXYGEN)
         /** Returns a string parser equivalent to `string(str)`. */
         constexpr auto operator""_p(char8_t const * str, std::size_t)
         {
             return parser::string(str);
         }
+#endif
         /** Returns a string parser equivalent to `string(str)`. */
         constexpr auto operator""_p(char32_t const * str, std::size_t)
         {

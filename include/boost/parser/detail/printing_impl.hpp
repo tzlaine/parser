@@ -8,18 +8,6 @@
 
 namespace boost { namespace parser { namespace detail {
 
-#if 0
-    template<typename Context, typename Parser>
-    void print_parser(
-        Context const & context,
-        Parser const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "<<unknown-parser>>";
-    }
-#endif
-
     template<typename Parser>
     struct n_aray_parser : std::false_type
     {};
