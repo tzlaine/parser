@@ -4467,7 +4467,8 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface{rule_parser_type{
+            using result_type = parser_interface<rule_parser_type>;
+            return result_type{rule_parser_type{
                 this->parser_.name_,
                 hana::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
@@ -4503,7 +4504,8 @@ namespace boost { namespace parser {
                 Attribute,
                 LocalState,
                 params_tuple_type>;
-            return parser_interface{rule_parser_type{
+            using result_type = parser_interface<rule_parser_type>;
+            return result_type{rule_parser_type{
                 this->parser_.name_,
                 hana::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
@@ -4968,7 +4970,7 @@ namespace boost { namespace parser {
 
         template<typename T>
         using attribute_t = std::conditional_t<
-            std::is_same<AttributeType, void>{},
+            std::is_same_v<AttributeType, void>,
             std::decay_t<T>,
             AttributeType>;
 

@@ -149,9 +149,6 @@ namespace json {
         {};
 
         template<typename T>
-        using is_string = is_string<T>;
-
-        template<typename T>
         struct get_impl;
     }
 
@@ -334,7 +331,7 @@ namespace json {
             std::array<char, 15> bytes_;
         };
         static_assert(sizeof(local) == 16);
-        static_assert(alignof(local::bytes_) == 1);
+        static_assert(alignof(std::array<char, 15>) == 1);
         struct remote
         {
             uint8_t kind_;

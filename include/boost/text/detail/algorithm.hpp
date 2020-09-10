@@ -14,6 +14,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <cstdint>
+
 
 namespace boost { namespace text { namespace detail {
 

@@ -116,8 +116,8 @@ namespace boost { namespace parser {
         Iter it,
         Sentinel last,
         std::string_view message,
-        int64_t preferred_max_line_length = 80,
-        int64_t max_after_caret = 40)
+        int64_t preferred_max_line_length,
+        int64_t max_after_caret)
     {
         auto const r = text::as_utf8(filename);
         std::string s(r.begin(), r.end());
@@ -164,8 +164,8 @@ namespace boost { namespace parser {
         Iter first,
         Sentinel last,
         parse_error<Iter> const & e,
-        int64_t preferred_max_line_length = 80,
-        int64_t max_after_caret = 40)
+        int64_t preferred_max_line_length,
+        int64_t max_after_caret)
     {
         auto const r = text::as_utf8(filename);
         std::string s(r.begin(), r.end());
@@ -193,8 +193,8 @@ namespace boost { namespace parser {
         /** This overload is Windows-only. */
         callback_error_handler(
             callback_type error,
-            callback_type warning = callback_type(),
-            std::wstring_view filename = "") :
+            callback_type warning,
+            std::wstring_view filename) :
             error_(error), warning_(warning)
         {
             auto const r = text::as_utf8(filename);
