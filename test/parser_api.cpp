@@ -436,30 +436,107 @@ TEST(parser, basic)
     }
 }
 
-TEST(parser, int_uint)
+TEST(parser, int_)
 {
     {
         char const * str = "-42";
-        int i = 0;
-        EXPECT_TRUE(parse(str, int_, i));
+        short i = 0;
+        EXPECT_TRUE(parse(str, short_, i));
         EXPECT_EQ(i, -42);
     }
     {
         char const * str = "42";
+        short i = 0;
+        EXPECT_TRUE(parse(str, short_, i));
+        EXPECT_EQ(i, 42);
+    }
+    {
+        char const * str = "-2000000000";
         int i = 0;
         EXPECT_TRUE(parse(str, int_, i));
+        EXPECT_EQ(i, -2000000000);
+    }
+    {
+        char const * str = "2000000000";
+        int i = 0;
+        EXPECT_TRUE(parse(str, int_, i));
+        EXPECT_EQ(i, 2000000000);
+    }
+    {
+        char const * str = "-2000000000";
+        long i = 0;
+        EXPECT_TRUE(parse(str, long_, i));
+        EXPECT_EQ(i, -2000000000);
+    }
+    {
+        char const * str = "2000000000";
+        long i = 0;
+        EXPECT_TRUE(parse(str, long_, i));
+        EXPECT_EQ(i, 2000000000);
+    }
+    {
+        char const * str = "-4000000000";
+        long long i = 0;
+        EXPECT_TRUE(parse(str, long_long, i));
+        EXPECT_EQ(i, -4000000000);
+    }
+    {
+        char const * str = "4000000000";
+        long long i = 0;
+        EXPECT_TRUE(parse(str, long_long, i));
+        EXPECT_EQ(i, 4000000000);
+    }
+}
+
+TEST(parser, uint_)
+{
+    {
+        char const * str = "10011";
+        unsigned int i = 0;
+        EXPECT_TRUE(parse(str, bin, i));
+        EXPECT_EQ(i, 19);
+    }
+    {
+        char const * str = "107";
+        unsigned int i = 0;
+        EXPECT_TRUE(parse(str, oct, i));
+        EXPECT_EQ(i, 71);
+    }
+    {
+        char const * str = "beef";
+        unsigned int i = 0;
+        EXPECT_TRUE(parse(str, hex, i));
+        EXPECT_EQ(i, 48879);
+    }
+
+    {
+        char const * str = "42";
+        unsigned int i = 0;
+        EXPECT_TRUE(parse(str, ushort_, i));
         EXPECT_EQ(i, 42);
     }
     {
         char const * str = "-42";
-        int i = 3;
+        unsigned int i = 3;
         EXPECT_FALSE(parse(str, uint_, i));
         EXPECT_EQ(i, 3);
     }
     {
         char const * str = "42";
-        int i = 0;
+        unsigned int i = 0;
         EXPECT_TRUE(parse(str, uint_, i));
+        EXPECT_EQ(i, 42);
+    }
+    {
+        char const * str = "42";
+        unsigned long i = 0;
+        EXPECT_TRUE(parse(str, ulong_, i));
+        EXPECT_EQ(i, 42);
+    }
+    {
+        char const * str = "42";
+        unsigned long long i = 0;
+        EXPECT_TRUE(parse(str, ulong_long, i));
         EXPECT_EQ(i, 42);
     }
 }

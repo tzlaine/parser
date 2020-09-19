@@ -9,6 +9,7 @@
 #include <boost/container/small_vector.hpp>
 
 #include <fstream>
+#include <climits>
 
 
 namespace json {

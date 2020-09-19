@@ -12,33 +12,227 @@
 #ifndef BOOST_PARSER_DETAIL_NUMERIC_HPP
 #define BOOST_PARSER_DETAIL_NUMERIC_HPP
 
-#include <boost/spirit/home/x3/support/numeric_utils/detail/extract_int.hpp>
-#include <boost/spirit/home/x3/support/numeric_utils/extract_real.hpp>
+#include <cmath>
 
 
 namespace boost { namespace parser { namespace detail_spirit_x3 {
 
+    struct unused_type{};
+
+    // Copied from boost/spirit/home/support/char_class.hpp (Boost 1.71), and
+    // modified not to use Boost.TypeTraits.
+
+    template <typename TargetChar, typename SourceChar>
+    TargetChar cast_char(SourceChar ch)
+    {
+        if (std::is_signed_v<TargetChar> != std::is_signed_v<SourceChar>)
+        {
+            if (std::is_signed<SourceChar>::value)
+            {
+                // source is signed, target is unsigned
+                typedef std::make_unsigned_t<SourceChar> USourceChar;
+                return TargetChar(USourceChar(ch));
+            }
+            else
+            {
+                // source is unsigned, target is signed
+                typedef std::make_signed_t<SourceChar> SSourceChar;
+                return TargetChar(SSourceChar(ch));
+            }
+        }
+        else
+        {
+            // source and target has same signedness
+            return TargetChar(ch); // just cast
+        }
+    }
+
     // Copied from
     // boost/spirit/home/x3/support/numeric_utils/detail/extract_int.hpp
-    // (Boost 1.67),and modified for use with iterator, sentinel pairs:
+    // (Boost 1.67), and modified not to use Boost.MPL or Boost.PP.
 
-    ///////////////////////////////////////////////////////////////////////////
-    //  extract_int_impl: main code for extracting integers
-    ///////////////////////////////////////////////////////////////////////////
-#define BOOST_PARSER_NUMERIC_INNER_LOOP(z, x, data)                             \
-        if (!spirit::x3::detail::check_max_digits<MaxDigits>::call(count + leading_zeros) \
-            || it == last)                                                      \
-            break;                                                              \
-        ch = *it;                                                               \
-        if (!radix_check::is_valid(ch) || !extractor::call(ch, count, val))     \
-            break;                                                              \
-        ++it;                                                                   \
-        ++count;                                                                \
-    /**/
+    inline constexpr int log2_table[] = {
+        0,       0,       1000000, 1584960, 2000000, 2321920, 2584960, 2807350,
+        3000000, 3169920, 3321920, 3459430, 3584960, 3700430, 3807350, 3906890,
+        4000000, 4087460, 4169920, 4247920, 4321920, 4392310, 4459430, 4523560,
+        4584960, 4643850, 4700430, 4754880, 4807350, 4857980, 4906890, 4954190,
+        5000000, 5044390, 5087460, 5129280, 5169925};
+
+    template<typename T, unsigned Radix>
+    struct digits_traits
+    {
+        static_assert(std::numeric_limits<T>::radix == 2, "");
+        constexpr static int value =
+            int((std::numeric_limits<T>::digits * 1000000) / log2_table[Radix]);
+    };
+
+    template <typename T>
+    struct digits_traits<T, 10>
+    {
+        static int constexpr value = std::numeric_limits<T>::digits10;
+    };
+
+    template<unsigned Radix>
+    struct radix_traits
+    {
+        template <typename Char>
+        inline static bool is_valid(Char ch)
+        {
+            if (Radix <= 10)
+                return (ch >= '0' && ch <= static_cast<Char>('0' + Radix -1));
+            return (ch >= '0' && ch <= '9')
+                || (ch >= 'a' && ch <= static_cast<Char>('a' + Radix -10 -1))
+                || (ch >= 'A' && ch <= static_cast<Char>('A' + Radix -10 -1));
+        }
+
+        template <typename Char>
+        inline static unsigned digit(Char ch)
+        {
+            if (Radix <= 10 || (ch >= '0' && ch <= '9'))
+                return ch - '0';
+            return std::tolower(detail_spirit_x3::cast_char<char>(ch)) - 'a' + 10;
+        }
+    };
+
+
+    template <unsigned Radix>
+    struct positive_accumulator
+    {
+        template <typename T, typename Char>
+        inline static void add(T& n, Char ch, std::false_type) // unchecked add
+        {
+            const int digit = radix_traits<Radix>::digit(ch);
+            n = n * T(Radix) + T(digit);
+        }
+
+        template <typename T, typename Char>
+        inline static bool add(T& n, Char ch, std::true_type) // checked add
+        {
+            // Ensure n *= Radix will not overflow
+            T const max = (std::numeric_limits<T>::max)();
+            T const val = max / Radix;
+            if (n > val)
+                return false;
+
+            T tmp = n * Radix;
+
+            // Ensure n += digit will not overflow
+            const int digit = radix_traits<Radix>::digit(ch);
+            if (tmp > max - digit)
+                return false;
+
+            n = tmp + static_cast<T>(digit);
+            return true;
+        }
+    };
+
+    template <unsigned Radix>
+    struct negative_accumulator
+    {
+        template <typename T, typename Char>
+        inline static void add(T& n, Char ch, std::false_type) // unchecked subtract
+        {
+            const int digit = radix_traits<Radix>::digit(ch);
+            n = n * T(Radix) - T(digit);
+        }
+
+        template <typename T, typename Char>
+        inline static bool add(T& n, Char ch, std::true_type) // checked subtract
+        {
+            // Ensure n *= Radix will not underflow
+            T const min = (std::numeric_limits<T>::min)();
+            T const val = min / T(Radix);
+            if (n < val)
+                return false;
+
+            T tmp = n * Radix;
+
+            // Ensure n -= digit will not underflow
+            int const digit = radix_traits<Radix>::digit(ch);
+            if (tmp < min + digit)
+                return false;
+
+            n = tmp - static_cast<T>(digit);
+            return true;
+        }
+    };
+
+    template <unsigned Radix, typename Accumulator, int MaxDigits>
+    struct int_extractor
+    {
+        template <typename Char, typename T>
+        inline static bool
+        call(Char ch, std::size_t count, T& n, std::true_type)
+        {
+            std::size_t constexpr
+                overflow_free = digits_traits<T, Radix>::value - 1;
+
+            if (count < overflow_free)
+            {
+                Accumulator::add(n, ch, std::false_type{});
+            }
+            else
+            {
+                if (!Accumulator::add(n, ch, std::true_type{}))
+                    return false; //  over/underflow!
+            }
+            return true;
+        }
+
+        template <typename Char, typename T>
+        inline static bool
+        call(Char ch, std::size_t /*count*/, T& n, std::false_type)
+        {
+            // no need to check for overflow
+            Accumulator::add(n, ch, std::false_type{});
+            return true;
+        }
+
+        template <typename Char>
+        inline static bool
+        call(Char /*ch*/, std::size_t /*count*/, unused_type, std::false_type)
+        {
+            return true;
+        }
+
+        template <typename Char, typename T>
+        inline static bool
+        call(Char ch, std::size_t count, T& n)
+        {
+            return call(ch, count, n
+              , std::integral_constant<bool,
+                    (   (MaxDigits < 0)
+                    ||  (MaxDigits > digits_traits<T, Radix>::value)
+                    )
+                  && std::numeric_limits<T>::is_bounded
+                >()
+            );
+        }
+    };
+
+    template <int MaxDigits>
+    struct check_max_digits
+    {
+        inline static bool
+        call(std::size_t count)
+        {
+            return count < MaxDigits; // bounded
+        }
+    };
+
+    template <>
+    struct check_max_digits<-1>
+    {
+        inline static bool
+        call(std::size_t /*count*/)
+        {
+            return true; // unbounded
+        }
+    };
 
     template <
         typename T, unsigned Radix, unsigned MinDigits, int MaxDigits
-      , typename Accumulator = spirit::x3::detail::positive_accumulator<Radix>
+      , typename Accumulator = positive_accumulator<Radix>
       , bool Accumulate = false
     >
     struct extract_int_impl
@@ -54,8 +248,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
           , Sentinel last
           , Attribute& attr)
         {
-            typedef spirit::x3::detail::radix_traits<Radix> radix_check;
-            typedef spirit::x3::detail::int_extractor<Radix, Accumulator, MaxDigits> extractor;
+            typedef radix_traits<Radix> radix_check;
+            typedef int_extractor<Radix, Accumulator, MaxDigits> extractor;
             typedef
                 typename std::iterator_traits<Iterator>::value_type char_type;
 
@@ -71,9 +265,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 }
             }
 
-            typedef typename
-                spirit::x3::traits::attribute_type<Attribute>::type
-            attribute_type;
+            typedef Attribute attribute_type;
 
             attribute_type val = Accumulate ? attr : attribute_type(0);
             std::size_t count = 0;
@@ -81,14 +273,38 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
 
             while (true)
             {
-                BOOST_PP_REPEAT(
-                    3
-                  , BOOST_PARSER_NUMERIC_INNER_LOOP, _)
+                if (!check_max_digits<MaxDigits>::call(count + leading_zeros) ||
+                    it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch) ||
+                    !extractor::call(ch, count, val))
+                    break;
+                ++it;
+                ++count;
+                if (!check_max_digits<MaxDigits>::call(count + leading_zeros) ||
+                    it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch) ||
+                    !extractor::call(ch, count, val))
+                    break;
+                ++it;
+                ++count;
+                if (!check_max_digits<MaxDigits>::call(count + leading_zeros) ||
+                    it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch) ||
+                    !extractor::call(ch, count, val))
+                    break;
+                ++it;
+                ++count;
             }
 
             if (count + leading_zeros >= MinDigits)
             {
-                spirit::x3::traits::move_to(val, attr);
+                attr = val;
                 first = it;
                 return true;
             }
@@ -103,7 +319,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         parse(
             Iterator& first
           , Sentinel last
-          , spirit::x3::unused_type)
+          , unused_type)
         {
             T n = 0; // must calculate value to detect over/underflow
             return parse_main(first, last, n);
@@ -119,23 +335,6 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             return parse_main(first, last, attr);
         }
     };
-#undef BOOST_PARSER_NUMERIC_INNER_LOOP
-
-    ///////////////////////////////////////////////////////////////////////////
-    //  extract_int_impl: main code for extracting integers
-    //  common case where MinDigits == 1 and MaxDigits = -1
-    ///////////////////////////////////////////////////////////////////////////
-#define BOOST_PARSER_NUMERIC_INNER_LOOP(z, x, data)                             \
-        if (it == last)                                                         \
-            break;                                                              \
-        ch = *it;                                                               \
-        if (!radix_check::is_valid(ch))                                         \
-            break;                                                              \
-        if (!extractor::call(ch, count, val))                                   \
-            return false;                                                       \
-        ++it;                                                                   \
-        ++count;                                                                \
-    /**/
 
     template <typename T, unsigned Radix, typename Accumulator, bool Accumulate>
     struct extract_int_impl<T, Radix, 1, -1, Accumulator, Accumulate>
@@ -151,8 +350,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
           , Sentinel last
           , Attribute& attr)
         {
-            typedef spirit::x3::detail::radix_traits<Radix> radix_check;
-            typedef spirit::x3::detail::int_extractor<Radix, Accumulator, -1> extractor;
+            typedef radix_traits<Radix> radix_check;
+            typedef int_extractor<Radix, Accumulator, -1> extractor;
             typedef
                 typename std::iterator_traits<Iterator>::value_type char_type;
 
@@ -177,9 +376,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 }
             }
 
-            typedef typename
-                spirit::x3::traits::attribute_type<Attribute>::type
-            attribute_type;
+            typedef Attribute attribute_type;
 
             attribute_type val = Accumulate ? attr : attribute_type(0);
             char_type ch = *it;
@@ -188,7 +385,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             {
                 if (count == 0) // must have at least one digit
                     return false;
-                spirit::x3::traits::move_to(val, attr);
+                attr = val;
                 first = it;
                 return true;
             }
@@ -197,12 +394,36 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             ++it;
             while (true)
             {
-                BOOST_PP_REPEAT(
-                    3
-                  , BOOST_PARSER_NUMERIC_INNER_LOOP, _)
+                if (it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch))
+                    break;
+                if (!extractor::call(ch, count, val))
+                    return false;
+                ++it;
+                ++count;
+                if (it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch))
+                    break;
+                if (!extractor::call(ch, count, val))
+                    return false;
+                ++it;
+                ++count;
+                if (it == last)
+                    break;
+                ch = *it;
+                if (!radix_check::is_valid(ch))
+                    break;
+                if (!extractor::call(ch, count, val))
+                    return false;
+                ++it;
+                ++count;
             }
 
-            spirit::x3::traits::move_to(val, attr);
+            attr = val;
             first = it;
             return true;
         }
@@ -215,7 +436,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         parse(
             Iterator& first
           , Sentinel last
-          , spirit::x3::unused_type)
+          , unused_type)
         {
             T n = 0; // must calculate value to detect over/underflow
             return parse_main(first, last, n);
@@ -231,8 +452,6 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             return parse_main(first, last, attr);
         }
     };
-
-#undef BOOST_PARSER_NUMERIC_INNER_LOOP
 
 
     // Copied from boost/spirit/home/x3/support/numeric_utils/extract_int.hpp
@@ -280,7 +499,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
               , Radix
               , MinDigits
               , MaxDigits
-              , spirit::x3::detail::positive_accumulator<Radix>
+              , positive_accumulator<Radix>
               , Accumulate>
             extract_type;
 
@@ -316,7 +535,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
             extract_pos_type;
 
             typedef extract_int_impl<
-                T, Radix, MinDigits, MaxDigits, spirit::x3::detail::negative_accumulator<Radix> >
+                T, Radix, MinDigits, MaxDigits, negative_accumulator<Radix> >
             extract_neg_type;
 
             Iterator save = first;
@@ -337,6 +556,108 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
 
     // Copied from boost/spirit/home/x3/support/numeric_utils/extract_real.hpp
     // (Boost 1.71), and modified for use with iterator, sentinel pairs:
+
+    template <typename T, typename Enable = void>
+    struct pow10_helper
+    {
+        static T call(unsigned dim)
+        {
+            return std::pow(T(10), T(dim));
+        }
+    };
+
+    template <typename T>
+    struct pow10_table
+    {
+        constexpr static std::size_t size =
+            std::numeric_limits<T>::max_exponent10;
+    
+        constexpr pow10_table()
+         : exponents()
+        {
+            exponents[0] = T(1);
+            for (auto i = 1; i != size; ++i)
+                exponents[i] = exponents[i-1] * T(10);
+        }
+    
+        T exponents[size];
+    };
+
+    template <typename T>
+    struct native_pow10_helper
+    {
+        constexpr static auto table = pow10_table<T>();
+        static T call(unsigned dim)
+        {
+            return table.exponents[dim];
+        }
+    };
+
+    template <>
+    struct pow10_helper<float>
+      : native_pow10_helper<float> {};
+
+    template <>
+    struct pow10_helper<double>
+      : native_pow10_helper<double> {};
+
+    template <>
+    struct pow10_helper<long double>
+      : native_pow10_helper<long double> {};
+
+    template <typename T>
+    inline T pow10(unsigned dim)
+    {
+        return detail_spirit_x3::pow10_helper<T>::call(dim);
+    }
+
+    template<typename T>
+    inline bool scale(int exp, T & n)
+    {
+        constexpr auto max_exp = std::numeric_limits<T>::max_exponent10;
+        constexpr auto min_exp = std::numeric_limits<T>::min_exponent10;
+
+        if (exp >= 0)
+        {
+            // return false if exp exceeds the max_exp
+            // do this check only for primitive types!
+            if (std::is_floating_point_v<T> && exp > max_exp)
+                return false;
+            n *= detail_spirit_x3::pow10<T>(exp);
+        }
+        else
+        {
+            if (exp < min_exp)
+            {
+                n /= detail_spirit_x3::pow10<T>(-min_exp);
+
+                // return false if exp still exceeds the min_exp
+                // do this check only for primitive types!
+                exp += -min_exp;
+                if (std::is_floating_point_v<T> && exp < min_exp)
+                    return false;
+
+                n /= detail_spirit_x3::pow10<T>(-exp);
+            }
+            else
+            {
+                n /= detail_spirit_x3::pow10<T>(-exp);
+            }
+        }
+        return true;
+    }
+
+    template<typename T>
+    bool scale(int exp, int frac, T & n)
+    {
+        return detail_spirit_x3::scale(exp - frac, n);
+    }
+
+    template<typename T>
+    T negate(bool neg, T n)
+    {
+        return neg ? -n : n;
+    }
 
     template <typename T, typename RealPolicies>
     struct extract_real
@@ -367,8 +688,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                     p.parse_inf(first, last, n))
                 {
                     // If we got a negative sign, negate the number
-                    spirit::x3::traits::move_to(
-                        spirit::x3::extension::negate(neg, n), attr);
+                    attr = detail_spirit_x3::negate(neg, n);
                     return true;    // got a NaN or Inf, return early
                 }
 
@@ -396,7 +716,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 {
                     // Optimization note: don't compute frac_digits if T is
                     // an unused_type. This should be optimized away by the compiler.
-                    if (!is_same<T, spirit::x3::unused_type>::value)
+                    if (!std::is_same_v<T, unused_type>)
                         frac_digits =
                             static_cast<int>(std::distance(savef, first));
                     BOOST_ASSERT(frac_digits >= 0);
@@ -443,7 +763,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 {
                     // Got the exponent value. Scale the number by
                     // exp-frac_digits.
-                    if (!spirit::x3::extension::scale(exp, frac_digits, n))
+                    if (!detail_spirit_x3::scale(exp, frac_digits, n))
                         return false;
                 }
                 else
@@ -453,20 +773,19 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                     first = e_pos;
 
                     // Scale the number by -frac_digits.
-                    if (!spirit::x3::extension::scale(-frac_digits, n))
+                    if (!detail_spirit_x3::scale(-frac_digits, n))
                         return false;
                 }
             }
             else if (frac_digits)
             {
                 // No exponent found. Scale the number by -frac_digits.
-                if (!spirit::x3::extension::scale(-frac_digits, n))
+                if (!detail_spirit_x3::scale(-frac_digits, n))
                     return false;
             }
 
             // If we got a negative sign, negate the number
-            spirit::x3::traits::move_to(
-                spirit::x3::extension::negate(neg, n), attr);
+            attr = detail_spirit_x3::negate(neg, n);
 
             // Success!!!
             return true;
@@ -476,43 +795,6 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     // Copied from
     // boost/spirit/home/x3/string/detail/string_parse.hpp
     // (Boost 1.47),and modified for use with iterator, sentinel pairs:
-
-    template <typename Char, typename Iterator, typename Sentinel, typename Attribute, typename CaseCompareFunc>
-    inline bool string_parse(
-        Char const* str
-      , Iterator& first, Sentinel const& last, Attribute& attr, CaseCompareFunc const& compare) 
-    {
-        Iterator i = first;
-        Char ch = *str;
-
-        for (; !!ch; ++i)
-        {
-            if (i == last || (compare(ch, *i) != 0))
-                return false;
-            ch = *++str;
-        }
-
-        spirit::x3::traits::move_to(first, i, attr);
-        first = i;
-        return true;
-    }
-
-    template <typename String, typename Iterator, typename Sentinel, typename Attribute, typename CaseCompareFunc>
-    inline bool string_parse(
-        String const& str
-      , Iterator& first, Sentinel const& last, Attribute& attr, CaseCompareFunc const& compare)
-    {
-        Iterator i = first;
-        typename String::const_iterator stri = str.begin();
-        typename String::const_iterator str_last = str.end();
-
-        for (; stri != str_last; ++stri, ++i)
-            if (i == last || (compare(*stri, *i) != 0))
-                return false;
-        spirit::x3::traits::move_to(first, i, attr);
-        first = i;
-        return true;
-    }
 
     struct common_type_equal
     {
@@ -524,10 +806,10 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         }
     };
 
-    template <typename Char, typename Iterator, typename Sentinel, typename Attribute>
+    template <typename Char, typename Iterator, typename Sentinel>
     inline bool string_parse(
         Char const* uc_i, Char const* lc_i
-      , Iterator& first, Sentinel const& last, Attribute& attr)
+      , Iterator& first, Sentinel const& last)
     {
         Iterator i = first;
 
@@ -536,25 +818,6 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         for (; *uc_i && *lc_i; ++uc_i, ++lc_i, ++i)
             if (i == last || (!eq(*uc_i, *i) && !eq(*lc_i, *i)))
                 return false;
-        spirit::x3::traits::move_to(first, i, attr);
-        first = i;
-        return true;
-    }
-
-    template <typename String, typename Iterator, typename Sentinel, typename Attribute>
-    inline bool string_parse(
-        String const& ucstr, String const& lcstr
-      , Iterator& first, Sentinel const& last, Attribute& attr)
-    {
-        typename String::const_iterator uc_i = ucstr.begin();
-        typename String::const_iterator uc_last = ucstr.end();
-        typename String::const_iterator lc_i = lcstr.begin();
-        Iterator i = first;
-
-        for (; uc_i != uc_last; ++uc_i, ++lc_i, ++i)
-            if (i == last || ((*uc_i != *i) && (*lc_i != *i)))
-                return false;
-        spirit::x3::traits::move_to(first, i, attr);
         first = i;
         return true;
     }
@@ -647,7 +910,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 return false;   // not "nan"
 
             // nan[(...)] ?
-            if (detail_spirit_x3::string_parse("nan", "NAN", first, last, spirit::x3::unused))
+            if (detail_spirit_x3::string_parse("nan", "NAN", first, last))
             {
                 if (first != last && *first == '(')
                 {
@@ -678,10 +941,10 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                 return false;   // not "inf"
 
             // inf or infinity ?
-            if (detail_spirit_x3::string_parse("inf", "INF", first, last, spirit::x3::unused))
+            if (detail_spirit_x3::string_parse("inf", "INF", first, last))
             {
                 // skip allowed 'inity' part of infinity
-                detail_spirit_x3::string_parse("inity", "INITY", first, last, spirit::x3::unused);
+                detail_spirit_x3::string_parse("inity", "INITY", first, last);
                 attr_ = std::numeric_limits<T>::infinity();
                 return true;
             }
@@ -699,7 +962,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
         static bool
         parse_sign(Iterator& first, Sentinel const& last)
         {
-            return extract_sign(first, last);
+            return detail_spirit_x3::extract_sign(first, last);
         }
     };
 
