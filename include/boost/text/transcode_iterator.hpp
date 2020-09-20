@@ -12,7 +12,6 @@
 #include <boost/text/detail/algorithm.hpp>
 
 #include <boost/assert.hpp>
-#include <boost/throw_exception.hpp>
 #include <boost/stl_interfaces/iterator_interface.hpp>
 
 #include <array>
@@ -875,18 +874,6 @@ namespace boost { namespace text {
             return replacement_character();
         }
     };
-
-    /** An error handler type that can be used with the converting iterators;
-        throws `std::logic_error` on errors. */
-    struct throw_logic_error
-    {
-        uint32_t operator()(char const * msg) const
-        {
-            boost::throw_exception(std::logic_error(msg));
-            return 0;
-        }
-    };
-
 
     /** A sentinel type that compares equal to a pointer to a 1-, 2-, or
         4-byte integral value, iff the pointer is null. */

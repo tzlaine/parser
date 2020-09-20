@@ -6,12 +6,12 @@
 #ifndef BOOST_TEXT_TRIE_HPP
 #define BOOST_TEXT_TRIE_HPP
 
-#include <boost/optional.hpp>
 #include <boost/text/trie_fwd.hpp>
-#include <boost/algorithm/cxx14/equal.hpp>
+#include <boost/text/algorithm.hpp>
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <vector>
 
@@ -754,7 +754,7 @@ namespace boost { namespace text {
             if (!node->empty()) {
                 // node has a value, but also children.  Remove the value and
                 // return the next-iterator.
-                node->value() = optional<Value>();
+                node->value() = std::optional<Value>();
                 return true;
             }
 
@@ -929,7 +929,7 @@ namespace boost { namespace text {
 
             auto max_size() const noexcept { return KeySize; }
 
-            optional<Value> const & value() const noexcept { return value_; }
+            std::optional<Value> const & value() const noexcept { return value_; }
 
             Value & child_value(std::size_t i) const
             {
@@ -1018,7 +1018,7 @@ namespace boost { namespace text {
                 std::swap(index_within_parent_, other.index_within_parent_);
             }
 
-            optional<Value> & value() noexcept { return value_; }
+            std::optional<Value> & value() noexcept { return value_; }
 
             template<typename Compare>
             iterator insert(
@@ -1091,7 +1091,7 @@ namespace boost { namespace text {
             {
                 if (lhs.value_ != rhs.value_)
                     return false;
-                return algorithm::equal(
+                return text::equal(
                     lhs.children_.begin(),
                     lhs.children_.end(),
                     rhs.children_.begin(),
@@ -1121,7 +1121,7 @@ namespace boost { namespace text {
             }
 
             children_t children_;
-            optional<Value> value_;
+            std::optional<Value> value_;
             trie_node_t * parent_;
             ParentIndexing index_within_parent_;
 
@@ -1178,7 +1178,7 @@ namespace boost { namespace text {
                 return *this;
             }
 
-            optional<Value> const & value() const noexcept { return value_; }
+            std::optional<Value> const & value() const noexcept { return value_; }
 
             Value & child_value(std::size_t i) const
             {
@@ -1286,7 +1286,7 @@ namespace boost { namespace text {
                 std::swap(index_within_parent_, other.index_within_parent_);
             }
 
-            optional<Value> & value() noexcept { return value_; }
+            std::optional<Value> & value() noexcept { return value_; }
 
             iterator begin() noexcept { return children_.begin(); }
             iterator end() noexcept { return children_.end(); }
@@ -1364,7 +1364,7 @@ namespace boost { namespace text {
             {
                 if (lhs.keys_ != rhs.keys_ || lhs.value_ != rhs.value_)
                     return false;
-                return algorithm::equal(
+                return text::equal(
                     lhs.children_.begin(),
                     lhs.children_.end(),
                     rhs.children_.begin(),
@@ -1395,7 +1395,7 @@ namespace boost { namespace text {
 
             keys_t keys_;
             children_t children_;
-            optional<Value> value_;
+            std::optional<Value> value_;
             trie_node_t * parent_;
             ParentIndexing index_within_parent_;
 
