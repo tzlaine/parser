@@ -157,7 +157,7 @@ namespace boost { namespace parser {
         iff all of the sub-parsers succeeds.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in
         `ParserTuple`.  The BacktrackingTuple template parameter is a
-        `parser::tuple` of `hana::bool_` values.  The `i`th such value
+        `parser::tuple` of `std::bool_constant` values.  The `i`th such value
         indicates whether backtracking is allowed if the `i`th parser
         fails. */
     template<typename ParserTuple, typename BacktrackingTuple>
