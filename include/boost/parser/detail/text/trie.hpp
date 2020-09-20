@@ -3,11 +3,11 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_TRIE_HPP
-#define BOOST_TEXT_TRIE_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
+#define BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
 
-#include <boost/text/trie_fwd.hpp>
-#include <boost/text/algorithm.hpp>
+#include <boost/parser/detail/text/trie_fwd.hpp>
+#include <boost/parser/detail/text/algorithm.hpp>
 
 #include <algorithm>
 #include <memory>
@@ -35,7 +35,7 @@ namespace boost { namespace text {
         auto operator=(U && u)
             -> decltype(*this->t_ = static_cast<U &&>(u), *this)
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             *t_ = static_cast<U &&>(u);
             return *this;
         }
@@ -46,48 +46,48 @@ namespace boost { namespace text {
 
         T const & operator*() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
         T const * operator->() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
 
         operator T const &() const & noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         operator T const &() const && noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         T & operator*() noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         T * operator->() noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
 
         operator T &() & noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         operator T &() && noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
     };
@@ -108,24 +108,24 @@ namespace boost { namespace text {
 
         T & operator*() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
         T * operator->() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
 
         operator T &() const & noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         operator T &() const && noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
     };
@@ -144,7 +144,7 @@ namespace boost { namespace text {
         auto operator=(U && u)
             -> decltype(*this->t_ = static_cast<U &&>(u), *this)
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             *t_ = static_cast<U &&>(u);
             return *this;
         }
@@ -154,24 +154,24 @@ namespace boost { namespace text {
 
         bool const & operator*() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
         bool const * operator->() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
 
         bool & operator*() noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
 
         bool * operator->() noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
     };
@@ -191,12 +191,12 @@ namespace boost { namespace text {
 
         bool const & operator*() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return *t_;
         }
         bool const * operator->() const noexcept
         {
-            BOOST_ASSERT(t_);
+            BOOST_PARSER_DEBUG_ASSERT(t_);
             return t_;
         }
     };
@@ -214,7 +214,7 @@ namespace boost { namespace text {
         {
             std::size_t value() const noexcept
             {
-                BOOST_ASSERT(!"This should never be called.");
+                BOOST_PARSER_DEBUG_ASSERT(!"This should never be called.");
                 return 0;
             }
 
@@ -536,7 +536,7 @@ namespace boost { namespace text {
         match_result extend_match(match_result prev, KeyElementT e) const
             noexcept
         {
-            BOOST_ASSERT(prev.match);
+            BOOST_PARSER_DEBUG_ASSERT(prev.match);
             auto e_ptr = &e;
             return extend_subsequence_impl<true>(prev, e_ptr, e_ptr + 1);
         }
@@ -549,7 +549,7 @@ namespace boost { namespace text {
         extend_match(match_result prev, KeyIter first, Sentinel last) const
             noexcept
         {
-            BOOST_ASSERT(prev.match);
+            BOOST_PARSER_DEBUG_ASSERT(prev.match);
             return extend_subsequence_impl<true>(prev, first, last);
         }
 
@@ -908,7 +908,7 @@ namespace boost { namespace text {
             }
             trie_node_t & operator=(trie_node_t const & rhs)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Assignment of trie_node_ts are defined only for the "
                     "header node.");
@@ -918,7 +918,7 @@ namespace boost { namespace text {
             }
             trie_node_t & operator=(trie_node_t && rhs)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Move assignments of trie_node_ts are defined only for the "
                     "header node.");
@@ -981,7 +981,7 @@ namespace boost { namespace text {
 
             key_element const & key(std::size_t i) const noexcept
             {
-                BOOST_ASSERT(key_element(i) == i);
+                BOOST_PARSER_DEBUG_ASSERT(key_element(i) == i);
                 return key_element(i);
             }
 
@@ -1001,7 +1001,7 @@ namespace boost { namespace text {
 
             void swap(trie_node_t & other)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Swaps of trie_node_ts are defined only for the header "
                     "node.");
@@ -1055,7 +1055,7 @@ namespace boost { namespace text {
                     [child](std::unique_ptr<trie_node_t> const & ptr) {
                         return child == ptr.get();
                     });
-                BOOST_ASSERT(it != children_.end());
+                BOOST_PARSER_DEBUG_ASSERT(it != children_.end());
                 erase(it - children_.begin());
             }
 
@@ -1159,7 +1159,7 @@ namespace boost { namespace text {
             }
             trie_node_t & operator=(trie_node_t const & rhs)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Assignment of trie_node_ts are defined only for the "
                     "header node.");
@@ -1169,7 +1169,7 @@ namespace boost { namespace text {
             }
             trie_node_t & operator=(trie_node_t && rhs)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Move assignments of trie_node_ts are defined only for the "
                     "header node.");
@@ -1270,7 +1270,7 @@ namespace boost { namespace text {
 
             void swap(trie_node_t & other)
             {
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     parent_ == nullptr &&
                     "Swaps of trie_node_ts are defined only for the header "
                     "node.");
@@ -1297,7 +1297,7 @@ namespace boost { namespace text {
                 Compare const & comp,
                 std::unique_ptr<trie_node_t> && child)
             {
-                BOOST_ASSERT(child->empty());
+                BOOST_PARSER_DEBUG_ASSERT(child->empty());
                 auto it = std::lower_bound(keys_.begin(), keys_.end(), e, comp);
                 it = keys_.insert(it, e);
                 auto const offset = it - keys_.begin();
@@ -1308,7 +1308,7 @@ namespace boost { namespace text {
             }
             iterator insert(std::unique_ptr<trie_node_t> && child)
             {
-                BOOST_ASSERT(empty());
+                BOOST_PARSER_DEBUG_ASSERT(empty());
                 index_within_parent_.insert_ptr(child);
                 return children_.insert(children_.begin(), std::move(child));
             }
@@ -1328,7 +1328,7 @@ namespace boost { namespace text {
                     [child](std::unique_ptr<trie_node_t> const & ptr) {
                         return child == ptr.get();
                     });
-                BOOST_ASSERT(it != children_.end());
+                BOOST_PARSER_DEBUG_ASSERT(it != children_.end());
                 erase(it - children_.begin());
             }
 

@@ -3,8 +3,8 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_TRIE_FWD_HPP
-#define BOOST_TEXT_TRIE_FWD_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_TRIE_FWD_HPP
+#define BOOST_PARSER_DETAIL_TEXT_TRIE_FWD_HPP
 
 
 namespace boost { namespace text {

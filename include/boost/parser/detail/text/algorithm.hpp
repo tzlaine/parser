@@ -3,10 +3,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_ALGORITHM_HPP
-#define BOOST_TEXT_ALGORITHM_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
+#define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 
-#include <boost/text/detail/sentinel_tag.hpp>
+#include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
 #include <boost/stl_interfaces/view_interface.hpp>
 
@@ -403,7 +403,7 @@ namespace boost { namespace text {
 
 }}
 
-#if BOOST_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 
 namespace std::ranges {
     template<typename Iter, typename Sentinel>

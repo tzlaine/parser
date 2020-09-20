@@ -3,13 +3,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_TRANSCODE_VIEW_HPP
-#define BOOST_TEXT_TRANSCODE_VIEW_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
+#define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 
-#include <boost/text/transcode_algorithm.hpp>
-#include <boost/text/concepts.hpp>
-#include <boost/text/dangling.hpp>
-#include <boost/text/detail/unpack.hpp>
+#include <boost/parser/detail/text/transcode_algorithm.hpp>
+#include <boost/parser/detail/text/concepts.hpp>
+#include <boost/parser/detail/text/dangling.hpp>
+#include <boost/parser/detail/text/detail/unpack.hpp>
 
 #include <boost/stl_interfaces/view_interface.hpp>
 
@@ -150,7 +150,7 @@ namespace boost { namespace text {
     }
 
     /** A view over UTF-8 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_TEXT_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     template<utf8_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -218,7 +218,7 @@ namespace boost { namespace text {
     };
 
     /** A view over UTF-16 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_TEXT_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     template<utf16_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -286,7 +286,7 @@ namespace boost { namespace text {
     };
 
     /** A view over UTF-32 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_TEXT_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     template<utf32_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -353,7 +353,7 @@ namespace boost { namespace text {
 
 }}
 
-namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V1 {
+namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
     /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
         transcode the data if necessary. */
@@ -504,9 +504,9 @@ namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V1 {
 
 }}}
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_TEXT_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
+namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
         transcode the data if necessary. */

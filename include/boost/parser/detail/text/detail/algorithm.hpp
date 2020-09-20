@@ -3,12 +3,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_DETAIL_ALGORITHM_HPP
-#define BOOST_TEXT_DETAIL_ALGORITHM_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 
-#include <boost/text/detail/iterator.hpp>
-
-#include <boost/assert.hpp>
+#include <boost/parser/detail/text/detail/iterator.hpp>
 
 #include <numeric>
 #include <type_traits>
@@ -23,7 +21,7 @@ namespace boost { namespace text { namespace detail {
     using remove_cv_ref_t =
         typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
-#if BOOST_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 
     template<typename T>
     using iterator_t = std::ranges::iterator_t<T>;

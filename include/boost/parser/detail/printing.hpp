@@ -5,7 +5,7 @@
 #include <boost/parser/detail/detection.hpp>
 
 #include <boost/hana.hpp>
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iomanip>
 #include <iostream>

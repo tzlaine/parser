@@ -8,7 +8,7 @@
 
 #include <boost/parser/config.hpp>
 #include <boost/parser/parser_fwd.hpp>
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 // Silence very verbose warnings about std::is_pod being deprecated.  TODO:
 // Remove this if/when Hana accepts releases the fix for this (already on

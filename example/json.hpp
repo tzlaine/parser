@@ -9,8 +9,8 @@
 #include "json_fwd.hpp"
 
 #include <boost/assert.hpp>
-#include <boost/text/algorithm.hpp>
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/algorithm.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <functional>
 #include <iomanip>

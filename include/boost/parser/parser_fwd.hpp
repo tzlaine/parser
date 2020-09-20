@@ -53,8 +53,8 @@ namespace boost { namespace parser {
             template<typename T>
             T & cast() const
             {
-                BOOST_ASSERT(impl_);
-                BOOST_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
+                BOOST_PARSER_DEBUG_ASSERT(impl_);
+                BOOST_PARSER_DEBUG_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
                 return static_cast<holder<T> *>(impl_.get())->value_;
             }
 

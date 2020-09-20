@@ -12,8 +12,8 @@
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #endif
-#include <boost/text/algorithm.hpp>
-#include <boost/text/trie.hpp>
+#include <boost/parser/detail/text/algorithm.hpp>
+#include <boost/parser/detail/text/trie.hpp>
 
 #include <type_traits>
 #include <variant>
@@ -354,7 +354,7 @@ namespace boost { namespace parser {
             // = 0; }` may be fine.  If you attach that same semantic action
             // to `eps`, you end up here, because `eps` has no attribute, and
             // so `_attr(ctx)` produces a `none`.
-            BOOST_ASSERT(false);
+            BOOST_PARSER_DEBUG_ASSERT(false);
         }
     };
 #endif
@@ -2492,7 +2492,7 @@ namespace boost { namespace parser {
 
                 // It looks like you've created a repeated epsilon parser, by
                 // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     !detail::is_unconditional_eps<Parser>{} || end < Inf);
 
                 for (; count != end; ++count) {
@@ -2570,7 +2570,7 @@ namespace boost { namespace parser {
 
                 // It looks like you've created a repeated epsilon parser, by
                 // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     !detail::is_unconditional_eps<Parser>{} || end < Inf);
 
                 for (; count != end; ++count) {

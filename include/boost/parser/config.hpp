@@ -6,6 +6,8 @@
 #ifndef BOOST_PARSER_CONFIG_HPP
 #define BOOST_PARSER_CONFIG_HPP
 
+#include <boost/parser/detail/debug_assert.hpp>
+
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 

@@ -3,7 +3,7 @@
 
 #include <boost/parser/config.hpp>
 
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iostream>
 #include <string_view>

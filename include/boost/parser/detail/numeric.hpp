@@ -450,7 +450,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     inline bool extract_sign(Iterator & first, Sentinel last)
     {
         (void)last;                  // silence unused warnings
-        BOOST_ASSERT(first != last); // precondition
+        BOOST_PARSER_DEBUG_ASSERT(first != last); // precondition
 
         // Extract the sign
         bool neg = *first == '-';
@@ -705,7 +705,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                     if (!std::is_same_v<T, unused_type>)
                         frac_digits =
                             static_cast<int>(std::distance(savef, first));
-                    BOOST_ASSERT(frac_digits >= 0);
+                    BOOST_PARSER_DEBUG_ASSERT(frac_digits >= 0);
                 }
                 else if (!got_a_number || !p.allow_trailing_dot)
                 {

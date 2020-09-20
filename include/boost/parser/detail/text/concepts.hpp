@@ -3,18 +3,18 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_CONCEPTS_HPP
-#define BOOST_TEXT_CONCEPTS_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_CONCEPTS_HPP
+#define BOOST_PARSER_DETAIL_TEXT_CONCEPTS_HPP
 
-#include <boost/text/config.hpp>
-#include <boost/text/utf.hpp>
+#include <boost/parser/detail/text/config.hpp>
+#include <boost/parser/detail/text/utf.hpp>
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_TEXT_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
 #include <ranges>
 
 
-namespace boost { namespace text { BOOST_TEXT_NAMESPACE_V2 {
+namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     template<typename T, format F>
     concept code_unit = std::integral<T> && sizeof(T) == (int)F;

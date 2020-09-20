@@ -3,10 +3,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_UTF_HPP
-#define BOOST_TEXT_UTF_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_UTF_HPP
+#define BOOST_PARSER_DETAIL_TEXT_UTF_HPP
 
-#include <boost/text/config.hpp>
+#include <boost/parser/detail/text/config.hpp>
 
 #include <type_traits>
 
