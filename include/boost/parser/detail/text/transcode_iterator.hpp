@@ -13,7 +13,7 @@
 #include <boost/parser/detail/text/utf.hpp>
 #include <boost/parser/detail/text/detail/algorithm.hpp>
 
-#include <boost/stl_interfaces/iterator_interface.hpp>
+#include <boost/parser/detail/stl_interfaces/iterator_interface.hpp>
 
 #include <array>
 #include <iterator>

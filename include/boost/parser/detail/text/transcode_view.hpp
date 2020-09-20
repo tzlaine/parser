@@ -11,7 +11,7 @@
 #include <boost/parser/detail/text/dangling.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
 
-#include <boost/stl_interfaces/view_interface.hpp>
+#include <boost/parser/detail/stl_interfaces/view_interface.hpp>
 
 
 namespace boost { namespace text {

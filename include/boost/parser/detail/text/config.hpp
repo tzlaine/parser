@@ -6,9 +6,7 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_CONFIG_HPP
 #define BOOST_PARSER_DETAIL_TEXT_CONFIG_HPP
 
-// Included for definition of __cpp_lib_concepts.
-#include <iterator>
-
+#include <boost/parser/config.hpp>
 
 // The inline namespaces v1 and v2 represent pre- and post-C++20.  v1 is
 // inline for standards before C++20, and v2 is inline for C++20 and later.

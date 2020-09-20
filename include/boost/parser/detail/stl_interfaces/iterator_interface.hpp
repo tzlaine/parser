@@ -3,10 +3,10 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_STL_INTERFACES_ITERATOR_INTERFACE_HPP
-#define BOOST_STL_INTERFACES_ITERATOR_INTERFACE_HPP
+#ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_ITERATOR_INTERFACE_HPP
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_ITERATOR_INTERFACE_HPP
 
-#include <boost/stl_interfaces/fwd.hpp>
+#include <boost/parser/detail/stl_interfaces/fwd.hpp>
 
 #include <utility>
 #include <type_traits>
@@ -46,7 +46,7 @@ namespace boost { namespace stl_interfaces {
         this template implies a copy or move of the underlying object of type
         `T`. */
     template<typename T>
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     // clang-format off
         requires std::is_object_v<T>
 #endif
@@ -175,7 +175,7 @@ namespace boost { namespace stl_interfaces {
 
 }}
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     /** A CRTP template that one may derive from to make defining iterators
         easier.
@@ -365,7 +365,7 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
             retval += i;
             return retval;
         }
-        friend BOOST_STL_INTERFACES_HIDDEN_FRIEND_CONSTEXPR Derived
+        friend constexpr Derived
         operator+(difference_type i, Derived it) noexcept
         {
             return it + i;
@@ -420,7 +420,7 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
             return access::base(derived()) - access::base(other);
         }
 
-        friend BOOST_STL_INTERFACES_HIDDEN_FRIEND_CONSTEXPR Derived
+        friend constexpr Derived
         operator-(Derived it, difference_type i) noexcept
         {
             Derived retval = it;
@@ -546,9 +546,9 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
 
 }}}
 
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     namespace v2_dtl {
         template<typename Iterator>
@@ -830,85 +830,6 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V2 {
         DifferenceType>;
 
 }}}
-
-#endif
-
-#ifdef BOOST_STL_INTERFACES_DOXYGEN
-
-/** `static_asserts` that type `type` models concept `concept_name`.  This is
-    useful for checking that an iterator, view, etc. that you write using one
-    of the *`_interface` templates models the right C++ concept.
-
-    For example: `BOOST_STL_INTERFACES_STATIC_ASSERT_CONCEPT(my_iter,
-    std::input_iterator)`.
-
-    \note This macro expands to nothing when `__cpp_lib_concepts` is not
-    defined. */
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_CONCEPT(type, concept_name)
-
-/** `static_asserts` that the types of all typedefs in
-    `std::iterator_traits<iter>` match the remaining macro parameters.  This
-    is useful for checking that an iterator you write using
-    `iterator_interface` has the correct iterator traits.
-
-    For example: `BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS(my_iter,
-    std::input_iterator_tag, std::input_iterator_tag, int, int &, int *, std::ptrdiff_t)`.
-
-    \note This macro ignores the `concept` parameter when `__cpp_lib_concepts`
-    is not defined. */
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS(                    \
-    iter, category, concept, value_type, reference, pointer, difference_type)
-
-#else
-
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_CONCEPT_IMPL(              \
-    type, concept_name)                                                        \
-    static_assert(concept_name<type>, "");
-
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_CONCEPT(iter, concept_name)
-
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS_IMPL(               \
-    iter, category, value_t, ref, ptr, diff_t)                                 \
-    static_assert(                                                             \
-        std::is_same<                                                          \
-            typename std::iterator_traits<iter>::iterator_category,            \
-            category>::value,                                                  \
-        "");                                                                   \
-    static_assert(                                                             \
-        std::is_same<                                                          \
-            typename std::iterator_traits<iter>::value_type,                   \
-            value_t>::value,                                                   \
-        "");                                                                   \
-    static_assert(                                                             \
-        std::is_same<typename std::iterator_traits<iter>::reference, ref>::    \
-            value,                                                             \
-        "");                                                                   \
-    static_assert(                                                             \
-        std::is_same<typename std::iterator_traits<iter>::pointer, ptr>::      \
-            value,                                                             \
-        "");                                                                   \
-    static_assert(                                                             \
-        std::is_same<                                                          \
-            typename std::iterator_traits<iter>::difference_type,              \
-            diff_t>::value,                                                    \
-        "");
-
-#if defined(__cpp_lib_concepts)
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS(                    \
-    iter, category, concept, value_type, reference, pointer, difference_type)  \
-    static_assert(                                                             \
-        std::is_same_v<                                                        \
-            boost::stl_interfaces::v2::v2_dtl::iter_concept_t<iter>,           \
-            concept>,                                                          \
-        "");                                                                   \
-    BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS_IMPL(                   \
-        iter, category, value_type, reference, pointer, difference_type)
-#else
-#define BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS(                    \
-    iter, category, concept, value_type, reference, pointer, difference_type)  \
-    BOOST_STL_INTERFACES_STATIC_ASSERT_ITERATOR_TRAITS_IMPL(                   \
-        iter, category, value_type, reference, pointer, difference_type)
-#endif
 
 #endif
 

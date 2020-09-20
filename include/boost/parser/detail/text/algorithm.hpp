@@ -8,7 +8,7 @@
 
 #include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
-#include <boost/stl_interfaces/view_interface.hpp>
+#include <boost/parser/detail/stl_interfaces/view_interface.hpp>
 
 #include <cstddef>
 #include <iterator>

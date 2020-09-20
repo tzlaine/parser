@@ -3,33 +3,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_STL_INTERFACES_FWD_HPP
-#define BOOST_STL_INTERFACES_FWD_HPP
+#ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_FWD_HPP
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_FWD_HPP
 
-#include <boost/stl_interfaces/config.hpp>
+#include <boost/parser/detail/stl_interfaces/config.hpp>
 
-#if defined(__cpp_lib_concepts)
+#if BOOST_PARSER_USE_CONCEPTS
 #include <ranges>
 #endif
 #if defined(__cpp_lib_three_way_comparison)
 #include <compare>
-#endif
-
-#ifndef BOOST_STL_INTERFACES_DOXYGEN
-
-#if defined(_MSC_VER) || defined(__GNUC__) && __GNUC__ < 8
-#define BOOST_STL_INTERFACES_NO_HIDDEN_FRIEND_CONSTEXPR
-#define BOOST_STL_INTERFACES_HIDDEN_FRIEND_CONSTEXPR
-#else
-#define BOOST_STL_INTERFACES_HIDDEN_FRIEND_CONSTEXPR constexpr
-#endif
-
-#if defined(__GNUC__) && __GNUC__ < 9
-#define BOOST_STL_INTERFACES_CONCEPT concept bool
-#else
-#define BOOST_STL_INTERFACES_CONCEPT concept
-#endif
-
 #endif
 
 
@@ -43,7 +26,7 @@ namespace boost { namespace stl_interfaces {
         contiguous = true
     };
 
-    BOOST_STL_INTERFACES_NAMESPACE_V1 {
+    BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
         namespace v1_dtl {
             template<typename... T>
