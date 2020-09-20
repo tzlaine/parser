@@ -32,6 +32,9 @@
     disable the use of concepts, define this macro. */
 #    define BOOST_PARSER_DISABLE_CONCEPTS
 
+/** Define this macro to remove all Boost dependencies from Boost.Parser. */
+#    define BOOST_PARSER_STANDALONE
+
 #else
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
@@ -46,6 +49,12 @@
 #define BOOST_PARSER_USE_CONCEPTS 1
 #else
 #define BOOST_PARSER_USE_CONCEPTS 0
+#endif
+
+#if !defined(BOOST_PARSER_STANDALONE)
+#define BOOST_PARSER_USE_BOOST 1
+#else
+#define BOOST_PARSER_USE_BOOST 0
 #endif
 
 #endif

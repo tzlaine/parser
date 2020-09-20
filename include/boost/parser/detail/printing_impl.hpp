@@ -3,10 +3,24 @@
 
 #include <boost/parser/detail/printing.hpp>
 
+#if BOOST_PARSER_USE_BOOST
 #include <boost/type_index.hpp>
+#else
+#include <typeinfo>
+#endif
 
 
 namespace boost { namespace parser { namespace detail {
+
+    template<typename T>
+    auto type_name()
+    {
+#if BOOST_PARSER_USE_BOOST
+        return typeindex::type_id<T>().pretty_name();
+#else
+        return typeid(T).name();
+#endif
+    }
 
     template<typename Parser>
     struct n_aray_parser : std::false_type
@@ -324,7 +338,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "symbols<" << typeindex::type_id<T>().pretty_name() << ">";
+        os << "symbols<" << detail::type_name<T>() << ">";
     }
 
     template<typename Context, typename Predicate>
@@ -635,8 +649,8 @@ namespace boost { namespace parser { namespace detail {
                 return;
             }
         }
-        os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">";
+        os << "uint<" << detail::type_name<T>() << ", " << Radix << ", "
+           << MinDigits << ", " << MaxDigits << ">";
         detail::print_expected(context, os, parser.expected_);
     }
 
@@ -672,8 +686,8 @@ namespace boost { namespace parser { namespace detail {
                 return;
             }
         }
-        os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">";
+        os << "int<" << detail::type_name<T>() << ", " << Radix << ", "
+           << MinDigits << ", " << MaxDigits << ">";
         detail::print_expected(context, os, parser.expected_);
     }
 
@@ -714,7 +728,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "float<" << typeindex::type_id<T>().pretty_name() << ">";
+        os << "float<" << detail::type_name<T>() << ">";
     }
 
     template<typename Context>
