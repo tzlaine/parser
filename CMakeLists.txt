@@ -60,11 +60,11 @@ if (BUILD_WITHOUT_BOOST)
   add_definitions(-DBOOST_PARSER_STANDALONE)
 endif()
 
-add_definitions(-ftemplate-backtrace-limit=0) # TODO
-
 
 ##################################################
 # Subdirectories
 ##################################################
 add_subdirectory(test)
-add_subdirectory(example)
+if (NOT BUILD_WITHOUT_HANA)
+  add_subdirectory(example)
+endif()

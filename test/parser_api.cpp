@@ -1961,8 +1961,8 @@ TEST(parser, attr_out_param_compat)
             boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
         using namespace bp::literals;
         assert(
-            success && result[0_c] == (char const *)u8"rôle" &&
-            result[1_c] == "foofoo");
+            success && get(result, 0_c) == (char const *)u8"rôle" &&
+            get(result, 1_c) == "foofoo");
     }
     {
         namespace bp = boost::parser;
