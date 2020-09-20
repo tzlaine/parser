@@ -157,7 +157,7 @@ namespace boost { namespace parser { namespace detail {
     {
         int i = 0;
         bool printed_ellipsis = false;
-        hana::for_each(parser.parsers_, [&](auto const & parser) {
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
             if (components == parser_component_limit) {
                 if (!printed_ellipsis)
                     os << " | ...";
@@ -181,8 +181,8 @@ namespace boost { namespace parser { namespace detail {
     {
         int i = 0;
         bool printed_ellipsis = false;
-        hana::for_each(
-            hana::zip(parser.parsers_, BacktrackingTuple{}),
+        hl::for_each(
+            hl::zip(parser.parsers_, BacktrackingTuple{}),
             [&](auto const & parser_and_backtrack) {
                 using namespace literals;
                 auto const & parser = parser::get(parser_and_backtrack, 0_c);
@@ -322,7 +322,7 @@ namespace boost { namespace parser { namespace detail {
         if constexpr (!is_nope_v<ParamsTuple>) {
             os << ".with(";
             int i = 0;
-            hana::for_each(parser.params_, [&](auto const & param) {
+            hl::for_each(parser.params_, [&](auto const & param) {
                 if (i++)
                     os << ", ";
                 detail::print_expected(context, os, param, true);
@@ -779,7 +779,7 @@ namespace boost { namespace parser { namespace detail {
         using namespace literals;
 
         bool printed_ellipsis = false;
-        hana::for_each(parser.parsers_, [&](auto const & parser) {
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
             if (components == parser_component_limit) {
                 if (!printed_ellipsis)
                     os << "...";

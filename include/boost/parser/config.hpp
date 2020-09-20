@@ -37,8 +37,9 @@
 /** Define this macro to remove all Boost dependencies from Boost.Parser. */
 #    define BOOST_PARSER_STANDALONE
 
-/** Define this macro to use `std::tuple` instead of `boost::hana::tuple`.
-    This macro is redundant when `BOOST_PARSER_STANDALONE` is defined.*/
+/** Define this macro to use `std::tuple` instead of `boost::hana::tuple`
+    throughout Boost.Parser.  This macro is redundant when
+    `BOOST_PARSER_STANDALONE` is defined.*/
 #    define BOOST_PARSER_DISABLE_HANA_TUPLE
 
 #else

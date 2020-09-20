@@ -813,7 +813,7 @@ namespace boost { namespace parser {
         auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
-            return hana::transform(params, [&](auto const & x) {
+            return detail::hl::transform(params, [&](auto const & x) {
                 return detail::resolve(context, x);
             });
         }
@@ -2823,11 +2823,12 @@ namespace boost { namespace parser {
                 use_parser(first, last, context, skip, flags, success);
 
             // A result type for each of the parsers in parsers_.
-            using all_types = decltype(hana::transform(parsers_, use_parser));
+            using all_types =
+                decltype(detail::hl::transform(parsers_, use_parser));
 
-            // Same as above, wrapped in hana::basic_type.
+            // Same as above, wrapped in detail::wrapper.
             using all_types_wrapped =
-                decltype(hana::transform(all_types{}, detail::wrap{}));
+                decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
             // Returns a tuple<> containing two things: 1) A tuple of only the
             // unique wrapped types from above, without nopes; this may be
@@ -2843,18 +2844,18 @@ namespace boost { namespace parser {
                     return result;
                 } else {
                     return detail::hl::make_pair(
-                        hana::append(detail::hl::first(result), x),
+                        detail::hl::append(detail::hl::first(result), x),
                         detail::hl::second(result));
                 }
             };
-            using wrapped_unique_types = decltype(hana::fold_left(
+            using wrapped_unique_types = decltype(detail::hl::fold_left(
                 all_types_wrapped{},
                 detail::hl::make_pair(tuple<>{}, std::false_type{}),
                 append_unique));
 
             // Same as above, with the tuple types unwrapped.
             using unwrapped_types = decltype(detail::hl::make_pair(
-                hana::transform(
+                detail::hl::transform(
                     detail::hl::first(wrapped_unique_types{}),
                     detail::unwrap{}),
                 detail::hl::second(wrapped_unique_types{})));
@@ -2912,7 +2913,7 @@ namespace boost { namespace parser {
                 if (success)
                     done = true;
             };
-            hana::for_each(parsers_, try_parser);
+            detail::hl::for_each(parsers_, try_parser);
 
             if (!done)
                 success = false;
@@ -2987,8 +2988,8 @@ namespace boost { namespace parser {
             auto operator()(T result_and_indices, U x) const
             {
                 auto result = detail::hl::first(result_and_indices);
-                using result_back_type =
-                    typename std::decay_t<decltype(hana::back(result))>::type;
+                using result_back_type = typename std::decay_t<decltype(
+                    detail::hl::back(result))>::type;
                 using unwrapped_optional_result_back_type =
                     detail::unwrapped_optional_t<result_back_type>;
 
@@ -3002,7 +3003,7 @@ namespace boost { namespace parser {
                     // T >> nope -> T
                     return detail::hl::make_pair(
                         result,
-                        hana::append(
+                        detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     std::is_same<result_back_type, x_type>{} ||
@@ -3013,15 +3014,16 @@ namespace boost { namespace parser {
                         // C<T> >> C<T> -> C<T>
                         return detail::hl::make_pair(
                             result,
-                            hana::append(
+                            detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)));
                     } else {
                         // T >> T -> vector<T>
                         return detail::hl::make_pair(
-                            hana::append(
-                                hana::drop_back(result),
-                                hana::type_c<std::vector<result_back_type>>),
-                            hana::append(
+                            detail::hl::append(
+                                detail::hl::drop_back(result),
+                                detail::wrapper<
+                                    std::vector<result_back_type>>{}),
+                            detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)));
                     }
                 } else if constexpr (
@@ -3034,7 +3036,7 @@ namespace boost { namespace parser {
                     // C<T> >> optional<T> -> C<T>
                     return detail::hl::make_pair(
                         result,
-                        hana::append(
+                        detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     detail::
@@ -3045,20 +3047,20 @@ namespace boost { namespace parser {
                     // T >> C<T> -> C<T>
                     // optional<T> >> C<T> -> C<T>
                     return detail::hl::make_pair(
-                        hana::append(hana::drop_back(result), x),
-                        hana::append(
+                        detail::hl::append(detail::hl::drop_back(result), x),
+                        detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
                     // tuple<nope> >> T -> tuple<T>
                     return detail::hl::make_pair(
-                        hana::append(hana::drop_back(result), x),
-                        hana::append(
+                        detail::hl::append(detail::hl::drop_back(result), x),
+                        detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else {
                     // tuple<Ts...> >> T -> tuple<Ts..., T>
                     return detail::hl::make_pair(
-                        hana::append(result, x),
-                        hana::append(indices, hana::size(result)));
+                        detail::hl::append(result, x),
+                        detail::hl::append(indices, detail::hl::size(result)));
                 }
             }
         };
@@ -3091,24 +3093,24 @@ namespace boost { namespace parser {
 
             // A result type for each of the parsers in parsers_.
             using all_types =
-                decltype(hana::transform(parsers_, dummy_use_parser));
+                decltype(detail::hl::transform(parsers_, dummy_use_parser));
 
-            // Same as above, wrapped in hana::basic_type.
+            // Same as above, wrapped in detail::wrapper.
             using all_types_wrapped =
-                decltype(hana::transform(all_types{}, detail::wrap{}));
+                decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
             // Generate a tuple of outputs, and the index that each parser
             // should use to write into its output.
             constexpr auto combine_start = detail::hl::make_pair(
-                detail::hl::make_tuple(hana::front(all_types_wrapped{})),
+                detail::hl::make_tuple(detail::hl::front(all_types_wrapped{})),
                 tuple<llong<0>>{});
-            using combined_types = decltype(hana::fold_left(
-                hana::drop_front(all_types_wrapped{}),
+            using combined_types = decltype(detail::hl::fold_left(
+                detail::hl::drop_front(all_types_wrapped{}),
                 combine_start,
                 combine{}));
 
             // Unwrap the result tuple's types.
-            using result_type = decltype(hana::transform(
+            using result_type = decltype(detail::hl::transform(
                 detail::hl::first(combined_types{}), detail::unwrap{}));
 
             return detail::hl::make_pair(
@@ -3165,7 +3167,7 @@ namespace boost { namespace parser {
                 first_ = first;
 
             // A 1-tuple is converted to a scalar.
-            if constexpr (hana::size(retval) == hana::size_c<1>) {
+            if constexpr (detail::hl::size(retval) == llong<1>{}) {
                 using namespace literals;
                 return parser::get(retval, 0_c);
             } else {
@@ -3250,7 +3252,7 @@ namespace boost { namespace parser {
                     indices);
 
                 if (success && detail::gen_attrs(flags))
-                    detail::assign(retval, hana::front(temp_retval));
+                    detail::assign(retval, detail::hl::front(temp_retval));
             }
 
             if (success)
@@ -3367,8 +3369,8 @@ namespace boost { namespace parser {
             };
 
             auto const parsers_and_indices =
-                hana::zip(parsers_, indices, backtracking{});
-            hana::for_each(parsers_and_indices, use_parser);
+                detail::hl::zip(parsers_, indices, backtracking{});
+            detail::hl::for_each(parsers_and_indices, use_parser);
         }
 
         template<bool AllowBacktracking, typename Parser>
@@ -4617,8 +4619,8 @@ namespace boost { namespace parser {
         // meaningful, and so is allowed.
         BOOST_PARSER_ASSERT(!detail::is_unconditional_eps<Parser>{});
         return parser_interface{
-            or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
-                hana::prepend(parsers_, parser.parser_)}};
+            or_parser<decltype(detail::hl::prepend(parsers_, parser.parser_))>{
+                detail::hl::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple>
@@ -4635,16 +4637,16 @@ namespace boost { namespace parser {
         // Possibly, you may have meant to add a condition to the eps, like
         // "int_ | eps(condition) | double_", which also is meaningful, and so
         // is allowed.
-        BOOST_PARSER_ASSERT(
-            !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
+        BOOST_PARSER_ASSERT(!detail::is_unconditional_eps_v<decltype(
+                                detail::hl::back(parsers_))>);
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_interface{or_parser<decltype(
                 detail::hl::concat(parsers_, parser.parser_.parsers_))>{
                 detail::hl::concat(parsers_, parser.parser_.parsers_)}};
         } else {
-            return parser_interface{
-                or_parser<decltype(hana::append(parsers_, parser.parser_))>{
-                    hana::append(parsers_, parser.parser_)}};
+            return parser_interface{or_parser<decltype(
+                detail::hl::append(parsers_, parser.parser_))>{
+                detail::hl::append(parsers_, parser.parser_)}};
         }
     }
 
@@ -4653,16 +4655,16 @@ namespace boost { namespace parser {
     constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
-        using backtracking = decltype(hana::prepend(
-            hana::prepend(
-                hana::drop_front(BacktrackingTuple{}),
+        using backtracking = decltype(detail::hl::prepend(
+            detail::hl::prepend(
+                detail::hl::drop_front(BacktrackingTuple{}),
                 std::bool_constant<AllowBacktracking>{}),
             std::true_type{}));
         using parser_t = seq_parser<
-            decltype(hana::prepend(parsers_, parser.parser_)),
+            decltype(detail::hl::prepend(parsers_, parser.parser_)),
             backtracking>;
         return parser_interface{
-            parser_t{hana::prepend(parsers_, parser.parser_)}};
+            parser_t{detail::hl::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple, typename BacktrackingTuple>
@@ -4679,13 +4681,13 @@ namespace boost { namespace parser {
             return parser_interface{parser_t{
                 detail::hl::concat(parsers_, parser.parser_.parsers_)}};
         } else {
-            using backtracking = decltype(hana::append(
+            using backtracking = decltype(detail::hl::append(
                 BacktrackingTuple{}, std::bool_constant<AllowBacktracking>{}));
             using parser_t = seq_parser<
-                decltype(hana::append(parsers_, parser.parser_)),
+                decltype(detail::hl::append(parsers_, parser.parser_)),
                 backtracking>;
             return parser_interface{
-                parser_t{hana::append(parsers_, parser.parser_)}};
+                parser_t{detail::hl::append(parsers_, parser.parser_)}};
         }
     }
 

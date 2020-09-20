@@ -4,6 +4,7 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/detection.hpp>
+#include <boost/parser/detail/hl.hpp>
 
 #include <boost/parser/detail/text/transcode_view.hpp>
 
@@ -460,7 +461,7 @@ namespace boost { namespace parser { namespace detail {
     {
         os << "(";
         bool first = false;
-        hana::for_each(attr, [&](auto const & a) {
+        hl::for_each(attr, [&](auto const & a) {
             if (first)
                 os << ", ";
             detail::print(os, a);
