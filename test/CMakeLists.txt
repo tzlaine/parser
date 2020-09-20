@@ -55,6 +55,7 @@ endmacro()
 #    add_test_executable(${test_name})
 #endforeach()
 
+add_test_executable(hl)
 add_test_executable(parser_lazy_params)
 add_test_executable(parser_if_switch)
 add_test_executable(parser_rule)
