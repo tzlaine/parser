@@ -14,7 +14,7 @@
 #include <boost/parser/detail/stl_interfaces/view_interface.hpp>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     namespace detail {
 
@@ -155,7 +155,7 @@ namespace boost { namespace text {
 #else
     template<typename I, typename S = I>
 #endif
-    struct utf8_view : stl_interfaces::view_interface<utf8_view<I, S>>
+    struct utf8_view : parser::detail::stl_interfaces::view_interface<utf8_view<I, S>>
     {
         using iterator = I;
         using sentinel = S;
@@ -223,7 +223,7 @@ namespace boost { namespace text {
 #else
     template<typename I, typename S = I>
 #endif
-    struct utf16_view : stl_interfaces::view_interface<utf16_view<I, S>>
+    struct utf16_view : parser::detail::stl_interfaces::view_interface<utf16_view<I, S>>
     {
         using iterator = I;
         using sentinel = S;
@@ -256,7 +256,7 @@ namespace boost { namespace text {
             encoding. */
         friend std::ostream & operator<<(std::ostream & os, utf16_view v)
         {
-            boost::text::transcode_to_utf8(
+            boost::parser::detail::text::transcode_to_utf8(
                 v.begin(), v.end(), std::ostreambuf_iterator<char>(os));
             return os;
         }
@@ -291,7 +291,7 @@ namespace boost { namespace text {
 #else
     template<typename I, typename S = I>
 #endif
-    struct utf32_view : stl_interfaces::view_interface<utf32_view<I, S>>
+    struct utf32_view : parser::detail::stl_interfaces::view_interface<utf32_view<I, S>>
     {
         using iterator = I;
         using sentinel = S;
@@ -324,7 +324,7 @@ namespace boost { namespace text {
             encoding. */
         friend std::ostream & operator<<(std::ostream & os, utf32_view v)
         {
-            boost::text::transcode_to_utf8(
+            boost::parser::detail::text::transcode_to_utf8(
                 v.begin(), v.end(), std::ostreambuf_iterator<char>(os));
             return os;
         }
@@ -333,7 +333,7 @@ namespace boost { namespace text {
             Defined on Windows only. */
         friend std::wostream & operator<<(std::wostream & os, utf32_view v)
         {
-            boost::text::transcode_to_utf16(
+            boost::parser::detail::text::transcode_to_utf16(
                 v.begin(), v.end(), std::ostreambuf_iterator<wchar_t>(os));
             return os;
         }
@@ -353,7 +353,7 @@ namespace boost { namespace text {
 
 }}
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
     /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
         transcode the data if necessary. */
@@ -506,7 +506,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
 #if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
         transcode the data if necessary. */
@@ -526,9 +526,9 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     constexpr auto as_utf8(R && r) noexcept
     {
         if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::text::as_utf8(r, null_sentinel{});
+            return boost::parser::detail::text::as_utf8(r, null_sentinel{});
         } else {
-            auto intermediate = boost::text::as_utf8(
+            auto intermediate = boost::parser::detail::text::as_utf8(
                 std::ranges::begin(r), std::ranges::end(r));
             using result_type = borrowed_view_t<R, decltype(intermediate)>;
             return result_type{intermediate};
@@ -553,9 +553,9 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     constexpr auto as_utf16(R && r) noexcept
     {
         if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::text::as_utf16(r, null_sentinel{});
+            return boost::parser::detail::text::as_utf16(r, null_sentinel{});
         } else {
-            auto intermediate = boost::text::as_utf16(
+            auto intermediate = boost::parser::detail::text::as_utf16(
                 std::ranges::begin(r), std::ranges::end(r));
             using result_type = borrowed_view_t<R, decltype(intermediate)>;
             return result_type{intermediate};
@@ -580,9 +580,9 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     constexpr auto as_utf32(R && r) noexcept
     {
         if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::text::as_utf32(r, null_sentinel{});
+            return boost::parser::detail::text::as_utf32(r, null_sentinel{});
         } else {
-            auto intermediate = boost::text::as_utf32(
+            auto intermediate = boost::parser::detail::text::as_utf32(
                 std::ranges::begin(r), std::ranges::end(r));
             using result_type = borrowed_view_t<R, decltype(intermediate)>;
             return result_type{intermediate};
@@ -591,16 +591,16 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 }}}
 
 namespace std::ranges {
-    template<boost::text::utf8_iter I, std::sentinel_for<I> S>
-    inline constexpr bool enable_borrowed_range<boost::text::utf8_view<I, S>> =
+    template<boost::parser::detail::text::utf8_iter I, std::sentinel_for<I> S>
+    inline constexpr bool enable_borrowed_range<boost::parser::detail::text::utf8_view<I, S>> =
         true;
 
-    template<boost::text::utf16_iter I, std::sentinel_for<I> S>
-    inline constexpr bool enable_borrowed_range<boost::text::utf16_view<I, S>> =
+    template<boost::parser::detail::text::utf16_iter I, std::sentinel_for<I> S>
+    inline constexpr bool enable_borrowed_range<boost::parser::detail::text::utf16_view<I, S>> =
         true;
 
-    template<boost::text::utf32_iter I, std::sentinel_for<I> S>
-    inline constexpr bool enable_borrowed_range<boost::text::utf32_view<I, S>> =
+    template<boost::parser::detail::text::utf32_iter I, std::sentinel_for<I> S>
+    inline constexpr bool enable_borrowed_range<boost::parser::detail::text::utf32_view<I, S>> =
         true;
 }
 

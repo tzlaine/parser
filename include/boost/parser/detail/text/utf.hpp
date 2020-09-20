@@ -11,7 +11,7 @@
 #include <type_traits>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     /** The Unicode Transformation Formats. */
     enum class format { utf8 = 1, utf16 = 2, utf32 = 4 };

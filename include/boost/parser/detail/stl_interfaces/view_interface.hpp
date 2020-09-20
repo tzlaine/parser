@@ -9,7 +9,7 @@
 #include <boost/parser/detail/stl_interfaces/fwd.hpp>
 
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     /** A CRTP template that one may derive from to make it easier to define
         `std::ranges::view`-like types with a container-like interface.  This
@@ -203,7 +203,7 @@ namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_
 
 #if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     /** A template alias for `std::ranges::view_interface`.  This only exists
         to make migration from Boost.STLInterfaces to C++20 easier; switch to

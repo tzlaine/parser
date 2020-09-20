@@ -13,7 +13,7 @@
 #include <boost/config.hpp>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     /** The result returned from some variations of the transcode
         algorithms. */
@@ -340,7 +340,7 @@ namespace boost { namespace text {
 
 }}
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
     namespace dtl {
         template<
@@ -522,7 +522,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
 #if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     /** Copies the code points in the range `[first, last)` to `out`, changing
         the encoding to UTF-8. */

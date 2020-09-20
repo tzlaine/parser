@@ -32,7 +32,7 @@ TEST(parse_empty, all)
 {
     char const * chars = "";
     auto first = chars;
-    boost::text::null_sentinel last;
+    boost::parser::detail::text::null_sentinel last;
 
     {
         constexpr auto parser = eps;

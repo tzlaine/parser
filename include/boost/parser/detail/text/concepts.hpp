@@ -14,7 +14,7 @@
 #include <ranges>
 
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     template<typename T, format F>
     concept code_unit = std::integral<T> && sizeof(T) == (int)F;

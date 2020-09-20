@@ -21,7 +21,7 @@
 #include <stdexcept>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     namespace {
         constexpr uint16_t high_surrogate_base = 0xd7c0;
@@ -183,7 +183,7 @@ namespace boost { namespace text {
     {
         return first_unit <= 0x7f
                    ? 1
-                   : boost::text::lead_code_unit(first_unit)
+            : boost::parser::detail::text::lead_code_unit(first_unit)
                          ? int(0xe0 <= first_unit) + int(0xf0 <= first_unit) + 2
                          : -1;
     }
@@ -195,9 +195,9 @@ namespace boost { namespace text {
     inline constexpr int
     utf16_code_units(uint16_t first_unit) noexcept
     {
-        if (boost::text::low_surrogate(first_unit))
+        if (boost::parser::detail::text::low_surrogate(first_unit))
             return -1;
-        if (boost::text::high_surrogate(first_unit))
+        if (boost::parser::detail::text::high_surrogate(first_unit))
             return 2;
         return 1;
     }
@@ -247,14 +247,14 @@ namespace boost { namespace text {
         constexpr optional_iter<Iter>
         end_of_invalid_utf8(Iter it) noexcept
         {
-            BOOST_PARSER_DEBUG_ASSERT(!boost::text::continuation(*it));
+            BOOST_PARSER_DEBUG_ASSERT(!boost::parser::detail::text::continuation(*it));
 
             if (detail::in(0, *it, 0x7f))
                 return optional_iter<Iter>{};
 
             if (detail::in(0xc2, *it, 0xdf)) {
                 auto next = it;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
@@ -263,15 +263,15 @@ namespace boost { namespace text {
                 auto next = it;
                 if (!detail::in(0xa0, *++next, 0xbf))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
             if (detail::in(0xe1, *it, 0xec)) {
                 auto next = it;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
@@ -279,15 +279,15 @@ namespace boost { namespace text {
                 auto next = it;
                 if (!detail::in(0x80, *++next, 0x9f))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
             if (detail::in(0xee, *it, 0xef)) {
                 auto next = it;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
@@ -296,19 +296,19 @@ namespace boost { namespace text {
                 auto next = it;
                 if (!detail::in(0x90, *++next, 0xbf))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
             if (detail::in(0xf1, *it, 0xf3)) {
                 auto next = it;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
@@ -316,9 +316,9 @@ namespace boost { namespace text {
                 auto next = it;
                 if (!detail::in(0x80, *++next, 0x8f))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
-                if (!boost::text::continuation(*++next))
+                if (!boost::parser::detail::text::continuation(*++next))
                     return next;
                 return optional_iter<Iter>{};
             }
@@ -332,12 +332,12 @@ namespace boost { namespace text {
             Iter retval = it;
 
             int backup = 0;
-            while (backup < 4 && boost::text::continuation(*--retval)) {
+            while (backup < 4 && boost::parser::detail::text::continuation(*--retval)) {
                 ++backup;
             }
             backup = it - retval;
 
-            if (boost::text::continuation(*retval))
+            if (boost::parser::detail::text::continuation(*retval))
                 return it - 1;
 
             optional_iter<Iter> first_invalid = end_of_invalid_utf8(retval);
@@ -352,7 +352,7 @@ namespace boost { namespace text {
             }
 
             if (1 < backup) {
-                int const cp_bytes = boost::text::utf8_code_units(*retval);
+                int const cp_bytes = boost::parser::detail::text::utf8_code_units(*retval);
                 if (cp_bytes < backup)
                     retval = it - 1;
             }
@@ -367,12 +367,12 @@ namespace boost { namespace text {
 
             int backup = 0;
             while (backup < 4 && it != first &&
-                   boost::text::continuation(*--retval)) {
+                   boost::parser::detail::text::continuation(*--retval)) {
                 ++backup;
             }
             backup = std::distance(retval, it);
 
-            if (boost::text::continuation(*retval)) {
+            if (boost::parser::detail::text::continuation(*retval)) {
                 if (it != first)
                     --it;
                 return it;
@@ -391,7 +391,7 @@ namespace boost { namespace text {
             }
 
             if (1 < backup) {
-                int const cp_bytes = boost::text::utf8_code_units(*retval);
+                int const cp_bytes = boost::parser::detail::text::utf8_code_units(*retval);
                 if (cp_bytes < backup) {
                     if (it != first)
                         --it;
@@ -587,7 +587,7 @@ namespace boost { namespace text {
         };
 
         template<typename Derived, typename ValueType>
-        using trans_iter = stl_interfaces::iterator_interface<
+        using trans_iter = parser::detail::stl_interfaces::iterator_interface<
             Derived,
             std::bidirectional_iterator_tag,
             ValueType,
@@ -596,7 +596,7 @@ namespace boost { namespace text {
 
 }}
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
     /** Returns the first code unit in `[first, last)` that is not properly
         UTF-8 encoded, or `last` if no such code unit is found. */
@@ -605,7 +605,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
     find_invalid_encoding(Iter first, Iter last) noexcept
     {
         while (first != last) {
-            int const cp_bytes = boost::text::utf8_code_units(*first);
+            int const cp_bytes = boost::parser::detail::text::utf8_code_units(*first);
             if (cp_bytes == -1 || last - first < cp_bytes)
                 return first;
 
@@ -625,11 +625,11 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
     find_invalid_encoding(Iter first, Iter last) noexcept
     {
         while (first != last) {
-            int const cp_units = boost::text::utf16_code_units(*first);
+            int const cp_units = boost::parser::detail::text::utf16_code_units(*first);
             if (cp_units == -1 || last - first < cp_units)
                 return first;
 
-            if (cp_units == 2 && !boost::text::low_surrogate(*(first + 1)))
+            if (cp_units == 2 && !boost::parser::detail::text::low_surrogate(*(first + 1)))
                 return first;
 
             first += cp_units;
@@ -663,7 +663,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
         if (first == last)
             return true;
 
-        int const cp_bytes = boost::text::utf8_code_units(*first);
+        int const cp_bytes = boost::parser::detail::text::utf8_code_units(*first);
         if (cp_bytes == -1 || last - first < cp_bytes)
             return false;
 
@@ -679,11 +679,11 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
         if (first == last)
             return true;
 
-        int const cp_units = boost::text::utf16_code_units(*first);
+        int const cp_units = boost::parser::detail::text::utf16_code_units(*first);
         if (cp_units == -1 || last - first < cp_units)
             return false;
 
-        return cp_units == 1 || boost::text::low_surrogate(*(first + 1));
+        return cp_units == 1 || boost::parser::detail::text::low_surrogate(*(first + 1));
     }
 
     /** Returns true iff `[first, last)` is empty or the final UTF-8 code units
@@ -696,7 +696,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
             return true;
 
         auto it = last;
-        while (first != --it && boost::text::continuation(*it))
+        while (first != --it && boost::parser::detail::text::continuation(*it))
             ;
 
         return v1::starts_encoded(it, last);
@@ -712,7 +712,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
             return true;
 
         auto it = last;
-        if (boost::text::low_surrogate(*--it))
+        if (boost::parser::detail::text::low_surrogate(*--it))
             --it;
 
         return v1::starts_encoded(it, last);
@@ -722,7 +722,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
 #if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     /** Returns the first code unit in `[first, last)` that is not properly
         UTF-8 encoded, or `last` if no such code unit is found. */
@@ -733,7 +733,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     // clang-format on
     {
         while (first != last) {
-            int const cp_bytes = boost::text::utf8_code_units(*first);
+            int const cp_bytes = boost::parser::detail::text::utf8_code_units(*first);
             if (cp_bytes == -1 || last - first < cp_bytes)
                 return first;
 
@@ -755,11 +755,11 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     // clang-format on
     {
         while (first != last) {
-            int const cp_units = boost::text::utf16_code_units(*first);
+            int const cp_units = boost::parser::detail::text::utf16_code_units(*first);
             if (cp_units == -1 || last - first < cp_units)
                 return first;
 
-            if (cp_units == 2 && !boost::text::low_surrogate(*(first + 1)))
+            if (cp_units == 2 && !boost::parser::detail::text::low_surrogate(*(first + 1)))
                 return first;
 
             first += cp_units;
@@ -775,7 +775,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     constexpr bool encoded(I first, I last) noexcept
     // clang-format on
     {
-        return boost::text::find_invalid_encoding(first, last) == last;
+        return boost::parser::detail::text::find_invalid_encoding(first, last) == last;
     }
 
     /** Returns true iff `[first, last)` is properly UTF-16 encoded */
@@ -785,7 +785,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
     constexpr bool encoded(I first, I last) noexcept
     // clang-format on
     {
-        return boost::text::find_invalid_encoding(first, last) == last;
+        return boost::parser::detail::text::find_invalid_encoding(first, last) == last;
     }
 
     /** Returns true iff `[first, last)` is empty or the initial UTF-8 code
@@ -799,7 +799,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
         if (first == last)
             return true;
 
-        int const cp_bytes = boost::text::utf8_code_units(*first);
+        int const cp_bytes = boost::parser::detail::text::utf8_code_units(*first);
         if (cp_bytes == -1 || last - first < cp_bytes)
             return false;
 
@@ -817,11 +817,11 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
         if (first == last)
             return true;
 
-        int const cp_units = boost::text::utf16_code_units(*first);
+        int const cp_units = boost::parser::detail::text::utf16_code_units(*first);
         if (cp_units == -1 || last - first < cp_units)
             return false;
 
-        return cp_units == 1 || boost::text::low_surrogate(*(first + 1));
+        return cp_units == 1 || boost::parser::detail::text::low_surrogate(*(first + 1));
     }
 
     /** Returns true iff `[first, last)` is empty or the final UTF-8 code units
@@ -836,10 +836,10 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
             return true;
 
         auto it = last;
-        while (first != --it && boost::text::continuation(*it))
+        while (first != --it && boost::parser::detail::text::continuation(*it))
             ;
 
-        return boost::text::starts_encoded(it, last);
+        return boost::parser::detail::text::starts_encoded(it, last);
     }
 
     /** Returns true iff `[first, last)` is empty or the final UTF-16 code units
@@ -854,17 +854,17 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
             return true;
 
         auto it = last;
-        if (boost::text::low_surrogate(*--it))
+        if (boost::parser::detail::text::low_surrogate(*--it))
             --it;
 
-        return boost::text::starts_encoded(it, last);
+        return boost::parser::detail::text::starts_encoded(it, last);
     }
 
 }}}
 
 #endif
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     /** An error handler type that can be used with the converting iterators;
         provides the Unicode replacement character on errors. */
@@ -2307,9 +2307,9 @@ namespace boost { namespace text {
         operator--() noexcept(!throw_on_error)
         {
             BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-            if (boost::text::low_surrogate(*--it_)) {
+            if (boost::parser::detail::text::low_surrogate(*--it_)) {
                 if (it_ != first_ &&
-                    boost::text::high_surrogate(*std::prev(it_)))
+                    boost::parser::detail::text::high_surrogate(*std::prev(it_)))
                     --it_;
             }
             return *this;
@@ -2784,12 +2784,12 @@ namespace boost { namespace text {
             uint32_t first = static_cast<uint32_t>(*next);
             uint32_t second = 0;
             uint32_t cp = first;
-            if (boost::text::high_surrogate(first)) {
+            if (boost::parser::detail::text::high_surrogate(first)) {
                 if (at_end())
                     cp = replacement_character();
                 else {
                     second = static_cast<uint32_t>(*++next);
-                    if (!boost::text::low_surrogate(second)) {
+                    if (!boost::parser::detail::text::low_surrogate(second)) {
                         ErrorHandler{}(
                             "Invalid UTF-16 sequence; expected low surrogate "
                             "after high surrogate.");
@@ -2798,7 +2798,7 @@ namespace boost { namespace text {
                         cp = (first << 10) + second + surrogate_offset;
                     }
                 }
-            } else if (boost::text::surrogate(first)) {
+            } else if (boost::parser::detail::text::surrogate(first)) {
                 ErrorHandler{}("Invalid initial UTF-16 code unit.");
                 cp = replacement_character();
             }
@@ -2810,9 +2810,9 @@ namespace boost { namespace text {
 
         constexpr void increment() noexcept
         {
-            if (boost::text::high_surrogate(*it_)) {
+            if (boost::parser::detail::text::high_surrogate(*it_)) {
                 ++it_;
-                if (it_ != last_ && boost::text::low_surrogate(*it_))
+                if (it_ != last_ && boost::parser::detail::text::low_surrogate(*it_))
                     ++it_;
             } else {
                 ++it_;
@@ -2821,7 +2821,7 @@ namespace boost { namespace text {
 
         constexpr void decrement() noexcept
         {
-            if (boost::text::low_surrogate(*--it_)) {
+            if (boost::parser::detail::text::low_surrogate(*--it_)) {
                 if (it_ != first_)
                     --it_;
             }
@@ -3420,7 +3420,7 @@ namespace boost { namespace text {
 
 #include <boost/parser/detail/text/detail/unpack.hpp>
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
 
     template<typename Tag>
     struct make_utf8_dispatch;
@@ -3610,7 +3610,7 @@ namespace boost { namespace text { namespace detail {
 
 }}}
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
     /** Returns a `utf_32_to_8_out_iterator<Iter>` constructed from the given
         iterator. */
@@ -3838,7 +3838,7 @@ namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
 #if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
     /** Returns a `utf_32_to_8_out_iterator<O>` constructed from the given
         iterator. */

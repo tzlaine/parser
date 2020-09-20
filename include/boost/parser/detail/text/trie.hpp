@@ -16,7 +16,7 @@
 #include <vector>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     /** An optional reference.  Its optionality is testable, via the operator
         bool() members, and it is implicitly convertible to the underlying

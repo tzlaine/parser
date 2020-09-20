@@ -28,7 +28,7 @@ namespace boost { namespace parser {
 #else
     template<typename I, typename S = I>
 #endif
-    struct view : stl_interfaces::view_interface<view<I, S>>
+    struct view : parser::detail::stl_interfaces::view_interface<view<I, S>>
     {
         using iterator = I;
         using sentinel = S;
@@ -3794,12 +3794,12 @@ namespace boost { namespace parser {
             is done on the copy of the symbol table inside the parse context
             `context`. */
         template<typename Context>
-        text::optional_ref<T>
+        parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            return trie_[text::as_utf32(str)];
+            return trie_[parser::detail::text::as_utf32(str)];
         }
 
         /** Inserts an entry consisting of a UTF-8 string `str` to match, and
@@ -3808,9 +3808,9 @@ namespace boost { namespace parser {
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.insert(text::as_utf32(str), std::move(x));
+            trie_.insert(parser::detail::text::as_utf32(str), std::move(x));
         }
 
         /** Erases the entry whose UTF-8 match string is `str` from the copy
@@ -3818,9 +3818,9 @@ namespace boost { namespace parser {
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.erase(text::as_utf32(str));
+            trie_.erase(parser::detail::text::as_utf32(str));
         }
 
         template<
@@ -3863,7 +3863,7 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            text::trie<std::vector<uint32_t>, T> const & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> const & trie_ =
                 detail::get_trie(context, ref());
             auto const lookup = trie_.longest_match(first, last);
             if (lookup.match) {
@@ -4418,7 +4418,7 @@ namespace boost { namespace parser {
             is done on the copy of the symbol table inside the parse context
             `context`, not `*this`. */
         template<typename Context>
-        text::optional_ref<T>
+        parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
             return this->parser_.find(context, str);
@@ -5212,7 +5212,7 @@ namespace boost { namespace parser {
 
             if constexpr (sizeof(*first) == 4) {
                 auto const cps =
-                    text::as_utf32(expected_first_, expected_last_);
+                    parser::detail::text::as_utf32(expected_first_, expected_last_);
                 auto const mismatch =
                     detail::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {
@@ -6377,7 +6377,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6480,7 +6480,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6588,7 +6588,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_, attr);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6702,7 +6702,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6763,7 +6763,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6822,7 +6822,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7027,7 +7027,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7156,7 +7156,7 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);

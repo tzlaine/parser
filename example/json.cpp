@@ -128,7 +128,7 @@ namespace json {
     auto first_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::high_surrogate(cu))
+        if (!boost::parser::detail::text::high_surrogate(cu))
             _pass(ctx) = false; // Not a high surrogate; explicitly fail the parse.
         else
             locals.first_surrogate = cu; // Save this initial code unit for later.
@@ -139,7 +139,7 @@ namespace json {
     auto second_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::low_surrogate(cu)) {
+        if (!boost::parser::detail::text::low_surrogate(cu)) {
             _pass(ctx) = false; // Not a low surrogate; explicitly fail the parse.
         } else {
             // Success!  Write to the rule's attribute the code point that the
@@ -280,7 +280,7 @@ namespace json {
         // Turn the input range into a UTF-32 range, so that we can be sure
         // that we fall into the Unicode-aware parsing path inside parse()
         // below.
-        auto const range = boost::text::as_utf32(str);
+        auto const range = boost::parser::detail::text::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)

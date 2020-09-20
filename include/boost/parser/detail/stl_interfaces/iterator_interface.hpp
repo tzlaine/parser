@@ -15,7 +15,7 @@
 #endif
 
 
-namespace boost { namespace stl_interfaces {
+namespace boost::parser::detail { namespace stl_interfaces {
 
     /** A type for granting access to the private members of an iterator
         derived from `iterator_interface`. */
@@ -175,7 +175,7 @@ namespace boost { namespace stl_interfaces {
 
 }}
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     /** A CRTP template that one may derive from to make defining iterators
         easier.
@@ -548,7 +548,7 @@ namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_
 
 #if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     namespace v2_dtl {
         template<typename Iterator>

@@ -152,7 +152,7 @@ void compile_attribute_unicode_utf8()
 #endif
     {
         char const chars[] = "";
-        auto const r = boost::text::as_utf8(chars);
+        auto const r = boost::parser::detail::text::as_utf8(chars);
 
         {
             constexpr auto parser = char_;
@@ -401,7 +401,7 @@ void compile_attribute_sentinel()
 {
     char const * chars = "";
     auto first = chars;
-    boost::text::null_sentinel last;
+    boost::parser::detail::text::null_sentinel last;
 
     {
         constexpr auto parser = eps;

@@ -15,7 +15,7 @@
 #include <cstdint>
 
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
 
     template<typename T>
     using remove_cv_ref_t =

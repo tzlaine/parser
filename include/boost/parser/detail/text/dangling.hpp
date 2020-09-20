@@ -11,7 +11,7 @@
 
 #if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost::text {
+namespace boost::parser::detail::text {
     template<std::ranges::range R, std::ranges::view V>
     using borrowed_view_t = std::
         conditional_t<std::ranges::borrowed_range<R>, V, std::ranges::dangling>;

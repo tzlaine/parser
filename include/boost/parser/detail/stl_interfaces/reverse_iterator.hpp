@@ -9,7 +9,7 @@
 #include <boost/parser/detail/stl_interfaces/iterator_interface.hpp>
 
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     namespace v1_dtl {
         template<typename Iter>
@@ -64,7 +64,7 @@ namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_
         : iterator_interface<
               reverse_iterator<BidiIter>,
 #if BOOST_PARSER_USE_CONCEPTS
-              typename boost::stl_interfaces::v2::v2_dtl::iter_concept_t<
+        typename boost::parser::detail::stl_interfaces::v2::v2_dtl::iter_concept_t<
                   BidiIter>,
 #else
               typename std::iterator_traits<BidiIter>::iterator_category,
@@ -172,7 +172,7 @@ namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_
 
 #if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     /** A template alias for `std::reverse_iterator`.  This only exists to
         make migration from Boost.STLInterfaces to C++20 easier; switch to the

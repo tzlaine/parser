@@ -471,9 +471,9 @@ namespace json {
         to_json(std::ostream & os, std::string_view s) noexcept
         {
             os << '"';
-            auto const r = boost::text::as_utf32(s);
+            auto const r = boost::parser::detail::text::as_utf32(s);
             char const * last_written_it = &*s.begin();
-            boost::text::foreach_subrange_if(
+            boost::parser::detail::text::foreach_subrange_if(
                 r.begin(),
                 r.end(),
                 [](uint32_t cp) { return cp < 0x0020 || 0xffff < cp; },

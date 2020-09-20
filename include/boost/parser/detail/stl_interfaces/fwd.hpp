@@ -16,7 +16,7 @@
 #endif
 
 
-namespace boost { namespace stl_interfaces {
+namespace boost::parser::detail { namespace stl_interfaces {
 
     /** An enumeration used to indicate whether the underlying data have a
         contiguous or discontiguous layout when instantiating `view_interface`

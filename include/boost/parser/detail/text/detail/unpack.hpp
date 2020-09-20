@@ -9,7 +9,7 @@
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
 
     struct utf8_tag
     {};

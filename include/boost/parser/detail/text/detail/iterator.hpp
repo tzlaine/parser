@@ -12,11 +12,12 @@
 #include <iterator>
 
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
 
-    using reverse_char_iterator = stl_interfaces::reverse_iterator<char *>;
+    using reverse_char_iterator =
+        parser::detail::stl_interfaces::reverse_iterator<char *>;
     using const_reverse_char_iterator =
-        stl_interfaces::reverse_iterator<char const *>;
+        parser::detail::stl_interfaces::reverse_iterator<char const *>;
 
 }}}
 

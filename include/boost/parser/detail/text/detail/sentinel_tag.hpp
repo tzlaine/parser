@@ -9,7 +9,7 @@
 #include <boost/parser/detail/text/config.hpp>
 
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
     struct sentinel_tag
     {};
     struct non_sentinel_tag
