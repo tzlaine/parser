@@ -1776,7 +1776,7 @@ TEST(parser, combined_seq_and_or)
                                 char_('x') >> char_('y') >> char_('z');
         {
             char const * str = "abc";
-            boost::any chars;
+            boost::parser::detail::any_copyable chars;
             EXPECT_TRUE(parse(str, parser, chars));
         }
 
@@ -1794,9 +1794,9 @@ TEST(parser, combined_seq_and_or)
 #if 0 // TODO: Document why this assigns "c" instead of "abc" to the any.
         {
             char const * str = "abc";
-            boost::any chars;
+            boost::parser::detail::any_copyable chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(boost::any_cast<std::string>(chars), "abc");
+            EXPECT_EQ(chars.cast<std::string>(), "abc");
         }
 #endif
 
