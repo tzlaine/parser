@@ -11,7 +11,6 @@
 
 using namespace boost::parser;
 using boost::is_same;
-using boost::hana::tuple;
 
 void compile_or_attribute()
 {

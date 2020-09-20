@@ -74,7 +74,7 @@ namespace json {
     bp::rule<class null, value> const null = "null";
     bp::rule<class string, std::string> const string = "string";
     bp::rule<class number, double> const number = "number";
-    bp::rule<class object_element, boost::hana::tuple<std::string, value>> const
+    bp::rule<class object_element, boost::parser::tuple<std::string, value>> const
         object_element = "object-element";
     bp::rule<class object_tag, value> const object_p = "object";
     bp::rule<class array_tag, value> const array_p = "array";

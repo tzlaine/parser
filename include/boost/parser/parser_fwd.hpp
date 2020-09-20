@@ -4,6 +4,22 @@
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
 
+#if !BOOST_PARSER_USE_STD_TUPLE
+
+// Silence very verbose warnings about std::is_pod being deprecated.  TODO:
+// Remove this if/when Hana accepts releases the fix for this (already on
+// develop).
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#include <boost/hana.hpp>
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+#endif
+
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -98,6 +114,18 @@ namespace boost { namespace parser {
         struct skip_skipper;
     }
 
+    /** The tuple template alias used within Boost.Parser.  This will be
+        `std::tuple` when either `BOOST_PARSER_STANDALONE` or
+        `BOOST_PARSER_USE_STD_TUPLE` is defined, and `boost::hana::tuple`
+        otherwise*/
+#if BOOST_PARSER_USE_STD_TUPLE
+    template<typename... Args>
+    using tuple = std::tuple<Args...>;
+#else
+    template<typename... Args>
+    using tuple = hana::tuple<Args...>;
+#endif
+
     /** Repeats the application of another parser `p` of type `Parser`,
         optionally applying another parser `d` of type `DelimiterParser` in
         between each pair of applications of `p`.  The parse succeeds if `p`
@@ -152,8 +180,9 @@ namespace boost { namespace parser {
         iff all of the sub-parsers succeeds.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in
         `ParserTuple`.  The BacktrackingTuple template parameter is a
-        `hana::tuple` of `hana::bool_` values.  The `i`th such value indicates
-        whether backtracking is allowed if the `i`th parser fails. */
+        `parser::tuple` of `hana::bool_` values.  The `i`th such value
+        indicates whether backtracking is allowed if the `i`th parser
+        fails. */
     template<typename ParserTuple, typename BacktrackingTuple>
     struct seq_parser;
 
@@ -347,7 +376,7 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  You may write to this value in a semantic action to
+        `parser::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
         Returns `none` if the innermost parser does produce an attribute. */
     template<typename Context>
@@ -355,8 +384,8 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute or attributes already produced by
         the innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  Returns `none` if the innermost parser does produce an
-        attribute. */
+        `parser::tuple`.  Returns `none` if the innermost parser does produce
+        an attribute. */
     template<typename Context>
     decltype(auto) _attr(Context const & context);
 
@@ -383,16 +412,16 @@ namespace boost { namespace parser {
 
     /** Returns a reference to one or more local values that the innermost
         rule is declared to have; multiple values will be stored within a
-        `hana::tuple`.  Returns `none` if there is no innermost rule, or if
+        `parser::tuple`.  Returns `none` if there is no innermost rule, or if
         that rule has no locals. */
     template<typename Context>
     decltype(auto) _locals(Context const & context);
 
     /** Returns a reference to one or more parameters passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
-        multiple values will be stored within a `hana::tuple`.  Returns `none`
-        if there is no innermost rule, or if that rule was not given any
-        parameters. */
+        multiple values will be stored within a `parser::tuple`.  Returns
+        `none` if there is no innermost rule, or if that rule was not given
+        any parameters. */
     template<typename Context>
     decltype(auto) _params(Context const & context);
 

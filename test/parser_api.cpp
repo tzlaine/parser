@@ -1954,12 +1954,11 @@ TEST(parser, attr_out_param_compat)
         static_assert(
             std::is_same_v<
                 attr_type,
-                std::optional<
-                    boost::hana::tuple<std::vector<uint32_t>, std::string>>>);
+                std::optional<tuple<std::vector<uint32_t>, std::string>>>);
 
-        boost::hana::tuple<std::string, std::string> result;
-        bool const success =
-            bp::parse(boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
+        tuple<std::string, std::string> result;
+        bool const success = bp::parse(
+            boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
         using namespace boost::hana::literals;
         assert(
             success && result[0_c] == (char const *)u8"rôle" &&
@@ -1970,12 +1969,12 @@ TEST(parser, attr_out_param_compat)
         auto const p = +(bp::int_ >> +bp::cp);
 
         using attr_type = decltype(bp::parse(u8"", p));
-        static_assert(std::is_same_v<
-                      attr_type,
-                      std::optional<std::vector<
-                          boost::hana::tuple<int, std::vector<uint32_t>>>>>);
+        static_assert(
+            std::is_same_v<
+                attr_type,
+                std::optional<std::vector<tuple<int, std::vector<uint32_t>>>>>);
 
-        std::vector<boost::hana::tuple<int, std::string>> result;
+        std::vector<tuple<int, std::string>> result;
 #if 0
         bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
 #endif

@@ -905,7 +905,7 @@ namespace boost { namespace parser {
         {};
 
         template<typename... T>
-        struct is_hana_tuple<hana::tuple<T...>> : std::true_type
+        struct is_hana_tuple<tuple<T...>> : std::true_type
         {};
 
         template<typename T>
@@ -1144,47 +1144,44 @@ namespace boost { namespace parser {
         struct hana_tuple_to_or_type;
 
         template<typename... T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::true_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<T...>, std::true_type>>
         {
             using type = std::optional<std::variant<T...>>;
         };
 
         template<typename... T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::false_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<T...>, std::false_type>>
         {
             using type = std::variant<T...>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<T>, std::true_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<T>, std::true_type>>
         {
             using type = std::optional<T>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T>, std::false_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<T>, std::false_type>>
         {
             using type = T;
         };
 
         template<typename T>
         struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<std::optional<T>>, std::true_type>>
+            hana::pair<tuple<std::optional<T>>, std::true_type>>
         {
             using type = std::optional<T>;
         };
 
         template<>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::true_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<>, std::true_type>>
         {
             using type = nope;
         };
 
         template<>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::false_type>>
+        struct hana_tuple_to_or_type<hana::pair<tuple<>, std::false_type>>
         {
             using type = nope;
         };
@@ -2830,7 +2827,7 @@ namespace boost { namespace parser {
             };
             using wrapped_unique_types = decltype(hana::fold_left(
                 all_types_wrapped{},
-                hana::make_pair(hana::tuple<>{}, std::false_type{}),
+                hana::make_pair(tuple<>{}, std::false_type{}),
                 append_unique));
 
             // Same as above, with the tuple types unwrapped.
@@ -3027,12 +3024,12 @@ namespace boost { namespace parser {
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
-                    // hana::tuple<nope> >> T -> hana::tuple<T>
+                    // tuple<nope> >> T -> tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
                         hana::append(indices, hana::size(result) - one));
                 } else {
-                    // hana::tuple<Ts...> >> T -> hana::tuple<Ts..., T>
+                    // tuple<Ts...> >> T -> tuple<Ts..., T>
                     return hana::make_pair(
                         hana::append(result, x),
                         hana::append(indices, hana::size(result)));
@@ -3078,7 +3075,7 @@ namespace boost { namespace parser {
             // should use to write into its output.
             constexpr auto combine_start = hana::make_pair(
                 hana::make_tuple(hana::front(all_types_wrapped{})),
-                hana::tuple_c<std::size_t, 0>);
+                tuple<std::integral_constant<std::size_t, 0>>{});
             using combined_types = decltype(hana::fold_left(
                 hana::drop_front(all_types_wrapped{}),
                 combine_start,
@@ -3214,7 +3211,7 @@ namespace boost { namespace parser {
                     detail::assign(retval, Attribute());
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
-                hana::tuple<Attribute> temp_retval;
+                tuple<Attribute> temp_retval;
                 call_impl(
                     use_cbs,
                     first,
@@ -4072,11 +4069,10 @@ namespace boost { namespace parser {
                 return rhs.parser_.template prepend<true>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, ParserType2>,
-                    hana::tuple<hana::true_, hana::true_>>;
-                return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, ParserType2>{
-                        parser_, rhs.parser_}}};
+                    tuple<parser_type, ParserType2>,
+                    tuple<hana::true_, hana::true_>>;
+                return parser::parser_interface{parser_t{
+                    tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -4115,11 +4111,10 @@ namespace boost { namespace parser {
                 return rhs.parser_.template prepend<false>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, ParserType2>,
-                    hana::tuple<hana::true_, hana::false_>>;
-                return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, ParserType2>{
-                        parser_, rhs.parser_}}};
+                    tuple<parser_type, ParserType2>,
+                    tuple<hana::true_, hana::false_>>;
+                return parser::parser_interface{parser_t{
+                    tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -4172,9 +4167,8 @@ namespace boost { namespace parser {
                 BOOST_PARSER_ASSERT(
                     !detail::is_unconditional_eps<parser_type>{});
                 return parser::parser_interface{
-                    or_parser<hana::tuple<parser_type, ParserType2>>{
-                        hana::tuple<parser_type, ParserType2>{
-                            parser_, rhs.parser_}}};
+                    or_parser<tuple<parser_type, ParserType2>>{
+                        tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -5195,8 +5189,8 @@ namespace boost { namespace parser {
             }
 
             if constexpr (sizeof(*first) == 4) {
-                auto const cps =
-                    parser::detail::text::as_utf32(expected_first_, expected_last_);
+                auto const cps = parser::detail::text::as_utf32(
+                    expected_first_, expected_last_);
                 auto const mismatch =
                     detail::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {

@@ -4,7 +4,6 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/detail/detection.hpp>
 
-#include <boost/hana.hpp>
 #include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iomanip>
@@ -444,7 +443,7 @@ namespace boost { namespace parser { namespace detail {
     };
 
     template<typename... T>
-    inline void print(std::ostream & os, hana::tuple<T...> const & attr);
+    inline void print(std::ostream & os, tuple<T...> const & attr);
 
     template<typename... T>
     inline void print(std::ostream & os, std::variant<T...> const & attr);
@@ -456,7 +455,7 @@ namespace boost { namespace parser { namespace detail {
     inline void print(std::ostream & os, Attribute const & attr);
 
     template<typename... T>
-    inline void print(std::ostream & os, hana::tuple<T...> const & attr)
+    inline void print(std::ostream & os, tuple<T...> const & attr)
     {
         os << "(";
         bool first = false;
