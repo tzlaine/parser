@@ -1,24 +1,13 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
 
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
-
-#if !BOOST_PARSER_USE_STD_TUPLE
-
-// Silence very verbose warnings about std::is_pod being deprecated.  TODO:
-// Remove this if/when Hana accepts releases the fix for this (already on
-// develop).
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-#include <boost/hana.hpp>
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-
-#endif
 
 #include <cstdint>
 #include <map>
@@ -113,18 +102,6 @@ namespace boost { namespace parser {
 
         struct skip_skipper;
     }
-
-    /** The tuple template alias used within Boost.Parser.  This will be
-        `std::tuple` when either `BOOST_PARSER_STANDALONE` or
-        `BOOST_PARSER_USE_STD_TUPLE` is defined, and `boost::hana::tuple`
-        otherwise*/
-#if BOOST_PARSER_USE_STD_TUPLE
-    template<typename... Args>
-    using tuple = std::tuple<Args...>;
-#else
-    template<typename... Args>
-    using tuple = hana::tuple<Args...>;
-#endif
 
     /** Repeats the application of another parser `p` of type `Parser`,
         optionally applying another parser `d` of type `DelimiterParser` in

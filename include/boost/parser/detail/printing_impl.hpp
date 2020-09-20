@@ -184,9 +184,9 @@ namespace boost { namespace parser { namespace detail {
         hana::for_each(
             hana::zip(parser.parsers_, BacktrackingTuple{}),
             [&](auto const & parser_and_backtrack) {
-                using namespace hana::literals;
-                auto const & parser = parser_and_backtrack[0_c];
-                auto const backtrack = parser_and_backtrack[1_c];
+                using namespace literals;
+                auto const & parser = parser::get(parser_and_backtrack, 0_c);
+                auto const backtrack = parser::get(parser_and_backtrack, 1_c);
 
                 if (components == parser_component_limit) {
                     if (!printed_ellipsis)
@@ -758,11 +758,14 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        using namespace hana::literals;
+        using namespace literals;
 
-        os << "(" << detail::resolve(context, parser.parsers_[0_c].pred_.value_)
+        os << "("
+           << detail::resolve(
+                  context, parser::get(parser.parsers_, 0_c).pred_.value_)
            << ", ";
-        detail::print_parser(context, parser.parsers_[1_c], os, components);
+        detail::print_parser(
+            context, parser::get(parser.parsers_, 1_c), os, components);
         os << ")";
     }
 
@@ -773,7 +776,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        using namespace hana::literals;
+        using namespace literals;
 
         bool printed_ellipsis = false;
         hana::for_each(parser.parsers_, [&](auto const & parser) {

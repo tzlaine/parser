@@ -4,8 +4,10 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
-#include <boost/parser/detail/printing.hpp>
+#include <boost/parser/tuple.hpp>
+#include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
+#include <boost/parser/detail/printing.hpp>
 
 #if BOOST_PARSER_USE_BOOST
 #include <boost/preprocessor/variadic/to_seq.hpp>
@@ -1254,12 +1256,27 @@ namespace boost { namespace parser {
 
         // Etc.
 
+        template<typename T>
+        struct wrapper
+        {
+            using type = T;
+        };
+
+        struct wrap
+        {
+            template<typename T>
+            constexpr auto operator()(T type) const
+            {
+                return wrapper<T>{};
+            }
+        };
+
         struct unwrap
         {
             template<typename T>
             constexpr auto operator()(T wrapped_type) const
             {
-                return typename decltype(wrapped_type)::type{};
+                return typename T::type{};
             }
         };
 
@@ -2975,14 +2992,12 @@ namespace boost { namespace parser {
                 using unwrapped_optional_x_type =
                     detail::unwrapped_optional_t<x_type>;
 
-                constexpr auto one = hana::size_c<1>;
-                (void)one;
-
                 if constexpr (detail::is_nope_v<x_type>) {
                     // T >> nope -> T
                     return hana::make_pair(
                         result,
-                        hana::append(indices, hana::size(result) - one));
+                        hana::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     std::is_same<result_back_type, x_type>{} ||
                     std::is_same<
@@ -2992,14 +3007,16 @@ namespace boost { namespace parser {
                         // C<T> >> C<T> -> C<T>
                         return hana::make_pair(
                             result,
-                            hana::append(indices, hana::size(result) - one));
+                            hana::append(
+                                indices, detail::hl::size_minus_one(result)));
                     } else {
                         // T >> T -> vector<T>
                         return hana::make_pair(
                             hana::append(
                                 hana::drop_back(result),
                                 hana::type_c<std::vector<result_back_type>>),
-                            hana::append(indices, hana::size(result) - one));
+                            hana::append(
+                                indices, detail::hl::size_minus_one(result)));
                     }
                 } else if constexpr (
                     detail::
@@ -3011,7 +3028,8 @@ namespace boost { namespace parser {
                     // C<T> >> optional<T> -> C<T>
                     return hana::make_pair(
                         result,
-                        hana::append(indices, hana::size(result) - one));
+                        hana::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     detail::
                         container_and_value_type<x_type, result_back_type> ||
@@ -3022,12 +3040,14 @@ namespace boost { namespace parser {
                     // optional<T> >> C<T> -> C<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
-                        hana::append(indices, hana::size(result) - one));
+                        hana::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
                     // tuple<nope> >> T -> tuple<T>
                     return hana::make_pair(
                         hana::append(hana::drop_back(result), x),
-                        hana::append(indices, hana::size(result) - one));
+                        hana::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else {
                     // tuple<Ts...> >> T -> tuple<Ts..., T>
                     return hana::make_pair(
@@ -3075,7 +3095,7 @@ namespace boost { namespace parser {
             // should use to write into its output.
             constexpr auto combine_start = hana::make_pair(
                 hana::make_tuple(hana::front(all_types_wrapped{})),
-                tuple<std::integral_constant<std::size_t, 0>>{});
+                tuple<llong<0>>{});
             using combined_types = decltype(hana::fold_left(
                 hana::drop_front(all_types_wrapped{}),
                 combine_start,
@@ -3084,6 +3104,9 @@ namespace boost { namespace parser {
             // Unwrap the result tuple's types.
             using result_type = decltype(hana::transform(
                 hana::first(combined_types{}), detail::unwrap{}));
+
+// TODO            result_type{} = std::vector<int>({42});
+// TODO            hana::second(combined_types{}) = std::vector<int>({42});
 
             return hana::make_pair(
                 result_type(), hana::second(combined_types{}));
@@ -3140,8 +3163,8 @@ namespace boost { namespace parser {
 
             // A 1-tuple is converted to a scalar.
             if constexpr (hana::size(retval) == hana::size_c<1>) {
-                using namespace hana::literals;
-                return retval[0_c];
+                using namespace literals;
+                return parser::get(retval, 0_c);
             } else {
                 return retval;
             }
@@ -3266,13 +3289,15 @@ namespace boost { namespace parser {
                                &success,
                                &retval](
                                   auto const & parser_index_and_backtrack) {
-                using namespace hana::literals;
+                using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...
                     return;
 
-                auto const & parser = parser_index_and_backtrack[0_c];
-                bool const can_backtrack = parser_index_and_backtrack[2_c];
+                auto const & parser =
+                    parser::get(parser_index_and_backtrack, 0_c);
+                bool const can_backtrack =
+                    parser::get(parser_index_and_backtrack, 2_c);
 
                 if (!detail::gen_attrs(flags)) {
                     parser.call(
@@ -3285,7 +3310,8 @@ namespace boost { namespace parser {
                     return;
                 }
 
-                auto & out = retval[parser_index_and_backtrack[1_c]];
+                auto & out = parser::get(
+                    retval, parser::get(parser_index_and_backtrack, 1_c));
 
                 using attr_t = decltype(parser.call(
                     use_cbs, first, last, context, skip, flags, success));

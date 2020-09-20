@@ -2,6 +2,7 @@
 #define BOOST_PARSER_DETAIL_PRINTING_HPP
 
 #include <boost/parser/parser_fwd.hpp>
+#include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/detection.hpp>
 
 #include <boost/parser/detail/text/transcode_view.hpp>

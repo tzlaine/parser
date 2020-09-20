@@ -78,7 +78,7 @@ TEST(parser, basic)
         std::string str = "ab";
         std::vector<char> result;
         EXPECT_TRUE(parse(str, parser_1, result));
-        using namespace boost::hana::literals;
+        using namespace boost::parser::literals;
         EXPECT_EQ(result[0_c], 'a');
         EXPECT_EQ(result[1_c], 'b');
     }
@@ -95,7 +95,7 @@ TEST(parser, basic)
         std::string str = "abc";
         std::vector<char> result;
         EXPECT_TRUE(parse(str, parser_2, result));
-        using namespace boost::hana::literals;
+        using namespace boost::parser::literals;
         EXPECT_EQ(result[0_c], 'a');
         EXPECT_EQ(result[1_c], 'b');
         EXPECT_EQ(result[2_c], 'c');

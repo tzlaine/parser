@@ -56,9 +56,11 @@ else ()
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/boost_root
         DEPENDS boost_root_clone)
     endif()
+    add_library(boost INTERFACE)
     add_dependencies(boost boost_clone)
+  else()
+    add_library(boost INTERFACE)
   endif()
-  add_library(boost INTERFACE)
   target_include_directories(boost INTERFACE ${CMAKE_BINARY_DIR}/boost_root)
 endif ()
 

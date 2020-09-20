@@ -356,7 +356,7 @@ TEST(parser, basic)
         char const * str = "ab";
         std::vector<char> result;
         EXPECT_TRUE(parse(str, parser_1, result));
-        using namespace boost::hana::literals;
+        using namespace boost::parser::literals;
         EXPECT_EQ(result[0_c], 'a');
         EXPECT_EQ(result[1_c], 'b');
     }
@@ -376,7 +376,7 @@ TEST(parser, basic)
         char const * str = "abc";
         std::vector<char> result;
         EXPECT_TRUE(parse(str, parser_2, result));
-        using namespace boost::hana::literals;
+        using namespace boost::parser::literals;
         EXPECT_EQ(result[0_c], 'a');
         EXPECT_EQ(result[1_c], 'b');
         EXPECT_EQ(result[2_c], 'c');
@@ -1959,7 +1959,7 @@ TEST(parser, attr_out_param_compat)
         tuple<std::string, std::string> result;
         bool const success = bp::parse(
             boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
-        using namespace boost::hana::literals;
+        using namespace bp::literals;
         assert(
             success && result[0_c] == (char const *)u8"rôle" &&
             result[1_c] == "foofoo");

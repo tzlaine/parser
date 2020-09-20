@@ -17,11 +17,11 @@ auto make_13 = [](auto & context) { return 13; };
 
 
 auto const first_param_to_val = [](auto & context) {
-    using namespace boost::hana::literals;
+    using namespace boost::parser::literals;
     _val(context) = _params(context)[0_c];
 };
 auto const second_param_to_val = [](auto & context) {
-    using namespace boost::hana::literals;
+    using namespace boost::parser::literals;
     _val(context) = _params(context)[1_c];
 };
 constexpr rule<struct action_param_tag, int> action_param = "abc or def";

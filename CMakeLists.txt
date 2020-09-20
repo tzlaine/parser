@@ -29,7 +29,7 @@ endif ()
 ##################################################
 # Sanitizers
 ##################################################
-set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.") 
+set(USE_ASAN false CACHE BOOL "Set to true to enable -fsanitize=address when building tests.")
 set(USE_UBSAN false CACHE BOOL "Set to true to enable -fsanitize=undefined when building tests.")
 if (USE_ASAN AND USE_UBSAN)
     message(FATAL_ERROR "USE_ASAN and USE_UBSAN must not be enabled at the same time")
@@ -48,5 +48,23 @@ target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(parser INTERFACE boost)
 
 
+##################################################
+# Build config
+##################################################
+set(BUILD_WITHOUT_HANA false CACHE BOOL "Build with BOOST_PARSER_DISABLE_HANA_TUPLE defined.")
+set(BUILD_WITHOUT_BOOST false CACHE BOOL "Build with BOOST_PARSER_STANDALONE defined.")
+if (BUILD_WITHOUT_HANA)
+  add_definitions(-DBOOST_PARSER_DISABLE_HANA_TUPLE)
+endif()
+if (BUILD_WITHOUT_BOOST)
+  add_definitions(-DBOOST_PARSER_STANDALONE)
+endif()
+
+add_definitions(-ftemplate-backtrace-limit=0) # TODO
+
+
+##################################################
+# Subdirectories
+##################################################
 add_subdirectory(test)
 add_subdirectory(example)

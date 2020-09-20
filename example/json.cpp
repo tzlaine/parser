@@ -104,7 +104,6 @@ namespace json {
     // json::value x, we need to call get<object>(x) to get the object
     // interface.
     auto object_insert = [](auto & ctx) {
-        using namespace boost::hana::literals;
         value & v = _val(ctx);
         get<object>(v).insert(std::make_pair(
             std::move(_attr(ctx))[0_c], std::move(_attr(ctx)[1_c])));

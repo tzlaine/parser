@@ -1,16 +1,23 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_HL_HPP
 #define BOOST_PARSER_DETAIL_HL_HPP
 
+#include <boost/parser/config.hpp>
+#include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/detection.hpp>
 
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
 
 namespace boost { namespace parser { namespace detail::hl {
 
-    // Boost.Hana lite.
+    // Boost.Hana lite.  These functions work with boost::hana::tuple and
+    // std::tuple.
 
     struct forward
     {
@@ -21,14 +28,13 @@ namespace boost { namespace parser { namespace detail::hl {
         }
     };
 
-
     // for_each
 
     template<typename F, typename Tuple, std::size_t... I>
     void for_each_impl(
         Tuple const & t, F && f, std::integer_sequence<std::size_t, I...>)
     {
-        int _[] = {0, (f(std::get<I>(t)), 0)...};
+        int _[] = {0, (f(parser::get(t, llong<I>{})), 0)...};
         (void)_;
     }
     template<
@@ -39,12 +45,12 @@ namespace boost { namespace parser { namespace detail::hl {
     void
     for_each_impl(Tuple && t, F && f, std::integer_sequence<std::size_t, I...>)
     {
-        int _[] = {0, (f(std::move(std::get<I>(t))), 0)...};
+        int _[] = {0, (f(std::move(parser::get(t, llong<I>{}))), 0)...};
         (void)_;
     }
 
     template<typename F, typename... Args>
-    void for_each(std::tuple<Args...> && t, F && f)
+    void for_each(tuple<Args...> && t, F && f)
     {
         hl::for_each_impl(
             std::move(t),
@@ -52,7 +58,7 @@ namespace boost { namespace parser { namespace detail::hl {
             std::make_integer_sequence<std::size_t, sizeof...(Args)>());
     }
     template<typename F, typename... Args>
-    void for_each(std::tuple<Args...> const & t, F && f)
+    void for_each(tuple<Args...> const & t, F && f)
     {
         hl::for_each_impl(
             t,
@@ -67,9 +73,9 @@ namespace boost { namespace parser { namespace detail::hl {
     auto transform_impl(
         Tuple const & t, F && f, std::integer_sequence<std::size_t, I...>)
     {
-        return std::tuple<
-            std::decay_t<decltype(f(std::get<I + offset>(t)))>...>{
-            f(std::get<I + offset>(t))...};
+        return tuple<
+            std::decay_t<decltype(f(parser::get(t, llong<I + offset>{})))>...>{
+            f(parser::get(t, llong<I + offset>{}))...};
     }
     template<
         int offset,
@@ -80,13 +86,13 @@ namespace boost { namespace parser { namespace detail::hl {
     auto
     transform_impl(Tuple && t, F && f, std::integer_sequence<std::size_t, I...>)
     {
-        return std::tuple<
-            std::decay_t<decltype(f(std::move(std::get<I + offset>(t))))>...>{
-            f(std::move(std::get<I + offset>(t)))...};
+        return tuple<std::decay_t<decltype(
+            f(std::move(parser::get(t, llong<I + offset>{}))))>...>{
+            f(std::move(parser::get(t, llong<I + offset>{})))...};
     }
 
     template<typename F, typename... Args>
-    auto transform(std::tuple<Args...> && t, F && f)
+    auto transform(tuple<Args...> && t, F && f)
     {
         return hl::transform_impl<0>(
             std::move(t),
@@ -94,7 +100,7 @@ namespace boost { namespace parser { namespace detail::hl {
             std::make_integer_sequence<std::size_t, sizeof...(Args)>());
     }
     template<typename F, typename... Args>
-    auto transform(std::tuple<Args...> const & t, F && f)
+    auto transform(tuple<Args...> const & t, F && f)
     {
         return hl::transform_impl<0>(
             t,
@@ -109,24 +115,24 @@ namespace boost { namespace parser { namespace detail::hl {
     struct fold_left_dispatch
     {
         template<typename F, typename State, typename... Args>
-        static auto call(std::tuple<Args...> const & t, State && s, F const & f)
+        static auto call(tuple<Args...> const & t, State && s, F const & f)
         {
             return fold_left_dispatch<I + 1, N>::call(
-                t, f((State &&) s, std::get<I>(t)), f);
+                t, f((State &&) s, parser::get(t, llong<I>{})), f);
         }
     };
     template<std::size_t I>
     struct fold_left_dispatch<I, I>
     {
         template<typename F, typename State, typename... Args>
-        static auto call(std::tuple<Args...> const & t, State && s, F const & f)
+        static auto call(tuple<Args...> const & t, State && s, F const & f)
         {
             return (State &&) s;
         }
     };
 
     template<typename F, typename State, typename... Args>
-    auto fold_left(std::tuple<Args...> const & t, State && s, F const & f)
+    auto fold_left(tuple<Args...> const & t, State && s, F const & f)
     {
         return hl::fold_left_dispatch<0, sizeof...(Args)>::call(
             t, (State &&) s, (F &&) f);
@@ -136,9 +142,15 @@ namespace boost { namespace parser { namespace detail::hl {
     // size
 
     template<typename... Args>
-    constexpr auto size(std::tuple<Args...> const & t)
+    constexpr auto size(tuple<Args...> const & t)
     {
-        return sizeof...(Args);
+        return llong<sizeof...(Args)>{};
+    }
+
+    template<typename... Args>
+    constexpr auto size_minus_one(tuple<Args...> const & t)
+    {
+        return llong<sizeof...(Args) - 1>{};
     }
 
 
@@ -165,11 +177,11 @@ namespace boost { namespace parser { namespace detail::hl {
         Tuple const & t, T const & x, std::integer_sequence<std::size_t, I...>)
     {
         typesafe_equals eq;
-        return (eq(std::get<I>(t), x) || ...);
+        return (eq(parser::get(t, llong<I>{}), x) || ...);
     }
 
     template<typename T, typename... Args>
-    bool contains(std::tuple<Args...> & t, T const & x)
+    bool contains(tuple<Args...> & t, T const & x)
     {
         return contains_impl(
             t, x, std::make_integer_sequence<std::size_t, sizeof...(Args)>());
@@ -179,31 +191,31 @@ namespace boost { namespace parser { namespace detail::hl {
     // front, back
 
     template<typename Arg, typename... Args>
-    decltype(auto) front(std::tuple<Arg, Args...> & t)
+    decltype(auto) front(tuple<Arg, Args...> & t)
     {
-        return std::get<0>(t);
+        return parser::get(t, llong<0>{});
     }
     template<typename Arg, typename... Args>
-    decltype(auto) front(std::tuple<Arg, Args...> const & t)
+    decltype(auto) front(tuple<Arg, Args...> const & t)
     {
-        return std::get<0>(t);
+        return parser::get(t, llong<0>{});
     }
     template<typename Arg, typename... Args>
-    decltype(auto) back(std::tuple<Arg, Args...> & t)
+    decltype(auto) back(tuple<Arg, Args...> & t)
     {
-        return std::get<sizeof...(Args)>(t);
+        return parser::get(t, llong<sizeof...(Args)>{});
     }
     template<typename Arg, typename... Args>
-    decltype(auto) back(std::tuple<Arg, Args...> const & t)
+    decltype(auto) back(tuple<Arg, Args...> const & t)
     {
-        return std::get<sizeof...(Args)>(t);
+        return parser::get(t, llong<sizeof...(Args)>{});
     }
 
 
     // drop_front
 
     template<typename Arg, typename... Args>
-    auto drop_front(std::tuple<Arg, Args...> && t)
+    auto drop_front(tuple<Arg, Args...> && t)
     {
         return hl::transform_impl<1>(
             std::move(t),
@@ -211,7 +223,7 @@ namespace boost { namespace parser { namespace detail::hl {
             std::make_integer_sequence<std::size_t, sizeof...(Args)>());
     }
     template<typename Arg, typename... Args>
-    auto drop_front(std::tuple<Arg, Args...> const & t)
+    auto drop_front(tuple<Arg, Args...> const & t)
     {
         return hl::transform_impl<1>(
             t,
@@ -223,7 +235,7 @@ namespace boost { namespace parser { namespace detail::hl {
     // drop_back
 
     template<typename Arg, typename... Args>
-    auto drop_back(std::tuple<Arg, Args...> && t)
+    auto drop_back(tuple<Arg, Args...> && t)
     {
         return hl::transform_impl<0>(
             std::move(t),
@@ -231,7 +243,7 @@ namespace boost { namespace parser { namespace detail::hl {
             std::make_integer_sequence<std::size_t, sizeof...(Args)>());
     }
     template<typename Arg, typename... Args>
-    auto drop_back(std::tuple<Arg, Args...> const & t)
+    auto drop_back(tuple<Arg, Args...> const & t)
     {
         return hl::transform_impl<0>(
             t,
@@ -243,24 +255,24 @@ namespace boost { namespace parser { namespace detail::hl {
     // first, second
 
     template<typename T, typename U>
-    decltype(auto) first(std::tuple<T, U> & t)
+    decltype(auto) first(tuple<T, U> & t)
     {
-        return std::get<0>(t);
+        return parser::get(t, llong<0>{});
     }
     template<typename T, typename U>
-    decltype(auto) first(std::tuple<T, U> const & t)
+    decltype(auto) first(tuple<T, U> const & t)
     {
-        return std::get<0>(t);
+        return parser::get(t, llong<0>{});
     }
     template<typename T, typename U>
-    decltype(auto) second(std::tuple<T, U> & t)
+    decltype(auto) second(tuple<T, U> & t)
     {
-        return std::get<1>(t);
+        return parser::get(t, llong<1>{});
     }
     template<typename T, typename U>
-    decltype(auto) second(std::tuple<T, U> const & t)
+    decltype(auto) second(tuple<T, U> const & t)
     {
-        return std::get<1>(t);
+        return parser::get(t, llong<1>{});
     }
 
 
@@ -269,14 +281,30 @@ namespace boost { namespace parser { namespace detail::hl {
     template<std::size_t I, typename... Tuples>
     decltype(auto) make_zip_elem(Tuples const &... ts)
     {
-        return std::make_tuple(std::get<I>(ts)...);
+#if BOOST_PARSER_USE_STD_TUPLE
+        return std::make_tuple(parser::get(ts, llong<I>{})...);
+#else
+        return hana::make_tuple(parser::get(ts, llong<I>{})...);
+#endif
     }
 
     template<std::size_t... I, typename... Tuples>
     auto zip_impl(std::index_sequence<I...>, Tuples const &... ts)
     {
+#if BOOST_PARSER_USE_STD_TUPLE
         return std::make_tuple(hl::make_zip_elem<I>(ts...)...);
+#else
+        return hana::make_tuple(hl::make_zip_elem<I>(ts...)...);
+#endif
     }
+
+    template<typename T>
+    struct tuplesize;
+    template<typename... Args>
+    struct tuplesize<tuple<Args...>>
+    {
+        constexpr static std::size_t value = sizeof...(Args);
+    };
 
     template<typename Tuple, typename... Tuples>
     auto zip(Tuple const & t, Tuples const &... ts)
@@ -284,7 +312,7 @@ namespace boost { namespace parser { namespace detail::hl {
         return hl::zip_impl(
             std::make_integer_sequence<
                 std::size_t,
-                std::tuple_size<std::remove_reference_t<Tuple>>::value>(),
+                tuplesize<std::remove_reference_t<Tuple>>::value>(),
             t,
             ts...);
     }
@@ -293,36 +321,45 @@ namespace boost { namespace parser { namespace detail::hl {
     // append
 
     template<typename... Args, typename T>
-    auto append(std::tuple<Args...> && t, T && x)
+    auto append(tuple<Args...> && t, T && x)
     {
+#if BOOST_PARSER_USE_STD_TUPLE
         return std::tuple_cat(std::move(t), std::make_tuple((T &&) x));
+#else
+        return hana::append(std::move(t), (T &&) x);
+#endif
     }
     template<typename... Args, typename T>
-    auto append(std::tuple<Args...> const & t, T && x)
+    auto append(tuple<Args...> const & t, T && x)
     {
+#if BOOST_PARSER_USE_STD_TUPLE
         return std::tuple_cat(t, std::make_tuple((T &&) x));
+#else
+        return hana::append(t, (T &&) x);
+#endif
     }
 
 
     // prepend
 
     template<typename... Args, typename T>
-    auto prepend(std::tuple<Args...> && t, T && x)
+    auto prepend(tuple<Args...> && t, T && x)
     {
+#if BOOST_PARSER_USE_STD_TUPLE
         return std::tuple_cat(std::make_tuple((T &&) x), std::move(t));
+#else
+        return hana::prepend(std::move(t), (T &&) x);
+#endif
     }
     template<typename... Args, typename T>
-    auto prepend(std::tuple<Args...> const & t, T && x)
+    auto prepend(tuple<Args...> const & t, T && x)
     {
+#if BOOST_PARSER_USE_STD_TUPLE
         return std::tuple_cat(std::make_tuple((T &&) x), t);
+#else
+        return hana::prepend(t, (T &&) x);
+#endif
     }
-
-    // TODO: In parser namespace, get(t, i), where t is a tuple and i is a
-    // std::integral_constant<std::size_t> const &.
-
-    // TODO: In parser namespace, a literal for N_c, a la hana's literal,
-    // except that it produces a type derived from
-    // std::integral_constant<std::size_t>.
 
 }}}
 

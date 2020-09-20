@@ -310,7 +310,6 @@ struct json_callbacks
     void operator()(json::object_element_key_tag, std::string key) const
     {
         indent();
-        using namespace boost::hana::literals;
         std::cout << "JSON object element with key \"" << key
                   << "\" and value...\n";
     }
