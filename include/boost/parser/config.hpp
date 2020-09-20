@@ -46,6 +46,8 @@
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
 #        define BOOST_PARSER_ASSERT(condition) static_assert(condition)
+#    elif defined(BOOST_PARSER_STANDALONE)
+#        define BOOST_PARSER_ASSERT(condition) assert(condition)
 #    else
 #        define BOOST_PARSER_ASSERT(condition) BOOST_ASSERT(condition)
 #    endif

@@ -5,9 +5,7 @@
  *   accompanying file LICENSE_1_0.txt or copy at
  *   http://www.boost.org/LICENSE_1_0.txt)
  */
-
 #include <boost/parser/parser.hpp>
-#include <boost/mpl/assert.hpp>
 
 #include "ill_formed.hpp"
 

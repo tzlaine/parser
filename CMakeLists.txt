@@ -18,6 +18,22 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(-g -Wall)
 endif ()
 
+##################################################
+# Build config
+##################################################
+set(BUILD_WITHOUT_HANA false CACHE BOOL "Build with BOOST_PARSER_DISABLE_HANA_TUPLE defined.")
+set(BUILD_WITHOUT_BOOST false CACHE BOOL "Build with BOOST_PARSER_STANDALONE defined.")
+if (BUILD_WITHOUT_HANA)
+  add_definitions(-DBOOST_PARSER_DISABLE_HANA_TUPLE)
+endif()
+if (BUILD_WITHOUT_BOOST)
+  add_definitions(-DBOOST_PARSER_STANDALONE)
+endif()
+
+
+##################################################
+# Dependencies
+##################################################
 include(dependencies)
 
 find_package(PythonInterp)
@@ -49,22 +65,9 @@ target_link_libraries(parser INTERFACE boost)
 
 
 ##################################################
-# Build config
-##################################################
-set(BUILD_WITHOUT_HANA false CACHE BOOL "Build with BOOST_PARSER_DISABLE_HANA_TUPLE defined.")
-set(BUILD_WITHOUT_BOOST false CACHE BOOL "Build with BOOST_PARSER_STANDALONE defined.")
-if (BUILD_WITHOUT_HANA)
-  add_definitions(-DBOOST_PARSER_DISABLE_HANA_TUPLE)
-endif()
-if (BUILD_WITHOUT_BOOST)
-  add_definitions(-DBOOST_PARSER_STANDALONE)
-endif()
-
-
-##################################################
 # Subdirectories
 ##################################################
 add_subdirectory(test)
-if (NOT BUILD_WITHOUT_HANA)
+if (NOT BUILD_WITHOUT_HANA AND NOT BUILD_WITHOUT_BOOST)
   add_subdirectory(example)
 endif()

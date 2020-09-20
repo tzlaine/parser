@@ -5,9 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <boost/mpl/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
-
 #include <gtest/gtest.h>
 
 

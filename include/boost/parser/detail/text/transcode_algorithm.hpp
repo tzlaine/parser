@@ -10,8 +10,6 @@
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
 
-#include <boost/config.hpp>
-
 
 namespace boost::parser::detail { namespace text {
 

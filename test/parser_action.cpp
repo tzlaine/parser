@@ -5,9 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <boost/mpl/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
-
 #include <gtest/gtest.h>
 
 
@@ -75,7 +72,7 @@ TEST(parser, side_effects)
     auto increment_i = [&i](auto & context) { ++i; };
 
     using no_attribute_return = decltype(parse("xyz", char_('a')[increment_i]));
-    BOOST_MPL_ASSERT((boost::is_same<no_attribute_return, bool>));
+    static_assert(std::is_same_v<no_attribute_return, bool>);
 
     {
         std::string const str = "xyz";
