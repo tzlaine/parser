@@ -12,13 +12,21 @@ using namespace boost::parser;
 
 rule<class test_rule, std::string> const test_rule = "test_rule";
 auto const test_rule_def = +char_;
+#if BOOST_PARSER_USE_BOOST
 BOOST_PARSER_DEFINE_RULES(test_rule);
+#else
+BOOST_PARSER_DEFINE_RULE(test_rule);
+#endif
 
 rule<class ints, std::vector<int>> const ints = "ints";
 auto twenty_zeros = [](auto & ctx) { _val(ctx).resize(20, 0); };
 auto push_back = [](auto & ctx) { _val(ctx).push_back(_attr(ctx)); };
 auto const ints_def = lit("20-zeros")[twenty_zeros] | +int_[push_back];
+#if BOOST_PARSER_USE_BOOST
 BOOST_PARSER_DEFINE_RULES(ints);
+#else
+BOOST_PARSER_DEFINE_RULE(ints);
+#endif
 
 TEST(parse_empty, all)
 {

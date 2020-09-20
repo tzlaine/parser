@@ -99,7 +99,7 @@ static_assert(!boost::parser::detail::non_unicode_char_range_like<
 constexpr callback_rule<struct callback_char_rule_tag, char>
     callback_char_rule = "callback_char_rule";
 constexpr auto callback_char_rule_def = char_;
-BOOST_PARSER_DEFINE_RULES(callback_char_rule);
+BOOST_PARSER_DEFINE_RULE(callback_char_rule);
 
 struct callback_char_rule_tag
 {};
