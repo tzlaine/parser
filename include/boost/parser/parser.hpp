@@ -960,22 +960,6 @@ namespace boost { namespace parser {
         struct is_variant<std::variant<T...>> : std::true_type
         {};
 
-        template<typename Callbacks, typename TagType>
-        using overloaded_callback_1 =
-            decltype(std::declval<Callbacks>()(hana::type_c<TagType>));
-        template<typename Callbacks, typename TagType>
-        struct has_overloaded_callback_1
-            : is_detected<overloaded_callback_1, Callbacks, TagType>
-        {};
-
-        template<typename Callbacks, typename TagType, typename ResultType>
-        using overloaded_callback_2 = decltype(std::declval<Callbacks>()(
-            hana::type_c<TagType>, std::declval<ResultType>()));
-        template<typename Callbacks, typename TagType, typename ResultType>
-        struct has_overloaded_callback_2
-            : is_detected<overloaded_callback_2, Callbacks, TagType, ResultType>
-        {};
-
         template<typename T>
         struct is_utf8_view : std::false_type
         {};
