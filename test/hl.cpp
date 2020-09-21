@@ -69,11 +69,11 @@ TEST(hl, size)
 {
     {
         tuple<std::string, int> t{"foo", 4};
-        EXPECT_EQ(detail::hl::size(t), 2u);
+        EXPECT_EQ(detail::hl::size(t).value, 2u);
     }
     {
         tuple<std::string, int> t{"foo", 4};
-        constexpr std::size_t size = detail::hl::size(t);
+        constexpr std::size_t size = detail::hl::size(t).value;
         EXPECT_EQ(size, 2u);
     }
 }
