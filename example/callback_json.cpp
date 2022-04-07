@@ -62,7 +62,7 @@ namespace json {
     bp::callback_rule<class string_tag, std::string> const string = "string";
     bp::callback_rule<class number_tag, double> const number = "number";
 
-    // objet_element is broken up into the key (object_element_key) and the
+    // object_element is broken up into the key (object_element_key) and the
     // whole thing (object_element).  This was done because the value after
     // the ':' may have many parts.  It may be an array, for example.  This
     // implies that we need to report that we have the string part of the

@@ -4709,17 +4709,17 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The omit directive, whose `operator[]` returns an
+    /** The `omit` directive, whose `operator[]` returns an
         `parser_interface<omit_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<omit_parser> omit;
 
-    /** The raw directive, whose `operator[]` returns an
+    /** The `raw` directive, whose `operator[]` returns an
         `parser_interface<raw_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
 
-    /** The lexeme directive, whose `operator[]` returns an
+    /** The `lexeme` directive, whose `operator[]` returns an
         `parser_interface<lexeme_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;

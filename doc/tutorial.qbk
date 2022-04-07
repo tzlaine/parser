@@ -738,7 +738,7 @@ itself be used as a parser; it must be called.  In the table below:
   or evaluation of a parse predicate;
 
 * "`_RES_np_(pred) == true`" is a shorthand notation for "`_RES_np_(pred)` is
-  contextually convertible to `true`", and likewise for `false`;
+  contextually convertible to `bool` and `true`"; likewise for `false`;
 
 * `c` is a character of type `char`, `char8_t`, or `char32_t`;
 
@@ -816,9 +816,9 @@ the input they match unless otherwise stated in the table below.]
      []]
 
     [[ `_ch_(r)` ]
-     [ Matches the next code point in the input `n`, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
+     [ Matches the next code point in the input `n`, if `n` is one of the code points in `r`. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of r`.  This overload of _ch_ does *not* take parse arguments. ]]
+     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of `r`.  This overload of _ch_ does *not* take parse arguments. ]]
 
     [[ _cp_ ]
      [ Matches a single code point. ]
@@ -1998,7 +1998,7 @@ local state, if it needs it:
 
     namespace bp = boost::parser;
 
-    bp::rule<class foo, int> const foo = "foo";
+    bp::rule<class foo, int, foo_locals> const foo = "foo";
 
     auto record_first = [](auto & ctx) { _locals(ctx).first_value = _attr(ctx); }
     auto check_against_first = [](auto & ctx) {
@@ -2121,7 +2121,7 @@ place is a simple comparison of two integral values.
 
 [note _Parser_ actually promotes any two values to a common type using
 `std::common_type` before comparing them.  This is almost always works because
-the input and any parameter passed to _ch_ must me integral types.  You're on
+the input and any parameter passed to _ch_ must be integral types.  You're on
 your own if you want to use some non-builtin type `I` that models
 `std::integral` but that breaks when _Parser_ tries to find its common type
 with `char`s, `uint32_t`'s, etc. ]
@@ -2276,8 +2276,8 @@ many kinds of end-users, and interoperates well with anything that supports
 Clang and/or GCC diagnostics.
 
 Most of _Parser_'s error handlers format their diagnostics this way, though
-you are bound by that.  You can make an error handler type that does whatever
-you want, as long as it meets the error handler interface.  See the
+you are not bound by that.  You can make an error handler type that does
+whatever you want, as long as it meets the error handler interface.  See the
 `error_handler` in _concepts_ for details.
 
 The _Parser_ error handlers are:
@@ -2311,8 +2311,8 @@ same formatting as _Parser_ error handlers, you can use the functions
 Sometimes, during the writing of a parser, you make a simple mistake that is
 diagnosed horrifyingly, due to the high number of template instantiations
 between the line you just wrote and the point of use (usually, the call to
-_p_).  By "sometimes", I mean "almost always many, many times".  _Parser_ has
-a workaround for situations like this.  The workaround is to make the
+_p_).  By "sometimes", I mean "almost always and many, many times".  _Parser_
+has a workaround for situations like this.  The workaround is to make the
 ill-formed code well-formed in as many circumstances as possible, and then do
 a runtime assert instead.
 
