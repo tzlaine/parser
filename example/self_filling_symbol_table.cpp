@@ -23,7 +23,7 @@ int main()
     auto const add_symbol = [&symbols](auto & ctx) {
         using namespace bp::literals;
         // symbols::insert() requires a string, not a single character.
-        char chars[1] = {_attr(ctx)[0_c]};
+        char chars[2] = {_attr(ctx)[0_c], 0};
         symbols.insert(ctx, chars, _attr(ctx)[1_c]);
     };
     //]
