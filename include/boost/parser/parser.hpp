@@ -16,6 +16,7 @@
 #endif
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
+#include <boost/parser/detail/text/detail/unpack.hpp>
 
 #include <type_traits>
 #include <variant>
@@ -3578,6 +3579,98 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Parser>
+    struct string_view_parser
+    {
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
+                first, last);
+            // string_view_parser and the string_view[] directive that uses it
+            // requires that the underlying char sequence being parsed be a
+            // contiguous range.  If you're seeing this static_assert, you
+            // have not met this contract.
+            static_assert(std::contiguous_iterator<decltype(r.f_)>);
+            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            std::basic_string_view<char_type> retval;
+            call(
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_attrs(flags),
+                success,
+                retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            auto const initial_first = first;
+            parser_.call(
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_attrs(flags),
+                success);
+
+            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
+                initial_first, first);
+            // string_view_parser and the string_view[] directive that uses it
+            // requires that the underlying char sequence being parsed be a
+            // contiguous range.  If you're seeing this static_assert, you
+            // have not met this contract.
+            static_assert(std::contiguous_iterator<decltype(r.f_)>);
+            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            if (initial_first == first) {
+                detail::assign(retval, std::basic_string_view<char_type>{});
+            } else {
+                detail::assign(
+                    retval,
+                    std::basic_string_view<char_type>{
+                        &*r.f_, std::size_t(r.l_ - r.f_)});
+            }
+        }
+
+        Parser parser_;
+    };
+#endif
+
     template<typename Parser>
     struct lexeme_parser
     {
@@ -4718,6 +4811,14 @@ namespace boost { namespace parser {
         `parser_interface<raw_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
+
+    // TODO: This needs tests!
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    /** The `string_view` directive, whose `operator[]` returns an
+        `parser_interface<string_view_parser<P>>` from a given parser of type
+        `parser_interface<P>`.  This is only available in C++20 and later. */
+    inline constexpr directive<string_view_parser> string_view;
+#endif
 
     /** The `lexeme` directive, whose `operator[]` returns an
         `parser_interface<lexeme_parser<P>>` from a given parser of type

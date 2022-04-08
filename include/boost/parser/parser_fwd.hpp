@@ -184,6 +184,20 @@ namespace boost { namespace parser {
     template<typename Parser>
     struct raw_parser;
 
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    /** Applies the given parser `p` of type `Parser`.  Regardless of the
+        attribute produced by `Parser`, this parser's attribute is equivalent
+        to `std::basic_string_view<char_type>` within a semantic action on
+        `p`, where `char_type` is the type of character in the underlying the
+        sequence being parsed.  If the parsed range is transcoded, `char_type`
+        will be the type being transcoded from.  If the underlying range of
+        `char_type` is non-contiguous, using `string_view_parser` is
+        ill-formed.  This is only available in C++20 and later.  The parse
+        succeeds iff `p` succeeds. */
+    template<typename Parser>
+    struct string_view_parser;
+#endif
+
     /** Applies the given parser `p` of type `Parser`, disabling the current
         skipper in use, if any.  The parse succeeds iff `p` succeeds.  The
         attribute produced is the type of attribute produced by `Parser`. */

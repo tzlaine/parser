@@ -98,6 +98,15 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        string_view_parser<Parser> const & parser,
+        std::ostream & os,
+        int components = 0);
+#endif
+
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,

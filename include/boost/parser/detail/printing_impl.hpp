@@ -250,6 +250,19 @@ namespace boost { namespace parser { namespace detail {
         detail::print_directive(context, "raw", parser.parser_, os, components);
     }
 
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        string_view_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "string_view", parser.parser_, os, components);
+    }
+#endif
+
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,
