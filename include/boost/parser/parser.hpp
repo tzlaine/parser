@@ -5159,6 +5159,8 @@ namespace boost { namespace parser {
             matches `x`. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
+        // clang-format off
+        requires (!parsable_range_like<T>)
 #else
         template<
             typename T,
@@ -5166,6 +5168,7 @@ namespace boost { namespace parser {
                 std::enable_if_t<!detail::is_parsable_range_like<T>::value>>
 #endif
         constexpr auto operator()(T x) const noexcept
+        // clang-format on
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<Expected> &&
