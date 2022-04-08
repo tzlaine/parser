@@ -8,8 +8,9 @@
 
 #include <boost/parser/detail/hl.hpp>
 
-#include <tuple>
+#include <optional>
 #include <sstream>
+#include <tuple>
 
 #include <gtest/gtest.h>
 
