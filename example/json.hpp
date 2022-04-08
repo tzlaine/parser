@@ -118,11 +118,56 @@ namespace json {
             return seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
 
+        // Why on earth!?  It turns out that Clang's unique_ptr is (at least
+        // sometimes) the size of two pointers, which is simply unreasonable.
+        template<typename T>
+        struct uniq_ptr
+        {
+            using pointer = T *;
+
+            uniq_ptr() = default;
+            explicit uniq_ptr(T * ptr) : ptr_(ptr) {}
+
+            uniq_ptr(uniq_ptr && other) : ptr_(other.ptr_)
+            {
+                other.ptr_ = nullptr;
+            }
+            template<
+                typename U,
+                typename Enable = std::enable_if_t<std::is_convertible_v<
+                    typename uniq_ptr<U>::pointer,
+                    pointer>>>
+            uniq_ptr(uniq_ptr<U> && other) : ptr_(other.ptr_)
+            {
+                other.ptr_ = nullptr;
+            }
+            uniq_ptr & operator=(uniq_ptr && rhs)
+            {
+                std::swap(ptr_, rhs.ptr_);
+                return *this;
+            }
+
+            T * operator->() const { return ptr_; }
+            T * get() const { return ptr_; }
+
+        private:
+            T * ptr_ = nullptr;
+
+            template<typename U>
+            friend struct uniq_ptr;
+        };
+
+        template<typename T, typename... Args>
+        auto make_uniq(Args &&... args)
+        {
+            return uniq_ptr<T>(new T{(Args &&) args...});
+        }
+
         struct value_impl_base
         {
             virtual ~value_impl_base() = 0;
 
-            virtual std::unique_ptr<value_impl_base> copy_impl() const = 0;
+            virtual detail::uniq_ptr<value_impl_base> copy_impl() const = 0;
 
             virtual value_kind kind() const noexcept = 0;
 
@@ -335,9 +380,9 @@ namespace json {
         struct remote
         {
             uint8_t kind_;
-            std::unique_ptr<detail::value_impl_base> ptr_;
+            detail::uniq_ptr<detail::value_impl_base> ptr_;
         };
-        static_assert(sizeof(local) <= 16);
+        static_assert(sizeof(remote) <= 16);
         union storage
         {
             storage() : local_{null_k} {}
@@ -380,9 +425,9 @@ namespace json {
             {}
             value_impl(object && o) : value_(std::move(o)) {}
 
-            virtual std::unique_ptr<value_impl_base> copy_impl() const override
+            virtual detail::uniq_ptr<value_impl_base> copy_impl() const override
             {
-                return std::unique_ptr<value_impl_base>(
+                return detail::uniq_ptr<value_impl_base>(
                     new value_impl<object>(*this));
             }
 
@@ -410,9 +455,9 @@ namespace json {
             {}
             value_impl(array && a) : value_(std::move(a)) {}
 
-            virtual std::unique_ptr<value_impl_base> copy_impl() const override
+            virtual detail::uniq_ptr<value_impl_base> copy_impl() const override
             {
-                return std::unique_ptr<value_impl_base>(
+                return detail::uniq_ptr<value_impl_base>(
                     new value_impl<array>(*this));
             }
 
@@ -498,9 +543,9 @@ namespace json {
             value_impl(std::string && s) : value_(std::move(s)) {}
             value_impl(std::string_view s) : value_(s) {}
 
-            virtual std::unique_ptr<value_impl_base> copy_impl() const override
+            virtual detail::uniq_ptr<value_impl_base> copy_impl() const override
             {
-                return std::unique_ptr<value_impl_base>(
+                return detail::uniq_ptr<value_impl_base>(
                     new value_impl<std::string>(*this));
             }
 
@@ -672,14 +717,14 @@ namespace json {
     {
         storage_.remote_ = remote{
             object_k,
-            std::make_unique<detail::value_impl<object>>(o.begin(), o.end())};
+            detail::make_uniq<detail::value_impl<object>>(o.begin(), o.end())};
     }
 
     inline value::value(object && o)
     {
         storage_.remote_ = remote{
             object_k,
-            std::make_unique<detail::value_impl<object>>(std::move(o))};
+            detail::make_uniq<detail::value_impl<object>>(std::move(o))};
     }
 
     template<typename JSONArray>
@@ -690,13 +735,13 @@ namespace json {
     {
         storage_.remote_ = remote{
             array_k,
-            std::make_unique<detail::value_impl<array>>(a.begin(), a.end())};
+            detail::make_uniq<detail::value_impl<array>>(a.begin(), a.end())};
     }
 
     inline value::value(array && a)
     {
         storage_.remote_ = remote{
-            array_k, std::make_unique<detail::value_impl<array>>(std::move(a))};
+            array_k, detail::make_uniq<detail::value_impl<array>>(std::move(a))};
     }
 
     inline value::value(double d)
@@ -720,7 +765,7 @@ namespace json {
         } else {
             storage_.remote_ = remote{remote_string_k};
             storage_.remote_.ptr_ =
-                std::make_unique<detail::value_impl<std::string>>(f, l);
+                detail::make_uniq<detail::value_impl<std::string>>(f, l);
         }
     }
 
@@ -735,7 +780,7 @@ namespace json {
         } else {
             storage_.remote_ = remote{remote_string_k};
             storage_.remote_.ptr_ =
-                std::make_unique<detail::value_impl<std::string>>(std::move(s));
+                detail::make_uniq<detail::value_impl<std::string>>(std::move(s));
         }
     }
 
@@ -749,7 +794,7 @@ namespace json {
         } else {
             storage_.remote_ = remote{remote_string_k};
             storage_.remote_.ptr_ =
-                std::make_unique<detail::value_impl<std::string>>(s);
+                detail::make_uniq<detail::value_impl<std::string>>(s);
         }
     }
 
