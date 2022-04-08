@@ -55,7 +55,7 @@ namespace boost { namespace parser {
             long long base = 10;
             std::size_t offset = 0;
 
-            if (N > 2) {
+            if constexpr (N > 2) {
                 bool starts_with_zero = arr[0] == '0';
                 bool is_hex = starts_with_zero && arr[1] == 'x';
                 bool is_binary = starts_with_zero && arr[1] == 'b';
