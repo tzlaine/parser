@@ -280,7 +280,7 @@ std::string file_slurp(std::ifstream & ifs)
         char const c = ifs.get();
         retval += c;
     }
-    if (!retval.empty() && retval[retval.back() == -1])
+    if (!retval.empty() && retval.back() == -1)
         retval.pop_back();
     return retval;
 }
