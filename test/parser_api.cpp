@@ -476,13 +476,13 @@ TEST(parser, int_)
         char const * str = "-4000000000";
         long long i = 0;
         EXPECT_TRUE(parse(str, long_long, i));
-        EXPECT_EQ(i, -4000000000);
+        EXPECT_EQ(i, -4000000000LL);
     }
     {
         char const * str = "4000000000";
         long long i = 0;
         EXPECT_TRUE(parse(str, long_long, i));
-        EXPECT_EQ(i, 4000000000);
+        EXPECT_EQ(i, 4000000000LL);
     }
 }
 
