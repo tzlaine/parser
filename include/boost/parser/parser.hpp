@@ -1143,54 +1143,57 @@ namespace boost { namespace parser {
 
         // Metafunctions.
 
-        template<typename Pair>
-        struct hana_tuple_to_or_type;
+        template<bool WrapInOptional, typename Tuple>
+        struct to_hana_tuple_or_type_impl;
 
         template<typename... T>
-        struct hana_tuple_to_or_type<tuple<tuple<T...>, std::true_type>>
+        struct to_hana_tuple_or_type_impl<true, tuple<T...>>
         {
             using type = std::optional<std::variant<T...>>;
         };
 
         template<typename... T>
-        struct hana_tuple_to_or_type<tuple<tuple<T...>, std::false_type>>
+        struct to_hana_tuple_or_type_impl<false, tuple<T...>>
         {
             using type = std::variant<T...>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<tuple<tuple<T>, std::true_type>>
+        struct to_hana_tuple_or_type_impl<true, tuple<T>>
         {
-            using type = std::optional<T>;
+            // The reason this is not two separate specializations, one
+            // for tuple<t> and on for tuple<optional<T>>, is because
+            // MSVC.
+            using type =
+                std::conditional_t<is_optional<T>::value, T, std::optional<T>>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<tuple<tuple<T>, std::false_type>>
+        struct to_hana_tuple_or_type_impl<false, tuple<T>>
         {
             using type = T;
         };
 
-        template<typename T>
-        struct hana_tuple_to_or_type<
-            tuple<tuple<std::optional<T>>, std::true_type>>
-        {
-            using type = std::optional<T>;
-        };
-
-        template<>
-        struct hana_tuple_to_or_type<tuple<tuple<>, std::true_type>>
+        template<bool B>
+        struct to_hana_tuple_or_type_impl<B, tuple<>>
         {
             using type = nope;
         };
 
-        template<>
-        struct hana_tuple_to_or_type<tuple<tuple<>, std::false_type>>
+        template<typename Pair>
+        struct to_hana_tuple_or_type;
+
+        template<typename Tuple, typename TrueFalse>
+        struct to_hana_tuple_or_type<tuple<Tuple, TrueFalse>>
         {
-            using type = nope;
+            // This has to be done in two steps like this because MSVC.
+            using type =
+                typename to_hana_tuple_or_type_impl<TrueFalse::value, Tuple>::
+                    type;
         };
 
         template<typename T>
-        using hana_tuple_to_or_type_t = typename hana_tuple_to_or_type<T>::type;
+        using to_hana_tuple_or_type_t = typename to_hana_tuple_or_type<T>::type;
 
         template<typename T, bool Container = container<T>>
         struct sequence_of_impl
@@ -2864,7 +2867,7 @@ namespace boost { namespace parser {
             // Types above converted to a "variant", which may actually be a
             // non-variant type T if that is the only unique non-nope type, or a
             // nope if unwrapped_types is empty.
-            using result_t = detail::hana_tuple_to_or_type_t<unwrapped_types>;
+            using result_t = detail::to_hana_tuple_or_type_t<unwrapped_types>;
 
             result_t retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
