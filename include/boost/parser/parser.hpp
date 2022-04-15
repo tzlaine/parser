@@ -1174,8 +1174,14 @@ namespace boost { namespace parser {
             using type = T;
         };
 
-        template<bool B>
-        struct to_hana_tuple_or_type_impl<B, tuple<>>
+        template<>
+        struct to_hana_tuple_or_type_impl<true, tuple<>>
+        {
+            using type = nope;
+        };
+
+        template<>
+        struct to_hana_tuple_or_type_impl<false, tuple<>>
         {
             using type = nope;
         };
