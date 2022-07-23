@@ -38,18 +38,19 @@ or any other encoding.  Parsing of inputs *other than* plain `char`s assumes
 that the input is Unicode.  In the Unicode-aware code paths, all parsing is
 done by matching code points.  This means that you can feed UTF-8 strings into
 _Parser_, both as input and within your parser, and the right sort of matching
-occurs _emdash_ if your parser is trying to match repetitions of the `char`
-`'\xcc'` (which is a lead byte from a UTF-8 sequence, and so is malformed
-UTF-8), it will *not* match the start of `"\xcc\x80"` (UTF-8 for the code
-point U+0300).  _Parser_ knows that the matching must be whole-code-point, and
-so it interprets the `char` `'\xcc'` as the code point U+00CC.
+occurs.  For instance, if your parser is trying to match repetitions of the
+`char` `'\xcc'` (which is a lead byte from a UTF-8 sequence, and so is
+malformed UTF-8), it will *not* match the start of `"\xcc\x80"` (UTF-8 for the
+code point U+0300).  _Parser_ knows that the matching must be
+whole-code-point, and so it interprets the `char` `'\xcc'` as the code point
+U+00CC.
 
 Error reporting is important to get right, and it is important to make errors
 easy to understand, especially for end-users.  _Parser_ produces runtime parse
 error messages that are very similar to the diagnostics that you get when
 compiling with GCC and Clang (it even supports warnings that don't fail the
 parse).  The exact token associated with a diagnostic can be reported to the
-user, with the containing line quoted, and with a marker pointing right at
+user, with the containing line quoted, and with a marker pointing right at the
 token.  _Parser_ takes care of this for you; your parser does not need to
 include any special code to make this happen.  Of course, you can also replace
 the error handler entirely, if it doesn't fit your needs.
@@ -92,8 +93,8 @@ However, it does not suit user needs in some ways.
   get working.
 
 I wanted a library that does not suffer from any of the above limitations.  It
-should be noted that while Spirit X3 only has some of couple of flaws in the
-list above, the one related to rules is a deal-breaker.  The ability to write
+should be noted that while Spirit X3 only has a couple of flaws in the list
+above, the one related to rules is a deal-breaker.  The ability to write
 rules, test them in isolation, and then re-use them throughout a complex
 parser is essential.
 

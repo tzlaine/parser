@@ -9,6 +9,7 @@
 #include <boost/container/small_vector.hpp>
 
 #include <fstream>
+#include <climits>
 
 
 namespace json {
@@ -61,7 +62,7 @@ namespace json {
     bp::callback_rule<class string_tag, std::string> const string = "string";
     bp::callback_rule<class number_tag, double> const number = "number";
 
-    // objet_element is broken up into the key (object_element_key) and the
+    // object_element is broken up into the key (object_element_key) and the
     // whole thing (object_element).  This was done because the value after
     // the ':' may have many parts.  It may be an array, for example.  This
     // implies that we need to report that we have the string part of the
@@ -105,7 +106,7 @@ namespace json {
     auto first_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::high_surrogate(cu))
+        if (!boost::parser::detail::text::high_surrogate(cu))
             _pass(ctx) = false;
         else
             locals.first_surrogate = cu;
@@ -113,7 +114,7 @@ namespace json {
     auto second_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::low_surrogate(cu)) {
+        if (!boost::parser::detail::text::low_surrogate(cu)) {
             _pass(ctx) = false;
         } else {
             uint32_t const high_surrogate_min = 0xd800;
@@ -236,7 +237,7 @@ namespace json {
         Callbacks const & callbacks,
         int max_recursion = 512)
     {
-        auto const range = boost::text::as_utf32(str);
+        auto const range = boost::parser::detail::text::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)
@@ -279,7 +280,7 @@ std::string file_slurp(std::ifstream & ifs)
         char const c = ifs.get();
         retval += c;
     }
-    if (!retval.empty() && retval[retval.back() == -1])
+    if (!retval.empty() && retval.back() == -1)
         retval.pop_back();
     return retval;
 }
@@ -309,7 +310,6 @@ struct json_callbacks
     void operator()(json::object_element_key_tag, std::string key) const
     {
         indent();
-        using namespace boost::hana::literals;
         std::cout << "JSON object element with key \"" << key
                   << "\" and value...\n";
     }

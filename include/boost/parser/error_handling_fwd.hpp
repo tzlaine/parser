@@ -3,7 +3,7 @@
 
 #include <boost/parser/config.hpp>
 
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iostream>
 #include <string_view>
@@ -164,7 +164,7 @@ namespace boost { namespace parser {
         stream_error_handler(std::wstring_view filename) :
             err_os_(&std::cout), warn_os_(err_os_)
         {
-            auto const r = text::as_utf8(filename);
+            auto const r = detail::text::as_utf8(filename);
             filename_.assign(r.begin(), r.end());
         }
         /** This overload is Windows-only. */
@@ -172,7 +172,7 @@ namespace boost { namespace parser {
             std::wstring_view filename, std::ostream & errors) :
             err_os_(&errors), warn_os_(&errors)
         {
-            auto const r = text::as_utf8(filename);
+            auto const r = detail::text::as_utf8(filename);
             filename_.assign(r.begin(), r.end());
         }
         /** This overload is Windows-only. */
@@ -182,7 +182,7 @@ namespace boost { namespace parser {
             std::ostream & warnings) :
             err_os_(&errors), warn_os_(&warnings)
         {
-            auto const r = text::as_utf8(filename);
+            auto const r = detail::text::as_utf8(filename);
             filename_.assign(r.begin(), r.end());
         }
 #endif

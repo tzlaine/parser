@@ -3,19 +3,19 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_ALGORITHM_HPP
-#define BOOST_TEXT_ALGORITHM_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
+#define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 
-#include <boost/text/detail/sentinel_tag.hpp>
+#include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
-#include <boost/stl_interfaces/view_interface.hpp>
+#include <boost/parser/detail/stl_interfaces/view_interface.hpp>
 
 #include <cstddef>
 #include <iterator>
 #include <utility>
 
 
-namespace boost { namespace text {
+namespace boost::parser::detail { namespace text {
 
     namespace detail {
         template<typename Iter>
@@ -184,9 +184,9 @@ namespace boost { namespace text {
     {
         while (first != last) {
             auto const & x = *first;
-            auto const next = boost::text::find_not(first, last, x);
+            auto const next = boost::parser::detail::text::find_not(first, last, x);
             if (first != next) {
-                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::parser::detail::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -204,12 +204,12 @@ namespace boost { namespace text {
         using value_type = typename std::iterator_traits<FwdIter>::value_type;
         while (first != last) {
             auto const & x = proj(*first);
-            auto const next = boost::text::find_if_not(
+            auto const next = boost::parser::detail::text::find_if_not(
                 first, last, [&x, proj](const value_type & element) {
                     return proj(element) == x;
                 });
             if (first != next) {
-                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::parser::detail::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -224,10 +224,10 @@ namespace boost { namespace text {
     Func foreach_subrange_of(FwdIter first, Sentinel last, T const & x, Func f)
     {
         while (first != last) {
-            first = boost::text::find(first, last, x);
-            auto const next = boost::text::find_not(first, last, x);
+            first = boost::parser::detail::text::find(first, last, x);
+            auto const next = boost::parser::detail::text::find_not(first, last, x);
             if (first != next) {
-                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::parser::detail::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -242,10 +242,10 @@ namespace boost { namespace text {
     Func foreach_subrange_if(FwdIter first, Sentinel last, Pred p, Func f)
     {
         while (first != last) {
-            first = boost::text::find_if(first, last, p);
-            auto const next = boost::text::find_if_not(first, last, p);
+            first = boost::parser::detail::text::find_if(first, last, p);
+            auto const next = boost::parser::detail::text::find_if_not(first, last, p);
             if (first != next) {
-                f(boost::text::foreach_subrange_range<FwdIter, Sentinel>(
+                f(boost::parser::detail::text::foreach_subrange_range<FwdIter, Sentinel>(
                     first, next));
             }
             first = next;
@@ -306,7 +306,7 @@ namespace boost { namespace text {
     int lexicographical_compare_three_way(
         Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
     {
-        auto const iters = boost::text::mismatch(first1, last1, first2, last2);
+        auto const iters = boost::parser::detail::text::mismatch(first1, last1, first2, last2);
         if (iters.first == last1) {
             if (iters.second == last2)
                 return 0;
@@ -321,9 +321,9 @@ namespace boost { namespace text {
         }
     }
 
-    /** The view type returned by `boost::text::search()`. */
+    /** The view type returned by `boost::parser::detail::text::search()`. */
     template<typename Iter>
-    struct search_result : stl_interfaces::view_interface<search_result<Iter>>
+    struct search_result : parser::detail::stl_interfaces::view_interface<search_result<Iter>>
     {
         using iterator = Iter;
 
@@ -353,13 +353,13 @@ namespace boost { namespace text {
             return {first1, first1};
 
         if (std::next(first2) == last2) {
-            auto const it = text::find(first1, last1, *first2);
+            auto const it = parser::detail::text::find(first1, last1, *first2);
             return {it, std::next(it)};
         }
 
         auto it = first1;
         for (;;) {
-            first1 = text::find(first1, last1, *first2);
+            first1 = parser::detail::text::find(first1, last1, *first2);
 
             if (first1 == last1)
                 return {first1, first1};
@@ -403,12 +403,12 @@ namespace boost { namespace text {
 
 }}
 
-#if BOOST_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 
 namespace std::ranges {
     template<typename Iter, typename Sentinel>
     inline constexpr bool enable_borrowed_range<
-        boost::text::foreach_subrange_range<Iter, Sentinel>> = true;
+        boost::parser::detail::text::foreach_subrange_range<Iter, Sentinel>> = true;
 }
 
 #endif

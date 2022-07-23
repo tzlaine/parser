@@ -6,6 +6,8 @@
 #ifndef BOOST_PARSER_CONFIG_HPP
 #define BOOST_PARSER_CONFIG_HPP
 
+#include <boost/parser/detail/debug_assert.hpp>
+
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 
@@ -32,10 +34,20 @@
     disable the use of concepts, define this macro. */
 #    define BOOST_PARSER_DISABLE_CONCEPTS
 
+/** Define this macro to remove all Boost dependencies from Boost.Parser. */
+#    define BOOST_PARSER_STANDALONE
+
+/** Define this macro to use `std::tuple` instead of `boost::hana::tuple`
+    throughout Boost.Parser.  This macro is redundant when
+    `BOOST_PARSER_STANDALONE` is defined.*/
+#    define BOOST_PARSER_DISABLE_HANA_TUPLE
+
 #else
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
 #        define BOOST_PARSER_ASSERT(condition) static_assert(condition)
+#    elif defined(BOOST_PARSER_STANDALONE)
+#        define BOOST_PARSER_ASSERT(condition) assert(condition)
 #    else
 #        define BOOST_PARSER_ASSERT(condition) BOOST_ASSERT(condition)
 #    endif
@@ -46,6 +58,18 @@
 #define BOOST_PARSER_USE_CONCEPTS 1
 #else
 #define BOOST_PARSER_USE_CONCEPTS 0
+#endif
+
+#if !defined(BOOST_PARSER_STANDALONE)
+#define BOOST_PARSER_USE_BOOST 1
+#else
+#define BOOST_PARSER_USE_BOOST 0
+#endif
+
+#if defined(BOOST_PARSER_STANDALONE) || defined(BOOST_PARSER_DISABLE_HANA_TUPLE)
+#    define BOOST_PARSER_USE_STD_TUPLE 1
+#else
+#    define BOOST_PARSER_USE_STD_TUPLE 0
 #endif
 
 #endif

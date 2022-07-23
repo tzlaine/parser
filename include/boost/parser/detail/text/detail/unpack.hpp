@@ -3,13 +3,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_TEXT_DETAIL_UNPACK_HPP
-#define BOOST_TEXT_DETAIL_UNPACK_HPP
+#ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_UNPACK_HPP
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_UNPACK_HPP
 
-#include <boost/text/transcode_iterator.hpp>
+#include <boost/parser/detail/text/transcode_iterator.hpp>
 
 
-namespace boost { namespace text { namespace detail {
+namespace boost::parser::detail { namespace text { namespace detail {
 
     struct utf8_tag
     {};

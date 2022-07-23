@@ -4,8 +4,8 @@
 #include <boost/parser/error_handling_fwd.hpp>
 #include <boost/parser/detail/printing.hpp>
 
-#include <boost/text/algorithm.hpp>
-#include <boost/text/transcode_iterator.hpp>
+#include <boost/parser/detail/text/algorithm.hpp>
+#include <boost/parser/detail/text/transcode_iterator.hpp>
 
 #include <array>
 #include <functional>
@@ -57,7 +57,7 @@ namespace boost { namespace parser {
     template<typename Iter, typename Sentinel>
     Iter find_line_end(Iter it, Sentinel last)
     {
-        return text::find_if(it, last, [](auto c) {
+        return parser::detail::text::find_if(it, last, [](auto c) {
             return (c & detail::eol_cp_mask) == c &&
                    std::find(
                        detail::eol_cps.begin(), detail::eol_cps.end(), c) !=
@@ -119,7 +119,7 @@ namespace boost { namespace parser {
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
     {
-        auto const r = text::as_utf8(filename);
+        auto const r = parser::detail::text::as_utf8(filename);
         std::string s(r.begin(), r.end());
         return parser::write_formatted_message(
             os,
@@ -167,7 +167,7 @@ namespace boost { namespace parser {
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
     {
-        auto const r = text::as_utf8(filename);
+        auto const r = parser::detail::text::as_utf8(filename);
         std::string s(r.begin(), r.end());
         return parser::write_formatted_expectation_failure_error_message(
             os, s, first, last, e, preferred_max_line_length, max_after_caret);
@@ -197,7 +197,7 @@ namespace boost { namespace parser {
             std::wstring_view filename) :
             error_(error), warning_(warning)
         {
-            auto const r = text::as_utf8(filename);
+            auto const r = parser::detail::text::as_utf8(filename);
             filename_.assign(r.begin(), r.end());
         }
 #endif

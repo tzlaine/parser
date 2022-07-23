@@ -1,13 +1,17 @@
+// Copyright (C) 2020 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
 
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
 
-#include <boost/any.hpp>
-
 #include <cstdint>
 #include <map>
+#include <memory>
 
 
 namespace boost { namespace parser {
@@ -22,7 +26,69 @@ namespace boost { namespace parser {
             in_apply_parser = 1 << 3
         };
 
-        using symbol_table_tries_t = std::map<void *, any, std::less<void *>>;
+        struct any_copyable
+        {
+            template<
+                typename T,
+                typename Enable = std::enable_if_t<!std::is_reference_v<T>>>
+            any_copyable(T && v) :
+                impl_(new holder<std::decay_t<T>>(std::move(v)))
+            {}
+            template<typename T>
+            any_copyable(T const & v) : impl_(new holder<T>(v))
+            {}
+
+            any_copyable() = default;
+            any_copyable(any_copyable const & other)
+            {
+                if (other.impl_)
+                    impl_ = other.impl_->clone();
+            }
+            any_copyable & operator=(any_copyable const & other)
+            {
+                any_copyable temp(other);
+                swap(temp);
+                return *this;
+            }
+            any_copyable(any_copyable &&) = default;
+            any_copyable & operator=(any_copyable &&) = default;
+
+            bool empty() const { return impl_.get() == nullptr; }
+
+            template<typename T>
+            T & cast() const
+            {
+                BOOST_PARSER_DEBUG_ASSERT(impl_);
+                BOOST_PARSER_DEBUG_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
+                return static_cast<holder<T> *>(impl_.get())->value_;
+            }
+
+            void swap(any_copyable & other) { std::swap(impl_, other.impl_); }
+
+        private:
+            struct holder_base
+            {
+                virtual ~holder_base() {}
+                virtual std::unique_ptr<holder_base> clone() const = 0;
+            };
+            template<typename T>
+            struct holder : holder_base
+            {
+                holder(T && v) : value_(std::move(v)) {}
+                holder(T const & v) : value_(v) {}
+                virtual ~holder() {}
+                virtual std::unique_ptr<holder_base> clone() const
+                {
+                    return std::unique_ptr<holder_base>(new holder<T>{value_});
+                }
+                T value_;
+            };
+
+            std::unique_ptr<holder_base> impl_;
+        };
+
+        using symbol_table_tries_t =
+            std::map<void *, any_copyable, std::less<void *>>;
 
         template<typename Iter, typename Sentinel, typename ErrorHandler>
         inline auto make_context(
@@ -91,8 +157,9 @@ namespace boost { namespace parser {
         iff all of the sub-parsers succeeds.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in
         `ParserTuple`.  The BacktrackingTuple template parameter is a
-        `hana::tuple` of `hana::bool_` values.  The `i`th such value indicates
-        whether backtracking is allowed if the `i`th parser fails. */
+        `parser::tuple` of `std::bool_constant` values.  The `i`th such value
+        indicates whether backtracking is allowed if the `i`th parser
+        fails. */
     template<typename ParserTuple, typename BacktrackingTuple>
     struct seq_parser;
 
@@ -116,6 +183,20 @@ namespace boost { namespace parser {
         iff `p` succeeds. */
     template<typename Parser>
     struct raw_parser;
+
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    /** Applies the given parser `p` of type `Parser`.  Regardless of the
+        attribute produced by `Parser`, this parser's attribute is equivalent
+        to `std::basic_string_view<char_type>` within a semantic action on
+        `p`, where `char_type` is the type of character in the underlying the
+        sequence being parsed.  If the parsed range is transcoded, `char_type`
+        will be the type being transcoded from.  If the underlying range of
+        `char_type` is non-contiguous, using `string_view_parser` is
+        ill-formed.  This is only available in C++20 and later.  The parse
+        succeeds iff `p` succeeds. */
+    template<typename Parser>
+    struct string_view_parser;
+#endif
 
     /** Applies the given parser `p` of type `Parser`, disabling the current
         skipper in use, if any.  The parse succeeds iff `p` succeeds.  The
@@ -286,7 +367,7 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  You may write to this value in a semantic action to
+        `parser::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
         Returns `none` if the innermost parser does produce an attribute. */
     template<typename Context>
@@ -294,8 +375,8 @@ namespace boost { namespace parser {
 
     /** Returns a reference to the attribute or attributes already produced by
         the innermost parser; multiple attributes will be stored within a
-        `hana::tuple`.  Returns `none` if the innermost parser does produce an
-        attribute. */
+        `parser::tuple`.  Returns `none` if the innermost parser does produce
+        an attribute. */
     template<typename Context>
     decltype(auto) _attr(Context const & context);
 
@@ -322,16 +403,16 @@ namespace boost { namespace parser {
 
     /** Returns a reference to one or more local values that the innermost
         rule is declared to have; multiple values will be stored within a
-        `hana::tuple`.  Returns `none` if there is no innermost rule, or if
+        `parser::tuple`.  Returns `none` if there is no innermost rule, or if
         that rule has no locals. */
     template<typename Context>
     decltype(auto) _locals(Context const & context);
 
     /** Returns a reference to one or more parameters passed to the innermost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
-        multiple values will be stored within a `hana::tuple`.  Returns `none`
-        if there is no innermost rule, or if that rule was not given any
-        parameters. */
+        multiple values will be stored within a `parser::tuple`.  Returns
+        `none` if there is no innermost rule, or if that rule was not given
+        any parameters. */
     template<typename Context>
     decltype(auto) _params(Context const & context);
 

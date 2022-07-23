@@ -3,10 +3,24 @@
 
 #include <boost/parser/detail/printing.hpp>
 
+#if BOOST_PARSER_USE_BOOST
 #include <boost/type_index.hpp>
+#else
+#include <typeinfo>
+#endif
 
 
 namespace boost { namespace parser { namespace detail {
+
+    template<typename T>
+    auto type_name()
+    {
+#if BOOST_PARSER_USE_BOOST
+        return typeindex::type_id<T>().pretty_name();
+#else
+        return typeid(T).name();
+#endif
+    }
 
     template<typename Parser>
     struct n_aray_parser : std::false_type
@@ -143,7 +157,7 @@ namespace boost { namespace parser { namespace detail {
     {
         int i = 0;
         bool printed_ellipsis = false;
-        hana::for_each(parser.parsers_, [&](auto const & parser) {
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
             if (components == parser_component_limit) {
                 if (!printed_ellipsis)
                     os << " | ...";
@@ -167,12 +181,12 @@ namespace boost { namespace parser { namespace detail {
     {
         int i = 0;
         bool printed_ellipsis = false;
-        hana::for_each(
-            hana::zip(parser.parsers_, BacktrackingTuple{}),
+        hl::for_each(
+            hl::zip(parser.parsers_, BacktrackingTuple{}),
             [&](auto const & parser_and_backtrack) {
-                using namespace hana::literals;
-                auto const & parser = parser_and_backtrack[0_c];
-                auto const backtrack = parser_and_backtrack[1_c];
+                using namespace literals;
+                auto const & parser = parser::get(parser_and_backtrack, 0_c);
+                auto const backtrack = parser::get(parser_and_backtrack, 1_c);
 
                 if (components == parser_component_limit) {
                     if (!printed_ellipsis)
@@ -235,6 +249,19 @@ namespace boost { namespace parser { namespace detail {
     {
         detail::print_directive(context, "raw", parser.parser_, os, components);
     }
+
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        string_view_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "string_view", parser.parser_, os, components);
+    }
+#endif
 
     template<typename Context, typename Parser>
     void print_parser(
@@ -308,7 +335,7 @@ namespace boost { namespace parser { namespace detail {
         if constexpr (!is_nope_v<ParamsTuple>) {
             os << ".with(";
             int i = 0;
-            hana::for_each(parser.params_, [&](auto const & param) {
+            hl::for_each(parser.params_, [&](auto const & param) {
                 if (i++)
                     os << ", ";
                 detail::print_expected(context, os, param, true);
@@ -324,7 +351,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "symbols<" << typeindex::type_id<T>().pretty_name() << ">";
+        os << "symbols<" << detail::type_name<T>() << ">";
     }
 
     template<typename Context, typename Predicate>
@@ -635,8 +662,8 @@ namespace boost { namespace parser { namespace detail {
                 return;
             }
         }
-        os << "uint<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">";
+        os << "uint<" << detail::type_name<T>() << ", " << Radix << ", "
+           << MinDigits << ", " << MaxDigits << ">";
         detail::print_expected(context, os, parser.expected_);
     }
 
@@ -672,8 +699,8 @@ namespace boost { namespace parser { namespace detail {
                 return;
             }
         }
-        os << "int<" << typeindex::type_id<T>().pretty_name() << ", " << Radix
-           << ", " << MinDigits << ", " << MaxDigits << ">";
+        os << "int<" << detail::type_name<T>() << ", " << Radix << ", "
+           << MinDigits << ", " << MaxDigits << ">";
         detail::print_expected(context, os, parser.expected_);
     }
 
@@ -714,7 +741,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "float<" << typeindex::type_id<T>().pretty_name() << ">";
+        os << "float<" << detail::type_name<T>() << ">";
     }
 
     template<typename Context>
@@ -744,11 +771,14 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        using namespace hana::literals;
+        using namespace literals;
 
-        os << "(" << detail::resolve(context, parser.parsers_[0_c].pred_.value_)
+        os << "("
+           << detail::resolve(
+                  context, parser::get(parser.parsers_, 0_c).pred_.value_)
            << ", ";
-        detail::print_parser(context, parser.parsers_[1_c], os, components);
+        detail::print_parser(
+            context, parser::get(parser.parsers_, 1_c), os, components);
         os << ")";
     }
 
@@ -759,10 +789,10 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        using namespace hana::literals;
+        using namespace literals;
 
         bool printed_ellipsis = false;
-        hana::for_each(parser.parsers_, [&](auto const & parser) {
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
             if (components == parser_component_limit) {
                 if (!printed_ellipsis)
                     os << "...";

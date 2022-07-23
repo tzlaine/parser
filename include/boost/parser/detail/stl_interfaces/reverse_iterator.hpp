@@ -3,13 +3,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_STL_INTERFACES_REVERSE_ITERATOR_HPP
-#define BOOST_STL_INTERFACES_REVERSE_ITERATOR_HPP
+#ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_REVERSE_ITERATOR_HPP
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_REVERSE_ITERATOR_HPP
 
-#include <boost/stl_interfaces/iterator_interface.hpp>
+#include <boost/parser/detail/stl_interfaces/iterator_interface.hpp>
 
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     namespace v1_dtl {
         template<typename Iter>
@@ -63,8 +63,8 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
     struct reverse_iterator
         : iterator_interface<
               reverse_iterator<BidiIter>,
-#if defined(__cpp_lib_concepts)
-              typename boost::stl_interfaces::v2::v2_dtl::iter_concept_t<
+#if BOOST_PARSER_USE_CONCEPTS
+        typename boost::parser::detail::stl_interfaces::v2::v2_dtl::iter_concept_t<
                   BidiIter>,
 #else
               typename std::iterator_traits<BidiIter>::iterator_category,
@@ -86,7 +86,7 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
         reverse_iterator(reverse_iterator<BidiIter2> const & it) : it_(it.it_)
         {}
 
-        friend BOOST_STL_INTERFACES_HIDDEN_FRIEND_CONSTEXPR auto
+        friend constexpr auto
         operator-(reverse_iterator lhs, reverse_iterator rhs) noexcept(
             noexcept(v1_dtl::ce_dist(
                 lhs.it_,
@@ -170,9 +170,9 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
 }}}
 
 
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     /** A template alias for `std::reverse_iterator`.  This only exists to
         make migration from Boost.STLInterfaces to C++20 easier; switch to the

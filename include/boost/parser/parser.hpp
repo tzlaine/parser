@@ -4,14 +4,19 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
-#include <boost/parser/detail/printing.hpp>
+#include <boost/parser/tuple.hpp>
+#include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
+#include <boost/parser/detail/printing.hpp>
 
+#if BOOST_PARSER_USE_BOOST
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-#include <boost/text/algorithm.hpp>
-#include <boost/text/trie.hpp>
+#endif
+#include <boost/parser/detail/text/algorithm.hpp>
+#include <boost/parser/detail/text/trie.hpp>
+#include <boost/parser/detail/text/detail/unpack.hpp>
 
 #include <type_traits>
 #include <variant>
@@ -26,7 +31,7 @@ namespace boost { namespace parser {
 #else
     template<typename I, typename S = I>
 #endif
-    struct view : stl_interfaces::view_interface<view<I, S>>
+    struct view : parser::detail::stl_interfaces::view_interface<view<I, S>>
     {
         using iterator = I;
         using sentinel = S;
@@ -352,7 +357,7 @@ namespace boost { namespace parser {
             // = 0; }` may be fine.  If you attach that same semantic action
             // to `eps`, you end up here, because `eps` has no attribute, and
             // so `_attr(ctx)` produces a `none`.
-            BOOST_ASSERT(false);
+            BOOST_PARSER_DEBUG_ASSERT(false);
         }
     };
 #endif
@@ -766,7 +771,7 @@ namespace boost { namespace parser {
             template<typename Context>
             decltype(auto) operator()(Context const & context) const
             {
-                return parser::_params(context)[hana::llong<I>{}];
+                return parser::_params(context)[llong<I>{}];
             }
         };
 
@@ -809,7 +814,7 @@ namespace boost { namespace parser {
         auto
         resolve_rule_params(Context const & context, ParamsTuple const & params)
         {
-            return hana::transform(params, [&](auto const & x) {
+            return detail::hl::transform(params, [&](auto const & x) {
                 return detail::resolve(context, x);
             });
         }
@@ -861,18 +866,17 @@ namespace boost { namespace parser {
             using trie_t = text::trie<std::vector<uint32_t>, T>;
             symbol_table_tries_t & symbol_table_tries =
                 *context.symbol_table_tries_;
-            any & a = symbol_table_tries[(void *)&symbol_parser];
-            trie_t * trie_ptr = nullptr;
+            any_copyable & a = symbol_table_tries[(void *)&symbol_parser];
             if (a.empty()) {
                 a = trie_t{};
-                trie_ptr = boost::any_cast<trie_t>(&a);
+                trie_t & trie = a.cast<trie_t>();
                 for (auto const & e : symbol_parser.initial_elements()) {
-                    trie_ptr->insert(text::as_utf32(e.first), e.second);
+                    trie.insert(text::as_utf32(e.first), e.second);
                 }
+                return trie;
             } else {
-                trie_ptr = boost::any_cast<trie_t>(&a);
+                return a.cast<trie_t>();
             }
-            return *trie_ptr;
         }
 
 
@@ -900,11 +904,11 @@ namespace boost { namespace parser {
         constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
-        struct is_hana_tuple : std::false_type
+        struct is_tuple : std::false_type
         {};
 
         template<typename... T>
-        struct is_hana_tuple<hana::tuple<T...>> : std::true_type
+        struct is_tuple<tuple<T...>> : std::true_type
         {};
 
         template<typename T>
@@ -957,22 +961,6 @@ namespace boost { namespace parser {
         {};
         template<typename... T>
         struct is_variant<std::variant<T...>> : std::true_type
-        {};
-
-        template<typename Callbacks, typename TagType>
-        using overloaded_callback_1 =
-            decltype(std::declval<Callbacks>()(hana::type_c<TagType>));
-        template<typename Callbacks, typename TagType>
-        struct has_overloaded_callback_1
-            : is_detected<overloaded_callback_1, Callbacks, TagType>
-        {};
-
-        template<typename Callbacks, typename TagType, typename ResultType>
-        using overloaded_callback_2 = decltype(std::declval<Callbacks>()(
-            hana::type_c<TagType>, std::declval<ResultType>()));
-        template<typename Callbacks, typename TagType, typename ResultType>
-        struct has_overloaded_callback_2
-            : is_detected<overloaded_callback_2, Callbacks, TagType, ResultType>
         {};
 
         template<typename T>
@@ -1155,57 +1143,63 @@ namespace boost { namespace parser {
 
         // Metafunctions.
 
-        template<typename Pair>
-        struct hana_tuple_to_or_type;
+        template<bool WrapInOptional, typename Tuple>
+        struct to_hana_tuple_or_type_impl;
 
         template<typename... T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::true_type>>
+        struct to_hana_tuple_or_type_impl<true, tuple<T...>>
         {
             using type = std::optional<std::variant<T...>>;
         };
 
         template<typename... T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T...>, std::false_type>>
+        struct to_hana_tuple_or_type_impl<false, tuple<T...>>
         {
             using type = std::variant<T...>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<T>, std::true_type>>
+        struct to_hana_tuple_or_type_impl<true, tuple<T>>
         {
-            using type = std::optional<T>;
+            // The reason this is not two separate specializations, one
+            // for tuple<t> and on for tuple<optional<T>>, is because
+            // MSVC.
+            using type =
+                std::conditional_t<is_optional<T>::value, T, std::optional<T>>;
         };
 
         template<typename T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<T>, std::false_type>>
+        struct to_hana_tuple_or_type_impl<false, tuple<T>>
         {
             using type = T;
         };
 
-        template<typename T>
-        struct hana_tuple_to_or_type<
-            hana::pair<hana::tuple<std::optional<T>>, std::true_type>>
-        {
-            using type = std::optional<T>;
-        };
-
         template<>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::true_type>>
+        struct to_hana_tuple_or_type_impl<true, tuple<>>
         {
             using type = nope;
         };
 
         template<>
-        struct hana_tuple_to_or_type<hana::pair<hana::tuple<>, std::false_type>>
+        struct to_hana_tuple_or_type_impl<false, tuple<>>
         {
             using type = nope;
         };
 
+        template<typename Pair>
+        struct to_hana_tuple_or_type;
+
+        template<typename Tuple, typename TrueFalse>
+        struct to_hana_tuple_or_type<tuple<Tuple, TrueFalse>>
+        {
+            // This has to be done in two steps like this because MSVC.
+            using type =
+                typename to_hana_tuple_or_type_impl<TrueFalse::value, Tuple>::
+                    type;
+        };
+
         template<typename T>
-        using hana_tuple_to_or_type_t = typename hana_tuple_to_or_type<T>::type;
+        using to_hana_tuple_or_type_t = typename to_hana_tuple_or_type<T>::type;
 
         template<typename T, bool Container = container<T>>
         struct sequence_of_impl
@@ -1272,12 +1266,29 @@ namespace boost { namespace parser {
 
         // Etc.
 
+        template<typename T>
+        struct wrapper
+        {
+            using type = T;
+
+            constexpr bool operator==(wrapper) const { return true; }
+        };
+
+        struct wrap
+        {
+            template<typename T>
+            constexpr auto operator()(T type) const
+            {
+                return wrapper<T>{};
+            }
+        };
+
         struct unwrap
         {
             template<typename T>
             constexpr auto operator()(T wrapped_type) const
             {
-                return typename decltype(wrapped_type)::type{};
+                return typename T::type{};
             }
         };
 
@@ -1392,7 +1403,7 @@ namespace boost { namespace parser {
                 typename Context,
                 typename SkipParser>
             nope operator()(
-                hana::bool_<UseCallbacks> use_cbs,
+                std::bool_constant<UseCallbacks> use_cbs,
                 Iter & first,
                 Sentinel last,
                 Context const & context,
@@ -1411,7 +1422,7 @@ namespace boost { namespace parser {
                 typename SkipParser,
                 typename Attribute>
             void operator()(
-                hana::bool_<UseCallbacks> use_cbs,
+                std::bool_constant<UseCallbacks> use_cbs,
                 Iter & first,
                 Sentinel last,
                 Context const & context,
@@ -1442,7 +1453,7 @@ namespace boost { namespace parser {
                 first, last, success, indent, eh, n, symbol_table_tries);
             while (success) {
                 skip_(
-                    hana::false_c,
+                    std::false_type{},
                     first,
                     last,
                     context,
@@ -1680,7 +1691,7 @@ namespace boost { namespace parser {
             typename... T>
         void apply_parser(
             Parser const & parser,
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1724,7 +1735,7 @@ namespace boost { namespace parser {
             typename... T>
         void apply_parser(
             Parser const & parser,
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1749,7 +1760,7 @@ namespace boost { namespace parser {
             typename T>
         void apply_parser(
             Parser const & parser,
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1774,7 +1785,7 @@ namespace boost { namespace parser {
             typename Attribute>
         void apply_parser(
             Parser const & parser,
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1804,7 +1815,7 @@ namespace boost { namespace parser {
                 parser.globals_,
                 std::declval<detail::symbol_table_tries_t &>()));
             using attr_t = decltype(parser(
-                hana::false_c,
+                std::false_type{},
                 first,
                 last,
                 std::declval<context>(),
@@ -1857,7 +1868,7 @@ namespace boost { namespace parser {
                       : detail::flags::gen_attrs;
             try {
                 parser(
-                    hana::false_c,
+                    std::false_type{},
                     first,
                     last,
                     context,
@@ -1905,7 +1916,7 @@ namespace boost { namespace parser {
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
             using attr_t = decltype(parser(
-                hana::false_c,
+                std::false_type{},
                 first,
                 last,
                 context,
@@ -1914,7 +1925,7 @@ namespace boost { namespace parser {
                 success));
             try {
                 attr_t attr_ = parser(
-                    hana::false_c,
+                    std::false_type{},
                     first,
                     last,
                     context,
@@ -1966,7 +1977,7 @@ namespace boost { namespace parser {
                       : detail::flags::gen_attrs;
             try {
                 parser(
-                    hana::true_c,
+                    std::true_type{},
                     first,
                     last,
                     context,
@@ -2019,7 +2030,7 @@ namespace boost { namespace parser {
             detail::skip(first, last, skip, flags);
             try {
                 parser(
-                    hana::false_c,
+                    std::false_type{},
                     first,
                     last,
                     context,
@@ -2071,10 +2082,16 @@ namespace boost { namespace parser {
                       : detail::default_flags();
             detail::skip(first, last, skip, flags);
             using attr_t = decltype(parser(
-                hana::false_c, first, last, context, skip, flags, success));
+                std::false_type{}, first, last, context, skip, flags, success));
             try {
                 attr_t attr_ = parser(
-                    hana::false_c, first, last, context, skip, flags, success);
+                    std::false_type{},
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     detail::final_trace(context, flags, nope{});
@@ -2124,7 +2141,13 @@ namespace boost { namespace parser {
             detail::skip(first, last, skip, flags);
             try {
                 parser(
-                    hana::true_c, first, last, context, skip, flags, success);
+                    std::true_type{},
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     detail::final_trace(context, flags, nope{});
@@ -2247,15 +2270,6 @@ namespace boost { namespace parser {
             if (first != last)
                 retval = false;
             return retval;
-        }
-
-        // Hana's concat does not seem to do what it says on the tin.
-        // Concatenating (int, string) with (double, int) yields (int, string,
-        // double).  I maybe don't understand it well enough.
-        template<typename Tuple1, typename Tuple2>
-        constexpr auto for_real_concat(Tuple1 t1, Tuple2 t2)
-        {
-            return hana::insert_range(t1, hana::size(t1), t2);
         }
     }
 
@@ -2410,7 +2424,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2433,7 +2447,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2491,7 +2505,7 @@ namespace boost { namespace parser {
 
                 // It looks like you've created a repeated epsilon parser, by
                 // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     !detail::is_unconditional_eps<Parser>{} || end < Inf);
 
                 for (; count != end; ++count) {
@@ -2569,7 +2583,7 @@ namespace boost { namespace parser {
 
                 // It looks like you've created a repeated epsilon parser, by
                 // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_ASSERT(
+                BOOST_PARSER_DEBUG_ASSERT(
                     !detail::is_unconditional_eps<Parser>{} || end < Inf);
 
                 for (; count != end; ++count) {
@@ -2670,7 +2684,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2693,7 +2707,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2758,7 +2772,7 @@ namespace boost { namespace parser {
                 detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
                 return parser.call(
-                    hana::bool_c<UseCallbacks>,
+                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -2775,7 +2789,7 @@ namespace boost { namespace parser {
 
                 detail::apply_parser(
                     parser,
-                    hana::bool_c<UseCallbacks>,
+                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -2802,7 +2816,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2819,45 +2833,47 @@ namespace boost { namespace parser {
                 use_parser(first, last, context, skip, flags, success);
 
             // A result type for each of the parsers in parsers_.
-            using all_types = decltype(hana::transform(parsers_, use_parser));
+            using all_types =
+                decltype(detail::hl::transform(parsers_, use_parser));
 
-            // Same as above, wrapped in hana::basic_type.
+            // Same as above, wrapped in detail::wrapper.
             using all_types_wrapped =
-                decltype(hana::transform(all_types{}, hana::make_type));
+                decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
-            // Returns a hana::pair<> containing two things: 1) A tuple of
-            // only the unique wrapped types from above, without nopes; this
-            // may be empty. 2) std::true_type or std::false_type indicating
-            // whether nopes were found; if so, the final result is an
-            // optional.
+            // Returns a tuple<> containing two things: 1) A tuple of only the
+            // unique wrapped types from above, without nopes; this may be
+            // empty. 2) std::true_type or std::false_type indicating whether
+            // nopes were found; if so, the final result is an optional.
             auto append_unique = [](auto result, auto x) {
                 using x_type = typename decltype(x)::type;
                 if constexpr (detail::is_nope_v<x_type>) {
-                    return hana::make_pair(
-                        hana::first(result), std::true_type{});
-                } else if constexpr (hana::contains(hana::first(result), x)) {
+                    return detail::hl::make_pair(
+                        detail::hl::first(result), std::true_type{});
+                } else if constexpr (detail::hl::contains(
+                                         detail::hl::first(result), x)) {
                     return result;
                 } else {
-                    return hana::make_pair(
-                        hana::append(hana::first(result), x),
-                        hana::second(result));
+                    return detail::hl::make_pair(
+                        detail::hl::append(detail::hl::first(result), x),
+                        detail::hl::second(result));
                 }
             };
-            using wrapped_unique_types = decltype(hana::fold_left(
+            using wrapped_unique_types = decltype(detail::hl::fold_left(
                 all_types_wrapped{},
-                hana::make_pair(hana::tuple<>{}, std::false_type{}),
+                detail::hl::make_pair(tuple<>{}, std::false_type{}),
                 append_unique));
 
             // Same as above, with the tuple types unwrapped.
-            using unwrapped_types = decltype(hana::make_pair(
-                hana::transform(
-                    hana::first(wrapped_unique_types{}), detail::unwrap{}),
-                hana::second(wrapped_unique_types{})));
+            using unwrapped_types = decltype(detail::hl::make_pair(
+                detail::hl::transform(
+                    detail::hl::first(wrapped_unique_types{}),
+                    detail::unwrap{}),
+                detail::hl::second(wrapped_unique_types{})));
 
             // Types above converted to a "variant", which may actually be a
             // non-variant type T if that is the only unique non-nope type, or a
             // nope if unwrapped_types is empty.
-            using result_t = detail::hana_tuple_to_or_type_t<unwrapped_types>;
+            using result_t = detail::to_hana_tuple_or_type_t<unwrapped_types>;
 
             result_t retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
@@ -2872,7 +2888,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2907,7 +2923,7 @@ namespace boost { namespace parser {
                 if (success)
                     done = true;
             };
-            hana::for_each(parsers_, try_parser);
+            detail::hl::for_each(parsers_, try_parser);
 
             if (!done)
                 success = false;
@@ -2960,7 +2976,7 @@ namespace boost { namespace parser {
             auto operator()(Parser const & parser) const
             {
                 return parser.call(
-                    hana::bool_c<UseCallbacks>,
+                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -2981,26 +2997,24 @@ namespace boost { namespace parser {
             template<typename T, typename U>
             auto operator()(T result_and_indices, U x) const
             {
-                auto result = hana::first(result_and_indices);
-                using result_back_type =
-                    typename std::decay_t<decltype(hana::back(result))>::type;
+                auto result = detail::hl::first(result_and_indices);
+                using result_back_type = typename std::decay_t<decltype(
+                    detail::hl::back(result))>::type;
                 using unwrapped_optional_result_back_type =
                     detail::unwrapped_optional_t<result_back_type>;
 
-                auto indices = hana::second(result_and_indices);
+                auto indices = detail::hl::second(result_and_indices);
 
                 using x_type = typename decltype(x)::type;
                 using unwrapped_optional_x_type =
                     detail::unwrapped_optional_t<x_type>;
 
-                constexpr auto one = hana::size_c<1>;
-                (void)one;
-
                 if constexpr (detail::is_nope_v<x_type>) {
                     // T >> nope -> T
-                    return hana::make_pair(
+                    return detail::hl::make_pair(
                         result,
-                        hana::append(indices, hana::size(result) - one));
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     std::is_same<result_back_type, x_type>{} ||
                     std::is_same<
@@ -3008,16 +3022,19 @@ namespace boost { namespace parser {
                         unwrapped_optional_x_type>{}) {
                     if constexpr (container<result_back_type>) {
                         // C<T> >> C<T> -> C<T>
-                        return hana::make_pair(
+                        return detail::hl::make_pair(
                             result,
-                            hana::append(indices, hana::size(result) - one));
+                            detail::hl::append(
+                                indices, detail::hl::size_minus_one(result)));
                     } else {
                         // T >> T -> vector<T>
-                        return hana::make_pair(
-                            hana::append(
-                                hana::drop_back(result),
-                                hana::type_c<std::vector<result_back_type>>),
-                            hana::append(indices, hana::size(result) - one));
+                        return detail::hl::make_pair(
+                            detail::hl::append(
+                                detail::hl::drop_back(result),
+                                detail::wrapper<
+                                    std::vector<result_back_type>>{}),
+                            detail::hl::append(
+                                indices, detail::hl::size_minus_one(result)));
                     }
                 } else if constexpr (
                     detail::
@@ -3027,9 +3044,10 @@ namespace boost { namespace parser {
                         unwrapped_optional_x_type>) {
                     // C<T> >> T -> C<T>
                     // C<T> >> optional<T> -> C<T>
-                    return hana::make_pair(
+                    return detail::hl::make_pair(
                         result,
-                        hana::append(indices, hana::size(result) - one));
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     detail::
                         container_and_value_type<x_type, result_back_type> ||
@@ -3038,19 +3056,21 @@ namespace boost { namespace parser {
                         unwrapped_optional_result_back_type>) {
                     // T >> C<T> -> C<T>
                     // optional<T> >> C<T> -> C<T>
-                    return hana::make_pair(
-                        hana::append(hana::drop_back(result), x),
-                        hana::append(indices, hana::size(result) - one));
+                    return detail::hl::make_pair(
+                        detail::hl::append(detail::hl::drop_back(result), x),
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
-                    // hana::tuple<nope> >> T -> hana::tuple<T>
-                    return hana::make_pair(
-                        hana::append(hana::drop_back(result), x),
-                        hana::append(indices, hana::size(result) - one));
+                    // tuple<nope> >> T -> tuple<T>
+                    return detail::hl::make_pair(
+                        detail::hl::append(detail::hl::drop_back(result), x),
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else {
-                    // hana::tuple<Ts...> >> T -> hana::tuple<Ts..., T>
-                    return hana::make_pair(
-                        hana::append(result, x),
-                        hana::append(indices, hana::size(result)));
+                    // tuple<Ts...> >> T -> tuple<Ts..., T>
+                    return detail::hl::make_pair(
+                        detail::hl::append(result, x),
+                        detail::hl::append(indices, detail::hl::size(result)));
                 }
             }
         };
@@ -3065,7 +3085,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto make_temp_result(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3083,28 +3103,28 @@ namespace boost { namespace parser {
 
             // A result type for each of the parsers in parsers_.
             using all_types =
-                decltype(hana::transform(parsers_, dummy_use_parser));
+                decltype(detail::hl::transform(parsers_, dummy_use_parser));
 
-            // Same as above, wrapped in hana::basic_type.
+            // Same as above, wrapped in detail::wrapper.
             using all_types_wrapped =
-                decltype(hana::transform(all_types{}, hana::make_type));
+                decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
             // Generate a tuple of outputs, and the index that each parser
             // should use to write into its output.
-            constexpr auto combine_start = hana::make_pair(
-                hana::make_tuple(hana::front(all_types_wrapped{})),
-                hana::tuple_c<std::size_t, 0>);
-            using combined_types = decltype(hana::fold_left(
-                hana::drop_front(all_types_wrapped{}),
+            constexpr auto combine_start = detail::hl::make_pair(
+                detail::hl::make_tuple(detail::hl::front(all_types_wrapped{})),
+                tuple<llong<0>>{});
+            using combined_types = decltype(detail::hl::fold_left(
+                detail::hl::drop_front(all_types_wrapped{}),
                 combine_start,
                 combine{}));
 
             // Unwrap the result tuple's types.
-            using result_type = decltype(hana::transform(
-                hana::first(combined_types{}), detail::unwrap{}));
+            using result_type = decltype(detail::hl::transform(
+                detail::hl::first(combined_types{}), detail::unwrap{}));
 
-            return hana::make_pair(
-                result_type(), hana::second(combined_types{}));
+            return detail::hl::make_pair(
+                result_type(), detail::hl::second(combined_types{}));
         }
 
 #endif
@@ -3116,7 +3136,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first_,
             Sentinel last,
             Context const & context,
@@ -3126,7 +3146,7 @@ namespace boost { namespace parser {
         {
             Iter first = first_;
 
-            std::decay_t<decltype(hana::first(make_temp_result(
+            std::decay_t<decltype(detail::hl::first(make_temp_result(
                 use_cbs, first, last, context, skip, flags, success)))>
                 retval;
 
@@ -3139,7 +3159,7 @@ namespace boost { namespace parser {
                                                : flags,
                 retval);
 
-            std::decay_t<decltype(hana::second(make_temp_result(
+            std::decay_t<decltype(detail::hl::second(make_temp_result(
                 use_cbs, first, last, context, skip, flags, success)))>
                 indices;
             call_impl(
@@ -3157,9 +3177,9 @@ namespace boost { namespace parser {
                 first_ = first;
 
             // A 1-tuple is converted to a scalar.
-            if constexpr (hana::size(retval) == hana::size_c<1>) {
-                using namespace hana::literals;
-                return retval[0_c];
+            if constexpr (detail::hl::size(retval) == llong<1>{}) {
+                using namespace literals;
+                return parser::get(retval, 0_c);
             } else {
                 return retval;
             }
@@ -3173,7 +3193,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first_,
             Sentinel last,
             Context const & context,
@@ -3193,7 +3213,7 @@ namespace boost { namespace parser {
 
             Iter first = first_;
 
-            std::decay_t<decltype(hana::second(make_temp_result(
+            std::decay_t<decltype(detail::hl::second(make_temp_result(
                 use_cbs, first, last, context, skip, flags, success)))>
                 indices;
             if constexpr (detail::is_variant<Attribute>{}) {
@@ -3213,7 +3233,7 @@ namespace boost { namespace parser {
                     use_cbs, first_, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, attr);
-            } else if constexpr (detail::is_hana_tuple<Attribute>{}) {
+            } else if constexpr (detail::is_tuple<Attribute>{}) {
                 call_impl(
                     use_cbs,
                     first,
@@ -3229,7 +3249,7 @@ namespace boost { namespace parser {
                     detail::assign(retval, Attribute());
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
-                hana::tuple<Attribute> temp_retval;
+                tuple<Attribute> temp_retval;
                 call_impl(
                     use_cbs,
                     first,
@@ -3242,7 +3262,7 @@ namespace boost { namespace parser {
                     indices);
 
                 if (success && detail::gen_attrs(flags))
-                    detail::assign(retval, hana::front(temp_retval));
+                    detail::assign(retval, detail::hl::front(temp_retval));
             }
 
             if (success)
@@ -3263,7 +3283,7 @@ namespace boost { namespace parser {
             typename Attribute,
             typename Indices>
         void call_impl(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3273,7 +3293,7 @@ namespace boost { namespace parser {
             Attribute & retval,
             Indices const & indices) const
         {
-            static_assert(detail::is_hana_tuple<Attribute>{}, "");
+            static_assert(detail::is_tuple<Attribute>{}, "");
 
             auto use_parser = [use_cbs,
                                &first,
@@ -3284,13 +3304,15 @@ namespace boost { namespace parser {
                                &success,
                                &retval](
                                   auto const & parser_index_and_backtrack) {
-                using namespace hana::literals;
+                using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...
                     return;
 
-                auto const & parser = parser_index_and_backtrack[0_c];
-                bool const can_backtrack = parser_index_and_backtrack[2_c];
+                auto const & parser =
+                    parser::get(parser_index_and_backtrack, 0_c);
+                bool const can_backtrack =
+                    parser::get(parser_index_and_backtrack, 2_c);
 
                 if (!detail::gen_attrs(flags)) {
                     parser.call(
@@ -3303,7 +3325,8 @@ namespace boost { namespace parser {
                     return;
                 }
 
-                auto & out = retval[parser_index_and_backtrack[1_c]];
+                auto & out = parser::get(
+                    retval, parser::get(parser_index_and_backtrack, 1_c));
 
                 using attr_t = decltype(parser.call(
                     use_cbs, first, last, context, skip, flags, success));
@@ -3356,8 +3379,8 @@ namespace boost { namespace parser {
             };
 
             auto const parsers_and_indices =
-                hana::zip(parsers_, indices, backtracking{});
-            hana::for_each(parsers_and_indices, use_parser);
+                detail::hl::zip(parsers_, indices, backtracking{});
+            detail::hl::for_each(parsers_and_indices, use_parser);
         }
 
         template<bool AllowBacktracking, typename Parser>
@@ -3380,7 +3403,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3401,7 +3424,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3444,7 +3467,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3474,7 +3497,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3509,7 +3532,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         view<Iter> call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3538,7 +3561,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3565,6 +3588,98 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Parser>
+    struct string_view_parser
+    {
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
+                first, last);
+            // string_view_parser and the string_view[] directive that uses it
+            // requires that the underlying char sequence being parsed be a
+            // contiguous range.  If you're seeing this static_assert, you
+            // have not met this contract.
+            static_assert(std::contiguous_iterator<decltype(r.f_)>);
+            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            std::basic_string_view<char_type> retval;
+            call(
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_attrs(flags),
+                success,
+                retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            auto const initial_first = first;
+            parser_.call(
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_attrs(flags),
+                success);
+
+            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
+                initial_first, first);
+            // string_view_parser and the string_view[] directive that uses it
+            // requires that the underlying char sequence being parsed be a
+            // contiguous range.  If you're seeing this static_assert, you
+            // have not met this contract.
+            static_assert(std::contiguous_iterator<decltype(r.f_)>);
+            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            if (initial_first == first) {
+                detail::assign(retval, std::basic_string_view<char_type>{});
+            } else {
+                detail::assign(
+                    retval,
+                    std::basic_string_view<char_type>{
+                        &*r.f_, std::size_t(r.l_ - r.f_)});
+            }
+        }
+
+        Parser parser_;
+    };
+#endif
+
     template<typename Parser>
     struct lexeme_parser
     {
@@ -3575,7 +3690,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3606,7 +3721,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3642,7 +3757,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser_>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3673,7 +3788,7 @@ namespace boost { namespace parser {
             typename SkipParser_,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3722,7 +3837,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3751,7 +3866,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3793,12 +3908,12 @@ namespace boost { namespace parser {
             is done on the copy of the symbol table inside the parse context
             `context`. */
         template<typename Context>
-        text::optional_ref<T>
+        parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            return trie_[text::as_utf32(str)];
+            return trie_[parser::detail::text::as_utf32(str)];
         }
 
         /** Inserts an entry consisting of a UTF-8 string `str` to match, and
@@ -3807,9 +3922,9 @@ namespace boost { namespace parser {
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.insert(text::as_utf32(str), std::move(x));
+            trie_.insert(parser::detail::text::as_utf32(str), std::move(x));
         }
 
         /** Erases the entry whose UTF-8 match string is `str` from the copy
@@ -3817,9 +3932,9 @@ namespace boost { namespace parser {
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
-            text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.erase(text::as_utf32(str));
+            trie_.erase(parser::detail::text::as_utf32(str));
         }
 
         template<
@@ -3829,7 +3944,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         T call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3850,7 +3965,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3862,7 +3977,7 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            text::trie<std::vector<uint32_t>, T> const & trie_ =
+            parser::detail::text::trie<std::vector<uint32_t>, T> const & trie_ =
                 detail::get_trie(context, ref());
             auto const lookup = trie_.longest_match(first, last);
             if (lookup.match) {
@@ -3908,7 +4023,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         attr_type call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3978,7 +4093,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute_>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4087,11 +4202,10 @@ namespace boost { namespace parser {
                 return rhs.parser_.template prepend<true>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, ParserType2>,
-                    hana::tuple<hana::true_, hana::true_>>;
-                return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, ParserType2>{
-                        parser_, rhs.parser_}}};
+                    tuple<parser_type, ParserType2>,
+                    tuple<std::true_type, std::true_type>>;
+                return parser::parser_interface{parser_t{
+                    tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -4130,11 +4244,10 @@ namespace boost { namespace parser {
                 return rhs.parser_.template prepend<false>(*this);
             } else {
                 using parser_t = seq_parser<
-                    hana::tuple<parser_type, ParserType2>,
-                    hana::tuple<hana::true_, hana::false_>>;
-                return parser::parser_interface{
-                    parser_t{hana::tuple<parser_type, ParserType2>{
-                        parser_, rhs.parser_}}};
+                    tuple<parser_type, ParserType2>,
+                    tuple<std::true_type, std::false_type>>;
+                return parser::parser_interface{parser_t{
+                    tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -4187,9 +4300,8 @@ namespace boost { namespace parser {
                 BOOST_PARSER_ASSERT(
                     !detail::is_unconditional_eps<parser_type>{});
                 return parser::parser_interface{
-                    or_parser<hana::tuple<parser_type, ParserType2>>{
-                        hana::tuple<parser_type, ParserType2>{
-                            parser_, rhs.parser_}}};
+                    or_parser<tuple<parser_type, ParserType2>>{
+                        tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
         }
 
@@ -4309,7 +4421,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParserType>
         auto operator()(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4331,7 +4443,7 @@ namespace boost { namespace parser {
             typename SkipParserType,
             typename Attribute>
         void operator()(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4417,7 +4529,7 @@ namespace boost { namespace parser {
             is done on the copy of the symbol table inside the parse context
             `context`, not `*this`. */
         template<typename Context>
-        text::optional_ref<T>
+        parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
             return this->parser_.find(context, str);
@@ -4459,7 +4571,7 @@ namespace boost { namespace parser {
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a rule, "
                  "like 'rule.with(foo).with(bar)'.  Quit it!'"));
-            using params_tuple_type = decltype(hana::make_tuple(
+            using params_tuple_type = decltype(detail::hl::make_tuple(
                 static_cast<T &&>(x), static_cast<Ts &&>(xs)...));
             using rule_parser_type = rule_parser<
                 false,
@@ -4470,7 +4582,7 @@ namespace boost { namespace parser {
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
                 this->parser_.name_,
-                hana::make_tuple(
+                detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
@@ -4496,7 +4608,7 @@ namespace boost { namespace parser {
                 (detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a "
                  "callback_rule, like 'rule.with(foo).with(bar)'.  Quit it!'"));
-            using params_tuple_type = decltype(hana::make_tuple(
+            using params_tuple_type = decltype(detail::hl::make_tuple(
                 static_cast<T &&>(x), static_cast<Ts &&>(xs)...));
             using rule_parser_type = rule_parser<
                 true,
@@ -4507,12 +4619,20 @@ namespace boost { namespace parser {
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
                 this->parser_.name_,
-                hana::make_tuple(
+                detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
 
 #ifndef BOOST_PARSER_DOXYGEN
+
+#define BOOST_PARSER_CAT(a, b) BOOST_PARSER_CAT_I(a, b)
+#if defined(_MSC_VER)
+#define BOOST_PARSER_CAT_I(a, b) BOOST_PARSER_CAT_II(~, a##b)
+#define BOOST_PARSER_CAT_II(p, res) res
+#else
+#define BOOST_PARSER_CAT_I(a, b) a##b
+#endif
 
 #define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
     template<                                                                  \
@@ -4523,7 +4643,7 @@ namespace boost { namespace parser {
         typename SkipParser>                                                   \
     auto parse_rule(                                                           \
         decltype(name_)::parser_type::tag_type *,                              \
-        boost::hana::bool_<UseCallbacks> use_cbs,                              \
+        std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
         Context const & context,                                               \
@@ -4531,7 +4651,7 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        auto const & parser = BOOST_PP_CAT(name_, _def);                       \
+        auto const & parser = BOOST_PARSER_CAT(name_, _def);                   \
         return parser(use_cbs, first, last, context, skip, flags, success);    \
     }                                                                          \
                                                                                \
@@ -4544,7 +4664,7 @@ namespace boost { namespace parser {
         typename Attribute>                                                    \
     void parse_rule(                                                           \
         decltype(name_)::parser_type::tag_type *,                              \
-        boost::hana::bool_<UseCallbacks> use_cbs,                              \
+        std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
         Context const & context,                                               \
@@ -4553,7 +4673,7 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PP_CAT(name_, _def);                       \
+        auto const & parser = BOOST_PARSER_CAT(name_, _def);                   \
         using attr_t = decltype(                                               \
             parser(use_cbs, first, last, context, skip, flags, success));      \
         if constexpr (boost::parser::detail::is_nope_v<attr_t>)                \
@@ -4565,12 +4685,22 @@ namespace boost { namespace parser {
 
 #endif
 
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_BOOST
+
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
-        parsing behavior rule `t`, using the parser `t_def`. */
+        parsing behavior rule `t`, using the parser `t_def`.  This macro is
+        only available when `BOOST_PARSER_STANDALONE` is not defined. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PP_SEQ_FOR_EACH(                                                     \
         BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+
+#endif
+
+    /** Defines a pair of `parse_rule()` overloads for the given rule, used
+        internally within Boost.Parser.  The pair implements the parsing
+        behavior rule `rule`, using the parser `rule_def`. */
+#define BOOST_PARSER_DEFINE_RULE(rule) BOOST_PARSER_DEFINE_IMPL(_, _, rule)
 
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -4591,8 +4721,8 @@ namespace boost { namespace parser {
         // meaningful, and so is allowed.
         BOOST_PARSER_ASSERT(!detail::is_unconditional_eps<Parser>{});
         return parser_interface{
-            or_parser<decltype(hana::prepend(parsers_, parser.parser_))>{
-                hana::prepend(parsers_, parser.parser_)}};
+            or_parser<decltype(detail::hl::prepend(parsers_, parser.parser_))>{
+                detail::hl::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple>
@@ -4609,16 +4739,16 @@ namespace boost { namespace parser {
         // Possibly, you may have meant to add a condition to the eps, like
         // "int_ | eps(condition) | double_", which also is meaningful, and so
         // is allowed.
-        BOOST_PARSER_ASSERT(
-            !detail::is_unconditional_eps_v<decltype(hana::back(parsers_))>);
+        BOOST_PARSER_ASSERT(!detail::is_unconditional_eps_v<decltype(
+                                detail::hl::back(parsers_))>);
         if constexpr (detail::is_or_p<Parser>{}) {
             return parser_interface{or_parser<decltype(
-                detail::for_real_concat(parsers_, parser.parser_.parsers_))>{
-                detail::for_real_concat(parsers_, parser.parser_.parsers_)}};
+                detail::hl::concat(parsers_, parser.parser_.parsers_))>{
+                detail::hl::concat(parsers_, parser.parser_.parsers_)}};
         } else {
-            return parser_interface{
-                or_parser<decltype(hana::append(parsers_, parser.parser_))>{
-                    hana::append(parsers_, parser.parser_)}};
+            return parser_interface{or_parser<decltype(
+                detail::hl::append(parsers_, parser.parser_))>{
+                detail::hl::append(parsers_, parser.parser_)}};
         }
     }
 
@@ -4627,16 +4757,16 @@ namespace boost { namespace parser {
     constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
-        using backtracking = decltype(hana::prepend(
-            hana::prepend(
-                hana::drop_front(BacktrackingTuple{}),
-                hana::bool_c<AllowBacktracking>),
-            hana::true_c));
+        using backtracking = decltype(detail::hl::prepend(
+            detail::hl::prepend(
+                detail::hl::drop_front(BacktrackingTuple{}),
+                std::bool_constant<AllowBacktracking>{}),
+            std::true_type{}));
         using parser_t = seq_parser<
-            decltype(hana::prepend(parsers_, parser.parser_)),
+            decltype(detail::hl::prepend(parsers_, parser.parser_)),
             backtracking>;
         return parser_interface{
-            parser_t{hana::prepend(parsers_, parser.parser_)}};
+            parser_t{detail::hl::prepend(parsers_, parser.parser_)}};
     }
 
     template<typename ParserTuple, typename BacktrackingTuple>
@@ -4645,22 +4775,21 @@ namespace boost { namespace parser {
         parser_interface<Parser> parser) const noexcept
     {
         if constexpr (detail::is_seq_p<Parser>{}) {
-            using backtracking = decltype(detail::for_real_concat(
+            using backtracking = decltype(detail::hl::concat(
                 BacktrackingTuple{}, typename Parser::backtracking{}));
             using parser_t = seq_parser<
-                decltype(
-                    detail::for_real_concat(parsers_, parser.parser_.parsers_)),
+                decltype(detail::hl::concat(parsers_, parser.parser_.parsers_)),
                 backtracking>;
             return parser_interface{parser_t{
-                detail::for_real_concat(parsers_, parser.parser_.parsers_)}};
+                detail::hl::concat(parsers_, parser.parser_.parsers_)}};
         } else {
-            using backtracking = decltype(hana::append(
-                BacktrackingTuple{}, hana::bool_c<AllowBacktracking>));
+            using backtracking = decltype(detail::hl::append(
+                BacktrackingTuple{}, std::bool_constant<AllowBacktracking>{}));
             using parser_t = seq_parser<
-                decltype(hana::append(parsers_, parser.parser_)),
+                decltype(detail::hl::append(parsers_, parser.parser_)),
                 backtracking>;
             return parser_interface{
-                parser_t{hana::append(parsers_, parser.parser_)}};
+                parser_t{detail::hl::append(parsers_, parser.parser_)}};
         }
     }
 
@@ -4682,17 +4811,25 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The omit directive, whose `operator[]` returns an
+    /** The `omit` directive, whose `operator[]` returns an
         `parser_interface<omit_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<omit_parser> omit;
 
-    /** The raw directive, whose `operator[]` returns an
+    /** The `raw` directive, whose `operator[]` returns an
         `parser_interface<raw_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
 
-    /** The lexeme directive, whose `operator[]` returns an
+    // TODO: This needs tests!
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    /** The `string_view` directive, whose `operator[]` returns an
+        `parser_interface<string_view_parser<P>>` from a given parser of type
+        `parser_interface<P>`.  This is only available in C++20 and later. */
+    inline constexpr directive<string_view_parser> string_view;
+#endif
+
+    /** The `lexeme` directive, whose `operator[]` returns an
         `parser_interface<lexeme_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;
@@ -4784,7 +4921,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4813,7 +4950,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4863,7 +5000,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4886,7 +5023,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4915,7 +5052,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4936,7 +5073,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute_>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4981,7 +5118,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5002,7 +5139,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5031,6 +5168,8 @@ namespace boost { namespace parser {
             matches `x`. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
+        // clang-format off
+        requires (!parsable_range_like<T>)
 #else
         template<
             typename T,
@@ -5038,6 +5177,7 @@ namespace boost { namespace parser {
                 std::enable_if_t<!detail::is_parsable_range_like<T>::value>>
 #endif
         constexpr auto operator()(T x) const noexcept
+        // clang-format on
         {
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<Expected> &&
@@ -5153,7 +5293,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         std::string call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5174,7 +5314,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5192,8 +5332,8 @@ namespace boost { namespace parser {
             }
 
             if constexpr (sizeof(*first) == 4) {
-                auto const cps =
-                    text::as_utf32(expected_first_, expected_last_);
+                auto const cps = parser::detail::text::as_utf32(
+                    expected_first_, expected_last_);
                 auto const mismatch =
                     detail::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {
@@ -5268,7 +5408,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         detail::nope call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5289,7 +5429,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5432,7 +5572,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         bool call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5453,7 +5593,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5520,7 +5660,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         T call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5541,7 +5681,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5631,7 +5771,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         T call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5652,7 +5792,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5719,7 +5859,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         T call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5740,7 +5880,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5828,7 +5968,7 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser>
         auto call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5859,7 +5999,7 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename Attribute>
         void call(
-            hana::bool_<UseCallbacks> use_cbs,
+            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6358,7 +6498,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6461,7 +6601,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6569,7 +6709,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_, attr);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6683,7 +6823,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6744,7 +6884,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6803,7 +6943,7 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7008,7 +7148,7 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7137,7 +7277,7 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = text::as_utf32(first, last);
+            auto r = parser::detail::text::as_utf32(first, last);
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);

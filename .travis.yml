@@ -21,6 +21,15 @@ matrix:
           osx_image: xcode11.4
           compiler: clang
 
+        - env: CPP=17 MAC_OSX=true BUILD_TYPE=Debug JOBS=4 NOHANA=true
+          os: osx
+          osx_image: xcode11.4
+          compiler: clang
+        - env: CPP=17 MAC_OSX=true BUILD_TYPE=Release JOBS=4 NOBOOST=true
+          os: osx
+          osx_image: xcode11.4
+          compiler: clang
+
         # Gcc
 
         - env: GCC_VERSION=8 CPP=17 BUILD_TYPE=Release JOBS=4
@@ -43,6 +52,25 @@ matrix:
               sources:
                 - ubuntu-toolchain-r-test
         - env: GCC_VERSION=9 CPP=17 BUILD_TYPE=Debug JOBS=4
+          os: linux
+          compiler: gcc-9
+          addons: &gcc9
+            apt:
+              packages:
+                - g++-9
+              sources:
+                - ubuntu-toolchain-r-test
+
+        - env: GCC_VERSION=9 CPP=17 BUILD_TYPE=Debug JOBS=4 NOHANA=true
+          os: linux
+          compiler: gcc-9
+          addons: &gcc9
+            apt:
+              packages:
+                - g++-9
+              sources:
+                - ubuntu-toolchain-r-test
+        - env: GCC_VERSION=9 CPP=17 BUILD_TYPE=Debug JOBS=4 NOBOOST=true
           os: linux
           compiler: gcc-9
           addons: &gcc9
@@ -83,6 +111,8 @@ install:
     - cmake --version
     # Add warnings
     - export CXXFLAGS="${CXXFLAGS} -Wall"
+    - if [ -n "$NOHANA" ]; then export NOHANA="true" ; else export NOHANA="false" ; fi
+    - if [ -n "$NOBOOST" ]; then export NOBOOST="true" ; else export NOBOOST="false" ; fi
 
 script:
     - cd $CHECKOUT_PATH
@@ -91,7 +121,7 @@ script:
         build_dir="build-$BUILD_TYPE-cxx-$CPP"
         mkdir $build_dir
         cd $build_dir
-        cmake -DCXX_STD=${CPP} -DBOOST_BRANCH=$TRAVIS_BRANCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+        cmake -DCXX_STD=${CPP} -DBOOST_BRANCH=$TRAVIS_BRANCH -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_WITHOUT_HANA=$NOHANA -DBUILD_WITHOUT_BOOST=$NOBOOST ..
         make -j${JOBS} && CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=4 make check
         if [ $? -ne 0 ]
         then
@@ -104,7 +134,7 @@ script:
         build_dir="build-cov-cxx-$CPP-coverage"
         mkdir $build_dir
         cd $build_dir
-        cmake -DCXX_STD=${CPP} -DBOOST_BRANCH=$TRAVIS_BRANCH -DCMAKE_BUILD_TYPE=Debug -DBUILD_COVERAGE=true ..
+        cmake -DCXX_STD=${CPP} -DBOOST_BRANCH=$TRAVIS_BRANCH -DCMAKE_BUILD_TYPE=Debug -DBUILD_COVERAGE=true -DBUILD_WITHOUT_HANA=$NOHANA -DBUILD_WITHOUT_BOOST=$NOBOOST ..
         sudo ln -s /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-cov /usr/local/bin/llvm-cov
         make -j${JOBS} && CTEST_OUTPUT_ON_FAILURE=1 CTEST_PARALLEL_LEVEL=4 make coverage
         if [ $? -ne 0 ]

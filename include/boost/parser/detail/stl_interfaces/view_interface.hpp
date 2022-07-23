@@ -3,13 +3,13 @@
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#ifndef BOOST_STL_INTERFACES_VIEW_INTERFACE_HPP
-#define BOOST_STL_INTERFACES_VIEW_INTERFACE_HPP
+#ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_INTERFACE_HPP
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_INTERFACE_HPP
 
-#include <boost/stl_interfaces/fwd.hpp>
+#include <boost/parser/detail/stl_interfaces/fwd.hpp>
 
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     /** A CRTP template that one may derive from to make it easier to define
         `std::ranges::view`-like types with a container-like interface.  This
@@ -201,9 +201,9 @@ namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V1 {
 }}}
 
 
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
 
-namespace boost { namespace stl_interfaces { BOOST_STL_INTERFACES_NAMESPACE_V2 {
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 
     /** A template alias for `std::ranges::view_interface`.  This only exists
         to make migration from Boost.STLInterfaces to C++20 easier; switch to

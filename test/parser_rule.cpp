@@ -12,11 +12,11 @@ using namespace boost::parser;
 
 constexpr rule<struct flat_rule_tag> flat_rule = "flat_rule";
 constexpr auto flat_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULES(flat_rule);
+BOOST_PARSER_DEFINE_RULE(flat_rule);
 
 constexpr rule<struct recursive_rule_tag> recursive_rule = "recursive_rule";
 constexpr auto recursive_rule_def = string("abc") >> -('a' >> recursive_rule);
-BOOST_PARSER_DEFINE_RULES(recursive_rule);
+BOOST_PARSER_DEFINE_RULE(recursive_rule);
 
 TEST(parser, no_attribute_rules)
 {
@@ -44,22 +44,22 @@ TEST(parser, no_attribute_rules)
     {
         std::string const str = "abcaabc";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, flat_rule));
+        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, flat_rule));
         first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::text::null_sentinel{}, recursive_rule));
+        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, recursive_rule));
     }
 }
 
 constexpr rule<struct flat_string_rule_tag, std::string> flat_string_rule =
     "flat_string_rule";
 constexpr auto flat_string_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULES(flat_string_rule);
+BOOST_PARSER_DEFINE_RULE(flat_string_rule);
 
 constexpr rule<struct recursive_string_rule_tag, std::string>
     recursive_string_rule = "recursive_string_rule";
 constexpr auto recursive_string_rule_def = string("abc") >>
                                            -('a' >> recursive_string_rule);
-BOOST_PARSER_DEFINE_RULES(recursive_string_rule);
+BOOST_PARSER_DEFINE_RULE(recursive_string_rule);
 
 TEST(parser, string_attribute_rules)
 {
@@ -89,11 +89,11 @@ TEST(parser, string_attribute_rules)
         std::string const str = "abcaabc";
         auto first = str.c_str();
         EXPECT_EQ(
-            *parse(first, boost::text::null_sentinel{}, flat_string_rule),
+            *parse(first, boost::parser::detail::text::null_sentinel{}, flat_string_rule),
             "abc");
         first = str.c_str();
         EXPECT_EQ(
-            *parse(first, boost::text::null_sentinel{}, recursive_string_rule),
+            *parse(first, boost::parser::detail::text::null_sentinel{}, recursive_string_rule),
             "abcabc");
     }
 }
@@ -101,7 +101,7 @@ TEST(parser, string_attribute_rules)
 constexpr rule<struct flat_vector_rule_tag, std::vector<char>>
     flat_vector_rule = "flat_vector_rule";
 constexpr auto flat_vector_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULES(flat_vector_rule);
+BOOST_PARSER_DEFINE_RULE(flat_vector_rule);
 
 TEST(parser, vector_attribute_rules)
 {
@@ -129,7 +129,7 @@ TEST(parser, vector_attribute_rules)
         std::string const str = "abcaabc";
         auto first = str.c_str();
         EXPECT_EQ(
-            *parse(first, boost::text::null_sentinel{}, flat_vector_rule),
+            *parse(first, boost::parser::detail::text::null_sentinel{}, flat_vector_rule),
             std::vector<char>({'a', 'b', 'c'}));
     }
     {
@@ -137,19 +137,19 @@ TEST(parser, vector_attribute_rules)
         auto first = str.c_str();
         EXPECT_EQ(
             callback_parse(
-                first, boost::text::null_sentinel{}, flat_vector_rule, int{}),
+                first, boost::parser::detail::text::null_sentinel{}, flat_vector_rule, int{}),
             true);
     }
 }
 constexpr callback_rule<struct callback_vector_rule_tag, std::vector<char>>
     callback_vector_rule = "callback_vector_rule";
 constexpr auto callback_vector_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULES(callback_vector_rule);
+BOOST_PARSER_DEFINE_RULE(callback_vector_rule);
 
 constexpr callback_rule<struct callback_void_rule_tag> callback_void_rule =
     "callback_void_rule";
 constexpr auto callback_void_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULES(callback_void_rule);
+BOOST_PARSER_DEFINE_RULE(callback_void_rule);
 
 struct callback_vector_rule_tag
 {};

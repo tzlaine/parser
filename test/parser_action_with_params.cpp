@@ -5,9 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <boost/mpl/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
-
 #include <gtest/gtest.h>
 
 
@@ -17,17 +14,21 @@ auto make_13 = [](auto & context) { return 13; };
 
 
 auto const first_param_to_val = [](auto & context) {
-    using namespace boost::hana::literals;
-    _val(context) = _params(context)[0_c];
+    using namespace boost::parser::literals;
+    _val(context) = get(_params(context), 0_c);
 };
 auto const second_param_to_val = [](auto & context) {
-    using namespace boost::hana::literals;
-    _val(context) = _params(context)[1_c];
+    using namespace boost::parser::literals;
+    _val(context) = get(_params(context), 1_c);
 };
 constexpr rule<struct action_param_tag, int> action_param = "abc or def";
 constexpr auto action_param_def =
     string("abc")[first_param_to_val] | string("def")[second_param_to_val];
+#if BOOST_PARSER_USE_BOOST
 BOOST_PARSER_DEFINE_RULES(action_param);
+#else
+BOOST_PARSER_DEFINE_RULE(action_param);
+#endif
 
 TEST(parser, val_attr)
 {

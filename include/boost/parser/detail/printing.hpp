@@ -2,10 +2,11 @@
 #define BOOST_PARSER_DETAIL_PRINTING_HPP
 
 #include <boost/parser/parser_fwd.hpp>
+#include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/detection.hpp>
+#include <boost/parser/detail/hl.hpp>
 
-#include <boost/hana.hpp>
-#include <boost/text/transcode_view.hpp>
+#include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iomanip>
 #include <iostream>
@@ -96,6 +97,15 @@ namespace boost { namespace parser { namespace detail {
         raw_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
+
+#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        string_view_parser<Parser> const & parser,
+        std::ostream & os,
+        int components = 0);
+#endif
 
     template<typename Context, typename Parser>
     void print_parser(
@@ -444,7 +454,7 @@ namespace boost { namespace parser { namespace detail {
     };
 
     template<typename... T>
-    inline void print(std::ostream & os, hana::tuple<T...> const & attr);
+    inline void print(std::ostream & os, tuple<T...> const & attr);
 
     template<typename... T>
     inline void print(std::ostream & os, std::variant<T...> const & attr);
@@ -456,11 +466,11 @@ namespace boost { namespace parser { namespace detail {
     inline void print(std::ostream & os, Attribute const & attr);
 
     template<typename... T>
-    inline void print(std::ostream & os, hana::tuple<T...> const & attr)
+    inline void print(std::ostream & os, tuple<T...> const & attr)
     {
         os << "(";
         bool first = false;
-        hana::for_each(attr, [&](auto const & a) {
+        hl::for_each(attr, [&](auto const & a) {
             if (first)
                 os << ", ";
             detail::print(os, a);

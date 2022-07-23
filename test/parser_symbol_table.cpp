@@ -5,9 +5,6 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <boost/mpl/assert.hpp>
-#include <boost/type_traits/is_same.hpp>
-
 #include <gtest/gtest.h>
 
 
@@ -140,9 +137,9 @@ TEST(parser, symbols_mutating)
     symbols<int> roman_numerals;
     roman_numerals.add("I", 1)("V", 5)("X", 10);
     auto const add_numeral = [&roman_numerals](auto & context) {
-        using namespace boost::hana::literals;
-        char chars[2] = {_attr(context)[0_c], 0};
-        roman_numerals.insert(context, chars, _attr(context)[1_c]);
+        using namespace boost::parser::literals;
+        char chars[2] = {get(_attr(context), 0_c), 0};
+        roman_numerals.insert(context, chars, get(_attr(context), 1_c));
     };
     auto const numerals_parser = (char_ >> int_)[add_numeral] >> roman_numerals;
 

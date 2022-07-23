@@ -13,6 +13,7 @@
 #include <boost/container/small_vector.hpp>
 
 #include <fstream>
+#include <climits>
 
 
 namespace json {
@@ -73,7 +74,7 @@ namespace json {
     bp::rule<class null, value> const null = "null";
     bp::rule<class string, std::string> const string = "string";
     bp::rule<class number, double> const number = "number";
-    bp::rule<class object_element, boost::hana::tuple<std::string, value>> const
+    bp::rule<class object_element, boost::parser::tuple<std::string, value>> const
         object_element = "object-element";
     bp::rule<class object_tag, value> const object_p = "object";
     bp::rule<class array_tag, value> const array_p = "array";
@@ -103,7 +104,6 @@ namespace json {
     // json::value x, we need to call get<object>(x) to get the object
     // interface.
     auto object_insert = [](auto & ctx) {
-        using namespace boost::hana::literals;
         value & v = _val(ctx);
         get<object>(v).insert(std::make_pair(
             std::move(_attr(ctx))[0_c], std::move(_attr(ctx)[1_c])));
@@ -127,7 +127,7 @@ namespace json {
     auto first_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::high_surrogate(cu))
+        if (!boost::parser::detail::text::high_surrogate(cu))
             _pass(ctx) = false; // Not a high surrogate; explicitly fail the parse.
         else
             locals.first_surrogate = cu; // Save this initial code unit for later.
@@ -138,7 +138,7 @@ namespace json {
     auto second_hex_escape = [](auto & ctx) {
         auto & locals = _locals(ctx);
         uint32_t const cu = _attr(ctx);
-        if (!boost::text::low_surrogate(cu)) {
+        if (!boost::parser::detail::text::low_surrogate(cu)) {
             _pass(ctx) = false; // Not a low surrogate; explicitly fail the parse.
         } else {
             // Success!  Write to the rule's attribute the code point that the
@@ -279,7 +279,7 @@ namespace json {
         // Turn the input range into a UTF-32 range, so that we can be sure
         // that we fall into the Unicode-aware parsing path inside parse()
         // below.
-        auto const range = boost::text::as_utf32(str);
+        auto const range = boost::parser::detail::text::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)
@@ -328,7 +328,7 @@ std::string file_slurp(std::ifstream & ifs)
         char const c = ifs.get();
         retval += c;
     }
-    if (!retval.empty() && retval[retval.back() == -1])
+    if (!retval.empty() && retval.back() == -1)
         retval.pop_back();
     return retval;
 }
