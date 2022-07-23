@@ -659,13 +659,13 @@ Debug builds will assert when `_e_ | p` is encoutered. ]
 
 [section The Parsers And Their Uses]
 
-_Parser_ comes with all the parsers most parsing tasks will ever need.  (You
-can also write your own; we'll cover that later.)  Each one is a `constexpr`
-object, or a `constexpr` function.  Some of the non-functions are also
-callable, such as _ch_, which may be used directly, or with arguments, as in
-_ch_`('a', 'z')`.  Any parser that can be called, whether a function or
-callable object, will be called a /callable parser/ from now on.  Note that
-there are no nullary callable parsers; they each take one or more arguments.
+_Parser_ comes with all the parsers most parsing tasks will ever need.  Each
+one is a `constexpr` object, or a `constexpr` function.  Some of the
+non-functions are also callable, such as _ch_, which may be used directly, or
+with arguments, as in _ch_`('a', 'z')`.  Any parser that can be called,
+whether a function or callable object, will be called a /callable parser/ from
+now on.  Note that there are no nullary callable parsers; they each take one
+or more arguments.
 
 Each callable parser takes one or more /parse arguments/.  A parse argument
 may be a value or an invocable object that accepts a reference to the parse
@@ -2542,18 +2542,88 @@ trace, or parsing into attributes that allocate.
 
 [section Best Practices]
 
-TODO: Parse Unicode from the start.
+[heading Parse unicode from the start]
 
-TODO: Write rules, and test them in isolation.
+If you want to parse ASCII, using the Unicode parsing API will not actually
+cost you anything.  Your input will be parsed, `char` by `char`, and compared
+to values that are Unicode code points (which are `int`s or `unsigned int`s).
+One caveat is that there may be an extra branch on each char, if the input is
+UTF-8.  If your performance requirements can tolerate this, your life will be
+much easier if you just start with Unicode and stick with it.
 
-TODO: If your parser takes end-user input, give rules names that you would
-want an end-user to see.
+Starting with Unicode support and UTF-8 input will allow you to properly
+handle unexpected input, like non-ASCII languages (that's most of them), with
+no additional effort on your part.  For instance, matching whitespace is a
+little funky in the general (meanining Unicode) case, and only matching the
+ones in the ASCII range is an unnecessary limitation.
 
-TODO: Compile separately when you know the type of your input will not change.
+[heading Write rules, and test them in isolation]
 
-TODO: Have a simple test that you can run to find ill-formed-code-as-asserts.
+Treat rules as the unit of work in your parser.  Write a rule, test its
+corners, and then use it to build larger rules or parsers.  This allows you to
+get better coverage with less work, since exercising all the code paths of
+your rules, one by one, keeps the combinatorial number of paths through your
+code manageable.
+
+[heading Don't rely on the `boost::parser::ascii` parsers]
+
+These are broken for many use cases, because they use the implementations from
+the C library (e.g. `isalnum()`).  Those implementations do not work for
+non-ASCII values.  A general implementation of each of these is also difficult
+even in Unicode parsing, because the meaning of many of them is contextual.
+For example, whether a code point is lower case or not can depend on where it
+is within the text you're parsing, and can depend on the language you're
+parsing.  You're better off naming the specific code points or ranges of code
+points you want to match.  The `boost::parser::ascii` parsers are included for
+ASCII-only users, and for those porting parsers from Spirit.
+
+[heading If your parser takes end-user input, give rules names that you would want an end-user to see]
+
+A typical error message produced by _Parser_ will say something like,
+"Expected FOO here", where FOO is some rule or parser.  Give your rules names
+that will read well in error messages like this.  For instance, the JSON
+examples have these rules:
+
+    bp::rule<class escape_seq, uint32_t> const escape_seq =
+        "\\uXXXX hexidecimal escape sequence";
+    bp::rule<class escape_double_seq, uint32_t, double_escape_locals> const
+        escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+    bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
+        "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
+
+Some things to note:
+
+- `escape_seq` and `escape_double_seq` have the same name-string.  To an
+  end-user who is trying to figure out why their input failed to parse, it
+  doesn't matter which kind of result a parser rule gernerates.  They just
+  want to know how to fix their input.  For either rule, the fix is the same:
+  put a hexidecimal escape sequence there.
+
+- `single_escaped_char` has a terrible string "name".  However, it's not
+  really used as a name anywhere per se.  In error messages, it works nicely,
+  though.  The error will be "Expected '"', '\', '/', 'b', 'f', 'n', 'r', or
+  't' here", which is pretty helpful.
+
+[heading Compile separately when you know the type of your input will not change]
+
+If your input type will not change (for instance, if you always parse from a
+`std::string` and nothing else), you can use separate compilation to keep from
+recompiling your parsing code over and over in every translation unit that
+includes it.  For instance, in the JSON callback parser example, there is a
+call to `json::parse()`, which is a template.  However, the function template
+is always instantiated with the same parameter: `json_callbacks`, a type
+defined in the example.  It would be possible to remove the template parameter
+from `json::parse()`, forward declare `json_callbacks` and `json::parse()`,
+and define them in a different implementation file.
+
+[heading Have a simple test that you can run to find ill-formed-code-as-asserts]
+
 Most of these errors are found at parser construction time, so no actual
-parsing is even necessary.
+parsing is even necessary.  For instance, a test case might look like this:
+
+    TEST(my_parser_tests, my_rule_test) {
+        my_rule r;
+    }
 
 [endsect]
 

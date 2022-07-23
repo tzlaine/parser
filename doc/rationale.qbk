@@ -180,7 +180,7 @@ Some very familiar problems should be noted here:
 This is how we get genericity in attribute generation.  In the STL, we can use
 multiple types of container with the algorithms because iterators act as the
 glue that connects algorithms to containers.  With attribute generation, there
-are instead arbitrary types begin constructed and inserted into containers.
+are instead arbitrary types being constructed and inserted into containers.
 Allowing the insertion to happen on arbitrary types that model the `container`
 concept is what allows generic use of different containers.
 
