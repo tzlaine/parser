@@ -5,13 +5,13 @@
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
-<link rel="up" href="../../header/boost/parser/parser_fwd_hpp.html" title="Header &lt;boost/parser/parser_fwd.hpp&gt;">
+<link rel="up" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">
 <link rel="prev" href="repeat_parser.html" title="Struct template repeat_parser">
 <link rel="next" href="rule_parser.html" title="Struct template rule_parser">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="repeat_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_fwd_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parser.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="repeat_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parser.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="refentry">
 <a name="boost.parser.rule"></a><div class="titlepage"></div>
@@ -20,33 +20,34 @@
 <p>boost::parser::rule</p>
 </div>
 <h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
-<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/parser/parser_fwd_hpp.html" title="Header &lt;boost/parser/parser_fwd.hpp&gt;">boost/parser/parser_fwd.hpp</a>&gt;
+<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">boost/parser/parser.hpp</a>&gt;
 
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> TagType<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">,</span> <span class="keyword">typename</span> LocalState<span class="special">,</span> 
          <span class="keyword">typename</span> ParamsTuple<span class="special">&gt;</span> 
-<span class="keyword">struct</span> <a class="link" href="rule.html" title="Struct template rule">rule</a> <span class="special">{</span>
+<span class="keyword">struct</span> <a class="link" href="rule.html" title="Struct template rule">rule</a> <span class="special">:</span> <span class="keyword">public</span> boost::parser::parser_interface&lt; rule_parser&lt; false, TagType, Attribute, LocalState, ParamsTuple &gt; &gt;
+<span class="special">{</span>
   <span class="comment">// <a class="link" href="rule.html#boost.parser.ruleconstruct-copy-destruct">construct/copy/destruct</a></span>
-  <a class="link" href="rule.html#idm19366-bb"><span class="identifier">rule</span></a><span class="special">(</span><span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="rule.html#idm17950-bb"><span class="identifier">rule</span></a><span class="special">(</span><span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span><span class="special">)</span><span class="special">;</span>
 
-  <span class="comment">// <a class="link" href="rule.html#idm19355-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="rule.html#idm17939-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> Ts<span class="special">&gt;</span> 
-    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="rule.html#idm19356-bb"><span class="identifier">with</span></a><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span><span class="special">,</span> <span class="identifier">Ts</span> <span class="special">&amp;&amp;</span><span class="special">...</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="rule.html#idm17940-bb"><span class="identifier">with</span></a><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span><span class="special">,</span> <span class="identifier">Ts</span> <span class="special">&amp;&amp;</span><span class="special">...</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm30738"></a><h2>Description</h2>
+<a name="idm26925"></a><h2>Description</h2>
 <p>A type used to declare named parsing rules. The <code class="computeroutput">TagType</code> template parameter is used to associate a particular <code class="computeroutput">rule</code> with the <code class="computeroutput"><a class="link" href="rule_parser.html" title="Struct template rule_parser">rule_parser</a></code> used during parsing. </p>
 <div class="refsect2">
-<a name="idm30745"></a><h3>
+<a name="idm26932"></a><h3>
 <a name="boost.parser.ruleconstruct-copy-destruct"></a><code class="computeroutput">rule</code> 
         public
        construct/copy/destruct</h3>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm19366-bb"></a><span class="identifier">rule</span><span class="special">(</span><span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> name<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm17950-bb"></a><span class="identifier">rule</span><span class="special">(</span><span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> name<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
 </div>
 <div class="refsect2">
-<a name="idm30761"></a><h3>
-<a name="idm19355-bb"></a><code class="computeroutput">rule</code> public member functions</h3>
+<a name="idm26948"></a><h3>
+<a name="idm17939-bb"></a><code class="computeroutput">rule</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> T<span class="special">,</span> <span class="keyword">typename</span><span class="special">...</span> Ts<span class="special">&gt;</span> 
-  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm19356-bb"></a><span class="identifier">with</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> x<span class="special">,</span> <span class="identifier">Ts</span> <span class="special">&amp;&amp;</span><span class="special">...</span> xs<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li></ol></div>
+  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm17940-bb"></a><span class="identifier">with</span><span class="special">(</span><span class="identifier">T</span> <span class="special">&amp;&amp;</span> x<span class="special">,</span> <span class="identifier">Ts</span> <span class="special">&amp;&amp;</span><span class="special">...</span> xs<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li></ol></div>
 </div>
 </div>
 </div>
@@ -60,7 +61,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="repeat_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_fwd_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parser.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="repeat_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="rule_parser.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

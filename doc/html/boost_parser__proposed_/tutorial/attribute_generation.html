@@ -41,7 +41,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -189,7 +189,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm17266.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19512.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -443,7 +443,7 @@
         code path, all matching is code point based, and so the attribute type is
         the type used to represent code points. For typical uses, that type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>. All parsing of UTF-8 falls under
         this typical case. The only time the code point type will be something different
-        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> with a code point sequence
+        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> with a code point sequence
         whose element type is something besides <code class="computeroutput"><span class="identifier">uint32_t</span></code>.
         For example, when you parse plain <code class="computeroutput"><span class="keyword">char</span></code>s,
         meaning that the parsing is in the non-Unicode code path, the attribute of
@@ -462,7 +462,7 @@
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;));</span>
 </pre>
 <p>
-        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
+        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
         the input range's element type is:
       </p>
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="identifier">U</span><span class="string">"some text"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
@@ -736,7 +736,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm17215.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19461.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -748,7 +748,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm17215.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19461.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -850,12 +850,12 @@
       </p>
 <p>
         <code class="computeroutput"><span class="identifier">OP</span></code> attempts to apply a series
-        of rules, one at a time. The rules are noted as <code class="computeroutput"><span class="identifier">A</span>
-        <span class="special">&gt;&gt;</span> <span class="identifier">B</span>
-        <span class="special">-&gt;</span> <span class="identifier">C</span></code>,
-        where <code class="computeroutput"><span class="identifier">A</span></code> is the type of the
-        current attribute type, <code class="computeroutput"><span class="identifier">B</span></code>
-        is the type of the next attribute type, and <code class="computeroutput"><span class="identifier">C</span></code>
+        of rules, one at a time. The rules are noted as <code class="computeroutput"><span class="identifier">X</span>
+        <span class="special">&gt;&gt;</span> <span class="identifier">Y</span>
+        <span class="special">-&gt;</span> <span class="identifier">Z</span></code>,
+        where <code class="computeroutput"><span class="identifier">X</span></code> is the type of the
+        current attribute type, <code class="computeroutput"><span class="identifier">Y</span></code>
+        is the type of the next attribute type, and <code class="computeroutput"><span class="identifier">Z</span></code>
         is the new current attribute type. In these rules, <code class="computeroutput"><span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
         is a container of <code class="computeroutput"><span class="identifier">T</span></code>; <code class="computeroutput"><span class="identifier">none</span></code> is a special type that indicates that
         there is no attribute; <code class="computeroutput"><span class="identifier">T</span></code>
@@ -882,11 +882,11 @@
             <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span> <span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
-          </li>
-<li class="listitem">
             <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
             <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span> <span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
@@ -970,7 +970,7 @@
         and repetitions, as long as your favorite container is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>.
       </p>
 <p>
-        Another rule for sequence containers is that an value <code class="computeroutput"><span class="identifier">x</span></code>
+        Another rule for sequence containers is that a value <code class="computeroutput"><span class="identifier">x</span></code>
         and a container <code class="computeroutput"><span class="identifier">c</span></code> containing
         elements of <code class="computeroutput"><span class="identifier">x</span></code>'s type will
         form a single container. However, <code class="computeroutput"><span class="identifier">x</span></code>'s
@@ -984,7 +984,8 @@
         is therefor <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
       </p>
 <p>
-        Again, there are no special rules here.
+        Again, there are no special rules for combining values and containers. Every
+        combination results from an exact match.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.attribute_generation.h5"></a>
@@ -995,7 +996,7 @@
         In the table: <code class="computeroutput"><span class="identifier">a</span></code> is a semantic
         action; and <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="identifier">p1</span></code>, <code class="computeroutput"><span class="identifier">p2</span></code>,
         ... are parsers that generate attributes. Note that only <code class="computeroutput"><span class="special">&gt;&gt;</span></code>
-        is used here. <code class="computeroutput"><span class="special">&gt;</span></code> has the exact
+        is used here; <code class="computeroutput"><span class="special">&gt;</span></code> has the exact
         same attribute generation rules.
       </p>
 <div class="table">
@@ -1073,8 +1074,8 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/string.html" title="Function template string">string</a></code><code class="computeroutput"><span class="special">(</span><span class="string">"str"</span><span class="special">)</span> <span class="special">&gt;&gt;</span>
-                  </code><code class="computeroutput"><a class="link" href="../../boost/parser/cu.html" title="Global cu">cu</a></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/string.html" title="Function template string">string</a><span class="special">(</span><span class="string">"str"</span><span class="special">)</span> <span class="special">&gt;&gt;</span>
+                  <a class="link" href="../../boost/parser/cu.html" title="Global cu">cu</a></code>
                 </p>
               </td>
 <td>
@@ -1173,32 +1174,6 @@
 <td>
                 <p>
                   <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)&gt;</span></code>
-                </p>
-              </td>
-</tr>
-<tr>
-<td>
-                <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/string.html" title="Function template string">string</a><span class="special">(</span><span class="string">"str"</span><span class="special">)</span> <span class="special">&gt;&gt;</span>
-                  <a class="link" href="../../boost/parser/cu.html" title="Global cu">cu</a></code>
-                </p>
-              </td>
-<td>
-                <p>
-                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
-                </p>
-              </td>
-</tr>
-<tr>
-<td>
-                <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/cu.html" title="Global cu">cu</a>
-                  <span class="special">&gt;&gt;</span> <a class="link" href="../../boost/parser/string.html" title="Function template string">string</a><span class="special">(</span><span class="string">"str"</span><span class="special">)</span></code>
-                </p>
-              </td>
-<td>
-                <p>
-                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
                 </p>
               </td>
 </tr>

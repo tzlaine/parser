@@ -51,17 +51,17 @@
 <p>
       </p>
 <p>
-        That message is formatted like the diagnostics produced by Clang and GCC:
-        it quotes the line on which the failure occurred, and even puts a caret under
+        That message is formatted like the diagnostics produced by Clang and GCC.
+        It quotes the line on which the failure occurred, and even puts a caret under
         the exact position at which the parse failed. This error message is suitable
         for many kinds of end-users, and interoperates well with anything that supports
         Clang and/or GCC diagnostics.
       </p>
 <p>
         Most of Boost.Parser's error handlers format their diagnostics this way,
-        though you are bound by that. You can make an error handler type that does
-        whatever you want, as long as it meets the error handler interface. See the
-        <code class="computeroutput">error_handler</code> in <a class="link" href="../concepts.html" title="Concepts">Concepts</a>
+        though you are not bound by that. You can make an error handler type that
+        does whatever you want, as long as it meets the error handler interface.
+        See <code class="computeroutput">error_handler</code> in <a class="link" href="../concepts.html" title="Concepts">Concepts</a>
         for details.
       </p>
 <p>
@@ -117,10 +117,11 @@
         Sometimes, during the writing of a parser, you make a simple mistake that
         is diagnosed horrifyingly, due to the high number of template instantiations
         between the line you just wrote and the point of use (usually, the call to
-        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>). By "sometimes",
-        I mean "almost always many, many times". Boost.Parser has a workaround
-        for situations like this. The workaround is to make the ill-formed code well-formed
-        in as many circumstances as possible, and then do a runtime assert instead.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>). By "sometimes",
+        I mean "almost always and many, many times". Boost.Parser has a
+        workaround for situations like this. The workaround is to make the ill-formed
+        code well-formed in as many circumstances as possible, and then do a runtime
+        assert instead.
       </p>
 <p>
         Usually, C++ programmers try whenever they can to catch mistakes as early
@@ -143,14 +144,14 @@
         nearly impossible to debug simply by looking at the parser's code. Stepping
         through the parse in a debugger is even worse. To provide a reasonable chance
         of debugging your parsers, Boost.Parser has a trace mode that you can turn
-        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
-        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm17784.html" title="Function template callback_parse">callback_parse()</a></code>:
+        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>
+        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20030.html" title="Function template callback_parse">callback_parse()</a></code>:
       </p>
 <pre class="programlisting">boost::parser::parse(input, parser, boost::parser::trace::on);
 </pre>
 <p>
-        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code>
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm17784.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
+        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20030.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
         which is defaulted to <code class="computeroutput">boost::parser::trace::off</code>.
       </p>
 <p>

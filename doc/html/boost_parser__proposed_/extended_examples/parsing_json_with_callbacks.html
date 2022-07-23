@@ -32,6 +32,7 @@
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">container</span><span class="special">/</span><span class="identifier">small_vector</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">fstream</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">climits</span><span class="special">&gt;</span>
 
 
 <span class="keyword">namespace</span> <span class="identifier">json</span> <span class="special">{</span>
@@ -84,7 +85,7 @@
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">callback_rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">string_tag</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">string</span> <span class="special">=</span> <span class="string">"string"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">callback_rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">number_tag</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">number</span> <span class="special">=</span> <span class="string">"number"</span><span class="special">;</span>
 
-    <span class="comment">// objet_element is broken up into the key (object_element_key) and the</span>
+    <span class="comment">// object_element is broken up into the key (object_element_key) and the</span>
     <span class="comment">// whole thing (object_element).  This was done because the value after</span>
     <span class="comment">// the ':' may have many parts.  It may be an array, for example.  This</span>
     <span class="comment">// implies that we need to report that we have the string part of the</span>
@@ -128,7 +129,7 @@
     <span class="keyword">auto</span> <span class="identifier">first_hex_escape</span> <span class="special">=</span> <span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
         <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">locals</span> <span class="special">=</span> <span class="identifier">_locals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span>
         <span class="identifier">uint32_t</span> <span class="keyword">const</span> <span class="identifier">cu</span> <span class="special">=</span> <span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span>
-        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">high_surrogate</span><span class="special">(</span><span class="identifier">cu</span><span class="special">))</span>
+        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">high_surrogate</span><span class="special">(</span><span class="identifier">cu</span><span class="special">))</span>
             <span class="identifier">_pass</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
         <span class="keyword">else</span>
             <span class="identifier">locals</span><span class="special">.</span><span class="identifier">first_surrogate</span> <span class="special">=</span> <span class="identifier">cu</span><span class="special">;</span>
@@ -136,7 +137,7 @@
     <span class="keyword">auto</span> <span class="identifier">second_hex_escape</span> <span class="special">=</span> <span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
         <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">locals</span> <span class="special">=</span> <span class="identifier">_locals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span>
         <span class="identifier">uint32_t</span> <span class="keyword">const</span> <span class="identifier">cu</span> <span class="special">=</span> <span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span>
-        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">low_surrogate</span><span class="special">(</span><span class="identifier">cu</span><span class="special">))</span> <span class="special">{</span>
+        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">low_surrogate</span><span class="special">(</span><span class="identifier">cu</span><span class="special">))</span> <span class="special">{</span>
             <span class="identifier">_pass</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
         <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
             <span class="identifier">uint32_t</span> <span class="keyword">const</span> <span class="identifier">high_surrogate_min</span> <span class="special">=</span> <span class="number">0xd800</span><span class="special">;</span>
@@ -259,7 +260,7 @@
         <span class="identifier">Callbacks</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">callbacks</span><span class="special">,</span>
         <span class="keyword">int</span> <span class="identifier">max_recursion</span> <span class="special">=</span> <span class="number">512</span><span class="special">)</span>
     <span class="special">{</span>
-        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">range</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
+        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">range</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
         <span class="keyword">using</span> <span class="identifier">iter_t</span> <span class="special">=</span> <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">range</span><span class="special">.</span><span class="identifier">begin</span><span class="special">());</span>
 
         <span class="keyword">if</span> <span class="special">(</span><span class="identifier">max_recursion</span> <span class="special">&lt;=</span> <span class="number">0</span><span class="special">)</span>
@@ -302,7 +303,7 @@
         <span class="keyword">char</span> <span class="keyword">const</span> <span class="identifier">c</span> <span class="special">=</span> <span class="identifier">ifs</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
         <span class="identifier">retval</span> <span class="special">+=</span> <span class="identifier">c</span><span class="special">;</span>
     <span class="special">}</span>
-    <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">retval</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="identifier">retval</span><span class="special">[</span><span class="identifier">retval</span><span class="special">.</span><span class="identifier">back</span><span class="special">()</span> <span class="special">==</span> <span class="special">-</span><span class="number">1</span><span class="special">])</span>
+    <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">retval</span><span class="special">.</span><span class="identifier">empty</span><span class="special">()</span> <span class="special">&amp;&amp;</span> <span class="identifier">retval</span><span class="special">.</span><span class="identifier">back</span><span class="special">()</span> <span class="special">==</span> <span class="special">-</span><span class="number">1</span><span class="special">)</span>
         <span class="identifier">retval</span><span class="special">.</span><span class="identifier">pop_back</span><span class="special">();</span>
     <span class="keyword">return</span> <span class="identifier">retval</span><span class="special">;</span>
 <span class="special">}</span>
@@ -332,7 +333,6 @@
     <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">json</span><span class="special">::</span><span class="identifier">object_element_key_tag</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">key</span><span class="special">)</span> <span class="keyword">const</span>
     <span class="special">{</span>
         <span class="identifier">indent</span><span class="special">();</span>
-        <span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">literals</span><span class="special">;</span>
         <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"JSON object element with key \""</span> <span class="special">&lt;&lt;</span> <span class="identifier">key</span>
                   <span class="special">&lt;&lt;</span> <span class="string">"\" and value...\n"</span><span class="special">;</span>
     <span class="special">}</span>

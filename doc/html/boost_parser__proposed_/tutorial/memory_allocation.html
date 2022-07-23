@@ -24,13 +24,12 @@
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
             <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code>
-            allocates memory to contain each symbol it matches, and the attribute
-            value associated with each symbol. If symbols are added during the parse,
-            allocations must also occur then.
+            allocates memory for the symbol/attribute pairs it contains. If symbols
+            are added during the parse, allocations must also occur then.
           </li>
 <li class="listitem">
             The error handlers that can take a file name allocate memory for the
-            file name if one is provided.
+            file name, if one is provided.
           </li>
 <li class="listitem">
             If trace is turned on by passing <code class="computeroutput">boost::parser::trace::on</code>
@@ -47,7 +46,7 @@
             type for the attribute that does not allocate.
           </li>
 <li class="listitem">
-            The attribute for <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm17215.html" title="Function template repeat">repeat</a>(p)</code> in
+            The attribute for <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19461.html" title="Function template repeat">repeat</a>(p)</code> in
             all its forms, including <code class="computeroutput">operator*()</code>, <code class="computeroutput">operator+()</code>,
             and <code class="computeroutput">operator%()</code>, is <code class="computeroutput">std::vector&lt;<span class="emphasis"><em><code class="literal">ATTR</code></em></span>(p)&gt;</code>,the
             use of which implies allocation. You can avoid this allocation by explicitly

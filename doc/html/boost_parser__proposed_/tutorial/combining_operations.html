@@ -213,8 +213,8 @@
               </td>
 <td>
                 <p>
-                  Matches only iff <code class="computeroutput"><span class="identifier">p1</span></code>
-                  matches, and then <code class="computeroutput"><span class="identifier">p2</span></code>
+                  Matches iff <code class="computeroutput"><span class="identifier">p1</span></code>
+                  matches and then <code class="computeroutput"><span class="identifier">p2</span></code>
                   matches.
                 </p>
               </td>
@@ -290,8 +290,8 @@
               </td>
 <td>
                 <p>
-                  Matches only iff <code class="computeroutput"><span class="identifier">p1</span></code>
-                  matches, and then <code class="computeroutput"><span class="identifier">p2</span></code>
+                  Matches iff <code class="computeroutput"><span class="identifier">p1</span></code>
+                  matches and then <code class="computeroutput"><span class="identifier">p2</span></code>
                   matches. No back-tracking is allowed after <code class="computeroutput"><span class="identifier">p1</span></code>
                   matches; if <code class="computeroutput"><span class="identifier">p1</span></code>
                   matches but then <code class="computeroutput"><span class="identifier">p2</span></code>
@@ -370,7 +370,7 @@
               </td>
 <td>
                 <p>
-                  Matches only iff either <code class="computeroutput"><span class="identifier">p1</span></code>
+                  Matches iff either <code class="computeroutput"><span class="identifier">p1</span></code>
                   matches or <code class="computeroutput"><span class="identifier">p2</span></code> matches.
                 </p>
               </td>
@@ -589,8 +589,8 @@
       </p>
 <p>
         First, the zero-or-more and one-or-more repetitions (<code class="computeroutput"><span class="keyword">operator</span><span class="special">*()</span></code> and <code class="computeroutput"><span class="keyword">operator</span><span class="special">+()</span></code>, respectively) may collapse when combined.
-        For any parser <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="special">++</span><span class="identifier">p</span></code> collapses
-        to <code class="computeroutput"><span class="special">+</span><span class="identifier">p</span></code>;
+        For any parser <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="special">+(+</span><span class="identifier">p</span><span class="special">)</span></code>
+        collapses to <code class="computeroutput"><span class="special">+</span><span class="identifier">p</span></code>;
         <code class="computeroutput"><span class="special">**</span><span class="identifier">p</span></code>,
         <code class="computeroutput"><span class="special">*+</span><span class="identifier">p</span></code>,
         and <code class="computeroutput"><span class="special">+*</span><span class="identifier">p</span></code>

@@ -22,7 +22,7 @@
       </p>
 <p>
         A <span class="emphasis"><em>semantic action</em></span> is an arbitrary bit of logic associated
-        with a parser, that is only executed when the parser succeeds.
+        with a parser, that is only executed when the parser matches.
       </p>
 <p>
         Simpler parsers can be combined to form more complex parsers. Given some
@@ -68,7 +68,7 @@
         The <span class="emphasis"><em>top-level parse</em></span> is the parse operation being performed
         by the top-level parser. This term is necessary because, though most parse
         failures are local to a particular parser, some parse failures cause the
-        call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse()</a></code> to indicate failure of the
+        call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> to indicate failure of the
         entire parse. For these cases, we say that such a local failure "causes
         the top-level parse to fail".
       </p>

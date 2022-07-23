@@ -6,12 +6,12 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
 <link rel="up" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">
-<link rel="prev" href="repeat_directive.html" title="Struct template repeat_directive">
-<link rel="next" href="symbols.html" title="Struct template symbols">
+<link rel="prev" href="seq_parser.html" title="Struct template seq_parser">
+<link rel="next" href="skip_parser.html" title="Struct template skip_parser">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="repeat_directive.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="symbols.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="seq_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="skip_parser.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="refentry">
 <a name="boost.parser.skip_directive"></a><div class="titlepage"></div>
@@ -25,28 +25,28 @@
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> SkipParser <span class="special">=</span> detail::nope<span class="special">&gt;</span> 
 <span class="keyword">struct</span> <a class="link" href="skip_directive.html" title="Struct template skip_directive">skip_directive</a> <span class="special">{</span>
 
-  <span class="comment">// <a class="link" href="skip_directive.html#idm16482-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="skip_directive.html#idm18118-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> 
-    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="skip_directive.html#idm16483-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="skip_directive.html#idm18119-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> SkipParser2<span class="special">&gt;</span> 
-    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="skip_directive.html#idm16490-bb"><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">SkipParser2</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="skip_directive.html#idm18126-bb"><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">SkipParser2</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="comment">// public data members</span>
   <span class="identifier">SkipParser</span> <span class="identifier">skip_parser_</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm21714"></a><h2>Description</h2>
+<a name="idm27570"></a><h2>Description</h2>
 <p>Represents a skip parser as a directive. When used without a skip parser, e.g. <code class="computeroutput">skip[parser_in_which_to_do_skipping]</code>, the skipper for the entire parse is used. When given another parser, e.g. <code class="computeroutput">skip(skip_parser)[parser_in_which_to_do_skipping]</code>, that other parser is used as the skipper within the directive. </p>
 <div class="refsect2">
-<a name="idm21719"></a><h3>
-<a name="idm16482-bb"></a><code class="computeroutput">skip_directive</code> public member functions</h3>
+<a name="idm27575"></a><h3>
+<a name="idm18118-bb"></a><code class="computeroutput">skip_directive</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> 
-  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm16483-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
+  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm18119-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li>
 <li class="listitem">
 <pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> SkipParser2<span class="special">&gt;</span> 
   <span class="keyword">constexpr</span> <span class="keyword">auto</span> 
-  <a name="idm16490-bb"></a><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">SkipParser2</span> <span class="special">&gt;</span> skip_parser<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre>
+  <a name="idm18126-bb"></a><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">SkipParser2</span> <span class="special">&gt;</span> skip_parser<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre>
 <p>Returns a <code class="computeroutput"><code class="computeroutput"><a class="link" href="skip_directive.html" title="Struct template skip_directive">skip_directive</a></code></code> with <code class="computeroutput"><code class="computeroutput"><a class="link" href="skip_parser.html" title="Struct template skip_parser">skip_parser</a></code></code> as its skipper. </p>
 </li>
 </ol></div>
@@ -63,7 +63,7 @@
 </tr></table>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="repeat_directive.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="symbols.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="seq_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="skip_parser.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

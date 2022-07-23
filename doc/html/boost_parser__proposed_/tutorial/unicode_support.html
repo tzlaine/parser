@@ -25,12 +25,10 @@
         two code paths for Unicode and non-Unicode parsing, the code is not very
         different in the two code paths, as they are written generically. The only
         difference is that the Unicode code path parses the input as a range of code
-        points, and the non-Unicode path does not. In effect, this means that when
-        you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span>
-        <span class="identifier">p</span><span class="special">)</span></code>
-        for some input range <code class="computeroutput"><span class="identifier">r</span></code> and
-        some parser <code class="computeroutput"><span class="identifier">p</span></code>, the parse
-        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm17532.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">r</span><span class="special">),</span> <span class="identifier">p</span><span class="special">)</span></code> instead. (Of course, it does not matter
+        points, and the non-Unicode path does not. In effect, this means that, in
+        the Unicode code path, when you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code> for some input range <code class="computeroutput"><span class="identifier">r</span></code>
+        and some parser <code class="computeroutput"><span class="identifier">p</span></code>, the parse
+        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">r</span><span class="special">),</span> <span class="identifier">p</span><span class="special">)</span></code> instead. (Of course, it does not matter
         if <code class="computeroutput"><span class="identifier">r</span></code> is a null-terminated
         pointer, a proper range, or an iterator/sentinel pair; those all work fine
         with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">()</span></code>.)
@@ -39,7 +37,7 @@
         Matching "characters" within Boost.Parser's parsers is assumed
         to be a code point match. In the Unicode path there is a code point from
         the input that is matched to each <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code> parser. In the non-Unicode
-        path, the encoding is unknown, and still each element of the input is considered
+        path, the encoding is unknown, and so each element of the input is considered
         to be a whole "character" in the input encoding, analogous to a
         code point. From this point on, I will therefore refer to a single element
         of the input exclusively as a code point.
@@ -65,8 +63,8 @@
       </p>
 <p>
         So, at any point during the parse, if <code class="computeroutput"><span class="identifier">char8_parser</span></code>
-        were being used to match a code point from the input <code class="computeroutput"><span class="identifier">next_cp</span></code>,
-        we would see the moral equivalent of <code class="computeroutput"><span class="identifier">next_cp</span>
+        were being used to match a code point <code class="computeroutput"><span class="identifier">next_cp</span></code>
+        from the input, we would see the moral equivalent of <code class="computeroutput"><span class="identifier">next_cp</span>
         <span class="special">==</span> <span class="char">'\xcc'</span></code>,
         and if <code class="computeroutput"><span class="identifier">char32_parser</span></code> were
         being used to match <code class="computeroutput"><span class="identifier">next_cp</span></code>,
@@ -85,7 +83,7 @@
 <tr><td align="left" valign="top"><p>
           Boost.Parser actually promotes any two values to a common type using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type</span></code> before comparing them. This
           is almost always works because the input and any parameter passed to <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>
-          must me integral types. You're on your own if you want to use some non-builtin
+          must be integral types. You're on your own if you want to use some non-builtin
           type <code class="computeroutput"><span class="identifier">I</span></code> that models <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">integral</span></code> but that breaks when Boost.Parser
           tries to find its common type with <code class="computeroutput"><span class="keyword">char</span></code>s,
           <code class="computeroutput"><span class="identifier">uint32_t</span></code>'s, etc.
@@ -142,7 +140,7 @@
         <code class="computeroutput"><span class="identifier">C</span></code>. This means that <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
         <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">u8string</span></code>, etc. are fine to use as attribute
         out-parameters for <code class="computeroutput"><span class="special">*</span><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>, and the result
-        will be UTF-8. This is true whether the parsing is Unicode-aware or not.
+        will be UTF-8.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -158,7 +156,8 @@
 <p>
         The treatment of strings as UTF-8 is ubiquitous within Boost.Parser. For
         instance, though the entire interface of <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
-        or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span></code>, UTF-32 strings are used internally.
+        or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span></code>, UTF-32 comparisons are used
+        internally.
       </p>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
