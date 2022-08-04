@@ -6429,10 +6429,10 @@ namespace boost { namespace parser {
     struct is_char8_iter
         : std::integral_constant<
               bool,
-              (std::is_integral_v<detail::detected_t<detail::value_type_, T>> &&
+              (std::is_integral_v<detail::detected_t<detail::text::detail::value_type_, T>> &&
                std::is_same_v<
                    detail::remove_cv_ref_t<
-                       detail::detected_t<detail::value_type_, T>>,
+                       detail::detected_t<detail::text::detail::value_type_, T>>,
                    char8_t>)>
     {};
 
