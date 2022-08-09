@@ -13,7 +13,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(-g -Wall)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL MSVC)
-    add_definitions(/Zi /Wall /permissive- /Zc:__cplusplus)
+    message("-- compiler is MSVC")
+	add_compile_options(/Zi /Wall /permissive- /Zc:__cplusplus)
 endif ()
 
 ##################################################
