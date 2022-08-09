@@ -370,7 +370,7 @@ namespace boost::parser::detail { namespace text {
                    boost::parser::detail::text::continuation(*--retval)) {
                 ++backup;
             }
-            backup = std::distance(retval, it);
+            backup = static_cast<decltype(backup)>(std::distance(retval, it));
 
             if (boost::parser::detail::text::continuation(*retval)) {
                 if (it != first)
@@ -383,7 +383,7 @@ namespace boost::parser::detail { namespace text {
                 ++*first_invalid;
             while (first_invalid &&
                    std::distance(retval, *first_invalid) < backup) {
-                backup -= std::distance(retval, *first_invalid);
+                backup -= static_cast<decltype(backup)>(std::distance(retval, *first_invalid));
                 retval = *first_invalid;
                 first_invalid = end_of_invalid_utf8(retval);
                 if (first_invalid == retval)
@@ -2730,7 +2730,7 @@ namespace boost::parser::detail { namespace text {
                 BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
                 decrement();
                 auto out = read_into_buf();
-                index_ = out - buf_.data() - 1;
+                index_ = static_cast<decltype(index_)>(out - buf_.data() - 1);
             }
             return *this;
         }
