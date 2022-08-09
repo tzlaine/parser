@@ -1,35 +1,43 @@
 environment:
   matrix:
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-     GENERATOR: "Visual Studio 16 2019 -A Win64"
+     GENERATOR: "Visual Studio 16 2019"
+     ARCHITECTURE: x64
      CONFIG: Debug
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-     GENERATOR: "Visual Studio 16 2019 -A Win64"
+     GENERATOR: "Visual Studio 16 2019"
+     ARCHITECTURE: x64
      CONFIG: Release
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-     GENERATOR: "Visual Studio 16 2019 -A Win32"
+     GENERATOR: "Visual Studio 16 2019"
+     ARCHITECTURE: Win32
      CONFIG: Debug
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-     GENERATOR: "Visual Studio 16 2019 -A Win32"
+     GENERATOR: "Visual Studio 16 2019"
+     ARCHITECTURE: Win32
      CONFIG: Release
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-     GENERATOR: "Visual Studio 17 2022 -A Win64"
+     GENERATOR: "Visual Studio 17 2022"
+     ARCHITECTURE: x64
      CONFIG: Debug
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-     GENERATOR: "Visual Studio 17 2022 -A Win64"
+     GENERATOR: "Visual Studio 17 2022"
+     ARCHITECTURE: x64
      CONFIG: Release
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-     GENERATOR: "Visual Studio 17 2022 -A Win32"
+     GENERATOR: "Visual Studio 17 2022"
+     ARCHITECTURE: Win32
      CONFIG: Debug
 
    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-     GENERATOR: "Visual Studio 17 2022 -A Win32"
+     GENERATOR: "Visual Studio 17 2022"
+     ARCHITECTURE: Win32
      CONFIG: Release
 
 matrix:
@@ -43,6 +51,6 @@ build_script:
  - cmd: cmake --version
  - cmd: mkdir build
  - cmd: cd build
- - cmd: cmake .. -DBOOST_ROOT=C:\Libraries\boost_1_66_0 -G"%GENERATOR%"
+ - cmd: cmake .. -DBOOST_ROOT=C:\Libraries\boost_1_66_0 -G"%GENERATOR%" -A "%ARCHITECTURE%"
  - cmd: cmake --build . --config %CONFIG%
  - cmd: cmake --build . --config %CONFIG% --target check
