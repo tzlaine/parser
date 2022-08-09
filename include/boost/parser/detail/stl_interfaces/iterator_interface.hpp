@@ -657,47 +657,47 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
       using difference_type = DifferenceType;
 
       constexpr decltype(auto) operator*()
-        requires requires { *access::base(derived()); } {
+        requires requires { *access::base(this->derived()); } {
           return *access::base(derived());
         }
       constexpr decltype(auto) operator*() const
-        requires requires { *access::base(derived()); } {
+        requires requires { *access::base(this->derived()); } {
           return *access::base(derived());
         }
 
       constexpr auto operator->()
-        requires requires { *derived(); } {
+        requires requires { *this->derived(); } {
           return detail::make_pointer<pointer>(*derived());
         }
       constexpr auto operator->() const
-        requires requires { *derived(); } {
+        requires requires { *this->derived(); } {
           return detail::make_pointer<pointer>(*derived());
         }
 
       constexpr decltype(auto) operator[](difference_type n) const
-        requires requires { derived() + n; } {
+        requires requires { this->derived() + n; } {
         D retval = derived();
         retval += n;
         return *retval;
       }
 
       constexpr decltype(auto) operator++()
-        requires requires { ++access::base(derived()); } &&
+        requires requires { ++access::base(this->derived()); } &&
           (!v2_dtl::plus_eq<decltype(derived()), difference_type>) {
             ++access::base(derived());
             return derived();
           }
       constexpr decltype(auto) operator++()
-        requires requires { derived() += difference_type(1); } {
+        requires requires { this->derived() += difference_type(1); } {
           return derived() += difference_type(1);
         }
-      constexpr auto operator++(int) requires requires { ++derived(); } {
+      constexpr auto operator++(int) requires requires { ++this->derived(); } {
         D retval = derived();
         ++derived();
         return retval;
       }
       constexpr decltype(auto) operator+=(difference_type n)
-        requires requires { access::base(derived()) += n; } {
+        requires requires { access::base(this->derived()) += n; } {
           access::base(derived()) += n;
           return derived();
         }
@@ -711,22 +711,22 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
         }
 
       constexpr decltype(auto) operator--()
-        requires requires { --access::base(derived()); } &&
+        requires requires { --access::base(this->derived()); } &&
           (!v2_dtl::plus_eq<decltype(derived()), difference_type>) {
             --access::base(derived());
             return derived();
           }
       constexpr decltype(auto) operator--()
-        requires requires { derived() += -difference_type(1); } {
+        requires requires { this->derived() += -difference_type(1); } {
           return derived() += -difference_type(1);
         }
-      constexpr auto operator--(int) requires requires { --derived(); } {
+      constexpr auto operator--(int) requires requires { --this->derived(); } {
         D retval = derived();
         --derived();
         return retval;
       }
       constexpr decltype(auto) operator-=(difference_type n)
-        requires requires { derived() += -n; } {
+        requires requires { this->derived() += -n; } {
           return derived() += -n;
         }
       friend constexpr auto operator-(D lhs, D rhs)
