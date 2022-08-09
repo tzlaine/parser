@@ -12,6 +12,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     add_definitions(-g -Wall)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(-g -Wall)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL MSVC)
+    add_definitions(/Zi /Wall /permissive- /Zc:__cplusplus)
 endif ()
 
 ##################################################
