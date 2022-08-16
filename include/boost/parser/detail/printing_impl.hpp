@@ -263,6 +263,39 @@ namespace boost { namespace parser { namespace detail {
     }
 #endif
 
+    template<typename Context, typename Parser, typename Manip>
+    void print_parser(
+        Context const & context,
+        input_manip_parser<Parser, Manip> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "input_manip", parser.parser_, os, components);
+    }
+
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        lower_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "lower_case", parser.parser_, os, components);
+    }
+
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        upper_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "upper_case", parser.parser_, os, components);
+    }
+
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,

@@ -683,6 +683,197 @@ TEST(parser, omit)
     }
 }
 
+TEST(parser, lower_case)
+{
+    {
+        constexpr auto parser = lower_case[*char_('z')];
+
+        {
+            std::string str = "";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "z";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "z");
+        }
+        {
+            std::string str = "zz";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "zz");
+        }
+        {
+            std::string str = "Z";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "z");
+        }
+        {
+            std::string str = "ZZ";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "zz");
+        }
+        {
+            std::string str = "zZ";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "zz");
+        }
+    }
+
+    {
+        constexpr auto parser = lower_case[*+char_('Z')];
+
+        {
+            std::string str = "z";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "Z";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+    }
+}
+
+TEST(parser, upper_case)
+{
+    {
+        constexpr auto parser = upper_case[*char_('Z')];
+
+        {
+            std::string str = "";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "z";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "Z");
+        }
+        {
+            std::string str = "zz";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "ZZ");
+        }
+        {
+            std::string str = "Z";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "Z");
+        }
+        {
+            std::string str = "ZZ";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "ZZ");
+        }
+        {
+            std::string str = "zZ";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "ZZ");
+        }
+    }
+
+    {
+        constexpr auto parser = upper_case[*+char_('z')];
+
+        {
+            std::string str = "z";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "Z";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+    }
+}
+
+TEST(parser, input_manip)
+{
+    {
+        struct x_for_u
+        {
+            constexpr auto operator()(auto val)
+            {
+                if (val == 'x') {
+                    val = 'u';
+                } else if (val == 'X') {
+                    val = 'U';
+                }
+                return val;
+            }
+        };
+
+        constexpr auto parser = input_manip<x_for_u>[string("the roman number U")];
+
+        {
+            std::string str = "the roman number X";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "the roman number U");
+        }
+        {
+            std::string str = "the roman number U";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "the roman number U");
+        }
+        {
+            std::string str = "the roman number u";
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "the roman number x";
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+    }
+    {
+
+        // x_for_u as lambda
+        constexpr auto parser = input_manip<
+            decltype(
+                [](auto val) {
+                    if (val == 'x') {
+                        val = 'u';
+                    } else if (val == 'X') {
+                        val = 'U';
+                    }
+                    return val;
+                }
+        )>[string("the roman number U")];
+
+        {
+            std::string str = "the roman number X";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "the roman number U");
+        }
+        {
+            std::string str = "the roman number U";
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "the roman number U");
+        }
+        {
+            std::string str = "the roman number u";
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "the roman number x";
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+    }
+}
+
 TEST(parser, repeat)
 {
     {

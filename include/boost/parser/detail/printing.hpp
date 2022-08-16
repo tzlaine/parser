@@ -107,6 +107,27 @@ namespace boost { namespace parser { namespace detail {
         int components = 0);
 #endif
 
+    template<typename Context, typename Parser, typename Manip>
+    void print_parser(
+        Context const & context,
+        input_manip_parser<Parser, Manip> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        lower_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        upper_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,

@@ -198,6 +198,27 @@ namespace boost { namespace parser {
     struct string_view_parser;
 #endif
 
+    /** Applies the given parser `p` of type `Parser`, applies 
+        `Manip{}.operator()` any parsed character. The parse succeeds
+        iff `p` succeeds.  The attribute produced is the type of attribute
+        produced by `Parser`. */
+    template<typename Parser, typename Manip>
+    struct input_manip_parser;
+
+    /** Applies the given parser `p` of type `Parser`, turns any parsed
+        character into lower-case using std::tolower. The parse succeeds
+        iff `p` succeeds.  The attribute produced is the type of attribute
+        produced by `Parser`. */
+    template<typename Parser>
+    struct lower_case_parser;
+
+    /** Applies the given parser `p` of type `Parser`, turns any parsed
+        character into lower-case using std::toupper. The parse succeeds
+        iff `p` succeeds.  The attribute produced is the type of attribute
+        produced by `Parser`. */
+    template<typename Parser>
+    struct upper_case_parser;
+
     /** Applies the given parser `p` of type `Parser`, disabling the current
         skipper in use, if any.  The parse succeeds iff `p` succeeds.  The
         attribute produced is the type of attribute produced by `Parser`. */
