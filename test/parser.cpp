@@ -810,7 +810,8 @@ TEST(parser, input_manip)
     {
         struct x_for_u
         {
-            constexpr auto operator()(auto val)
+            template<typename T>
+            constexpr auto operator()(T val)
             {
                 if (val == 'x') {
                     val = 'u';
