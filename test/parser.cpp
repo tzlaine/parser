@@ -835,8 +835,9 @@ TEST(parser, input_manip)
             EXPECT_EQ(chars, "");
         }
     }
-    {
 
+#if BOOST_CXX_VERSION >= 202002L
+    {
         // x_for_u as lambda
         constexpr auto parser = input_manip<
             decltype(
@@ -872,6 +873,7 @@ TEST(parser, input_manip)
             EXPECT_EQ(chars, "");
         }
     }
+#endif
 }
 
 TEST(parser, repeat)

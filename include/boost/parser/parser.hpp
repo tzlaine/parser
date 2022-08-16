@@ -3682,27 +3682,27 @@ namespace boost { namespace parser {
 
     namespace detail {
         template<typename I, typename Manip>
-        struct input_manip_iterator : stl_interfaces::iterator_interface<
-                                         input_manip_iterator<I, Manip>,
+        struct input_transform_iterator : stl_interfaces::iterator_interface<
+                                         input_transform_iterator<I, Manip>,
                                          std::random_access_iterator_tag,
                                          decltype(Manip{}(std::declval<typename I::value_type>())),
                                          decltype(Manip{}(std::declval<typename I::value_type>()))>
         {
-            constexpr input_manip_iterator() noexcept {}
+            constexpr input_transform_iterator() noexcept {}
 
-            input_manip_iterator(I it) noexcept : it_(it) {}
+            input_transform_iterator(I it) noexcept : it_(it) {}
 
             constexpr auto operator*() const noexcept
             {
                 return Manip{}(*it_);
             }
-            constexpr input_manip_iterator &
+            constexpr input_transform_iterator &
             operator+=(std::ptrdiff_t i) noexcept
             {
                 it_ += i;
                 return *this;
             }
-            constexpr auto operator-(input_manip_iterator other) const noexcept
+            constexpr auto operator-(input_transform_iterator other) const noexcept
             {
                 return it_ - other.it_;
             }
@@ -3711,26 +3711,26 @@ namespace boost { namespace parser {
             I it_{};
 
             template<typename I, typename Manip>
-            friend struct input_manip_iterator_update;
+            friend struct input_transform_iterator_update;
         };
 
 
         template<typename I, typename Manip>
-        struct input_manip_iterator_update
+        struct input_transform_iterator_update
         {
             I & it;
-            input_manip_iterator<I, Manip> & lc_it;
+            input_transform_iterator<I, Manip> & lc_it;
 
-            input_manip_iterator_update(I & it, input_manip_iterator<I, Manip> & lc_it) :
+            input_transform_iterator_update(I & it, input_transform_iterator<I, Manip> & lc_it) :
                 it{it}, lc_it{lc_it}
             {}
-            ~input_manip_iterator_update() { it = lc_it.it_; }
+            ~input_transform_iterator_update() { it = lc_it.it_; }
         };
 
     }
 
     template<typename Parser, typename Manip>
-    struct input_manip_parser
+    struct input_transform_parser
     {
         template<
             bool UseCallbacks,
@@ -3774,16 +3774,16 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            detail::input_manip_iterator<Iter, Manip> input_manip_first{first};
-            detail::input_manip_iterator<Sentinel, Manip> input_manip_last{last};
+            detail::input_transform_iterator<Iter, Manip> input_transform_first{first};
+            detail::input_transform_iterator<Sentinel, Manip> input_transform_last{last};
 
-            detail::input_manip_iterator_update input_manip_first_update{first, input_manip_first};
-            detail::input_manip_iterator_update input_manip_lasst_update{last, input_manip_last};
+            detail::input_transform_iterator_update input_transform_first_update{first, input_transform_first};
+            detail::input_transform_iterator_update input_transform_lasst_update{last, input_transform_last};
 
             parser_.call(
                 use_cbs,
-                input_manip_first,
-                input_manip_last,
+                input_transform_first,
+                input_transform_last,
                 context,
                 skip,
                 flags,
@@ -4944,31 +4944,40 @@ namespace boost { namespace parser {
     inline constexpr directive<string_view_parser> string_view;
 #endif
 
-    /** The `input_manip` directive, whose `operator[]` returns an
-        `parser_interface<input_manip_parser<P>>` from a given parser of type
+    /** The `input_transform` directive, whose `operator[]` returns an
+        `parser_interface<input_transform_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
 
     namespace detail {
         template<typename Manip>
-        struct make_input_manip_parser
+        struct make_input_transform_parser
         {
             template<typename Parser>
-            using type = input_manip_parser<Parser, Manip>;
+            using type = input_transform_parser<Parser, Manip>;
+        };
+
+        struct transform_to_lower
+        {
+            constexpr auto operator()(auto val) { return std::tolower(val); }
+        };
+        struct transform_to_upper
+        {
+            constexpr auto operator()(auto val) { return std::toupper(val); }
         };
     }
 
     template<typename Manip>
-    inline constexpr directive<typename detail::make_input_manip_parser<Manip>::type> input_manip;
+    inline constexpr directive<typename detail::make_input_transform_parser<Manip>::type> input_transform;
 
     /** The `lower_case` directive, whose `operator[]` returns an
         `parser_interface<lower_case_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
-    inline constexpr auto lower_case = input_manip<decltype([](auto&& v){ return std::tolower(v);})>;
+    inline constexpr auto lower_case = input_transform<detail::transform_to_lower>;
 
     /** The `upper_case` directive, whose `operator[]` returns an
         `parser_interface<upper_case_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
-    inline constexpr auto upper_case = input_manip<decltype([](auto&& v){ return std::toupper(v);})>;
+    inline constexpr auto upper_case = input_transform<detail::transform_to_upper>;
 
     /** The `lexeme` directive, whose `operator[]` returns an
         `parser_interface<lexeme_parser<P>>` from a given parser of type

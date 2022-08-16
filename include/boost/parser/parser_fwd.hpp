@@ -203,7 +203,7 @@ namespace boost { namespace parser {
         iff `p` succeeds.  The attribute produced is the type of attribute
         produced by `Parser`. */
     template<typename Parser, typename Manip>
-    struct input_manip_parser;
+    struct input_transform_parser;
 
     /** Applies the given parser `p` of type `Parser`, turns any parsed
         character into lower-case using std::tolower. The parse succeeds
