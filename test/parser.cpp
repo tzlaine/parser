@@ -696,26 +696,31 @@ TEST(parser, lower_case)
         }
         {
             std::string str = "z";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "z");
         }
         {
             std::string str = "zz";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "zz");
         }
         {
             std::string str = "Z";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "z");
         }
         {
             std::string str = "ZZ";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "zz");
         }
         {
             std::string str = "zZ";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "zz");
         }
@@ -752,26 +757,31 @@ TEST(parser, upper_case)
         }
         {
             std::string str = "z";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "Z");
         }
         {
             std::string str = "zz";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "ZZ");
         }
         {
             std::string str = "Z";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "Z");
         }
         {
             std::string str = "ZZ";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "ZZ");
         }
         {
             std::string str = "zZ";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "ZZ");
         }
@@ -821,16 +831,19 @@ TEST(parser, input_manip)
         }
         {
             std::string str = "the roman number U";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "the roman number U");
         }
         {
             std::string str = "the roman number u";
+            std::string chars;
             EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = "the roman number x";
+            std::string chars;
             EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
         }
@@ -859,16 +872,19 @@ TEST(parser, input_manip)
         }
         {
             std::string str = "the roman number U";
+            std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
             EXPECT_EQ(chars, "the roman number U");
         }
         {
             std::string str = "the roman number u";
+            std::string chars;
             EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
         }
         {
             std::string str = "the roman number x";
+            std::string chars;
             EXPECT_FALSE(parse(str, parser, chars));
             EXPECT_EQ(chars, "");
         }
