@@ -805,22 +805,24 @@ TEST(parser, upper_case)
     }
 }
 
+
+struct x_for_u
+{
+    template<typename T>
+    constexpr auto operator()(T val)
+    {
+        if (val == 'x') {
+            val = 'u';
+        } else if (val == 'X') {
+            val = 'U';
+        }
+        return val;
+    }
+};
+
 TEST(parser, input_manip)
 {
     {
-        struct x_for_u
-        {
-            template<typename T>
-            constexpr auto operator()(T val)
-            {
-                if (val == 'x') {
-                    val = 'u';
-                } else if (val == 'X') {
-                    val = 'U';
-                }
-                return val;
-            }
-        };
 
         constexpr auto parser = input_manip<x_for_u>[string("the roman number U")];
 
