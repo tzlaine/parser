@@ -4958,11 +4958,13 @@ namespace boost { namespace parser {
 
         struct transform_to_lower
         {
-            constexpr auto operator()(auto val) { return std::tolower(val); }
+            template<typename T>
+            constexpr auto operator()(T&& t) { return std::tolower(std::forward<T>(t)); }
         };
         struct transform_to_upper
         {
-            constexpr auto operator()(auto val) { return std::toupper(val); }
+            template<typename T>
+            constexpr auto operator()(T&& t) { return std::toupper(std::forward<T>(t)); }
         };
     }
 
