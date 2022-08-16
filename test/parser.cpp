@@ -820,11 +820,11 @@ struct x_for_u
     }
 };
 
-TEST(parser, input_manip)
+TEST(parser, input_transform)
 {
     {
 
-        constexpr auto parser = input_manip<x_for_u>[string("the roman number U")];
+        constexpr auto parser = input_transform<x_for_u>[string("the roman number U")];
 
         {
             std::string str = "the roman number X";
@@ -855,7 +855,7 @@ TEST(parser, input_manip)
 #if BOOST_CXX_VERSION >= 202002L
     {
         // x_for_u as lambda
-        constexpr auto parser = input_manip<
+        constexpr auto parser = input_transform<
             decltype(
                 [](auto val) {
                     if (val == 'x') {
