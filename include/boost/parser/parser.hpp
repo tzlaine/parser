@@ -3681,47 +3681,83 @@ namespace boost { namespace parser {
 #endif
 
     namespace detail {
-        template<typename I, typename Manip>
+        
+        // special type marking no_input_transform;
+
+        struct no_input_transform_transformation;
+
+
+#if !BOOST_PARSER_USE_CONCEPTS
+        template<typename, typename = void>
+        constexpr bool has_input_transform_iterator_tag_v = false;
+
+        template<typename T>
+        constexpr bool has_input_transform_iterator_tag_v<T, std::void_t<typename T::input_transform_iterator_tag>> = true;
+#endif
+
+
+        template<typename I, typename Transform>
         struct input_transform_iterator : stl_interfaces::iterator_interface<
-                                         input_transform_iterator<I, Manip>,
+                                         input_transform_iterator<I, Transform>,
                                          std::random_access_iterator_tag,
-                                         decltype(Manip{}(std::declval<typename I::value_type>())),
-                                         decltype(Manip{}(std::declval<typename I::value_type>()))>
+                                         decltype(Transform{}(std::declval<typename I::value_type>())),
+                                         decltype(Transform{}(std::declval<typename I::value_type>()))>
         {
+            using input_transform_iterator_tag = void;
+
             constexpr input_transform_iterator() noexcept {}
 
-            input_transform_iterator(I it) noexcept : it_(it) {}
+            constexpr input_transform_iterator(I it) noexcept : it_(it) {}
 
             constexpr auto operator*() const noexcept
             {
-                return Manip{}(*it_);
+                if constexpr (std::is_same_v<Transform, no_input_transform_transformation>) {
+                    return deref_it();
+                } else {
+                    return Transform{}(*it_);
+                }
             }
-            constexpr input_transform_iterator &
-            operator+=(std::ptrdiff_t i) noexcept
+
+            constexpr input_transform_iterator& operator+=(std::ptrdiff_t i) noexcept
             {
                 it_ += i;
                 return *this;
             }
+
             constexpr auto operator-(input_transform_iterator other) const noexcept
             {
                 return it_ - other.it_;
             }
 
+            constexpr auto deref_it() const noexcept
+            {
+#if BOOST_PARSER_USE_CONCEPTS
+                if constexpr (requires {typename I::input_transform_iterator_tag;}) {
+#else
+                if constexpr (has_input_transform_iterator_tag_v<I>) {
+#endif
+                    return it_.deref_it();
+                } else {
+                    return *it_;
+                }
+            }
+
+
         private:
             I it_{};
 
-            template<typename I, typename Manip>
+            template<typename I, typename Transform>
             friend struct input_transform_iterator_update;
         };
 
 
-        template<typename I, typename Manip>
+        template<typename I, typename Transform>
         struct input_transform_iterator_update
         {
             I & it;
-            input_transform_iterator<I, Manip> & lc_it;
+            input_transform_iterator<I, Transform> & lc_it;
 
-            input_transform_iterator_update(I & it, input_transform_iterator<I, Manip> & lc_it) :
+            input_transform_iterator_update(I & it, input_transform_iterator<I, Transform> & lc_it) :
                 it{it}, lc_it{lc_it}
             {}
             ~input_transform_iterator_update() { it = lc_it.it_; }
@@ -3729,7 +3765,7 @@ namespace boost { namespace parser {
 
     }
 
-    template<typename Parser, typename Manip>
+    template<typename Parser, typename Transform>
     struct input_transform_parser
     {
         template<
@@ -3774,14 +3810,16 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            detail::input_transform_iterator<Iter, Manip> input_transform_first{first};
-            detail::input_transform_iterator<Sentinel, Manip> input_transform_last{last};
+            detail::input_transform_iterator<Iter, Transform> input_transform_first{first};
+            detail::input_transform_iterator<Sentinel, Transform> input_transform_last{last};
 
             detail::input_transform_iterator_update input_transform_first_update{first, input_transform_first};
             detail::input_transform_iterator_update input_transform_lasst_update{last, input_transform_last};
 
             parser_.call(
                 use_cbs,
+                //first,
+                //last,
                 input_transform_first,
                 input_transform_last,
                 context,
@@ -4949,27 +4987,39 @@ namespace boost { namespace parser {
         `parser_interface<P>`. */
 
     namespace detail {
-        template<typename Manip>
+        template<typename Transform>
         struct make_input_transform_parser
         {
             template<typename Parser>
-            using type = input_transform_parser<Parser, Manip>;
+            using type = input_transform_parser<Parser, Transform>;
         };
 
         struct transform_to_lower
         {
             template<typename T>
-            constexpr auto operator()(T&& t) { return std::tolower(std::forward<T>(t)); }
+            constexpr T operator()(T t) const { return std::tolower(t); }
         };
         struct transform_to_upper
         {
             template<typename T>
-            constexpr auto operator()(T&& t) { return std::toupper(std::forward<T>(t)); }
+            constexpr T operator()(T t) const { return std::toupper(t); }
+        };
+
+        struct no_input_transform_transformation
+        {
+            // operator() is never called, but used to derive the value_type of the iterator
+            template<typename T>
+            constexpr T operator()(T t) const { return t; }  
         };
     }
 
-    template<typename Manip>
-    inline constexpr directive<typename detail::make_input_transform_parser<Manip>::type> input_transform;
+    template<typename Transform>
+    inline constexpr directive<typename detail::make_input_transform_parser<Transform>::type> input_transform;
+
+    /** The `lower_case` directive, whose `operator[]` returns an
+        `parser_interface<lower_case_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
+    inline constexpr auto no_input_transform = input_transform<detail::no_input_transform_transformation>;
 
     /** The `lower_case` directive, whose `operator[]` returns an
         `parser_interface<lower_case_parser<P>>` from a given parser of type

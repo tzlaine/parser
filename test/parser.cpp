@@ -809,12 +809,32 @@ TEST(parser, upper_case)
 struct x_for_u
 {
     template<typename T>
-    constexpr auto operator()(T val)
+    constexpr auto operator()(T val) const
     {
         if (val == 'x') {
             val = 'u';
         } else if (val == 'X') {
             val = 'U';
+        }
+        return val;
+    }
+};
+
+struct rot_13
+{
+    template<typename T>
+    constexpr auto operator()(T val) const
+    {
+        if (val >= 'A' && val <= 'Z') {
+            val += 13;
+            if (val > 'Z') {
+                val -= 26;
+            }
+        } else if (val >= 'a' && val <= 'z') {
+            val += 13;
+            if (val > 'z') {
+                val -= 26;
+            }
         }
         return val;
     }
@@ -893,6 +913,56 @@ TEST(parser, input_transform)
         }
     }
 #endif
+
+    {
+        constexpr auto parser =
+            input_transform<rot_13>[string("Hello ROT-13 world!")];
+
+        {
+            std::string str = "Uryyb EBG-13 jbeyq!";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "Hello ROT-13 world!");
+        }
+    }
+}
+
+TEST(parser, no_input_transform)
+{
+    {
+        constexpr auto parser = lower_case[char_('z') >> no_input_transform[char_('Z')]];
+
+        {
+            std::string str = "";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "ZZ";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "zZ");
+        }
+        {
+            std::string str = "zZ";
+            std::string chars;
+            EXPECT_TRUE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "zZ");
+        }
+        {
+            std::string str = "Zz";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+        {
+            std::string str = "zz";
+            std::string chars;
+            EXPECT_FALSE(parse(str, parser, chars));
+            EXPECT_EQ(chars, "");
+        }
+    }
 }
 
 TEST(parser, repeat)

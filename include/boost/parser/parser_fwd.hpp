@@ -199,11 +199,18 @@ namespace boost { namespace parser {
 #endif
 
     /** Applies the given parser `p` of type `Parser`, applies 
-        `Manip{}.operator()` any parsed character. The parse succeeds
+        `Transform{}.operator()` any parsed character. The parse succeeds
         iff `p` succeeds.  The attribute produced is the type of attribute
         produced by `Parser`. */
-    template<typename Parser, typename Manip>
+    template<typename Parser, typename Transform>
     struct input_transform_parser;
+
+    /** Applies the given parser `p` of type `Parser`, disables any
+        previously applied input-transformation. The parse succeeds
+        iff `p` succeeds.  The attribute produced is the type of attribute
+        produced by `Parser`. */
+    template<typename Parser>
+    struct no_input_transform_parser;
 
     /** Applies the given parser `p` of type `Parser`, turns any parsed
         character into lower-case using std::tolower. The parse succeeds
