@@ -826,14 +826,16 @@ struct rot_13
     constexpr auto operator()(T val) const
     {
         if (val >= 'A' && val <= 'Z') {
-            val += 13;
-            if (val > 'Z') {
-                val -= 26;
+            if (val > 'Z' - 13) {
+                val -= 13;
+            } else {
+                val += 13;
             }
         } else if (val >= 'a' && val <= 'z') {
-            val += 13;
-            if (val > 'z') {
-                val -= 26;
+            if (val > 'z' - 13) {
+                val -= 13;
+            } else {
+                val += 13;
             }
         }
         return val;
