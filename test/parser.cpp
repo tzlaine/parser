@@ -918,13 +918,13 @@ TEST(parser, input_transform)
 
     {
         constexpr auto parser =
-            input_transform<rot_13>[string("Hello ROT-13 world!")];
+            input_transform<rot_13>[string("Hello ROT-13 world! It's a rotate!")];
 
         {
-            std::string str = "Uryyb EBG-13 jbeyq!";
+            std::string str = "Uryyb EBG-13 jbeyq! Vg'f n ebgngr!";
             std::string chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "Hello ROT-13 world!");
+            EXPECT_EQ(chars, "Hello ROT-13 world! It's a rotate!");
         }
     }
 }
