@@ -17,6 +17,7 @@
 
 namespace boost::parser::detail { namespace stl_interfaces {
 
+
     /** A type for granting access to the private members of an iterator
         derived from `iterator_interface`. */
     struct access
@@ -318,9 +319,11 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
                 std::enable_if_t<!v1_dtl::plus_eq<D, difference_type>::value>>
         constexpr auto
         operator++() noexcept(noexcept(++access::base(std::declval<D &>())))
-            -> decltype(++access::base(std::declval<D &>()))
+            -> decltype(
+                ++access::base(std::declval<D &>()), std::declval<D &>())
         {
-            return ++access::base(derived());
+            ++access::base(derived());
+            return derived();
         }
 
         template<typename D = Derived>
@@ -348,9 +351,11 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
         template<typename D = Derived>
         constexpr auto operator+=(difference_type n) noexcept(
             noexcept(access::base(std::declval<D &>()) += n))
-            -> decltype(access::base(std::declval<D &>()) += n)
+            -> decltype(
+                access::base(std::declval<D &>()) += n, std::declval<D &>())
         {
-            return access::base(derived()) += n;
+            access::base(derived()) += n;
+            return derived();
         }
 
         template<typename D = Derived>
@@ -377,9 +382,10 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
                 std::enable_if_t<!v1_dtl::plus_eq<D, difference_type>::value>>
         constexpr auto
         operator--() noexcept(noexcept(--access::base(std::declval<D &>())))
-            -> decltype(--access::base(std::declval<D &>()))
+            -> decltype(--access::base(std::declval<D &>()), std::declval<D &>())
         {
-            return --access::base(derived());
+            --access::base(derived());
+            return derived();
         }
 
         template<typename D = Derived>
@@ -598,26 +604,39 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
         using iter_concept_t = typename iter_concept<Iterator>::type;
 
         template<typename D, typename DifferenceType>
-        // clang-format off
-        concept plus_eq = requires(D d) { d += DifferenceType(1); };
-        // clang-format on
+        concept plus_eq = requires(D d)
+        {
+            d += DifferenceType(1);
+        };
 
         template<typename D>
-        // clang-format off
-        concept base_3way =
-            requires(D d) { access::base(d) <=> access::base(d); };
-        // clang-format on
+        concept base_3way = requires(D d)
+        {
+            access::base(d) <=> access::base(d);
+        };
+
+        template<typename S, typename D>
+        concept sentinel_for_base = requires(S s, D d)
+        {
+            access::base(d) == s;
+        };
 
         template<typename D1, typename D2 = D1>
-        // clang-format off
-        concept base_eq =
-            requires (D1 d1, D2 d2) { access::base(d1) == access::base(d2); };
-        // clang-format on
+        concept base_eq = requires(D1 d1, D2 d2)
+        {
+            access::base(d1) == access::base(d2);
+        };
 
         template<typename D>
-        // clang-format off
-        concept sub = requires(D d) { d - d; };
-        // clang-format on
+        concept sub = requires(D d)
+        {
+            d - d;
+        };
+
+        template<typename T, typename U>
+        concept different_from =
+            !std::is_same<std::remove_cvref_t<T>, std::remove_cvref_t<U>>::
+                value;
     }
 
     // clang-format off
@@ -657,47 +676,47 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
       using difference_type = DifferenceType;
 
       constexpr decltype(auto) operator*()
-        requires requires { *access::base(derived()); } {
+        requires requires (D d) { *access::base(d); } {
           return *access::base(derived());
         }
       constexpr decltype(auto) operator*() const
-        requires requires { *access::base(derived()); } {
+        requires requires (D const d) { *access::base(d); } {
           return *access::base(derived());
         }
 
       constexpr auto operator->()
-        requires requires { *derived(); } {
+        requires requires (D d) { *d; } {
           return detail::make_pointer<pointer>(*derived());
         }
       constexpr auto operator->() const
-        requires requires { *derived(); } {
+        requires requires (D const d) { *d; } {
           return detail::make_pointer<pointer>(*derived());
         }
 
       constexpr decltype(auto) operator[](difference_type n) const
-        requires requires { derived() + n; } {
+        requires requires (D const d) { d + n; } {
         D retval = derived();
         retval += n;
         return *retval;
       }
 
       constexpr decltype(auto) operator++()
-        requires requires { ++access::base(derived()); } &&
-          (!v2_dtl::plus_eq<decltype(derived()), difference_type>) {
+        requires requires (D d) { ++access::base(d); } &&
+          (!v2_dtl::plus_eq<D, difference_type>) {
             ++access::base(derived());
             return derived();
           }
       constexpr decltype(auto) operator++()
-        requires requires { derived() += difference_type(1); } {
+        requires requires (D d) { d += difference_type(1); } {
           return derived() += difference_type(1);
         }
-      constexpr auto operator++(int) requires requires { ++derived(); } {
+      constexpr auto operator++(int) requires requires (D d) { ++d; } {
         D retval = derived();
         ++derived();
         return retval;
       }
       constexpr decltype(auto) operator+=(difference_type n)
-        requires requires { access::base(derived()) += n; } {
+        requires requires (D d) { access::base(d) += n; } {
           access::base(derived()) += n;
           return derived();
         }
@@ -711,22 +730,22 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
         }
 
       constexpr decltype(auto) operator--()
-        requires requires { --access::base(derived()); } &&
-          (!v2_dtl::plus_eq<decltype(derived()), difference_type>) {
+        requires requires (D d) { --access::base(d); } &&
+          (!v2_dtl::plus_eq<D, difference_type>) {
             --access::base(derived());
             return derived();
           }
       constexpr decltype(auto) operator--()
-        requires requires { derived() += -difference_type(1); } {
+        requires requires (D d) { d += -difference_type(1); } {
           return derived() += -difference_type(1);
         }
-      constexpr auto operator--(int) requires requires { --derived(); } {
+      constexpr auto operator--(int) requires requires (D d) { --d; } {
         D retval = derived();
         --derived();
         return retval;
       }
       constexpr decltype(auto) operator-=(difference_type n)
-        requires requires { derived() += -n; } {
+        requires requires (D d) { d += -n; } {
           return derived() += -n;
         }
       friend constexpr auto operator-(D lhs, D rhs)
@@ -738,41 +757,67 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
           return it += -n;
         }
 
-#if 0 // TODO: This appears to work, but as of this writing (and using GCC
-      // 10), op<=> is not yet being used to evaluate op==, op<, etc.
+      template<typename S>
+      friend constexpr bool operator==(D lhs, S rhs)
+          requires std::sentinel_for<S, D> || v2_dtl::sentinel_for_base<S, D> ||
+            v2_dtl::base_eq<S, D> {
+        if constexpr (std::sentinel_for<S, D>) {
+          return lhs == rhs;
+        } else if constexpr (v2_dtl::sentinel_for_base<S, D>) {
+          return access::base(lhs) == rhs;
+        } else {
+          return access::base(lhs) == access::base(rhs);
+        }
+      }
+
+#if BOOST_PARSER_USE_CXX20_EQUALITY_AND_COMPARISON
       friend constexpr std::strong_ordering operator<=>(D lhs, D rhs)
-        requires v2_dtl::base_3way<D> || v2_dtl::sub<D> {
-            if constexpr (requires { access::base(lhs) <=> access::base(rhs); }) {
-              return access::base(lhs) <=> access::base(rhs);
-            } else {
-              auto delta = lhs - rhs;
-              if (delta < 0)
-                  return std::strong_ordering::less;
-              if (0 < delta)
-                  return std::strong_ordering::greater;
-              return  std::strong_ordering::equal;
-            }
+        requires v2_dtl::sub<D> || v2_dtl::base_3way<D> {
+          if (v2_dtl::sub<D>) {
+            auto delta = lhs - rhs;
+            if (delta < 0)
+                return std::strong_ordering::less;
+            if (0 < delta)
+                return std::strong_ordering::greater;
+            return std::strong_ordering::equal;
+          } else {
+            return access::base(lhs) <=> access::base(rhs);
           }
+        }
 #else
+      template<different_from<D> D2>
+      friend constexpr bool operator==(D2 lhs, D rhs)
+          requires std::equality_comparable_with<D2, D> ||
+            v2_dtl::iterator_for_base<D2, D> || v2_dtl::base_eq<D2, D> {
+        if constexpr (std::equality_comparable_with<D2, D>) {
+          return lhs == rhs;
+        } else if constexpr (v2_dtl::sentinel_for_base<D, D2>) {
+          return (access::base(lhs) == rhs);
+        } else if constexpr (v2_dtl::base_eq<D, S>) {
+            return access::base(lhs) == access::base(rhs);
+        }
+      }
+
       friend constexpr bool operator<(D lhs, D rhs)
-        requires std::equality_comparable<D> {
+        requires v2_dtl::sub<D> {
           return (lhs - rhs) < typename D::difference_type(0);
         }
       friend constexpr bool operator<=(D lhs, D rhs)
-        requires std::equality_comparable<D> {
+        requires v2_dtl::sub<D> {
           return (lhs - rhs) <= typename D::difference_type(0);
         }
       friend constexpr bool operator>(D lhs, D rhs)
-        requires std::equality_comparable<D> {
+        requires v2_dtl::sub<D> {
           return (lhs - rhs) > typename D::difference_type(0);
         }
       friend constexpr bool operator>=(D lhs, D rhs)
-        requires std::equality_comparable<D> {
+        requires v2_dtl::sub<D> {
           return (lhs - rhs) >= typename D::difference_type(0);
         }
 #endif
     };
 
+#if 0 // TODO !BOOST_STL_INTERFACES_USE_CXX20_EQUALITY_AND_COMPARISON
     namespace v2_dtl {
         template<
             typename D,
@@ -809,6 +854,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
       constexpr auto operator!=(D1 lhs, D2 rhs) -> decltype(!(lhs == rhs))
         requires v2_dtl::derived_iter<D1> && v2_dtl::derived_iter<D2>
           { return !(lhs == rhs); }
+#endif
 
     // clang-format on
 
