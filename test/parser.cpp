@@ -69,7 +69,7 @@ TEST(parser, basic)
         EXPECT_FALSE(parse(str, char_));
         {
             auto first = str.c_str();
-            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, char_));
+            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, char_));
         }
         EXPECT_TRUE(parse(str, parser_1));
         EXPECT_FALSE(parse(str, parser_2));
@@ -87,7 +87,7 @@ TEST(parser, basic)
         EXPECT_FALSE(parse(str, parser_1));
         {
             auto first = str.c_str();
-            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, parser_1));
+            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_1));
         }
         EXPECT_TRUE(parse(str, parser_2));
     }
@@ -131,7 +131,7 @@ TEST(parser, basic)
         EXPECT_FALSE(parse(str, parser_5));
         {
             auto first = str.c_str();
-            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, parser_5));
+            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_5));
         }
     }
     {
@@ -149,7 +149,7 @@ TEST(parser, basic)
         std::string str = "z";
         std::optional<char> c;
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, parser_5, c));
+        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_5, c));
         EXPECT_EQ(c, std::nullopt);
     }
 }
@@ -205,7 +205,7 @@ TEST(parser, bool_)
         std::string str = "false ";
         bool b = true;
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, bool_, b));
+        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, bool_, b));
         EXPECT_EQ(b, false);
     }
     {
@@ -547,7 +547,7 @@ TEST(parser, star_as_string_or_vector)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser, chars));
+                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "");
             }
 
@@ -558,7 +558,7 @@ TEST(parser, star_as_string_or_vector)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser);
+                    parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "");
             }
@@ -608,7 +608,7 @@ TEST(parser, star_as_string_or_vector)
             std::vector<char> chars;
             auto first = str.c_str();
             EXPECT_TRUE(
-                parse(first, boost::parser::detail::text::null_sentinel{}, parser, chars));
+                parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
         }
         {
             std::string str = "zs";
@@ -670,7 +670,7 @@ TEST(parser, omit)
         {
             std::string str = "z";
             auto first = str.c_str();
-            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, parser));
+            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser));
         }
         {
             std::string str = "zs";
@@ -878,7 +878,7 @@ TEST(parser, delimited)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser, chars));
+                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "yay");
             }
 
@@ -889,7 +889,7 @@ TEST(parser, delimited)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser);
+                    parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -904,7 +904,7 @@ TEST(parser, delimited)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser, chars));
+                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "yay");
             }
 
@@ -915,7 +915,7 @@ TEST(parser, delimited)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel{}, parser);
+                    parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1040,7 +1040,7 @@ TEST(parser, delimited)
             auto first = str.c_str();
             EXPECT_TRUE(parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 parser,
                 char_(' '),
                 chars));
@@ -1057,7 +1057,7 @@ TEST(parser, delimited)
             auto first = str.c_str();
             EXPECT_TRUE(parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 parser,
                 char_(' '),
                 chars));
@@ -1073,7 +1073,7 @@ TEST(parser, delimited)
             std::string str = "yayyay";
             auto first = str.c_str();
             std::optional<std::string> const chars =
-                parse(first, boost::parser::detail::text::null_sentinel{}, parser, char_(' '));
+                parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
@@ -1088,7 +1088,7 @@ TEST(parser, delimited)
             auto first = str.c_str();
             EXPECT_TRUE(parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 parser,
                 char_(' '),
                 chars));
@@ -1104,7 +1104,7 @@ TEST(parser, delimited)
             std::string str = "yay,";
             auto first = str.c_str();
             std::optional<std::string> const chars =
-                parse(first, boost::parser::detail::text::null_sentinel{}, parser, char_(' '));
+                parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
@@ -1250,7 +1250,7 @@ TEST(parser, lexeme)
                 auto first = str.c_str();
                 EXPECT_TRUE(parse(
                     first,
-                    boost::parser::detail::text::null_sentinel{},
+                    boost::parser::detail::text::null_sentinel,
                     parser,
                     char_(' '),
                     chars));
@@ -1267,7 +1267,7 @@ TEST(parser, lexeme)
                 std::string str = "yay, yay, yay";
                 auto first = str.c_str();
                 std::optional<std::string> const chars = parse(
-                    first, boost::parser::detail::text::null_sentinel{}, parser, char_(' '));
+                    first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1283,7 +1283,7 @@ TEST(parser, lexeme)
                 auto first = str.c_str();
                 EXPECT_TRUE(parse(
                     first,
-                    boost::parser::detail::text::null_sentinel{},
+                    boost::parser::detail::text::null_sentinel,
                     parser,
                     char_(' '),
                     chars));
@@ -1300,7 +1300,7 @@ TEST(parser, lexeme)
                 std::string str = " yay, yay, yay";
                 auto first = str.c_str();
                 std::optional<std::string> const chars = parse(
-                    first, boost::parser::detail::text::null_sentinel{}, parser, char_(' '));
+                    first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1477,7 +1477,7 @@ TEST(parser, combined_seq_and_or)
         constexpr auto parser = &char_('a');
         std::string str = "a";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel{}, parser));
+        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser));
     }
 
     {

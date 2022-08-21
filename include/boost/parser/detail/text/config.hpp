@@ -21,4 +21,13 @@
 #    define BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 namespace v2
 #endif
 
+#if defined(__cpp_lib_ranges)
+namespace boost::parser::detail { namespace text { namespace detail {
+    inline constexpr auto begin = std::ranges::begin;
+    inline constexpr auto end = std::ranges::end;
+}}}
+#else
+#include <boost/parser/detail/text/detail/begin_end.hpp>
+#endif
+
 #endif

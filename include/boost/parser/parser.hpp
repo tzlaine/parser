@@ -1518,7 +1518,7 @@ namespace boost { namespace parser {
         constexpr auto make_char_range(R && r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return detail::make_char_range(r, text::null_sentinel{});
+                return detail::make_char_range(r, text::null_sentinel);
             } else {
                 return detail::make_char_range(r.begin(), r.end());
             }
@@ -2186,7 +2186,7 @@ namespace boost { namespace parser {
         {
             if constexpr (non_unicode_char_range_like<remove_cv_ref_t<R>>) {
                 if constexpr (utf8_pointer<remove_cv_ref_t<R>>) {
-                    return parser::make_view(r, text::null_sentinel{});
+                    return parser::make_view(r, text::null_sentinel);
                 } else if constexpr (std::is_array_v<remove_cv_ref_t<R>>) {
                     auto first = std::begin(r);
                     auto last = std::end(r);
@@ -2216,7 +2216,7 @@ namespace boost { namespace parser {
         constexpr auto make_view_end(R & r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return text::null_sentinel{};
+                return text::null_sentinel;
             } else {
                 return std::end(r);
             }

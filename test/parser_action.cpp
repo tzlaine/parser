@@ -82,7 +82,7 @@ TEST(parser, side_effects)
         EXPECT_EQ(i, 1);
         auto first = str.c_str();
         EXPECT_TRUE(parse(
-            first, boost::parser::detail::text::null_sentinel{}, char_('x')[increment_i]));
+            first, boost::parser::detail::text::null_sentinel, char_('x')[increment_i]));
         EXPECT_EQ(i, 2);
         EXPECT_FALSE(parse(str, char_('a')[increment_i]));
         EXPECT_EQ(i, 2);
@@ -90,7 +90,7 @@ TEST(parser, side_effects)
         EXPECT_EQ(i, 3);
         first = str.c_str();
         EXPECT_TRUE(parse(
-            first, boost::parser::detail::text::null_sentinel{}, char_('x')[increment_i]));
+            first, boost::parser::detail::text::null_sentinel, char_('x')[increment_i]));
         EXPECT_EQ(i, 4);
     }
 }

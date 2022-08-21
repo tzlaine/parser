@@ -6,6 +6,7 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 
+#include <boost/parser/detail/stl_interfaces/view_adaptor.hpp>
 #include <boost/parser/detail/text/transcode_algorithm.hpp>
 #include <boost/parser/detail/text/concepts.hpp>
 #include <boost/parser/detail/text/dangling.hpp>
@@ -20,31 +21,31 @@ namespace boost::parser::detail { namespace text {
 
         // UTF-8
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf8_range_(utf8_tag, Iter f, Sentinel l) noexcept
+        constexpr auto make_utf8_range_(utf8_tag, Iter f, Sentinel l)
         {
             return tagged_range<utf8_tag, Iter, Sentinel>{f, l};
         }
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf8_range_(utf16_tag, Iter f_, Sentinel l) noexcept
+        constexpr auto make_utf8_range_(utf16_tag, Iter f_, Sentinel l)
         {
             auto f = utf_16_to_8_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf8_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf8_range_(utf16_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf8_range_(utf16_tag, Iter f_, Iter l_)
         {
             auto f = utf_16_to_8_iterator<Iter>(f_, f_, l_);
             auto l = utf_16_to_8_iterator<Iter>(f_, l_, l_);
             return tagged_range<utf8_tag, decltype(f)>{f, l};
         }
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf8_range_(utf32_tag, Iter f_, Sentinel l) noexcept
+        constexpr auto make_utf8_range_(utf32_tag, Iter f_, Sentinel l)
         {
             auto f = utf_32_to_8_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf8_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf8_range_(utf32_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf8_range_(utf32_tag, Iter f_, Iter l_)
         {
             auto f = utf_32_to_8_iterator<Iter>(f_, f_, l_);
             auto l = utf_32_to_8_iterator<Iter>(f_, l_, l_);
@@ -53,32 +54,32 @@ namespace boost::parser::detail { namespace text {
 
         // UTF-16
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf16_range_(utf8_tag, Iter f_, Sentinel l) noexcept
+        constexpr auto make_utf16_range_(utf8_tag, Iter f_, Sentinel l)
         {
             auto f = utf_8_to_16_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf16_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf16_range_(utf8_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf16_range_(utf8_tag, Iter f_, Iter l_)
         {
             auto f = utf_8_to_16_iterator<Iter>(f_, f_, l_);
             auto l = utf_8_to_16_iterator<Iter>(f_, l_, l_);
             return tagged_range<utf16_tag, decltype(f)>{f, l};
         }
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf16_range_(utf16_tag, Iter f, Sentinel l) noexcept
+        constexpr auto make_utf16_range_(utf16_tag, Iter f, Sentinel l)
         {
             return tagged_range<utf16_tag, Iter, Sentinel>{f, l};
         }
         template<typename Iter, typename Sentinel>
         constexpr auto
-        make_utf16_range_(utf32_tag, Iter f_, Sentinel l) noexcept
+        make_utf16_range_(utf32_tag, Iter f_, Sentinel l)
         {
             auto f = utf_32_to_16_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf16_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf16_range_(utf32_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf16_range_(utf32_tag, Iter f_, Iter l_)
         {
             auto f = utf_32_to_16_iterator<Iter>(f_, f_, l_);
             auto l = utf_32_to_16_iterator<Iter>(f_, l_, l_);
@@ -87,13 +88,13 @@ namespace boost::parser::detail { namespace text {
 
         // UTF-32
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf32_range_(utf8_tag, Iter f_, Sentinel l) noexcept
+        constexpr auto make_utf32_range_(utf8_tag, Iter f_, Sentinel l)
         {
             auto f = utf_8_to_32_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf32_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf32_range_(utf8_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf32_range_(utf8_tag, Iter f_, Iter l_)
         {
             auto f = utf_8_to_32_iterator<Iter>(f_, f_, l_);
             auto l = utf_8_to_32_iterator<Iter>(f_, l_, l_);
@@ -101,48 +102,48 @@ namespace boost::parser::detail { namespace text {
         }
         template<typename Iter, typename Sentinel>
         constexpr auto
-        make_utf32_range_(utf16_tag, Iter f_, Sentinel l) noexcept
+        make_utf32_range_(utf16_tag, Iter f_, Sentinel l)
         {
             auto f = utf_16_to_32_iterator<Iter, Sentinel>(f_, f_, l);
             return tagged_range<utf32_tag, decltype(f), Sentinel>{f, l};
         }
         template<typename Iter>
-        constexpr auto make_utf32_range_(utf16_tag, Iter f_, Iter l_) noexcept
+        constexpr auto make_utf32_range_(utf16_tag, Iter f_, Iter l_)
         {
             auto f = utf_16_to_32_iterator<Iter>(f_, f_, l_);
             auto l = utf_16_to_32_iterator<Iter>(f_, l_, l_);
             return tagged_range<utf32_tag, decltype(f)>{f, l};
         }
         template<typename Iter, typename Sentinel>
-        constexpr auto make_utf32_range_(utf32_tag, Iter f, Sentinel l) noexcept
+        constexpr auto make_utf32_range_(utf32_tag, Iter f, Sentinel l)
         {
             return tagged_range<utf32_tag, Iter, Sentinel>{f, l};
         }
 
         template<typename ResultType, typename Iterator, typename Sentinel>
         constexpr auto
-        make_iter(Iterator first, Iterator it, Sentinel last) noexcept
+        make_iter(Iterator first, Iterator it, Sentinel last)
             -> decltype(ResultType(first, it, last))
         {
             return ResultType(first, it, last);
         }
         template<typename ResultType>
         constexpr auto
-        make_iter(ResultType first, ResultType it, ResultType last) noexcept
+        make_iter(ResultType first, ResultType it, ResultType last)
             -> decltype(ResultType(it))
         {
             return it;
         }
         template<typename ResultType, typename Sentinel>
         constexpr auto
-        make_iter(ResultType first, ResultType it, Sentinel last) noexcept
+        make_iter(ResultType first, ResultType it, Sentinel last)
             -> decltype(ResultType(it))
         {
             return it;
         }
         template<typename ResultType, typename Iterator>
         constexpr auto
-        make_iter(Iterator first, ResultType it, ResultType last) noexcept
+        make_iter(Iterator first, ResultType it, ResultType last)
             -> decltype(ResultType(it))
         {
             return it;
@@ -150,7 +151,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** A view over UTF-8 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
     template<utf8_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -160,17 +161,17 @@ namespace boost::parser::detail { namespace text {
         using iterator = I;
         using sentinel = S;
 
-        constexpr utf8_view() noexcept {}
-        constexpr utf8_view(iterator first, sentinel last) noexcept :
+        constexpr utf8_view() {}
+        constexpr utf8_view(iterator first, sentinel last) :
             first_(detail::unpack_iterator_and_sentinel(first, last).f_),
             last_(detail::unpack_iterator_and_sentinel(first, last).l_)
         {}
 
-        constexpr iterator begin() const noexcept
+        constexpr iterator begin() const
         {
             return detail::make_iter<iterator>(first_, first_, last_);
         }
-        constexpr sentinel end() const noexcept
+        constexpr sentinel end() const
         {
             return detail::make_iter<sentinel>(first_, last_, last_);
         }
@@ -214,11 +215,11 @@ namespace boost::parser::detail { namespace text {
                                         .l_);
 
         iterator_t first_;
-        sentinel_t last_;
+        [[no_unique_address]] sentinel_t last_;
     };
 
     /** A view over UTF-16 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
     template<utf16_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -228,17 +229,17 @@ namespace boost::parser::detail { namespace text {
         using iterator = I;
         using sentinel = S;
 
-        constexpr utf16_view() noexcept {}
-        constexpr utf16_view(iterator first, sentinel last) noexcept :
+        constexpr utf16_view() {}
+        constexpr utf16_view(iterator first, sentinel last) :
             first_(detail::unpack_iterator_and_sentinel(first, last).f_),
             last_(detail::unpack_iterator_and_sentinel(first, last).l_)
         {}
 
-        constexpr iterator begin() const noexcept
+        constexpr iterator begin() const
         {
             return detail::make_iter<iterator>(first_, first_, last_);
         }
-        constexpr sentinel end() const noexcept
+        constexpr sentinel end() const
         {
             return detail::make_iter<sentinel>(first_, last_, last_);
         }
@@ -282,11 +283,11 @@ namespace boost::parser::detail { namespace text {
                                         .l_);
 
         iterator_t first_;
-        sentinel_t last_;
+        [[no_unique_address]] sentinel_t last_;
     };
 
     /** A view over UTF-32 code units. */
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
     template<utf32_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -296,17 +297,17 @@ namespace boost::parser::detail { namespace text {
         using iterator = I;
         using sentinel = S;
 
-        constexpr utf32_view() noexcept {}
-        constexpr utf32_view(iterator first, sentinel last) noexcept :
+        constexpr utf32_view() {}
+        constexpr utf32_view(iterator first, sentinel last) :
             first_(detail::unpack_iterator_and_sentinel(first, last).f_),
             last_(detail::unpack_iterator_and_sentinel(first, last).l_)
         {}
 
-        constexpr iterator begin() const noexcept
+        constexpr iterator begin() const
         {
             return detail::make_iter<iterator>(first_, first_, last_);
         }
-        constexpr sentinel end() const noexcept
+        constexpr sentinel end() const
         {
             return detail::make_iter<sentinel>(first_, last_, last_);
         }
@@ -348,246 +349,323 @@ namespace boost::parser::detail { namespace text {
                                         .l_);
 
         iterator_t first_;
-        sentinel_t last_;
+        [[no_unique_address]] sentinel_t last_;
     };
 
 }}
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
-    /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
-        transcode the data if necessary. */
-    template<typename Iter, typename Sentinel>
-    constexpr auto as_utf8(Iter first, Sentinel last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf8_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf8_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
-
     namespace dtl {
         template<
+            typename Impl,
             typename Range,
             bool Pointer =
-                detail::char_ptr<std::remove_reference_t<Range>>::value ||
-                detail::_16_ptr<std::remove_reference_t<Range>>::value ||
-                detail::cp_ptr<std::remove_reference_t<Range>>::value>
+                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf8_dispatch
         {
-            static constexpr auto call(Range r) noexcept
-                -> decltype(v1::as_utf8(std::begin(r), std::end(r)))
+            static constexpr auto call(Range && r)
+                -> decltype(Impl{}(detail::begin(r), detail::end(r)))
             {
-                return v1::as_utf8(std::begin(r), std::end(r));
+                return Impl{}(detail::begin(r), detail::end(r));
             }
         };
 
-        template<typename Ptr>
-        struct as_utf8_dispatch<Ptr, true>
+        template<typename Impl, typename Ptr>
+        struct as_utf8_dispatch<Impl, Ptr, true>
         {
-            static constexpr auto call(Ptr p) noexcept
-                -> decltype(v1::as_utf8(p, null_sentinel{}))
+            static constexpr auto call(Ptr p)
+                -> decltype(Impl{}(p, null_sentinel))
             {
-                return v1::as_utf8(p, null_sentinel{});
+                return Impl{}(p, null_sentinel);
+            }
+        };
+
+        struct as_utf8_impl : stl_interfaces::range_adaptor_closure<as_utf8_impl>
+        {
+            template<typename Iter, typename Sentinel>
+            constexpr auto operator()(Iter first, Sentinel last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf8_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf8_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<typename Range>
+            constexpr auto operator()(Range && r) const
+                -> decltype(dtl::as_utf8_dispatch<as_utf8_impl, Range &&>::call(
+                    (Range &&) r))
+            {
+                return dtl::as_utf8_dispatch<as_utf8_impl, Range &&>::call(
+                    (Range &&) r);
             }
         };
     }
 
-    /** Returns a `utf8_view` over the data in `r`.  The view will transcode
-        the data if necessary.  `R` may be a null-terminated pointer, or a
-        reference to such a pointer, of intergral type `T`, as long as
-        `sizeof(T) == 1`. */
-    template<typename Range>
-    constexpr auto as_utf8(Range && r) noexcept->decltype(
-        dtl::as_utf8_dispatch<Range &&>::call((Range &&) r))
-    {
-        return dtl::as_utf8_dispatch<Range &&>::call((Range &&) r);
+#if defined(__cpp_inline_variables)
+    inline constexpr dtl::as_utf8_impl as_utf8;
+#else
+    namespace {
+        constexpr dtl::as_utf8_impl as_utf8;
     }
-
-    /** Returns a `utf16_view` over the data in `[first, last)`.  The view
-        will transcode the data if necessary. */
-    template<typename Iter, typename Sentinel>
-    constexpr auto as_utf16(Iter first, Sentinel last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf16_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf16_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
+#endif
 
     namespace dtl {
         template<
+            typename Impl,
             typename Range,
             bool Pointer =
-                detail::char_ptr<std::remove_reference_t<Range>>::value ||
-                detail::_16_ptr<std::remove_reference_t<Range>>::value ||
-                detail::cp_ptr<std::remove_reference_t<Range>>::value>
+                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf16_dispatch
         {
-            static constexpr auto call(Range r) noexcept
-                -> decltype(v1::as_utf16(std::begin(r), std::end(r)))
+            static constexpr auto call(Range && r)
+                -> decltype(Impl{}(detail::begin(r), detail::end(r)))
             {
-                return v1::as_utf16(std::begin(r), std::end(r));
+                return Impl{}(detail::begin(r), detail::end(r));
             }
         };
 
-        template<typename Ptr>
-        struct as_utf16_dispatch<Ptr, true>
+        template<typename Impl, typename Ptr>
+        struct as_utf16_dispatch<Impl, Ptr, true>
         {
-            static constexpr auto call(Ptr p) noexcept
-                -> decltype(v1::as_utf16(p, null_sentinel{}))
+            static constexpr auto call(Ptr p)
+                -> decltype(Impl{}(p, null_sentinel))
             {
-                return v1::as_utf16(p, null_sentinel{});
+                return Impl{}(p, null_sentinel);
+            }
+        };
+
+        struct as_utf16_impl : stl_interfaces::range_adaptor_closure<as_utf16_impl>
+        {
+            template<typename Iter, typename Sentinel>
+            constexpr auto operator()(Iter first, Sentinel last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf16_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf16_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<typename Range>
+            constexpr auto operator()(Range && r) const
+                -> decltype(dtl::as_utf16_dispatch<as_utf16_impl, Range &&>::
+                                call((Range &&) r))
+            {
+                return dtl::as_utf16_dispatch<as_utf16_impl, Range &&>::call(
+                    (Range &&) r);
             }
         };
     }
 
-    /** Returns a `utf16_view` over the data in `r`.  The view will transcode
-        the data if necessary.  `R` may be a null-terminated pointer, or a
-        reference to such a pointer, of intergral type `T`, as long as
-        `sizeof(T) == 2`. */
-    template<typename Range>
-    constexpr auto as_utf16(Range && r) noexcept->decltype(
-        dtl::as_utf16_dispatch<Range &&>::call((Range &&) r))
-    {
-        return dtl::as_utf16_dispatch<Range &&>::call((Range &&) r);
+#if defined(__cpp_inline_variables)
+    inline constexpr dtl::as_utf16_impl as_utf16;
+#else
+    namespace {
+        constexpr dtl::as_utf16_impl as_utf16;
     }
-
-    /** Returns a `utf32_view` over the data in `[first, last)`.  The view
-        will transcode the data if necessary. */
-    template<typename Iter, typename Sentinel>
-    constexpr auto as_utf32(Iter first, Sentinel last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf32_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf32_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
+#endif
 
     namespace dtl {
         template<
+            typename Impl,
             typename Range,
             bool Pointer =
-                detail::char_ptr<std::remove_reference_t<Range>>::value ||
-                detail::_16_ptr<std::remove_reference_t<Range>>::value ||
-                detail::cp_ptr<std::remove_reference_t<Range>>::value>
+                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
+                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf32_dispatch
         {
-            static constexpr auto call(Range r) noexcept
-                -> decltype(v1::as_utf32(std::begin(r), std::end(r)))
+            static constexpr auto call(Range && r)
+                -> decltype(Impl{}(detail::begin(r), detail::end(r)))
             {
-                return v1::as_utf32(std::begin(r), std::end(r));
+                return Impl{}(detail::begin(r), detail::end(r));
             }
         };
 
-        template<typename Ptr>
-        struct as_utf32_dispatch<Ptr, true>
+        template<typename Impl, typename Ptr>
+        struct as_utf32_dispatch<Impl, Ptr, true>
         {
-            static constexpr auto call(Ptr p) noexcept
-                -> decltype(v1::as_utf32(p, null_sentinel{}))
+            static constexpr auto call(Ptr p)
+                -> decltype(Impl{}(p, null_sentinel))
             {
-                return v1::as_utf32(p, null_sentinel{});
+                return Impl{}(p, null_sentinel);
+            }
+        };
+
+        struct as_utf32_impl : stl_interfaces::range_adaptor_closure<as_utf32_impl>
+        {
+            template<typename Iter, typename Sentinel>
+            constexpr auto operator()(Iter first, Sentinel last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf32_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf32_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<typename Range>
+            constexpr auto operator()(Range && r) const
+                -> decltype(dtl::as_utf32_dispatch<as_utf32_impl, Range &&>::
+                                call((Range &&) r))
+            {
+                return dtl::as_utf32_dispatch<as_utf32_impl, Range &&>::call(
+                    (Range &&) r);
             }
         };
     }
 
-    /** Returns a `utf32_view` over the data in `r`.  The view will transcode
-        the data if necessary.  `R` may be a null-terminated pointer, or a
-        reference to such a pointer, of intergral type `T`, as long as
-        `sizeof(T) == 4`. */
-    template<typename Range>
-    constexpr auto as_utf32(Range && r) noexcept->decltype(
-        dtl::as_utf32_dispatch<Range &&>::call((Range &&) r))
-    {
-        return dtl::as_utf32_dispatch<Range &&>::call((Range &&) r);
+#if defined(__cpp_inline_variables)
+    inline constexpr dtl::as_utf32_impl as_utf32;
+#else
+    namespace {
+        constexpr dtl::as_utf32_impl as_utf32;
     }
+#endif
 
 }}}
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+
+#if defined(BOOST_TEXT_DOXYGEN)
 
     /** Returns a `utf8_view` over the data in `[first, last)`.  The view will
         transcode the data if necessary. */
     template<utf_iter I, std::sentinel_for<I> S>
-    constexpr auto as_utf8(I first, S last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf8_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf8_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
+    constexpr detail::unspecified as_utf8(I first, S last);
 
     /** Returns a `utf8_view` over the data in `r`.  The view will transcode
         the data if necessary.  If `std::remove_reference_t<R>` is not a
-        pointer, the result is returned as a `borrowed_view_t`. */
+        pointer, the result is returned as a `borrowed_view_t` (C++20 and
+        later only). */
     template<utf_range_like R>
-    constexpr auto as_utf8(R && r) noexcept
-    {
-        if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::parser::detail::text::as_utf8(r, null_sentinel{});
-        } else {
-            auto intermediate = boost::parser::detail::text::as_utf8(
-                std::ranges::begin(r), std::ranges::end(r));
-            using result_type = borrowed_view_t<R, decltype(intermediate)>;
-            return result_type{intermediate};
-        }
+    constexpr detail::unspecified as_utf8(R && r);
+
+#endif
+
+    namespace dtl {
+        struct as_utf8_impl : stl_interfaces::range_adaptor_closure<as_utf8_impl>
+        {
+            template<utf_iter I, std::sentinel_for<I> S>
+            constexpr auto operator()(I first, S last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf8_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf8_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<utf_range_like R>
+            constexpr auto operator()(R && r) const
+            {
+                if constexpr (std::is_pointer_v<std::remove_reference_t<R>>)
+                    return (*this)(r, null_sentinel);
+                else if constexpr (std::ranges::borrowed_range<R>)
+                    return (*this)(std::ranges::begin(r), std::ranges::end(r));
+                else
+                    return std::ranges::dangling{};
+            }
+        };
     }
+
+    inline constexpr dtl::as_utf8_impl as_utf8;
+
+#if defined(BOOST_TEXT_DOXYGEN)
 
     /** Returns a `utf16_view` over the data in `[first, last)`.  The view
         will transcode the data if necessary. */
     template<utf_iter I, std::sentinel_for<I> S>
-    constexpr auto as_utf16(I first, S last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf16_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf16_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
+    constexpr detail::unspecified as_utf16(I first, S last);
 
     /** Returns a `utf16_view` over the data in `r` the data if necessary.  If
         `std::remove_reference_t<R>` is not a pointer, the result is returned
-        as a `borrowed_view_t`. */
+        as a `borrowed_view_t` (C++20 and later only). */
     template<utf_range_like R>
-    constexpr auto as_utf16(R && r) noexcept
-    {
-        if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::parser::detail::text::as_utf16(r, null_sentinel{});
-        } else {
-            auto intermediate = boost::parser::detail::text::as_utf16(
-                std::ranges::begin(r), std::ranges::end(r));
-            using result_type = borrowed_view_t<R, decltype(intermediate)>;
-            return result_type{intermediate};
-        }
+    constexpr detail::unspecified as_utf16(R && r);
+
+#endif
+
+    namespace dtl {
+        struct as_utf16_impl : stl_interfaces::range_adaptor_closure<as_utf16_impl>
+        {
+            template<utf_iter I, std::sentinel_for<I> S>
+            constexpr auto operator()(I first, S last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf16_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf16_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<utf_range_like R>
+            constexpr auto operator()(R && r) const
+            {
+                if constexpr (std::is_pointer_v<std::remove_reference_t<R>>)
+                    return (*this)(r, null_sentinel);
+                else if constexpr (std::ranges::borrowed_range<R>)
+                    return (*this)(std::ranges::begin(r), std::ranges::end(r));
+                else
+                    return std::ranges::dangling{};
+            }
+        };
     }
 
+    inline constexpr dtl::as_utf16_impl as_utf16;
+
+#if defined(BOOST_TEXT_DOXYGEN)
+
     /** Returns a `utf32_view` over the data in `[first, last)`.  The view
-        will transcode the data if necessary. */
+         will transcode the data if necessary. */
     template<utf_iter I, std::sentinel_for<I> S>
-    constexpr auto as_utf32(I first, S last) noexcept
-    {
-        auto unpacked = detail::unpack_iterator_and_sentinel(first, last);
-        auto r =
-            detail::make_utf32_range_(unpacked.tag_, unpacked.f_, unpacked.l_);
-        return utf32_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
-    }
+    constexpr detail::unspecified as_utf32(I first, S last);
 
     /** Returns a `utf32_view` over the data in `r`.  The view will transcode
         the data if necessary.  If `std::remove_reference_t<R>` is not a
-        pointer, the result is returned as a `borrowed_view_t`. */
+        pointer, the result is returned as a `borrowed_view_t` (C++20 and
+        later only). */
     template<utf_range_like R>
-    constexpr auto as_utf32(R && r) noexcept
-    {
-        if constexpr (std::is_pointer_v<std::remove_reference_t<R>>) {
-            return boost::parser::detail::text::as_utf32(r, null_sentinel{});
-        } else {
-            auto intermediate = boost::parser::detail::text::as_utf32(
-                std::ranges::begin(r), std::ranges::end(r));
-            using result_type = borrowed_view_t<R, decltype(intermediate)>;
-            return result_type{intermediate};
-        }
+    constexpr detail::unspecified as_utf32(R && r);
+
+#endif
+
+    namespace dtl {
+        struct as_utf32_impl : stl_interfaces::range_adaptor_closure<as_utf32_impl>
+        {
+            template<utf_iter I, std::sentinel_for<I> S>
+            constexpr auto operator()(I first, S last) const
+            {
+                auto unpacked =
+                    detail::unpack_iterator_and_sentinel(first, last);
+                auto r = detail::make_utf32_range_(
+                    unpacked.tag_, unpacked.f_, unpacked.l_);
+                return utf32_view<decltype(r.f_), decltype(r.l_)>(r.f_, r.l_);
+            }
+
+            template<utf_range_like R>
+            constexpr auto operator()(R && r) const
+            {
+                if constexpr (std::is_pointer_v<std::remove_reference_t<R>>)
+                    return (*this)(r, null_sentinel);
+                else if constexpr (std::ranges::borrowed_range<R>)
+                    return (*this)(std::ranges::begin(r), std::ranges::end(r));
+                else
+                    return std::ranges::dangling{};
+            }
+        };
     }
+
+    inline constexpr dtl::as_utf32_impl as_utf32;
 }}}
 
 namespace std::ranges {

@@ -6,6 +6,8 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 
+#include <boost/parser/detail/text/config.hpp>
+#include <boost/parser/detail/text/detail/detection.hpp>
 #include <boost/parser/detail/text/detail/iterator.hpp>
 
 #include <numeric>
@@ -34,12 +36,32 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename T>
     using range_value_t = std::ranges::range_value_t<T>;
 
+    // A grapheme_range that has a sentinel type that is not an iterator, but
+    // that is comparable with T's interator type.
+    template<typename T>
+    concept cp_sentinel_gr_rng =
+        // clang-format off
+        grapheme_range<T> &&
+        !grapheme_iter<sentinel_t<T>> &&
+        requires(iterator_t<T> first, sentinel_t<T> last) {
+        { first.base() == last } -> std::convertible_to<bool>;
+        // clang-format on
+    };
+
+    template<typename T>
+    using gr_rng_cp_iter_t = decltype(std::declval<iterator_t<T>>().base());
+    template<typename T>
+    using gr_rng_cp_sent_t = std::conditional_t<
+        cp_sentinel_gr_rng<T>,
+        sentinel_t<T>,
+        gr_rng_cp_iter_t<T>>;
+
 #else
 
     template<typename T>
-    using iterator_t = decltype(std::begin(std::declval<T &>()));
-    template<typename Range>
-    using sentinel_t = decltype(std::end(std::declval<Range>()));
+    using iterator_t = decltype(detail::begin(std::declval<T &>()));
+    template<typename T>
+    using sentinel_t = decltype(detail::end(std::declval<T &>()));
     template<typename T>
     using iter_value_t = typename std::iterator_traits<T>::value_type;
     template<typename T>
@@ -47,85 +69,38 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename T>
     using range_value_t = iter_value_t<iterator_t<T>>;
 
+    template<typename T>
+    using has_base = decltype(std::declval<T>().base());
+    template<typename T>
+    using sentinel_comparable_to_iter_base =
+        decltype(std::declval<T>().begin().base() == std::declval<T>().end());
+
+    // A grapheme_range that has a sentinel type that is not an iterator, but
+    // that is comparable with T's interator type.
+    template<
+        typename T,
+        bool IsIt = is_detected_v<has_base, iterator_t<T>> &&
+                    !is_detected_v<has_base, sentinel_t<T>> &&
+                    is_detected_v<sentinel_comparable_to_iter_base, T>>
+    constexpr bool is_cp_sentinel_gr_rng_v = false;
+    template<typename T>
+    constexpr bool is_cp_sentinel_gr_rng_v<T, true> = true;
+
+    template<typename T>
+    using gr_rng_cp_iter_t =
+        decltype(detail::begin(std::declval<T &>()).base());
+    template<typename T>
+    using gr_rng_cp_sent_t = std::conditional_t<
+        is_cp_sentinel_gr_rng_v<T>,
+        sentinel_t<T>,
+        gr_rng_cp_iter_t<T>>;
+
 #endif
 
-    template<typename...>
-    struct void_
-    {
-        using type = void;
-        static constexpr bool value = true;
-    };
-
-    template<typename... T>
-    using void_t = typename void_<T...>::type;
-
     template<typename T>
-    struct fixup_ptr
-    {
-        using type = T;
-    };
-
+    using has_begin = decltype(*detail::begin(std::declval<T &>()));
     template<typename T>
-    using remove_v_t = typename std::remove_volatile<T>::type;
-
-    template<typename T>
-    struct fixup_ptr<T *>
-    {
-        using type = remove_v_t<T> const *;
-    };
-
-    template<typename T>
-    using fixup_ptr_t = typename fixup_ptr<T>::type;
-
-    template<typename T>
-    using remove_cv_ref_t =
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-
-    struct nonesuch
-    {};
-
-    template<
-        typename Default,
-        typename AlwaysVoid,
-        template<typename...> class Template,
-        typename... Args>
-    struct detector
-    {
-        using value_t = std::false_type;
-        using type = Default;
-    };
-
-    template<
-        typename Default,
-        template<typename...> class Template,
-        typename... Args>
-    struct detector<Default, void_t<Template<Args...>>, Template, Args...>
-    {
-        using value_t = std::true_type;
-        using type = Template<Args...>;
-    };
-
-    template<template<typename...> class Template, typename... Args>
-    using is_detected =
-        typename detector<nonesuch, void, Template, Args...>::value_t;
-
-    template<template<typename...> class Template, typename... Args>
-    using detected_t =
-        typename detector<nonesuch, void, Template, Args...>::type;
-
-    template<
-        typename Default,
-        template<typename...> class Template,
-        typename... Args>
-    using detected_or =
-        typename detector<Default, void, Template, Args...>::type;
-
-
-
-    template<typename T>
-    using has_begin = decltype(*std::begin(std::declval<T>()));
-    template<typename T>
-    using has_end = decltype(*std::end(std::declval<T>()));
+    using has_end = decltype(*detail::end(std::declval<T &>()));
 
     template<typename T>
     using value_type_ = typename std::remove_cv<
@@ -137,48 +112,48 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename T::iterator::iterator_category;
 
     template<typename T>
+    using iterator_pointer_expr = std::is_pointer<typename T::iterator>;
+
+    template<typename T>
     using iterator_category_ = typename std::conditional<
-        std::is_pointer<typename T::iterator>::value,
+        detected_or_t<std::false_type, iterator_pointer_expr>::value,
         std::random_access_iterator_tag,
         detected_t<nonpointer_iterator_category_, T>>::type;
 
 
 
     template<typename T, typename U, int N>
-    struct is_convertible_and_n_bytes
-        : std::integral_constant<
-              bool,
-              std::is_convertible<T, U>::value && sizeof(T) == N>
-    {
-    };
+    constexpr bool
+        is_convertible_and_n_bytes_v = std::is_convertible<T, U>::value &&
+                                       sizeof(T) == N;
 
 
 
     template<typename T>
-    using is_char_iter = std::integral_constant<
-        bool,
+    constexpr bool is_char_iter_v =
         std::is_same<char *, typename std::remove_cv<T>::type>::value ||
-            std::is_same<char const *, typename std::remove_cv<T>::type>::
-                value ||
+        std::is_same<char const *, typename std::remove_cv<T>::type>::value ||
 #if defined(__cpp_char8_t)
-            std::is_same<char8_t *, typename std::remove_cv<T>::type>::value ||
-            std::is_same<char8_t const *, typename std::remove_cv<T>::type>::
-                value ||
+        std::is_same<char8_t *, typename std::remove_cv<T>::type>::value ||
+        std::is_same<char8_t const *, typename std::remove_cv<T>::type>::
+            value ||
 #endif
-            is_convertible_and_n_bytes<detected_t<value_type_, T>, char, 1>::
-                value>;
+        is_convertible_and_n_bytes_v<detected_t<value_type_, T>, char, 1>;
+
+    // Needed for detected_or_t.
+    template<typename T>
+    using is_char_iter = std::integral_constant<bool, is_char_iter_v<T>>;
 
     template<typename T>
-    using is_char_range = std::integral_constant<
-        bool,
-        (is_convertible_and_n_bytes<
+    constexpr bool is_char_range_v =
+        (is_convertible_and_n_bytes_v<
              remove_cv_ref_t<detected_t<has_begin, T>>,
              char,
-             1>::value &&
-         is_convertible_and_n_bytes<
+             1> &&
+         is_convertible_and_n_bytes_v<
              remove_cv_ref_t<detected_t<has_end, T>>,
              char,
-             1>::value)>;
+             1>);
 
 
 
@@ -187,7 +162,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename R1,
         typename Exclude,
         bool R1IsCharRange =
-            is_char_range<R1>::value && !std::is_same<R1, Exclude>::value>
+            is_char_range_v<R1> && !std::is_same<R1, Exclude>::value>
     struct rng_alg_ret
     {
     };
@@ -205,8 +180,8 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename T,
         typename R1,
         typename R2,
-        bool R1IsCharRange = is_char_range<R1>::value,
-        bool R2IsCharRange = is_char_range<R2>::value>
+        bool R1IsCharRange = is_char_range_v<R1>,
+        bool R2IsCharRange = is_char_range_v<R2>>
     struct rngs_alg_ret
     {
     };
@@ -223,13 +198,12 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<typename T>
-    using has_contig_begin = decltype(&*std::begin(std::declval<T>()));
+    using has_contig_begin = decltype(&*detail::begin(std::declval<T &>()));
     template<typename T>
-    using has_contig_end = decltype(&*std::end(std::declval<T>()));
+    using has_contig_end = decltype(&*detail::end(std::declval<T &>()));
 
     template<typename T>
-    using is_contig_char_range = std::integral_constant<
-        bool,
+    constexpr bool is_contig_char_range_v =
         ((std::is_same<
               fixup_ptr_t<detected_t<has_contig_begin, T>>,
               char const *>::value &&
@@ -245,16 +219,16 @@ namespace boost::parser::detail { namespace text { namespace detail {
                  char8_t const *>::value)
 #endif
              ) &&
-            std::is_convertible<
-                iterator_category_<T>,
-                std::random_access_iterator_tag>::value>;
+        std::is_convertible<
+            iterator_category_<T>,
+            std::random_access_iterator_tag>::value;
 
 
 
     template<
         typename T,
         typename R1,
-        bool R1IsContigCharRange = is_contig_char_range<R1>::value>
+        bool R1IsContigCharRange = is_contig_char_range_v<R1>>
     struct contig_rng_alg_ret
     {
     };
@@ -272,8 +246,8 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename T,
         typename R1,
         typename R2,
-        bool R1IsContigCharRange = is_contig_char_range<R1>::value,
-        bool R2IsContigCharRange = is_contig_char_range<R2>::value>
+        bool R1IsContigCharRange = is_contig_char_range_v<R1>,
+        bool R2IsContigCharRange = is_contig_char_range_v<R2>>
     struct contig_rngs_alg_ret
     {
     };
@@ -290,23 +264,22 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<typename T>
-    using is_char16_range = std::integral_constant<
-        bool,
-        (is_convertible_and_n_bytes<
+    constexpr bool is_char16_range_v =
+        (is_convertible_and_n_bytes_v<
              remove_cv_ref_t<detected_t<has_begin, T>>,
              uint16_t,
-             2>::value &&
-         is_convertible_and_n_bytes<
+             2> &&
+         is_convertible_and_n_bytes_v<
              remove_cv_ref_t<detected_t<has_end, T>>,
              uint16_t,
-             2>::value)>;
+             2>);
 
 
 
     template<
         typename T,
         typename R1,
-        bool R1IsChar16Range = is_char16_range<R1>::value>
+        bool R1IsChar16Range = is_char16_range_v<R1>>
     struct rng16_alg_ret
     {
     };
@@ -322,10 +295,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
 
-    template<
-        typename T,
-        typename R1,
-        bool R1IsCharRange = is_char_iter<R1>::value>
+    template<typename T, typename R1, bool R1IsCharRange = is_char_iter_v<R1>>
     struct char_iter_ret
     {
     };
@@ -342,24 +312,23 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<typename T>
-    using is_code_point = std::
-        integral_constant<bool, (std::is_integral<T>::value && sizeof(T) == 4)>;
+    constexpr bool is_code_point_v = std::is_integral<T>::value &&
+                                     sizeof(T) == 4;
 
     template<typename T>
     using has_deref_and_incr =
         std::pair<decltype(*std::declval<T>()), decltype(++std::declval<T>())>;
 
     template<typename T>
-    using is_cp_iter = std::integral_constant<
-        bool,
+    constexpr bool is_cp_iter_v =
         ((std::is_pointer<T>::value &&
-          is_code_point<typename std::remove_cv<
-              typename std::remove_pointer<T>::type>::type>::value) ||
-         (is_detected<has_deref_and_incr, T>::value &&
-          is_code_point<typename std::remove_cv<
-              detected_t<value_type_, T>>::type>::value))>;
+          is_code_point_v<typename std::remove_cv<
+              typename std::remove_pointer<T>::type>::type>) ||
+         (is_detected_v<has_deref_and_incr, T> &&
+          is_code_point_v<
+              typename std::remove_cv<detected_t<value_type_, T>>::type>));
 
-    template<typename T, typename R1, bool R1IsCPRange = is_cp_iter<R1>::value>
+    template<typename T, typename R1, bool R1IsCPRange = is_cp_iter_v<R1>>
     struct cp_iter_ret
     {
     };
@@ -377,7 +346,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename T,
         typename R1,
         typename R2,
-        bool R1R2AreCPRanges = is_cp_iter<R1>::value && is_cp_iter<R2>::value>
+        bool R1R2AreCPRanges = is_cp_iter_v<R1> && is_cp_iter_v<R2>>
     struct cp_iters_ret
     {
     };
@@ -393,20 +362,19 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<typename T>
-    using is_16_code_unit = std::
-        integral_constant<bool, (std::is_integral<T>::value && sizeof(T) == 2)>;
+    constexpr bool is_16_code_unit_v = std::is_integral<T>::value &&
+                                       sizeof(T) == 2;
 
     template<typename T>
-    using is_16_iter = std::integral_constant<
-        bool,
+    constexpr bool is_16_iter_v =
         ((std::is_pointer<T>::value &&
-          is_16_code_unit<typename std::remove_cv<
-              typename std::remove_pointer<T>::type>::type>::value) ||
-         (is_detected<has_deref_and_incr, T>::value &&
-          is_16_code_unit<typename std::remove_cv<
-              detected_t<value_type_, T>>::type>::value))>;
+          is_16_code_unit_v<typename std::remove_cv<
+              typename std::remove_pointer<T>::type>::type>) ||
+         (is_detected_v<has_deref_and_incr, T> &&
+          is_16_code_unit_v<
+              typename std::remove_cv<detected_t<value_type_, T>>::type>));
 
-    template<typename T, typename R1, bool R1IsCPRange = is_16_iter<R1>::value>
+    template<typename T, typename R1, bool R1IsCPRange = is_16_iter_v<R1>>
     struct _16_iter_ret
     {
     };
@@ -422,20 +390,19 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<typename T>
-    using is_8_code_unit = std::
-        integral_constant<bool, std::is_integral<T>::value && sizeof(T) == 1>;
+    constexpr bool is_8_code_unit_v = std::is_integral<T>::value &&
+                                      sizeof(T) == 1;
 
     template<typename T>
-    using is_8_iter = std::integral_constant<
-        bool,
+    constexpr bool is_8_iter_v =
         ((std::is_pointer<T>::value &&
-          is_8_code_unit<typename std::remove_cv<
-              typename std::remove_pointer<T>::type>::type>::value) ||
-         (is_detected<has_deref_and_incr, T>::value &&
-          is_8_code_unit<typename std::remove_cv<
-              detected_t<value_type_, T>>::type>::value))>;
+          is_8_code_unit_v<typename std::remove_cv<
+              typename std::remove_pointer<T>::type>::type>) ||
+         (is_detected_v<has_deref_and_incr, T> &&
+          is_8_code_unit_v<
+              typename std::remove_cv<detected_t<value_type_, T>>::type>));
 
-    template<typename T, typename R1, bool R1IsCPRange = is_8_iter<R1>::value>
+    template<typename T, typename R1, bool R1IsCPRange = is_8_iter_v<R1>>
     struct _8_iter_ret
     {
     };
@@ -458,8 +425,8 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename T,
         typename CPIter,
         typename Sentinel,
-        bool FIsWordPropFunc = is_cp_iter<CPIter>::value &&
-            is_detected<comparable_, CPIter, Sentinel>::value>
+        bool FIsWordPropFunc = is_cp_iter_v<CPIter> &&
+            is_detected_v<comparable_, CPIter, Sentinel>>
     struct cp_iter_sntl_ret
     {
     };
@@ -484,10 +451,9 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename Sentinel1,
         typename CPIter2,
         typename Sentinel2,
-        bool AreCPRanges =
-            is_cp_iter<CPIter1>::value && is_cp_iter<CPIter2>::value &&
-                is_detected<comparable_, CPIter1, Sentinel1>::value &&
-                    is_detected<comparable_, CPIter2, Sentinel2>::value>
+        bool AreCPRanges = is_cp_iter_v<CPIter1> && is_cp_iter_v<CPIter2> &&
+            is_detected_v<comparable_, CPIter1, Sentinel1> &&
+                is_detected_v<comparable_, CPIter2, Sentinel2>>
     struct cp_iters_sntls_ret
     {
     };
@@ -523,14 +489,14 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
     template<int Size, typename T>
-    using is_cu_iter =
-        std::conditional_t<Size == 1, is_char_iter<T>, is_16_iter<T>>;
+    constexpr bool is_cu_iter_v =
+        Size == 1 ? is_char_iter_v<T> : is_16_iter_v<T>;
 
     template<
         int Size,
         typename T,
         typename U,
-        bool UIsCUIter = is_cu_iter<Size, U>::value>
+        bool UIsCUIter = is_cu_iter_v<Size, U>>
     struct cu_iter_ret
     {
     };
@@ -545,8 +511,8 @@ namespace boost::parser::detail { namespace text { namespace detail {
     using cu_iter_ret_t = typename cu_iter_ret<Size, T, U>::type;
 
     template<int Size, typename T>
-    using is_cu_range =
-        std::conditional_t<Size == 1, is_char_range<T>, is_char16_range<T>>;
+    constexpr bool is_cu_range_v =
+        Size == 1 ? is_char_range_v<T> : is_char16_range_v<T>;
 
     template<
         int Size,
@@ -554,7 +520,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
         typename U,
         typename Exclude,
         bool UIsCURange =
-            is_cu_range<Size, U>::value && !std::is_same<U, Exclude>::value>
+            is_cu_range_v<Size, U> && !std::is_same<U, Exclude>::value>
     struct cu_rng_alg_ret
     {
     };
@@ -572,12 +538,12 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename T>
     using is_grapheme_iter_expr = std::integral_constant<
         bool,
-        is_cp_iter<
-            remove_cv_ref_t<decltype(std::declval<const T>().base())>>::value>;
+        is_cp_iter_v<
+            remove_cv_ref_t<decltype(std::declval<const T>().base())>>>;
 
     template<typename T>
     using is_grapheme_iter =
-        detected_or<std::false_type, is_grapheme_iter_expr, T>;
+        detected_or_t<std::false_type, is_grapheme_iter_expr, T>;
 
     template<
         typename T,
@@ -618,15 +584,15 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename Size, typename T>
     using is_grapheme_cu_iter_expr = std::integral_constant<
         bool,
-        is_cp_iter<
-            remove_cv_ref_t<decltype(std::declval<const T>().base())>>::value &&
-            is_cu_iter<
+        is_cp_iter_v<
+            remove_cv_ref_t<decltype(std::declval<const T>().base())>> &&
+            is_cu_iter_v<
                 Size::value,
-                remove_cv_ref_t<decltype(
-                    std::declval<const T>().base().base())>>::value>;
+                remove_cv_ref_t<
+                    decltype(std::declval<const T>().base().base())>>>;
 
     template<int Size, typename T>
-    using is_grapheme_cu_iter = detected_or<
+    using is_grapheme_cu_iter = detected_or_t<
         std::false_type,
         is_grapheme_cu_iter_expr,
         std::integral_constant<int, Size>,
@@ -653,17 +619,17 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename T>
     using is_grapheme_range_expr = std::integral_constant<
         bool,
-        is_cp_iter<remove_cv_ref_t<decltype(
-            std::declval<const T>().begin().base())>>::value &&
-            is_cp_iter<remove_cv_ref_t<decltype(
-                std::declval<const T>().end().base())>>::value &&
+        is_cp_iter_v<remove_cv_ref_t<
+            decltype(std::declval<const T>().begin().base())>> &&
+            is_cp_iter_v<remove_cv_ref_t<
+                decltype(std::declval<const T>().end().base())>> &&
             void_<
                 decltype(std::declval<const T>().begin().base().base()),
                 decltype(std::declval<const T>().end().base().base())>::value>;
 
     template<typename T>
     using is_grapheme_range =
-        detected_or<std::false_type, is_grapheme_range_expr, T>;
+        detected_or_t<std::false_type, is_grapheme_range_expr, T>;
 
     template<
         typename T,
@@ -685,14 +651,14 @@ namespace boost::parser::detail { namespace text { namespace detail {
     template<typename T>
     using is_cp_grapheme_range_expr = std::integral_constant<
         bool,
-        is_cp_iter<remove_cv_ref_t<decltype(
-            std::declval<const T>().begin().base())>>::value &&
-            is_cp_iter<remove_cv_ref_t<decltype(
-                std::declval<const T>().end().base())>>::value>;
+        is_cp_iter_v<remove_cv_ref_t<
+            decltype(std::declval<const T>().begin().base())>> &&
+            is_cp_iter_v<remove_cv_ref_t<
+                decltype(std::declval<const T>().end().base())>>>;
 
     template<typename T>
     using is_cp_grapheme_range =
-        detected_or<std::false_type, is_cp_grapheme_range_expr, T>;
+        detected_or_t<std::false_type, is_cp_grapheme_range_expr, T>;
 
     template<
         typename T,
@@ -823,7 +789,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
     template<typename T>
     using is_contig_grapheme_range =
-        detected_or<std::false_type, is_contig_grapheme_range_expr, T>;
+        detected_or_t<std::false_type, is_contig_grapheme_range_expr, T>;
 
     template<
         typename T,
@@ -845,8 +811,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
 
-    inline std::size_t
-    hash_combine_(std::size_t seed, std::size_t value) noexcept
+    inline std::size_t hash_combine_(std::size_t seed, std::size_t value)
     {
         return seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
@@ -875,7 +840,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
     };
 
     template<typename CharRange>
-    std::size_t hash_char_range(CharRange const & r) noexcept
+    std::size_t hash_char_range(CharRange const & r)
     {
         auto first = r.begin();
         auto last = r.end();
@@ -901,7 +866,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
     }
 
     template<typename GraphemeRange>
-    std::size_t hash_grapheme_range(GraphemeRange const & r) noexcept
+    std::size_t hash_grapheme_range(GraphemeRange const & r)
     {
         std::size_t cps = 0;
         std::size_t retval = std::accumulate(
@@ -916,43 +881,37 @@ namespace boost::parser::detail { namespace text { namespace detail {
     }
 
     template<typename Iter>
-    using char_value_type = std::integral_constant<
+    using char_value_expr = std::integral_constant<
         bool,
         std::is_integral<
             typename std::iterator_traits<Iter>::value_type>::value &&
             sizeof(typename std::iterator_traits<Iter>::value_type) == 1>;
 
     template<typename Iter>
-    using char_ptr = std::integral_constant<
-        bool,
-        std::is_pointer<Iter>::value &&
-            detected_or<std::false_type, char_value_type, Iter>::value>;
+    constexpr bool is_char_ptr_v = std::is_pointer<Iter>::value &&
+        detected_or_t<std::false_type, char_value_expr, Iter>::value;
 
     template<typename Iter>
-    using _16_value_type = std::integral_constant<
+    using _16_value_expr = std::integral_constant<
         bool,
         std::is_integral<
             typename std::iterator_traits<Iter>::value_type>::value &&
             sizeof(typename std::iterator_traits<Iter>::value_type) == 2>;
 
     template<typename Iter>
-    using _16_ptr = std::integral_constant<
-        bool,
-        std::is_pointer<Iter>::value &&
-            detected_or<std::false_type, _16_value_type, Iter>::value>;
+    constexpr bool is_16_ptr_v = std::is_pointer<Iter>::value &&
+        detected_or_t<std::false_type, _16_value_expr, Iter>::value;
 
     template<typename Iter>
-    using cp_value_type = std::integral_constant<
+    using cp_value_expr = std::integral_constant<
         bool,
         std::is_integral<
             typename std::iterator_traits<Iter>::value_type>::value &&
             sizeof(typename std::iterator_traits<Iter>::value_type) == 4>;
 
     template<typename Iter>
-    using cp_ptr = std::integral_constant<
-        bool,
-        std::is_pointer<Iter>::value &&
-            detected_or<std::false_type, cp_value_type, Iter>::value>;
+    constexpr bool is_cp_ptr_v = std::is_pointer<Iter>::value &&
+        detected_or_t<std::false_type, cp_value_expr, Iter>::value;
 
 }}}
 
