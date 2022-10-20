@@ -5014,7 +5014,7 @@ namespace boost { namespace parser {
     }
 
     template<typename Transform>
-    inline constexpr directive<typename detail::make_input_transform_parser<Transform>::type> input_transform;
+    inline constexpr directive<detail::make_input_transform_parser<Transform>::template type> input_transform;
 
     /** The `lower_case` directive, whose `operator[]` returns an
         `parser_interface<lower_case_parser<P>>` from a given parser of type
