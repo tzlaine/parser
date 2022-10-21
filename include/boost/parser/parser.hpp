@@ -3746,7 +3746,7 @@ namespace boost { namespace parser {
         private:
             I it_{};
 
-            template<typename I, typename Transform>
+            template<typename I_, typename Transform_>
             friend struct input_transform_iterator_update;
         };
 
