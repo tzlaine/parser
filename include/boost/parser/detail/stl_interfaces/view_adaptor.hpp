@@ -36,17 +36,17 @@
 
 #if !BOOST_PARSER_USE_CPP23_STD_RANGE_ADAPTOR_CLOSURE &&               \
     defined(_MSC_VER) && _MSC_VER <= 1929
-#define BOOST_STL_INTERFACES_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE 1
+#define BOOST_PARSER_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE 1
 #else
-#define BOOST_STL_INTERFACES_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE 0
+#define BOOST_PARSER_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE 0
 #endif
 
 #if !BOOST_PARSER_USE_CPP23_STD_RANGE_ADAPTOR_CLOSURE &&               \
     !BOOST_PARSER_USE_LIBSTDCPP_GCC12_RANGE_ADAPTOR_CLOSURE &&         \
-    !BOOST_STL_INTERFACES_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE
-#define BOOST_STL_INTERFACES_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE 1
+    !BOOST_PARSER_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE
+#define BOOST_PARSER_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE 1
 #else
-#define BOOST_STL_INTERFACES_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE 0
+#define BOOST_PARSER_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE 0
 #endif
 
 #endif
@@ -138,7 +138,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
             0, (Func &&) f, (Args &&) args...);
     }
 
-#if BOOST_STL_INTERFACES_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE ||                \
+#if BOOST_PARSER_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE ||                \
     defined(BOOST_STL_INTERFACES_DOXYGEN)
 
     /** A backwards-compatible implementation of C++23's
@@ -185,7 +185,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
     template<typename D>
     using range_adaptor_closure = std::views::__adaptor::_RangeAdaptorClosure;
 
-#elif BOOST_STL_INTERFACES_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE
+#elif BOOST_PARSER_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE
 
     template<typename D>
     using range_adaptor_closure = detail::pipeable<D>;

@@ -62,9 +62,11 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
     template<typename BidiIter>
     struct reverse_iterator
         : iterator_interface<
+#if !BOOST_PARSER_USE_DEDUCED_THIS
               reverse_iterator<BidiIter>,
+#endif
 #if BOOST_PARSER_USE_CONCEPTS
-        typename boost::parser::detail::stl_interfaces::v2::v2_dtl::iter_concept_t<
+              typename boost::parser::detail::stl_interfaces::v2::v2_dtl::iter_concept_t<
                   BidiIter>,
 #else
               typename std::iterator_traits<BidiIter>::iterator_category,
@@ -160,7 +162,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
     }
 
     /** Makes a `reverse_iterator<BidiIter>` from an iterator of type
-        `Bidiiter`. */
+        `BidiIter`. */
     template<typename BidiIter>
     auto make_reverse_iterator(BidiIter it)
     {
@@ -182,7 +184,28 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 
 
     /** Makes a `reverse_iterator<BidiIter>` from an iterator of type
-        `Bidiiter`.  This only exists to make migration from
+        `BidiIter`.  This only exists to make migration from
+        Boost.STLInterfaces to C++20 easier; switch to the one in `std` as
+        soon as you can. */
+    template<typename BidiIter>
+    auto make_reverse_iterator(BidiIter it)
+    {
+        return reverse_iterator<BidiIter>(it);
+    }
+
+}}}
+
+namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V3 {
+
+    /** A template alias for `std::reverse_iterator`.  This only exists to
+        make migration from Boost.STLInterfaces to C++20 easier; switch to the
+        one in `std` as soon as you can. */
+    template<typename BidiIter>
+    using reverse_iterator = std::reverse_iterator<BidiIter>;
+
+
+    /** Makes a `reverse_iterator<BidiIter>` from an iterator of type
+        `BidiIter`.  This only exists to make migration from
         Boost.STLInterfaces to C++20 easier; switch to the one in `std` as
         soon as you can. */
     template<typename BidiIter>
