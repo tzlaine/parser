@@ -4,7 +4,14 @@
 #include <boost/parser/detail/printing.hpp>
 
 #if BOOST_PARSER_USE_BOOST
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include <boost/type_index.hpp>
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #else
 #include <typeinfo>
 #endif

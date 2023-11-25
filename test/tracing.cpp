@@ -30,7 +30,7 @@ auto i = [](auto & ctx) { return _globals(ctx).i; };
 auto i2 = [](auto & ctx) { return _globals(ctx).i2; };
 auto u = [](auto & ctx) { return _globals(ctx).u; };
 auto c = [](auto & ctx) { return _globals(ctx).c; };
-auto cp_ = [](auto & ctx) { return _globals(ctx).cp; };
+[[maybe_unused]] auto cp_ = [](auto & ctx) { return _globals(ctx).cp; };
 
 auto true_ = [](auto & ctx) { return true; };
 auto zero = [](auto & ctx) { return 0; };
@@ -119,7 +119,14 @@ int main()
               << "| operator>>/operator>                  |\n"
               << "----------------------------------------\n";
 
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-shift-op-parentheses"
+#endif
     PARSE(char_ >> int_ > float_);
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
     std::cout << "\n\n"
               << "----------------------------------------\n"

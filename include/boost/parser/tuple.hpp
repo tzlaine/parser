@@ -21,6 +21,7 @@
 #if defined(__GNUC__) || defined(__clang__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include <boost/hana.hpp>
 #if defined(__GNUC__) || defined(__clang__)

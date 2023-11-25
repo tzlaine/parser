@@ -1825,8 +1825,15 @@ TEST(parser, combined_seq_and_or)
     }
 
     {
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-shift-op-parentheses"
+#endif
         constexpr auto parser = (char_('a') >> string("b") > char_('c')) |
                                 (char_('x') >> string("y") >> char_('z'));
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
         {
             char const * str = "abc";
             std::string chars;
@@ -1877,8 +1884,15 @@ TEST(parser, combined_seq_and_or)
     }
 
     {
+#if defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Woverloaded-shift-op-parentheses"
+#endif
         constexpr auto parser = (char_('a') >> string("b") > char_('c')) |
                                 (char_('x') >> string("y") >> char_('z'));
+#if defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
         {
             char const * str = "abc";
             std::string chars;
