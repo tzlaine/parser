@@ -2170,8 +2170,16 @@ namespace boost { namespace parser {
         template<typename I>
         text::utf32_view<I> remove_utf32_terminator(text::utf32_view<I> view)
         {
-            if (!view.empty() && view.back() == 0)
-                return text::utf32_view<I>(view.begin(), std::prev(view.end()));
+            if (!view.empty() && view.back() == 0) {
+                return text::utf32_view<I>(
+                    view.begin(),
+#if BOOST_PARSER_USE_CONCEPTS
+                    std::ranges::prev(view.end())
+#else
+                    std::prev(view.end())
+#endif
+                );
+            }
             return view;
         }
         template<typename R>
@@ -2190,8 +2198,18 @@ namespace boost { namespace parser {
                 } else if constexpr (std::is_array_v<remove_cv_ref_t<R>>) {
                     auto first = std::begin(r);
                     auto last = std::end(r);
-                    if (first != last && *std::prev(last) == 0)
-                        --last;
+                    if (first != last) {
+                        if (*
+#if BOOST_PARSER_USE_CONCEPTS
+                            std::ranges::prev(last)
+#else
+                            std::prev(last)
+#endif
+
+                            == 0) {
+                            --last;
+                        }
+                    }
                     return parser::make_view(first, last);
                 } else {
                     return parser::make_view(std::begin(r), std::end(r));
