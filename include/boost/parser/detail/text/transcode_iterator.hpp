@@ -966,10 +966,7 @@ namespace boost::parser::detail { namespace text {
 #else
 
     namespace detail {
-        template<
-            typename Iter,
-            bool UTF8 =
-                is_char_ptr_v<Iter> || is_16_ptr_v<Iter> || is_cp_ptr_v<Iter>>
+        template<typename Iter, bool UTF8 = is_utf_ptr_v<Iter>>
         struct null_sent_eq_dispatch
         {};
 

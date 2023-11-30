@@ -881,38 +881,71 @@ namespace boost::parser::detail { namespace text { namespace detail {
         return detail::hash_combine_(retval, cps);
     }
 
+    template<typename T>
+    constexpr bool is_cu8_v = std::integral_constant<
+        bool,
+        std::is_same_v<T, char>
+#if defined(__cpp_char8_t)
+            || std::is_same_v<T, char8_t>
+#endif
+        >{};
+
     template<typename Iter>
     using char_value_expr = std::integral_constant<
         bool,
-        std::is_integral<
-            typename std::iterator_traits<Iter>::value_type>::value &&
-            sizeof(typename std::iterator_traits<Iter>::value_type) == 1>;
+        is_cu8_v<typename std::iterator_traits<Iter>::value_type>>;
 
     template<typename Iter>
     constexpr bool is_char_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, char_value_expr, Iter>::value;
 
+    template<typename T>
+    constexpr bool is_cu16_v = std::integral_constant<
+        bool,
+#if defined(_MSC_VER)
+        std::is_same_v<T, wchar_t> ||
+#endif
+            std::is_same_v<T, char16_t>>{};
+
     template<typename Iter>
     using _16_value_expr = std::integral_constant<
         bool,
-        std::is_integral<
-            typename std::iterator_traits<Iter>::value_type>::value &&
-            sizeof(typename std::iterator_traits<Iter>::value_type) == 2>;
+        is_cu16_v<typename std::iterator_traits<Iter>::value_type>>;
 
     template<typename Iter>
     constexpr bool is_16_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, _16_value_expr, Iter>::value;
 
+    template<typename T>
+    constexpr bool is_cp_v = std::integral_constant<
+        bool,
+#if !defined(_MSC_VER)
+        std::is_same_v<T, wchar_t> ||
+#endif
+            std::is_same_v<T, char32_t>>{};
+
     template<typename Iter>
     using cp_value_expr = std::integral_constant<
         bool,
-        std::is_integral<
-            typename std::iterator_traits<Iter>::value_type>::value &&
-            sizeof(typename std::iterator_traits<Iter>::value_type) == 4>;
+        is_cp_v<typename std::iterator_traits<Iter>::value_type>>;
 
     template<typename Iter>
     constexpr bool is_cp_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, cp_value_expr, Iter>::value;
+
+    template<typename Iter>
+    using iter_traits_value_expr =
+        typename std::iterator_traits<Iter>::value_type;
+
+    template<typename Iter>
+    using iter_traits_value_t =
+        detected_or_t<void, iter_traits_value_expr, remove_cv_ref_t<Iter>>;
+
+    template<typename Iter>
+    constexpr bool is_utf_ptr_v = std::is_pointer_v<remove_cv_ref_t<Iter>> &&
+                                  (is_cu8_v<iter_traits_value_t<Iter>> ||
+                                   is_cu16_v<iter_traits_value_t<Iter>> ||
+                                   is_cp_v<iter_traits_value_t<Iter>>);
 
 }}}
 
