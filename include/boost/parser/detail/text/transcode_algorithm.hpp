@@ -10,7 +10,7 @@
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 #include <algorithm>
 #endif
 
@@ -658,7 +658,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 }}}
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 

@@ -8,7 +8,7 @@
 
 #include <boost/parser/detail/stl_interfaces/config.hpp>
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
 #include <ranges>
 #endif
 #if defined(__cpp_lib_three_way_comparison)

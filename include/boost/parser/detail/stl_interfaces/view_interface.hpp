@@ -201,7 +201,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 }}}
 
 
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 

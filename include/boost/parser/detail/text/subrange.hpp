@@ -14,7 +14,7 @@
 
 namespace boost::parser::detail { namespace text {
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::forward_iterator I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -63,14 +63,14 @@ namespace boost::parser::detail { namespace text {
     };
 
 #if defined(__cpp_deduction_guides)
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::input_or_output_iterator I, std::sentinel_for<I> S>
 #else
     template<typename I, typename S>
 #endif
     subrange(I, S) -> subrange<I, S>;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::ranges::borrowed_range R>
 #else
     template<typename R>
@@ -80,7 +80,7 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace std::ranges {
     template<std::forward_iterator I, std::sentinel_for<I> S>

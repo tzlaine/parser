@@ -31,7 +31,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
             box<I, T>{std::move(x)}...
         {}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::input_range R>
         requires std::ranges::viewable_range<R> &&
             std::invocable<Func, R, T &...> &&
@@ -46,7 +46,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
             return Func{}((R &&) r, static_cast<box<I, T> &>(*this).value_...);
         }
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::input_range R>
         requires std::ranges::viewable_range<R> &&
             std::invocable<Func, R, T const &...> &&
@@ -62,7 +62,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
                 (R &&) r, static_cast<box<I, T> const &>(*this).value_...);
         }
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::input_range R>
         requires std::ranges::viewable_range<R> &&
             std::invocable<Func, R, T...> &&
@@ -78,7 +78,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
         }
     };
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<std::semiregular Func, std::copy_constructible... T>
 #else
     template<typename Func, typename... T>

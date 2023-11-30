@@ -65,7 +65,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 #if !BOOST_PARSER_USE_DEDUCED_THIS
               reverse_iterator<BidiIter>,
 #endif
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
               typename boost::parser::detail::stl_interfaces::v2::v2_dtl::iter_concept_t<
                   BidiIter>,
 #else
@@ -172,7 +172,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 }}}
 
 
-#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_STL_INTERFACES_DOXYGEN) || BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 {
 

@@ -28,7 +28,7 @@
 #endif
 
 #if !BOOST_PARSER_USE_CPP23_STD_RANGE_ADAPTOR_CLOSURE &&               \
-    BOOST_PARSER_USE_CONCEPTS && defined(__GNUC__) && 12 <= __GNUC__
+    BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS && defined(__GNUC__) && 12 <= __GNUC__
 #define BOOST_PARSER_USE_LIBSTDCPP_GCC12_RANGE_ADAPTOR_CLOSURE 1
 #else
 #define BOOST_PARSER_USE_LIBSTDCPP_GCC12_RANGE_ADAPTOR_CLOSURE 0
@@ -145,7 +145,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
         `std::ranges::range_adaptor_closure`.  `range_adaptor_closure` may be
         a struct template or may be an alias, as required to maintain
         compatability with the standard library's view adaptors. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<typename D>
     requires std::is_class_v<D> && std::same_as<D, std::remove_cv_t<D>>
 #else
@@ -158,7 +158,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
     struct range_adaptor_closure;
 
     namespace detail {
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<typename T>
         concept range_adaptor_closure_ = std::derived_from<
             std::remove_cvref_t<T>,
@@ -192,7 +192,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
 
 #else
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<typename D>
     requires std::is_class_v<D> && std::same_as<D, std::remove_cv_t<D>>
 #else
@@ -200,7 +200,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
 #endif
     struct range_adaptor_closure
     {
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<typename T>
         requires std::invocable<D, T>
 #else
@@ -213,7 +213,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
             return std::move(d)((T &&) t);
         }
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<typename T>
         requires std::invocable<D const &, T>
 #else
@@ -243,7 +243,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
     {
         constexpr closure(F f) : f_(f) {}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<typename T>
         requires std::invocable<F const &, T>
 #else
@@ -263,7 +263,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
     //]
 
     namespace detail {
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<typename F, bool Invocable, typename... Args>
         struct adaptor_impl
         {
@@ -303,7 +303,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
         constexpr auto operator()(Args &&... args) const
         // clang-format on
         {
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
             if constexpr (std::is_invocable_v<F const &, Args...>) {
                 return f((Args &&) args...);
             } else {

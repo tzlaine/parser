@@ -553,7 +553,7 @@ namespace boost::parser::detail { namespace text {
         {
             using value_type = void;
             using difference_type =
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
                 std::ptrdiff_t;
 #else
                 void;
@@ -747,7 +747,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 }}}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
@@ -925,7 +925,7 @@ namespace boost::parser::detail { namespace text {
 
 #else
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
     template<typename T>
         // clang-format off
@@ -1011,7 +1011,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-8 to UTF-16 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf8_iter I,
         std::sentinel_for<I> S = I,
@@ -1026,7 +1026,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-32 to UTF-8 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf32_iter I,
         std::sentinel_for<I> S = I,
@@ -1040,7 +1040,7 @@ namespace boost::parser::detail { namespace text {
     struct utf_32_to_8_iterator
         : detail::trans_iter<utf_32_to_8_iterator<I, S, ErrorHandler>, char>
     {
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         static_assert(
             std::is_same<
                 typename std::iterator_traits<I>::iterator_category,
@@ -1065,7 +1065,7 @@ namespace boost::parser::detail { namespace text {
             if (it_ != last_)
                 read_into_buf();
         }
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -1166,7 +1166,7 @@ namespace boost::parser::detail { namespace text {
         int index_;
         std::array<char, 5> buf_;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf32_iter I2,
             std::sentinel_for<I2> S2,
@@ -1243,7 +1243,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** An out iterator that converts UTF-32 to UTF-8. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint8_t> Iter>
 #else
     template<typename Iter>
@@ -1342,7 +1342,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-8 to UTF-32 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf8_iter I,
         std::sentinel_for<I> S = I,
@@ -1360,7 +1360,7 @@ namespace boost::parser::detail { namespace text {
         explicit constexpr utf_8_to_32_iterator(I first, I it, S last) :
             first_(first), it_(it), last_(last)
         {}
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -1659,7 +1659,7 @@ namespace boost::parser::detail { namespace text {
         I it_;
         S last_;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf8_iter I2,
             std::sentinel_for<I2> S2,
@@ -1669,7 +1669,7 @@ namespace boost::parser::detail { namespace text {
 #endif
         friend struct utf_8_to_16_iterator;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf8_iter I2,
             std::sentinel_for<I2> S2,
@@ -1781,7 +1781,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** An out iterator that converts UTF-8 to UTF-32. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint32_t> Iter>
 #else
     template<typename Iter>
@@ -1908,7 +1908,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-32 to UTF-16 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf32_iter I,
         std::sentinel_for<I> S = I,
@@ -1923,7 +1923,7 @@ namespace boost::parser::detail { namespace text {
         : detail::
               trans_iter<utf_32_to_16_iterator<I, S, ErrorHandler>, uint16_t>
     {
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         static_assert(
             std::is_same<
                 typename std::iterator_traits<I>::iterator_category,
@@ -1949,7 +1949,7 @@ namespace boost::parser::detail { namespace text {
             if (it_ != last_)
                 read_into_buf();
         }
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -2047,7 +2047,7 @@ namespace boost::parser::detail { namespace text {
         int index_;
         std::array<uint16_t, 4> buf_;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf32_iter I2,
             std::sentinel_for<I2> S2,
@@ -2123,7 +2123,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** An out iterator that converts UTF-8 to UTF-16. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint16_t> Iter>
 #else
     template<typename Iter>
@@ -2223,7 +2223,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-16 to UTF-32 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf16_iter I,
         std::sentinel_for<I> S = I,
@@ -2238,7 +2238,7 @@ namespace boost::parser::detail { namespace text {
         : detail::
               trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, uint32_t>
     {
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         static_assert(
             std::is_same<
                 typename std::iterator_traits<I>::iterator_category,
@@ -2259,7 +2259,7 @@ namespace boost::parser::detail { namespace text {
         explicit constexpr utf_16_to_32_iterator(I first, I it, S last) :
             first_(first), it_(it), last_(last)
         {}
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -2378,7 +2378,7 @@ namespace boost::parser::detail { namespace text {
         I it_;
         S last_;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf32_iter I2,
             std::sentinel_for<I2> S2,
@@ -2388,7 +2388,7 @@ namespace boost::parser::detail { namespace text {
 #endif
         friend struct utf_32_to_16_iterator;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf16_iter I2,
             std::sentinel_for<I2> S2,
@@ -2498,7 +2498,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** An out iterator that converts UTF-16 to UTF-32. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint32_t> Iter>
 #else
     template<typename Iter>
@@ -2622,7 +2622,7 @@ namespace boost::parser::detail { namespace text {
 
 
     /** A UTF-16 to UTF-8 converting iterator. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf16_iter I,
         std::sentinel_for<I> S = I,
@@ -2636,7 +2636,7 @@ namespace boost::parser::detail { namespace text {
     struct utf_16_to_8_iterator
         : detail::trans_iter<utf_16_to_8_iterator<I, S, ErrorHandler>, char>
     {
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         static_assert(
             std::is_same<
                 typename std::iterator_traits<I>::iterator_category,
@@ -2662,7 +2662,7 @@ namespace boost::parser::detail { namespace text {
             if (it_ != last_)
                 read_into_buf();
         }
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -2816,7 +2816,7 @@ namespace boost::parser::detail { namespace text {
         static uint32_t const surrogate_offset =
             0x10000 - (high_surrogate_min << 10) - low_surrogate_min;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf16_iter I2,
             std::sentinel_for<I2> S2,
@@ -2919,7 +2919,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** An out iterator that converts UTF-16 to UTF-8. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint8_t> Iter>
 #else
     template<typename Iter>
@@ -3041,7 +3041,7 @@ namespace boost::parser::detail { namespace text {
     };
 
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         utf8_iter I,
         std::sentinel_for<I> S,
@@ -3059,7 +3059,7 @@ namespace boost::parser::detail { namespace text {
             if (it_.it_ != it_.last_)
                 read_into_buf();
         }
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<typename I2, typename S2>
         // clang-format off
         requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
@@ -3155,7 +3155,7 @@ namespace boost::parser::detail { namespace text {
         int index_;
         std::array<uint16_t, 4> buf_;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             utf8_iter I2,
             std::sentinel_for<I2> S2,
@@ -3264,7 +3264,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** An out iterator that converts UTF-8 to UTF-16. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<std::output_iterator<uint16_t> Iter>
 #else
     template<typename Iter>
@@ -3885,7 +3885,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 }}}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 

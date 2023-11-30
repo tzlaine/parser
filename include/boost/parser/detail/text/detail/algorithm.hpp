@@ -24,7 +24,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
     using remove_cv_ref_t =
         typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
     template<typename T>
     using iterator_t = std::ranges::iterator_t<T>;

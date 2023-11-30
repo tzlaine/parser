@@ -151,7 +151,7 @@ namespace boost::parser::detail { namespace text {
     }
 
     /** A view over UTF-8 code units. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<utf8_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -219,7 +219,7 @@ namespace boost::parser::detail { namespace text {
     };
 
     /** A view over UTF-16 code units. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<utf16_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -287,7 +287,7 @@ namespace boost::parser::detail { namespace text {
     };
 
     /** A view over UTF-32 code units. */
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<utf32_iter I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
@@ -360,10 +360,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         template<
             typename Impl,
             typename Range,
-            bool Pointer =
-                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
+            bool Pointer = detail::is_utf_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf8_dispatch
         {
             static constexpr auto call(Range && r)
@@ -418,10 +415,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         template<
             typename Impl,
             typename Range,
-            bool Pointer =
-                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
+            bool Pointer = detail::is_utf_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf16_dispatch
         {
             static constexpr auto call(Range && r)
@@ -476,10 +470,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         template<
             typename Impl,
             typename Range,
-            bool Pointer =
-                detail::is_char_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_16_ptr_v<std::remove_reference_t<Range>> ||
-                detail::is_cp_ptr_v<std::remove_reference_t<Range>>>
+            bool Pointer = detail::is_utf_ptr_v<std::remove_reference_t<Range>>>
         struct as_utf32_dispatch
         {
             static constexpr auto call(Range && r)
@@ -532,7 +523,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 }}}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 

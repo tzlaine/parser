@@ -10,7 +10,7 @@
 
 #include <type_traits>
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
 #include <ranges>
 #endif
 
@@ -22,7 +22,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
 
     struct pipeable_base;
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<typename T>
     concept pipeable_ = std::derived_from<T, pipeable_base> &&
         std::is_object_v<T> && std::copy_constructible<T>;
@@ -32,7 +32,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
         std::is_object<T>::value && std::is_copy_constructible<T>::value;
 #endif
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<pipeable_ T, pipeable_ U>
 #else
     template<
@@ -44,7 +44,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
 
     struct pipeable_base
     {
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<pipeable_ T, pipeable_ U>
         requires std::constructible_from<std::remove_cvref_t<T>, T> &&
             std::constructible_from<std::remove_cvref_t<U>, U>
@@ -88,7 +88,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
         }
     };
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
     template<pipeable_ T, pipeable_ U>
 #else
     template<typename T, typename U, typename>
@@ -101,7 +101,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
             left_(std::move(t)), right_(std::move(u))
         {}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::viewable_range R>
         requires std::invocable<T &, R> &&
             std::invocable<U &, std::invoke_result_t<T &, R>>
@@ -115,7 +115,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
             return right_(left_((R &&) r));
         }
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::viewable_range R>
         requires std::invocable<T const &, R> &&
             std::invocable<U const &, std::invoke_result_t<T const &, R>>
@@ -129,7 +129,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
             return right_(left_((R &&) r));
         }
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
         template<std::ranges::viewable_range R>
         requires std::invocable<T, R> &&
             std::invocable<U, std::invoke_result_t<T, R>>

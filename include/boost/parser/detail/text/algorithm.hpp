@@ -372,7 +372,7 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace std::ranges {
     template<typename Iter, typename Sentinel>
