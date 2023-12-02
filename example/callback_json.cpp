@@ -188,7 +188,7 @@ namespace json {
     auto const object_element_def = object_element_key > ':' > value;
 
     // This is a very straightforward way to write object_def when we know we
-    // don't care about attribute-generating (non-calblack) parsing.  If we
+    // don't care about attribute-generating (non-callback) parsing.  If we
     // wanted to support both modes in one parser definition, we could have
     // written:
     //    auto const object_open_def = eps;
