@@ -21,6 +21,7 @@
 #if defined(__GNUC__) || defined(__clang__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#    pragma GCC diagnostic ignored "-Wunused-value"
 #endif
 #include <boost/hana.hpp>
 #if defined(__GNUC__) || defined(__clang__)
@@ -91,9 +92,8 @@ namespace boost { namespace parser {
     }
 
     /** The tuple template alias used within Boost.Parser.  This will be
-        `std::tuple` when either `BOOST_PARSER_STANDALONE` or
-        `BOOST_PARSER_USE_STD_TUPLE` is defined, and `boost::hana::tuple`
-        otherwise*/
+        `boost::hana::tuple` unless `BOOST_PARSER_DISABLE_HANA_TUPLE` is
+        defined, in which case it is `std::tuple`. */
 #if BOOST_PARSER_USE_STD_TUPLE
     template<typename... Args>
     using tuple = std::tuple<Args...>;
@@ -102,9 +102,9 @@ namespace boost { namespace parser {
     using tuple = hana::tuple<Args...>;
 #endif
 
-    /** A template alias that is `std::integral_constant<T, I>` when either
-        `BOOST_PARSER_STANDALONE` or `BOOST_PARSER_USE_STD_TUPLE` is defined,
-        and `boost::hana::integral_constant<T, I>` otherwise. */
+    /** A template alias that is `boost::hana::integral_constant<T, I>` unless
+        `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined, in which case it is
+        `std::integral_constant<T, I>`. */
 #if BOOST_PARSER_USE_STD_TUPLE
     template<typename T, T I>
     using integral_constant = std::integral_constant<T, I>;
@@ -113,9 +113,9 @@ namespace boost { namespace parser {
     using integral_constant = hana::integral_constant<T, I>;
 #endif
 
-    /** A template alias that is `std::integral_constant<long long, I>` when
-        either `BOOST_PARSER_STANDALONE` or `BOOST_PARSER_USE_STD_TUPLE` is
-        defined, and `boost::hana::llong<I>` otherwise. */
+    /** A template alias that is `boost::hana::llong<I>` unless
+        `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined, in which case it is
+        `std::integral_constant<long long, I>`. */
     template<long long I>
     using llong = integral_constant<long long, I>;
 

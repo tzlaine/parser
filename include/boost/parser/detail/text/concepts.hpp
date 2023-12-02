@@ -9,12 +9,14 @@
 #include <boost/parser/detail/text/config.hpp>
 #include <boost/parser/detail/text/utf.hpp>
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 #include <ranges>
 
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
+
+    //[ concepts_concepts
 
     template<typename T, format F>
     concept code_unit = std::integral<T> && sizeof(T) == (int)F;
@@ -29,7 +31,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     concept utf32_code_unit = code_unit<T, format::utf32>;
 
     template<typename T, format F>
-    concept code_unit_iterator =
+    concept code_unit_iter =
         std::bidirectional_iterator<T> && code_unit<std::iter_value_t<T>, F>;
 
     template<typename T, format F>
@@ -45,7 +47,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         code_unit<std::ranges::range_value_t<T>, F>;
 
     template<typename T>
-    concept utf8_iter = code_unit_iterator<T, format::utf8>;
+    concept utf8_iter = code_unit_iter<T, format::utf8>;
     template<typename T>
     concept utf8_pointer = code_unit_pointer<T, format::utf8>;
     template<typename T>
@@ -54,7 +56,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     concept contiguous_utf8_range = contiguous_code_unit_range<T, format::utf8>;
 
     template<typename T>
-    concept utf16_iter = code_unit_iterator<T, format::utf16>;
+    concept utf16_iter = code_unit_iter<T, format::utf16>;
     template<typename T>
     concept utf16_pointer = code_unit_pointer<T, format::utf16>;
     template<typename T>
@@ -64,7 +66,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         contiguous_code_unit_range<T, format::utf16>;
 
     template<typename T>
-    concept utf32_iter = code_unit_iterator<T, format::utf32>;
+    concept utf32_iter = code_unit_iter<T, format::utf32>;
     template<typename T>
     concept utf32_pointer = code_unit_pointer<T, format::utf32>;
     template<typename T>
@@ -95,11 +97,9 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     concept grapheme_range = std::ranges::bidirectional_range<T> &&
         grapheme_iter<std::ranges::iterator_t<T>>;
 
-    /** The code point iterator type of a grapheme range. */
     template<typename R>
     using code_point_iterator_t = decltype(std::declval<R>().begin().base());
 
-    /** The code point sentinel type of a grapheme range. */
     template<typename R>
     using code_point_sentinel_t = decltype(std::declval<R>().end().base());
 
@@ -108,7 +108,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         // clang-format off
         grapheme_iter<T> &&
         requires(T t) {
-        { t.base().base() } -> code_unit_iterator<F>;
+        { t.base().base() } -> code_unit_iter<F>;
         // clang-format on
     };
 
@@ -174,6 +174,21 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         utf16_pointer<std::remove_reference_t<T>> ||
         utf32_pointer<std::remove_reference_t<T>>;
     // clang-format on
+
+    //]
+
+    // Clang 13 defines __cpp_lib_concepts but not std::indirectly copyable.
+#if defined(__clang_major__) && __clang_major__ == 13
+    template<typename In, typename Out>
+    // clang-format off
+    concept indirectly_copyable =
+        std::indirectly_readable<In> &&
+        std::indirectly_writable<Out, std::iter_reference_t<In>>;
+    // clang-format on
+#else
+    template<typename In, typename Out>
+    concept indirectly_copyable = std::indirectly_copyable<In, Out>;
+#endif
 
 }}}
 

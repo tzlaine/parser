@@ -3,10 +3,19 @@
 
 #include <boost/parser/detail/printing.hpp>
 
-#if BOOST_PARSER_USE_BOOST
+#if __has_include(<boost/type_index.hpp>)
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include <boost/type_index.hpp>
+#define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 1
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #else
 #include <typeinfo>
+#define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 0
 #endif
 
 
@@ -15,7 +24,7 @@ namespace boost { namespace parser { namespace detail {
     template<typename T>
     auto type_name()
     {
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_TYPEINDEX
         return typeindex::type_id<T>().pretty_name();
 #else
         return typeid(T).name();

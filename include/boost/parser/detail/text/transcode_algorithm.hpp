@@ -10,22 +10,54 @@
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
 
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#include <algorithm>
+#endif
+
 
 namespace boost::parser::detail { namespace text {
+
+    // TODO: Should this live somewhere else?
+    template<typename Range>
+    struct utf_range_like_iterator
+    {
+        using type = decltype(std::declval<Range>().begin());
+    };
+
+    template<typename T>
+    struct utf_range_like_iterator<T *>
+    {
+        using type = T *;
+    };
+
+    template<std::size_t N, typename T>
+    struct utf_range_like_iterator<T[N]>
+    {
+        using type = T *;
+    };
+
+    template<std::size_t N, typename T>
+    struct utf_range_like_iterator<T (&)[N]>
+    {
+        using type = T *;
+    };
+
+    template<typename Range>
+    using utf_range_like_iterator_t =
+        typename utf_range_like_iterator<Range>::type;
 
     /** The result returned from some variations of the transcode
         algorithms. */
     template<typename Iter, typename OutIter>
     struct transcode_result
     {
-        Iter iter;
+        Iter in;
         OutIter out;
     };
 
     namespace detail {
         template<typename OutIter>
-        constexpr OutIter
-        read_into_utf8_iter(uint32_t cp, OutIter out)
+        constexpr OutIter read_into_utf8_iter(uint32_t cp, OutIter out)
         {
             if (cp < 0x80) {
                 *out = static_cast<char>(cp);
@@ -56,8 +88,7 @@ namespace boost::parser::detail { namespace text {
         }
 
         template<typename OutIter>
-        constexpr OutIter
-        read_into_utf16_iter(uint32_t cp, OutIter out)
+        constexpr OutIter read_into_utf16_iter(uint32_t cp, OutIter out)
         {
             uint16_t const high_surrogate_base = 0xd7c0;
             uint16_t const low_surrogate_base = 0xdc00;
@@ -340,22 +371,127 @@ namespace boost::parser::detail { namespace text {
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
 
+#if defined(BOOST_TEXT_DOXYGEN)
+
+    // -> utf8
+
+    /** Copies the code points in the range `[first, last)` to `out`, changing
+        the encoding to UTF-8. */
+    template<
+        std::input_iterator I,
+        std::sentinel_for<I> S,
+        std::output_iterator<uint8_t> O>
+    requires(
+        utf16_code_unit<std::iter_value_t<I>> ||
+        utf32_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf8(I first, S last, O out);
+
+    /** Copies the code points in the range `[p, null_sentinel)` to `out`,
+        changing the encoding to UTF-8.  */
+    template<typename Ptr, std::output_iterator<uint8_t> O>
+    requires(utf16_pointer<Ptr> || utf32_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf8(Ptr p, O out);
+
+    /** Copies the code points in the array `arr` to `out`, changing the
+        encoding to UTF-8.  */
+    template<std::size_t N, typename Char, std::output_iterator<uint8_t> O>
+    requires (utf16_code_unit<Char> || utf32_code_unit<Char>)
+    transcode_result<Char *, O> transcode_to_utf8(Char (&arr)[N], O out);
+
+    /** Copies the code points in the range `r` to `out`, changing the
+        encoding to UTF-8.  */
+    template<std::ranges::input_range R, std::output_iterator<uint8_t> O>
+    requires (utf16_code_unit<std::ranges::range_value_t<R>> ||
+              utf32_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf8(R && r, O out);
+
+
+    // -> utf16
+
+    /** Copies the code points in the range `[first, last)` to `out`, changing
+        the encoding to UTF-16. */
+    template<
+        std::input_iterator I,
+        std::sentinel_for<I> S,
+        std::output_iterator<uint16_t> O>
+    requires (utf8_code_unit<std::iter_value_t<I>> ||
+              utf32_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf16(I first, S last, O out);
+
+    /** Copies the code points in the range `[p, null_sentinel)` to `out`,
+        changing the encoding to UTF-16.  */
+    template<typename Ptr, std::output_iterator<uint16_t> O>
+    requires (utf8_pointer<Ptr> || utf32_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf16(Ptr p, O out);
+
+    /** Copies the code points in the array `arr` to `out`, changing the
+        encoding to UTF-16.  */
+    template<std::size_t N, typename Char, std::output_iterator<uint16_t> O>
+    requires (utf8_code_unit<Char> || utf32_code_unit<Char>)
+    transcode_result<Char *, O> transcode_to_utf16(Char (&arr)[N], O out);
+
+    /** Copies the code points in the range `r` to `out`, changing the
+        encoding to UTF-16.  */
+    template<std::ranges::input_range R, std::output_iterator<uint16_t> O>
+    requires (utf8_code_unit<std::ranges::range_value_t<R>> ||
+              utf32_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf16(R && r, O out);
+
+
+    // -> utf32
+
+    /** Copies the code points in the range `[first, last)` to `out`, changing
+        the encoding to UTF-32. */
+    template<
+        std::input_iterator I,
+        std::sentinel_for<I> S,
+        std::output_iterator<uint32_t> O>
+    requires (utf8_code_unit<std::iter_value_t<I>> ||
+              utf16_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf32(I first, S last, O out);
+
+    /** Copies the code points in the range `[p, null_sentinel)` to `out`,
+        changing the encoding to UTF-32.  */
+    template<typename Ptr, std::output_iterator<uint32_t> O>
+    requires (utf8_pointer<Ptr> || utf16_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf32(Ptr p, O out);
+
+    /** Copies the code points in the array `arr` to `out`, changing the
+        encoding to UTF-32.  */
+    template<std::size_t N, typename Char, std::output_iterator<uint32_t> O>
+    requires (utf8_code_unit<Char> || utf16_code_unit<Char>)
+    transcode_result<Char *, O> transcode_to_utf32(Char (&arr)[N], O out);
+
+    /** Copies the code points in the range `r` to `out`, changing the
+        encoding to UTF-32.  */
+    template<std::ranges::input_range R, std::output_iterator<uint32_t> O>
+    requires (utf8_code_unit<std::ranges::range_value_t<R>> ||
+              utf16_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf32(R && r, O out);
+
+#endif
+
     namespace dtl {
         template<
             bool UseN,
             typename Range,
             typename OutIter,
-            bool _16Ptr = detail::_16_ptr<Range>::value,
-            bool CPPtr = detail::cp_ptr<Range>::value>
+            bool _16Ptr = detail::is_16_ptr_v<Range>,
+            bool CPPtr = detail::is_cp_ptr_v<Range>>
         struct transcode_to_8_dispatch
         {
             static constexpr auto
-            call(Range && r, std::ptrdiff_t n, OutIter out) noexcept
+            call(Range && r, std::ptrdiff_t n, OutIter out)
+                -> transcode_result<decltype(detail::begin(r)), OutIter>
             {
                 auto const u = detail::unpack_iterator_and_sentinel(
-                    std::begin(r), std::end(r));
-                return detail::transcode_to_8<UseN>(
-                    u.tag_, u.f_, u.l_, n, out);
+                    detail::begin(r), detail::end(r));
+                auto unpacked =
+                    detail::transcode_to_8<UseN>(u.tag_, u.f_, u.l_, n, out);
+                return {u.repack_(unpacked.in), unpacked.out};
             }
         };
 
@@ -363,10 +499,10 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_8_dispatch<UseN, Ptr, OutIter, true, false>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_8<UseN>(
-                    detail::utf16_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf16_tag{}, p, null_sentinel, n, out);
             }
         };
 
@@ -374,10 +510,10 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_8_dispatch<UseN, Ptr, OutIter, false, true>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_8<UseN>(
-                    detail::utf32_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf32_tag{}, p, null_sentinel, n, out);
             }
         };
 
@@ -385,17 +521,19 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
             bool UseN,
             typename Range,
             typename OutIter,
-            bool CharPtr = detail::char_ptr<Range>::value,
-            bool CPPtr = detail::cp_ptr<Range>::value>
+            bool CharPtr = detail::is_char_ptr_v<Range>,
+            bool CPPtr = detail::is_cp_ptr_v<Range>>
         struct transcode_to_16_dispatch
         {
             static constexpr auto
-            call(Range && r, std::ptrdiff_t n, OutIter out) noexcept
+            call(Range && r, std::ptrdiff_t n, OutIter out)
+                -> transcode_result<decltype(detail::begin(r)), OutIter>
             {
                 auto const u = detail::unpack_iterator_and_sentinel(
-                    std::begin(r), std::end(r));
-                return detail::transcode_to_16<UseN>(
-                    u.tag_, u.f_, u.l_, n, out);
+                    detail::begin(r), detail::end(r));
+                auto unpacked =
+                    detail::transcode_to_16<UseN>(u.tag_, u.f_, u.l_, n, out);
+                return {u.repack_(unpacked.in), unpacked.out};
             }
         };
 
@@ -403,10 +541,10 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_16_dispatch<UseN, Ptr, OutIter, true, false>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_16<UseN>(
-                    detail::utf8_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf8_tag{}, p, null_sentinel, n, out);
             }
         };
 
@@ -414,10 +552,10 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_16_dispatch<UseN, Ptr, OutIter, false, true>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_16<UseN>(
-                    detail::utf32_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf32_tag{}, p, null_sentinel, n, out);
             }
         };
 
@@ -425,17 +563,19 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
             bool UseN,
             typename Range,
             typename OutIter,
-            bool CharPtr = detail::char_ptr<Range>::value,
-            bool _16Ptr = detail::_16_ptr<Range>::value>
+            bool CharPtr = detail::is_char_ptr_v<Range>,
+            bool _16Ptr = detail::is_16_ptr_v<Range>>
         struct transcode_to_32_dispatch
         {
             static constexpr auto
-            call(Range && r, std::ptrdiff_t n, OutIter out) noexcept
+            call(Range && r, std::ptrdiff_t n, OutIter out)
+                -> transcode_result<decltype(detail::begin(r)), OutIter>
             {
                 auto const u = detail::unpack_iterator_and_sentinel(
-                    std::begin(r), std::end(r));
-                return detail::transcode_to_32<UseN>(
-                    u.tag_, u.f_, u.l_, n, out);
+                    detail::begin(r), detail::end(r));
+                auto unpacked =
+                    detail::transcode_to_32<UseN>(u.tag_, u.f_, u.l_, n, out);
+                return {u.repack_(unpacked.in), unpacked.out};
             }
         };
 
@@ -443,10 +583,10 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_32_dispatch<UseN, Ptr, OutIter, true, false>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_32<UseN>(
-                    detail::utf8_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf8_tag{}, p, null_sentinel, n, out);
             }
         };
 
@@ -454,192 +594,221 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         struct transcode_to_32_dispatch<UseN, Ptr, OutIter, false, true>
         {
             static constexpr auto
-            call(Ptr p, std::ptrdiff_t n, OutIter out) noexcept
+            call(Ptr p, std::ptrdiff_t n, OutIter out)
             {
                 return detail::transcode_to_32<UseN>(
-                    detail::utf16_tag{}, p, null_sentinel{}, n, out);
+                    detail::utf16_tag{}, p, null_sentinel, n, out);
             }
         };
     }
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-8. */
     template<typename Iter, typename Sentinel, typename OutIter>
-    OutIter transcode_to_utf8(Iter first, Sentinel last, OutIter out)
+    transcode_result<Iter, OutIter> transcode_to_utf8(
+        Iter first, Sentinel last, OutIter out)
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_8<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_8<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-8.  */
     template<typename Range, typename OutIter>
-    OutIter transcode_to_utf8(Range && r, OutIter out)
+    transcode_result<utf_range_like_iterator_t<Range>, OutIter>
+    transcode_to_utf8(Range && r, OutIter out)
     {
         return dtl::transcode_to_8_dispatch<false, Range, OutIter>::call(
-            r, -1, out).out;
+            r, -1, out);
     }
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-16. */
     template<typename Iter, typename Sentinel, typename OutIter>
-    OutIter transcode_to_utf16(Iter first, Sentinel last, OutIter out)
+    transcode_result<Iter, OutIter> transcode_to_utf16(
+        Iter first, Sentinel last, OutIter out)
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_16<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_16<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-16.  */
     template<typename Range, typename OutIter>
-    OutIter transcode_to_utf16(Range && r, OutIter out)
+    transcode_result<utf_range_like_iterator_t<Range>, OutIter>
+    transcode_to_utf16(Range && r, OutIter out)
     {
         return dtl::transcode_to_16_dispatch<false, Range, OutIter>::call(
-            r, -1, out).out;
+            r, -1, out);
     }
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-32. */
     template<typename Iter, typename Sentinel, typename OutIter>
-    OutIter transcode_to_utf32(Iter first, Sentinel last, OutIter out)
+    transcode_result<Iter, OutIter> transcode_to_utf32(
+        Iter first, Sentinel last, OutIter out)
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_32<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_32<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-32.  */
     template<typename Range, typename OutIter>
-    OutIter transcode_to_utf32(Range && r, OutIter out)
+    transcode_result<utf_range_like_iterator_t<Range>, OutIter>
+    transcode_to_utf32(Range && r, OutIter out)
     {
         return dtl::transcode_to_32_dispatch<false, Range, OutIter>::call(
-            r, -1, out).out;
+            r, -1, out);
     }
 
 }}}
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-8. */
+    // -> utf8
+
     template<
-        typename I,
+        std::input_iterator I,
         std::sentinel_for<I> S,
         std::output_iterator<uint8_t> O>
-        // clang-format off
-        requires utf16_iter<I> || utf32_iter<I>
-    O transcode_to_utf8(I first, S last, O out)
+    // clang-format off
+        requires (utf16_code_unit<std::iter_value_t<I>> ||
+                  utf32_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf8(I first, S last, O out)
     // clang-format on
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_8<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_8<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-8.  */
-    template<typename R, std::output_iterator<uint8_t> O>
-        // clang-format off
-        requires utf16_range<R> || utf32_range<R> ||
-                 utf16_pointer<R> || utf32_pointer<R>
-    O transcode_to_utf8(R && r, O out)
-    // clang-format on
+    template<typename Ptr, std::output_iterator<uint8_t> O>
+    // clang-format off
+        requires (utf16_pointer<Ptr> || utf32_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf8(Ptr p, O out)
     {
-        if constexpr (utf16_pointer<R>) {
-            return detail::transcode_to_8<false>(
-                       detail::utf16_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else if constexpr (utf32_pointer<R>) {
-            return detail::transcode_to_8<false>(
-                       detail::utf32_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else {
-            auto const u = detail::unpack_iterator_and_sentinel(
-                std::ranges::begin(r), std::ranges::end(r));
-            return detail::transcode_to_8<false>(u.tag_, u.f_, u.l_, -1, out)
-                .out;
-        }
+        // clang-format on
+        return text::transcode_to_utf8(p, null_sentinel, out);
     }
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-16. */
+    template<std::size_t N, typename Char, std::output_iterator<uint8_t> O>
+    // clang-format off
+        requires (utf16_code_unit<Char> || utf32_code_unit<Char>)
+        transcode_result<Char *, O> transcode_to_utf8(Char (&arr)[N], O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf8(
+            std::ranges::begin(arr), std::ranges::end(arr), out);
+    }
+
+    template<std::ranges::input_range R, std::output_iterator<uint8_t> O>
+    // clang-format off
+        requires (utf16_code_unit<std::ranges::range_value_t<R>> ||
+                  utf32_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf8(R && r, O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf8(
+            std::ranges::begin(r), std::ranges::end(r), out);
+    }
+
+
+    // -> utf16
+
     template<
-        typename I,
+        std::input_iterator I,
         std::sentinel_for<I> S,
         std::output_iterator<uint16_t> O>
-        // clang-format off
-        requires utf8_iter<I> || utf32_iter<I>
-    O transcode_to_utf16(I first, S last, O out)
+    // clang-format off
+        requires (utf8_code_unit<std::iter_value_t<I>> ||
+                  utf32_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf16(I first, S last, O out)
     // clang-format on
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_16<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_16<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-16.  */
-    template<typename R, std::output_iterator<uint16_t> O>
-        // clang-format off
-        requires utf8_range<R> || utf32_range<R> ||
-                 utf8_pointer<R> || utf32_pointer<R>
-    O transcode_to_utf16(R && r, O out)
-    // clang-format on
+    template<typename Ptr, std::output_iterator<uint16_t> O>
+    // clang-format off
+        requires (utf8_pointer<Ptr> || utf32_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf16(Ptr p, O out)
     {
-        if constexpr (utf8_pointer<R>) {
-            return detail::transcode_to_16<false>(
-                       detail::utf8_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else if constexpr (utf32_pointer<R>) {
-            return detail::transcode_to_16<false>(
-                       detail::utf32_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else {
-            auto const u = detail::unpack_iterator_and_sentinel(
-                std::ranges::begin(r), std::ranges::end(r));
-            return detail::transcode_to_16<false>(u.tag_, u.f_, u.l_, -1, out)
-                .out;
-        }
+        // clang-format on
+        return text::transcode_to_utf16(p, null_sentinel, out);
     }
 
-    /** Copies the code points in the range `[first, last)` to `out`, changing
-        the encoding to UTF-32. */
+    template<std::size_t N, typename Char, std::output_iterator<uint16_t> O>
+    // clang-format off
+        requires (utf8_code_unit<Char> || utf32_code_unit<Char>)
+        transcode_result<Char *, O> transcode_to_utf16(Char (&arr)[N], O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf16(
+            std::ranges::begin(arr), std::ranges::end(arr), out);
+    }
+
+    template<std::ranges::input_range R, std::output_iterator<uint16_t> O>
+    // clang-format off
+        requires (utf8_code_unit<std::ranges::range_value_t<R>> ||
+                  utf32_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf16(R && r, O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf16(
+            std::ranges::begin(r), std::ranges::end(r), out);
+    }
+
+
+    // -> utf32
+
     template<
-        typename I,
+        std::input_iterator I,
         std::sentinel_for<I> S,
-        std::output_iterator<uint32_t const &> O>
-        // clang-format off
-        requires utf8_iter<I> || utf16_iter<I>
-    O transcode_to_utf32(I first, S last, O out)
+        std::output_iterator<uint32_t> O>
+    // clang-format off
+        requires (utf8_code_unit<std::iter_value_t<I>> ||
+                  utf16_code_unit<std::iter_value_t<I>>)
+    transcode_result<I, O> transcode_to_utf32(I first, S last, O out)
     // clang-format on
     {
         auto const r = detail::unpack_iterator_and_sentinel(first, last);
-        return detail::transcode_to_32<false>(r.tag_, r.f_, r.l_, -1, out).out;
+        auto unpacked =
+            detail::transcode_to_32<false>(r.tag_, r.f_, r.l_, -1, out);
+        return {r.repack_(unpacked.in), unpacked.out};
     }
 
-    /** Copies the code points in the range `r` to `out`, changing the
-        encoding from UTF-32.  */
-    template<typename R, std::output_iterator<uint32_t> O>
-        // clang-format off
-        requires utf8_range<R> || utf16_range<R> ||
-                 utf8_pointer<R> || utf16_pointer<R>
-    O transcode_to_utf32(R && r, O out)
-    // clang-format on
+    template<typename Ptr, std::output_iterator<uint32_t> O>
+    // clang-format off
+        requires (utf8_pointer<Ptr> || utf16_pointer<Ptr>)
+    transcode_result<Ptr, O> transcode_to_utf32(Ptr p, O out)
     {
-        if constexpr (utf8_pointer<R>) {
-            return detail::transcode_to_32<false>(
-                       detail::utf8_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else if constexpr (utf16_pointer<R>) {
-            return detail::transcode_to_32<false>(
-                       detail::utf16_tag{}, r, null_sentinel{}, -1, out)
-                .out;
-        } else {
-            auto const u = detail::unpack_iterator_and_sentinel(
-                std::ranges::begin(r), std::ranges::end(r));
-            return detail::transcode_to_32<false>(u.tag_, u.f_, u.l_, -1, out)
-                .out;
-        }
+        // clang-format on
+        return text::transcode_to_utf32(p, null_sentinel, out);
+    }
+
+    template<std::size_t N, typename Char, std::output_iterator<uint32_t> O>
+    // clang-format off
+        requires (utf8_code_unit<Char> || utf16_code_unit<Char>)
+        transcode_result<Char *, O> transcode_to_utf32(Char (&arr)[N], O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf32(
+            std::ranges::begin(arr), std::ranges::end(arr), out);
+    }
+
+    template<std::ranges::input_range R, std::output_iterator<uint32_t> O>
+    // clang-format off
+        requires (utf8_code_unit<std::ranges::range_value_t<R>> ||
+                  utf16_code_unit<std::ranges::range_value_t<R>>)
+    transcode_result<std::ranges::borrowed_iterator_t<R>, O>
+    transcode_to_utf32(R && r, O out)
+    {
+        // clang-format on
+        return text::transcode_to_utf32(
+            std::ranges::begin(r), std::ranges::end(r), out);
     }
 
 }}}

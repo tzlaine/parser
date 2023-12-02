@@ -9,11 +9,17 @@
 #include <boost/parser/detail/numeric.hpp>
 #include <boost/parser/detail/printing.hpp>
 
-#if BOOST_PARSER_USE_BOOST
+#if __has_include(<boost/preprocessor/variadic/to_seq.hpp>) &&        \
+    __has_include(<boost/preprocessor/variadic/elem.hpp>) &&          \
+    __has_include(<boost/preprocessor/seq/for_each.hpp>)
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
+#define BOOST_PARSER_HAVE_BOOST_PP 1
+#else
+#define BOOST_PARSER_HAVE_BOOST_PP 0
 #endif
+
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
@@ -1518,7 +1524,7 @@ namespace boost { namespace parser {
         constexpr auto make_char_range(R && r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return detail::make_char_range(r, text::null_sentinel{});
+                return detail::make_char_range(r, text::null_sentinel);
             } else {
                 return detail::make_char_range(r.begin(), r.end());
             }
@@ -2170,8 +2176,16 @@ namespace boost { namespace parser {
         template<typename I>
         text::utf32_view<I> remove_utf32_terminator(text::utf32_view<I> view)
         {
-            if (!view.empty() && view.back() == 0)
-                return text::utf32_view<I>(view.begin(), std::prev(view.end()));
+            if (!view.empty() && view.back() == 0) {
+                return text::utf32_view<I>(
+                    view.begin(),
+#if BOOST_PARSER_USE_CONCEPTS
+                    std::ranges::prev(view.end())
+#else
+                    std::prev(view.end())
+#endif
+                );
+            }
             return view;
         }
         template<typename R>
@@ -2186,12 +2200,22 @@ namespace boost { namespace parser {
         {
             if constexpr (non_unicode_char_range_like<remove_cv_ref_t<R>>) {
                 if constexpr (utf8_pointer<remove_cv_ref_t<R>>) {
-                    return parser::make_view(r, text::null_sentinel{});
+                    return parser::make_view(r, text::null_sentinel);
                 } else if constexpr (std::is_array_v<remove_cv_ref_t<R>>) {
                     auto first = std::begin(r);
                     auto last = std::end(r);
-                    if (first != last && *std::prev(last) == 0)
-                        --last;
+                    if (first != last) {
+                        if (*
+#if BOOST_PARSER_USE_CONCEPTS
+                            std::ranges::prev(last)
+#else
+                            std::prev(last)
+#endif
+
+                            == 0) {
+                            --last;
+                        }
+                    }
                     return parser::make_view(first, last);
                 } else {
                     return parser::make_view(std::begin(r), std::end(r));
@@ -2216,7 +2240,7 @@ namespace boost { namespace parser {
         constexpr auto make_view_end(R & r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return text::null_sentinel{};
+                return text::null_sentinel;
             } else {
                 return std::end(r);
             }
@@ -4685,12 +4709,12 @@ namespace boost { namespace parser {
 
 #endif
 
-#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_BOOST
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_HAVE_BOOST_PP
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
         parsing behavior rule `t`, using the parser `t_def`.  This macro is
-        only available when `BOOST_PARSER_STANDALONE` is not defined. */
+        only available when the Boost.Preprocessor headers are available. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PP_SEQ_FOR_EACH(                                                     \
         BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
@@ -6429,10 +6453,10 @@ namespace boost { namespace parser {
     struct is_char8_iter
         : std::integral_constant<
               bool,
-              (std::is_integral_v<detail::detected_t<detail::value_type_, T>> &&
+              (std::is_integral_v<detail::detected_t<detail::text::detail::value_type_, T>> &&
                std::is_same_v<
                    detail::remove_cv_ref_t<
-                       detail::detected_t<detail::value_type_, T>>,
+                       detail::detected_t<detail::text::detail::value_type_, T>>,
                    char8_t>)>
     {};
 

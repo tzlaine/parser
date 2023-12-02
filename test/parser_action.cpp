@@ -12,7 +12,7 @@ using namespace boost::parser;
 
 constexpr rule<struct abc_def_tag, std::string> abc_def = "abc or def";
 constexpr auto abc_def_def = string("abc") | string("def");
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(abc_def);
 #else
 BOOST_PARSER_DEFINE_RULE(abc_def);
@@ -22,7 +22,7 @@ auto const fail = [](auto & context) { _pass(context) = false; };
 constexpr rule<struct fail_abc_pass_def_tag, std::string> fail_abc_pass_def =
     "abc";
 constexpr auto fail_abc_pass_def_def = string("abc")[fail] | string("def");
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(fail_abc_pass_def);
 #else
 BOOST_PARSER_DEFINE_RULE(fail_abc_pass_def);
@@ -33,7 +33,7 @@ constexpr rule<struct action_copy_abc_def_tag, std::string>
     action_copy_abc_def = "abc or def";
 constexpr auto action_copy_abc_def_def =
     string("abc")[attr_to_val] | string("def")[attr_to_val];
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(action_copy_abc_def);
 #else
 BOOST_PARSER_DEFINE_RULE(action_copy_abc_def);
@@ -44,7 +44,7 @@ auto const def_value = [](auto & context) { _val(context) = "def"; };
 constexpr rule<struct rev_abc_def_tag, std::string> rev_abc_def = "abc or def";
 constexpr auto rev_abc_def_def =
     string("abc")[def_value] | string("def")[abc_value];
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(rev_abc_def);
 #else
 BOOST_PARSER_DEFINE_RULE(rev_abc_def);
@@ -60,7 +60,7 @@ rule<struct locals_abc_def_tag, std::string, std::string> const locals_abc_def =
     "abc or def";
 auto locals_abc_def_def = -string("abc")[append_attr] >>
                           -string("def")[append_attr] >> eps[locals_to_val];
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(locals_abc_def);
 #else
 BOOST_PARSER_DEFINE_RULE(locals_abc_def);
@@ -82,7 +82,7 @@ TEST(parser, side_effects)
         EXPECT_EQ(i, 1);
         auto first = str.c_str();
         EXPECT_TRUE(parse(
-            first, boost::parser::detail::text::null_sentinel{}, char_('x')[increment_i]));
+            first, boost::parser::detail::text::null_sentinel, char_('x')[increment_i]));
         EXPECT_EQ(i, 2);
         EXPECT_FALSE(parse(str, char_('a')[increment_i]));
         EXPECT_EQ(i, 2);
@@ -90,7 +90,7 @@ TEST(parser, side_effects)
         EXPECT_EQ(i, 3);
         first = str.c_str();
         EXPECT_TRUE(parse(
-            first, boost::parser::detail::text::null_sentinel{}, char_('x')[increment_i]));
+            first, boost::parser::detail::text::null_sentinel, char_('x')[increment_i]));
         EXPECT_EQ(i, 4);
     }
 }

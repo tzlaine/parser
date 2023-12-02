@@ -9,9 +9,10 @@
 #include <boost/parser/detail/text/config.hpp>
 
 
-#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
+#if defined(BOOST_TEXT_DOXYGEN) || BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace boost::parser::detail::text {
+    /** An alias template analogous to `std::ranges::borrowed_subrange_t`. */
     template<std::ranges::range R, std::ranges::view V>
     using borrowed_view_t = std::
         conditional_t<std::ranges::borrowed_range<R>, V, std::ranges::dangling>;

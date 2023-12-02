@@ -6,6 +6,7 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 
+#include <boost/parser/detail/text/subrange.hpp>
 #include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
 #include <boost/parser/detail/stl_interfaces/view_interface.hpp>
@@ -156,24 +157,7 @@ namespace boost::parser::detail { namespace text {
 
     /** A utility range type returned by `foreach_subrange*()`. */
     template<typename Iter, typename Sentinel = Iter>
-    struct foreach_subrange_range
-    {
-        using iterator = Iter;
-        using sentinel = Sentinel;
-
-        foreach_subrange_range() {}
-        foreach_subrange_range(iterator first, sentinel last) :
-            first_(first),
-            last_(last)
-        {}
-
-        iterator begin() const noexcept { return first_; }
-        sentinel end() const noexcept { return last_; }
-
-    private:
-        iterator first_;
-        sentinel last_;
-    };
+    using foreach_subrange_range = subrange<Iter, Sentinel>;
 
     /** Calls `f(sub)` for each subrange `sub` in `[first, last)`.  A subrange
         is a contiguous subsequence of elements that each compares equal to
@@ -323,22 +307,7 @@ namespace boost::parser::detail { namespace text {
 
     /** The view type returned by `boost::parser::detail::text::search()`. */
     template<typename Iter>
-    struct search_result : parser::detail::stl_interfaces::view_interface<search_result<Iter>>
-    {
-        using iterator = Iter;
-
-        constexpr search_result() noexcept {}
-        constexpr search_result(iterator first, iterator last) noexcept :
-            first_(first), last_(last)
-        {}
-
-        constexpr iterator begin() const noexcept { return first_; }
-        constexpr iterator end() const noexcept { return last_; }
-
-    private:
-        iterator first_;
-        iterator last_;
-    };
+    using search_result = subrange<Iter>;
 
     /** Sentinel-friendly version of `std::search()`. */
     template<
@@ -403,7 +372,7 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 namespace std::ranges {
     template<typename Iter, typename Sentinel>

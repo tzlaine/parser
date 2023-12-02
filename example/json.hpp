@@ -8,7 +8,6 @@
 
 #include "json_fwd.hpp"
 
-#include <boost/assert.hpp>
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/transcode_view.hpp>
 
@@ -17,6 +16,7 @@
 #include <memory>
 #include <optional>
 
+#include <cassert>
 #include <cstring>
 
 
@@ -349,14 +349,14 @@ namespace json {
         {
             double const * retval = reinterpret_cast<double const *>(
                 storage_.local_.bytes_.data() + 7);
-            BOOST_ASSERT(std::uintptr_t(retval) % alignof(double) == 0);
+            assert(std::uintptr_t(retval) % alignof(double) == 0);
             return retval;
         }
         double * double_ptr() noexcept
         {
             double * retval =
                 reinterpret_cast<double *>(storage_.local_.bytes_.data() + 7);
-            BOOST_ASSERT(std::uintptr_t(retval) % alignof(double) == 0);
+            assert(std::uintptr_t(retval) % alignof(double) == 0);
             return retval;
         }
 
@@ -389,7 +389,7 @@ namespace json {
             storage & operator=(storage const & other)
             {
                 destroy();
-                BOOST_ASSERT(other.local_.kind_ < object_k);
+                assert(other.local_.kind_ < object_k);
                 local_ = other.local_;
                 return *this;
             }
@@ -617,14 +617,14 @@ namespace json {
         {
             static object const & call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_object());
+                assert(v.is_object());
                 return static_cast<value_impl<object> *>(
                            v.storage_.remote_.ptr_.get())
                     ->value_;
             }
             static object & call(value & v) noexcept
             {
-                BOOST_ASSERT(v.is_object());
+                assert(v.is_object());
                 return static_cast<value_impl<object> *>(
                            v.storage_.remote_.ptr_.get())
                     ->value_;
@@ -636,14 +636,14 @@ namespace json {
         {
             static array const & call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_array());
+                assert(v.is_array());
                 return static_cast<value_impl<array> *>(
                            v.storage_.remote_.ptr_.get())
                     ->value_;
             }
             static array & call(value & v) noexcept
             {
-                BOOST_ASSERT(v.is_array());
+                assert(v.is_array());
                 return static_cast<value_impl<array> *>(
                            v.storage_.remote_.ptr_.get())
                     ->value_;
@@ -655,7 +655,7 @@ namespace json {
         {
             static double call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_number());
+                assert(v.is_number());
                 return *v.double_ptr();
             }
         };
@@ -665,7 +665,7 @@ namespace json {
         {
             static std::string_view call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_string());
+                assert(v.is_string());
                 if (v.storage_.local_.kind_ == value::local_string_k) {
                     return std::string_view(v.storage_.local_.bytes_.data());
                 } else {
@@ -681,7 +681,7 @@ namespace json {
         {
             static bool call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_boolean());
+                assert(v.is_boolean());
                 return v.storage_.local_.bytes_[3];
             }
         };
@@ -691,7 +691,7 @@ namespace json {
         {
             static null_t call(value const & v) noexcept
             {
-                BOOST_ASSERT(v.is_null());
+                assert(v.is_null());
                 return {};
             }
         };
@@ -937,7 +937,7 @@ namespace json {
         case value_kind::null: return kind_hash;
         }
 
-        BOOST_ASSERT(!"Unreachable");
+        assert(!"Unreachable");
         return 0;
     }
 

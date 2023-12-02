@@ -49,12 +49,12 @@ TEST(param_parser, no_attribute_rules)
         auto first = str.c_str();
         EXPECT_TRUE(parse(
             first,
-            boost::parser::detail::text::null_sentinel{},
+            boost::parser::detail::text::null_sentinel,
             flat_rule.with(15.0, make_13)));
         first = str.c_str();
         EXPECT_TRUE(parse(
             first,
-            boost::parser::detail::text::null_sentinel{},
+            boost::parser::detail::text::null_sentinel,
             recursive_rule.with(15.0, make_13)));
     }
 }
@@ -102,14 +102,14 @@ TEST(param_parser, string_attribute_rules)
         EXPECT_EQ(
             *parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 flat_string_rule.with(15.0, make_13)),
             "abc");
         first = str.c_str();
         EXPECT_EQ(
             *parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 recursive_string_rule.with(15.0, make_13)),
             "abcabc");
     }
@@ -149,7 +149,7 @@ TEST(param_parser, vector_attribute_rules)
         EXPECT_EQ(
             *parse(
                 first,
-                boost::parser::detail::text::null_sentinel{},
+                boost::parser::detail::text::null_sentinel,
                 flat_vector_rule.with(15.0, make_13)),
             std::vector<char>({'a', 'b', 'c'}));
     }
@@ -163,7 +163,7 @@ TEST(param_parser, vector_attribute_rules)
         auto first = str.c_str();
         EXPECT_TRUE(callback_parse(
             first,
-            boost::parser::detail::text::null_sentinel{},
+            boost::parser::detail::text::null_sentinel,
             flat_vector_rule.with(15.0, make_13),
             int{}));
     }

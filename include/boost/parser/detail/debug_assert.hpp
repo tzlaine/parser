@@ -6,12 +6,13 @@
 #ifndef BOOST_PARSER_DETAIL_DEBUG_ASSERT_HPP
 #define BOOST_PARSER_DETAIL_DEBUG_ASSERT_HPP
 
-#if defined(BOOST_PARSER_STANDALONE)
-#include <cassert>
-#define BOOST_PARSER_DEBUG_ASSERT(condition) assert(condition)
-#else
+#if __has_include(<boost/assert.hpp>)
 #include <boost/assert.hpp>
 #define BOOST_PARSER_DEBUG_ASSERT(condition) BOOST_ASSERT(condition)
+#define BOOST_PARSER_HAVE_BOOST_ASSERT
+#else
+#include <cassert>
+#define BOOST_PARSER_DEBUG_ASSERT(condition) assert(condition)
 #endif
 
 #endif

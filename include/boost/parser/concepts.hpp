@@ -19,10 +19,14 @@ namespace boost { namespace parser {
 
     //[ all_concepts
     template<typename T>
-    concept utf8_code_unit = std::integral<T> && sizeof(T) == 1;
+    concept utf8_code_unit = std::same_as<T, char> || std::same_as<T, char8_t>;
 
     template<typename T>
-    concept utf32_code_unit = std::integral<T> && sizeof(T) == 4;
+    concept utf32_code_unit =
+#if !defined(_MSC_VER)
+        std::same_as<T, wchar_t> ||
+#endif
+        std::same_as<T, char32_t>;
 
     template<typename T>
     concept utf8_pointer =
