@@ -195,16 +195,16 @@
 
 _Parser_ requires C++17 or later.  It is known to work with these compilers:
 
-* GCC 8 and later
-* Clang 7 and later (equivalent to XCode 10.3 and later)
+* GCC 9 and later
+* Clang 10 and later (equivalent to XCode 10.3 and later)
 * Visual Studio 2017 and later
 
 [heading C++20 Support]
 
 C++20 concept-based constraints on template parameters are used if you build
 in C++20 (or later) mode, and the compiler defines `__cpp_lib_concepts`.  In
-C++17 mode, SFINAE constraints are used instead.  If you want to disable the
-use of concepts entirely, you can define `BOOST_PARSER_DISABLE_CONCEPTS`.
+C++17 mode, most templates are simply unconstrained.  If you want to disable
+the use of concepts entirely, you can define `BOOST_PARSER_DISABLE_CONCEPTS`.
 
 [endsect]
 
