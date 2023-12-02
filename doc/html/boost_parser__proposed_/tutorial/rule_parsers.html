@@ -1,13 +1,14 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Rule Parsers</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="the_parse_context.html" title="The Parse Context">
 <link rel="next" href="symbol_tables.html" title="Symbol Tables">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -43,7 +44,8 @@
 <li class="listitem">
             The first template parameter is a tag type <code class="computeroutput"><span class="keyword">struct</span>
             <span class="identifier">doubles</span></code>. Here we've declared
-            the tag type and used it all in one go.
+            the tag type and used it all in one go; you can also use a previously
+            declared tag type.
           </li>
 <li class="listitem">
             The second template parameter is the attribute type of the parser.
@@ -74,7 +76,7 @@
         Note that we used the name <code class="computeroutput"><span class="identifier">doubles_def</span></code>.
         Right now, the <code class="computeroutput"><span class="identifier">doubles</span></code> rule
         parser and the <code class="computeroutput"><span class="identifier">doubles_def</span></code>
-        non-rule parser have no connection to each other. That's intentional &#8212;
+        non-rule parser have no connection to each other. That's intentional —
         we want to be able to define them separately. To connect them, we declare
         functions with an interface that Boost.Parser understands, and use the tag
         type <code class="computeroutput"><span class="keyword">struct</span> <span class="identifier">doubles</span></code>
@@ -82,7 +84,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 </pre>
 <p>
       </p>
@@ -117,7 +119,7 @@
 
 <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">doubles</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span> <span class="identifier">doubles</span> <span class="special">=</span> <span class="string">"doubles"</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
-<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 
 <span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
 <span class="special">{</span>
@@ -146,19 +148,16 @@
 </tr>
 <tr><td align="left" valign="top"><p>
           The existence of <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>
-          means that will probably never have to write a parser. You can just put
-          parsers together into <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> instead.
+          means that will probably never have to write a low-level parser. You can
+          just put existing parsers together into <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> instead.
         </p></td></tr>
 </table></div>
 </div>
-<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+<div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
-</div></td>
-</tr></table>
+</div>
 <hr>
 <div class="spirit-nav">
 <a accesskey="p" href="the_parse_context.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="symbol_tables.html"><img src="../../images/next.png" alt="Next"></a>

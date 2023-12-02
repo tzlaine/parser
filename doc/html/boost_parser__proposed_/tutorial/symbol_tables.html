@@ -1,13 +1,14 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Symbol Tables</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="rule_parsers.html" title="Rule Parsers">
 <link rel="next" href="mutable_symbol_tables.html" title="Mutable Symbol Tables">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -75,7 +76,7 @@
         maps strings of <code class="computeroutput"><span class="keyword">char</span></code> to their
         associated attributes. The type of the attribute must be specified as a template
         parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code>
-        &#8212; <code class="computeroutput"><span class="keyword">int</span></code> in this case.
+        — in this case, <code class="computeroutput"><span class="keyword">int</span></code>.
       </p>
 <p>
         Any "M"s we encounter should add 1000 to the result, and all other
@@ -117,8 +118,8 @@
         <code class="computeroutput"><span class="keyword">char32_t</span></code>, or <code class="computeroutput"><span class="keyword">char</span>
         <span class="keyword">const</span> <span class="special">*</span></code>
         to form a literal parser. You can also make a literal parser by writing
-        <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19512.html" title="Function lit">lit()</a></code> for some <code class="computeroutput"><span class="identifier">x</span></code>
-        of one of the previously mentioned types.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19553.html" title="Function lit">lit()</a></code>, passing an argument of
+        one of the previously mentioned types.
       </p>
 <p>
         Why do we need any of this, considering that we just used a literal <code class="computeroutput"><span class="char">','</span></code> in our previous example? The reason is that
@@ -138,7 +139,7 @@
           Boost.Parser subparser <code class="computeroutput"><span class="identifier">p</span></code>,
           as in <code class="computeroutput"><span class="char">'x'</span> <span class="special">&gt;&gt;</span>
           <span class="identifier">p</span></code>. Otherwise, you need to wrap
-          it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19512.html" title="Function lit">lit()</a></code>, or use the <code class="computeroutput"><span class="identifier">_l</span></code> <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
+          it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19553.html" title="Function lit">lit()</a></code>, or use the <code class="computeroutput"><span class="identifier">_l</span></code> <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
           suffix.
         </p></td></tr>
 </table></div>
@@ -150,7 +151,7 @@
         <code class="computeroutput"><span class="keyword">operator</span><span class="special">-()</span></code>
         at the beginning is new. It means that the parser it is applied to is optional.
         You can read it as "zero or one". So, if <code class="computeroutput"><span class="identifier">hundreds</span></code>
-        is not successfully parsed after <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>, nothing happens, because <code class="computeroutput"><span class="identifier">hundreds</span></code> is allowed to be missing &#8212;
+        is not successfully parsed after <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>, nothing happens, because <code class="computeroutput"><span class="identifier">hundreds</span></code> is allowed to be missing —
         it's optional. If <code class="computeroutput"><span class="identifier">hundreds</span></code>
         is parsed successfully, say by matching <code class="computeroutput"><span class="string">"CC"</span></code>,
         the resulting attribute, <code class="computeroutput"><span class="number">200</span></code>,
@@ -242,14 +243,11 @@
         </p></td></tr>
 </table></div>
 </div>
-<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+<div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
-</div></td>
-</tr></table>
+</div>
 <hr>
 <div class="spirit-nav">
 <a accesskey="p" href="rule_parsers.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="mutable_symbol_tables.html"><img src="../../images/next.png" alt="Next"></a>

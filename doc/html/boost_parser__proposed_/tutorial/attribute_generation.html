@@ -1,13 +1,14 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Attribute Generation</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="combining_operations.html" title="Combining Operations">
 <link rel="next" href="the__parse____api.html" title="The parse() API">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -22,7 +23,7 @@
         So far, we've seen several different types of attributes that come from different
         parsers, <code class="computeroutput"><span class="keyword">int</span></code> for <code class="computeroutput"><a class="link" href="../../boost/parser/int_.html" title="Global int_">int_</a></code>,
         <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span></code> for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">int_</span></code>,
-        etc. Let's get into how this works with a bit more rigor.
+        etc. Let's get into how this works with more rigor.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -33,15 +34,15 @@
           Some parsers have no attribute at all. In the tables below, the type of
           the attribute is listed as "None." There is a non-<code class="computeroutput"><span class="keyword">void</span></code> type that is returned from each parser
           that lacks an attribute. This keeps the logic simple; having to handle
-          the two cases &#8212; <code class="computeroutput"><span class="keyword">void</span></code>
-          or non-<code class="computeroutput"><span class="keyword">void</span></code> &#8212; would
+          the two cases — <code class="computeroutput"><span class="keyword">void</span></code>
+          or non-<code class="computeroutput"><span class="keyword">void</span></code> — would
           make the library significantly more complicated. The type of this non-<code class="computeroutput"><span class="keyword">void</span></code> attribute associated with these parsers
           is an implementation detail. The type comes from the <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">detail</span></code>
           namespace and is pretty useless. You should never see this type in practice.
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -53,12 +54,21 @@
       </h5>
 <p>
         This table summarizes the attributes generated for all Boost.Parser parsers.
-        In the table, <span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><code class="computeroutput"><span class="special">()</span></code> is a notional macro that expands to the
-        resolution of parse argument or evaluation of a parse predicate; and <code class="computeroutput"><span class="identifier">x</span></code> and <code class="computeroutput"><span class="identifier">y</span></code>
-        represent arbitrary objects.
+        In the table below:
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            <span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><code class="computeroutput"><span class="special">()</span></code>
+            is a notional macro that expands to the resolution of parse argument
+            or evaluation of a parse predicate, and
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">x</span></code> and <code class="computeroutput"><span class="identifier">y</span></code>
+            represent arbitrary objects.
+          </li>
+</ul></div>
 <div class="table">
-<a name="boost_parser__proposed_.tutorial.attribute_generation.t0"></a><p class="title"><b>Table&#160;1.3.&#160;Parsers and Their Attributes</b></p>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.t0"></a><p class="title"><b>Table 1.3. Parsers and Their Attributes</b></p>
 <div class="table-contents"><table class="table" summary="Parsers and Their Attributes">
 <colgroup>
 <col>
@@ -189,7 +199,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19512.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19553.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -443,7 +453,7 @@
         code path, all matching is code point based, and so the attribute type is
         the type used to represent code points. For typical uses, that type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>. All parsing of UTF-8 falls under
         this typical case. The only time the code point type will be something different
-        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> with a code point sequence
+        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code> with a code point sequence
         whose element type is something besides <code class="computeroutput"><span class="identifier">uint32_t</span></code>.
         For example, when you parse plain <code class="computeroutput"><span class="keyword">char</span></code>s,
         meaning that the parsing is in the non-Unicode code path, the attribute of
@@ -462,7 +472,7 @@
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;));</span>
 </pre>
 <p>
-        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
+        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
         the input range's element type is:
       </p>
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="identifier">U</span><span class="string">"some text"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
@@ -486,17 +496,32 @@
       </h5>
 <p>
         Combining operations of course affect the generation of attributes. In the
-        tables below: <code class="computeroutput"><span class="identifier">m</span></code> and <code class="computeroutput"><span class="identifier">n</span></code> are parse arguments that resolve to integral
-        values; <code class="computeroutput"><span class="identifier">pred</span></code> is a parse predicate;
-        <code class="computeroutput"><span class="identifier">arg0</span></code>, <code class="computeroutput"><span class="identifier">arg1</span></code>,
-        <code class="computeroutput"><span class="identifier">arg2</span></code>, ... are parse arguments;
-        <code class="computeroutput"><span class="identifier">a</span></code> is a semantic action; and
-        <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="identifier">p1</span></code>,
-        <code class="computeroutput"><span class="identifier">p2</span></code>, ... are parsers that
-        generate attributes.
+        tables below:
       </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">m</span></code> and <code class="computeroutput"><span class="identifier">n</span></code>
+            are parse arguments that resolve to integral values;
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">pred</span></code> is a parse predicate;
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">arg0</span></code>, <code class="computeroutput"><span class="identifier">arg1</span></code>,
+            <code class="computeroutput"><span class="identifier">arg2</span></code>, ... are parse arguments;
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">a</span></code> is a semantic action;
+            and
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="identifier">p1</span></code>,
+            <code class="computeroutput"><span class="identifier">p2</span></code>, ... are parsers that
+            generate attributes.
+          </li>
+</ul></div>
 <div class="table">
-<a name="boost_parser__proposed_.tutorial.attribute_generation.t1"></a><p class="title"><b>Table&#160;1.4.&#160;Combining Operations and Their Attributes</b></p>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.t1"></a><p class="title"><b>Table 1.4. Combining Operations and Their Attributes</b></p>
 <div class="table-contents"><table class="table" summary="Combining Operations and Their Attributes">
 <colgroup>
 <col>
@@ -736,7 +761,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19461.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19502.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -748,7 +773,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19461.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19502.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1000,7 +1025,7 @@
         same attribute generation rules.
       </p>
 <div class="table">
-<a name="boost_parser__proposed_.tutorial.attribute_generation.t2"></a><p class="title"><b>Table&#160;1.5.&#160;Sequence and Alternative Combining Operations and Their Attributes</b></p>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.t2"></a><p class="title"><b>Table 1.5. Sequence and Alternative Combining Operations and Their Attributes</b></p>
 <div class="table-contents"><table class="table" summary="Sequence and Alternative Combining Operations and Their Attributes">
 <colgroup>
 <col>
@@ -1300,14 +1325,11 @@
         for details.
       </p>
 </div>
-<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+<div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
-</div></td>
-</tr></table>
+</div>
 <hr>
 <div class="spirit-nav">
 <a accesskey="p" href="combining_operations.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="the__parse____api.html"><img src="../../images/next.png" alt="Next"></a>

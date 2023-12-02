@@ -1,13 +1,14 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Struct template opt_parser</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">
 <link rel="prev" href="one_plus_parser.html" title="Struct template one_plus_parser">
 <link rel="next" href="or_parser.html" title="Struct template or_parser">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -19,20 +20,20 @@
 <h2><span class="refentrytitle">Struct template opt_parser</span></h2>
 <p>boost::parser::opt_parser</p>
 </div>
-<h2 xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv-title">Synopsis</h2>
-<div xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">boost/parser/parser.hpp</a>&gt;
+<h2 class="refsynopsisdiv-title">Synopsis</h2>
+<div class="refsynopsisdiv"><pre class="synopsis"><span class="comment">// In header: &lt;<a class="link" href="../../header/boost/parser/parser_hpp.html" title="Header &lt;boost/parser/parser.hpp&gt;">boost/parser/parser.hpp</a>&gt;
 
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser<span class="special">&gt;</span> 
 <span class="keyword">struct</span> <a class="link" href="opt_parser.html" title="Struct template opt_parser">opt_parser</a> <span class="special">{</span>
 
-  <span class="comment">// <a class="link" href="opt_parser.html#idm17243-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="opt_parser.html#idm17284-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> UseCallbacks<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">,</span> 
            <span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> SkipParser<span class="special">&gt;</span> 
-    <span class="keyword">auto</span> <a class="link" href="opt_parser.html#idm17244-bb"><span class="identifier">call</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> 
+    <span class="keyword">auto</span> <a class="link" href="opt_parser.html#idm17285-bb"><span class="identifier">call</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> 
               <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">SkipParser</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span><span class="special">,</span> <span class="keyword">bool</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> UseCallbacks<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">,</span> 
            <span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> SkipParser<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">&gt;</span> 
-    <span class="keyword">void</span> <a class="link" href="opt_parser.html#idm17268-bb"><span class="identifier">call</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> 
+    <span class="keyword">void</span> <a class="link" href="opt_parser.html#idm17309-bb"><span class="identifier">call</span></a><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span><span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> 
               <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">SkipParser</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span><span class="special">,</span> <span class="keyword">bool</span> <span class="special">&amp;</span><span class="special">,</span> 
               <span class="identifier">Attribute</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
 
@@ -40,34 +41,31 @@
   <span class="identifier">Parser</span> <span class="identifier">parser_</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm24588"></a><h2>Description</h2>
+<a name="idm24629"></a><h2>Description</h2>
 <p>Repeats the application of another parser of type <code class="computeroutput">Parser</code>, <code class="computeroutput">[0, 1]</code> times. The parse always succeeds. The attribute produced is a <code class="computeroutput">std::optional&lt;T&gt;</code>, where <code class="computeroutput">T</code> is the type of attribute produced by <code class="computeroutput">Parser</code>. </p>
 <div class="refsect2">
-<a name="idm24596"></a><h3>
-<a name="idm17243-bb"></a><code class="computeroutput">opt_parser</code> public member functions</h3>
+<a name="idm24637"></a><h3>
+<a name="idm17284-bb"></a><code class="computeroutput">opt_parser</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> UseCallbacks<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">,</span> 
          <span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> SkipParser<span class="special">&gt;</span> 
-  <span class="keyword">auto</span> <a name="idm17244-bb"></a><span class="identifier">call</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span> use_cbs<span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span> first<span class="special">,</span> 
+  <span class="keyword">auto</span> <a name="idm17285-bb"></a><span class="identifier">call</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span> use_cbs<span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span> first<span class="special">,</span> 
             <span class="identifier">Sentinel</span> last<span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> context<span class="special">,</span> <span class="identifier">SkipParser</span> <span class="keyword">const</span> <span class="special">&amp;</span> skip<span class="special">,</span> 
             <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> flags<span class="special">,</span> <span class="keyword">bool</span> <span class="special">&amp;</span> success<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">bool</span> UseCallbacks<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">,</span> 
          <span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> SkipParser<span class="special">,</span> <span class="keyword">typename</span> Attribute<span class="special">&gt;</span> 
-  <span class="keyword">void</span> <a name="idm17268-bb"></a><span class="identifier">call</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span> use_cbs<span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span> first<span class="special">,</span> 
+  <span class="keyword">void</span> <a name="idm17309-bb"></a><span class="identifier">call</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span> <span class="identifier">UseCallbacks</span> <span class="special">&gt;</span> use_cbs<span class="special">,</span> <span class="identifier">Iter</span> <span class="special">&amp;</span> first<span class="special">,</span> 
             <span class="identifier">Sentinel</span> last<span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> context<span class="special">,</span> <span class="identifier">SkipParser</span> <span class="keyword">const</span> <span class="special">&amp;</span> skip<span class="special">,</span> 
             <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> flags<span class="special">,</span> <span class="keyword">bool</span> <span class="special">&amp;</span> success<span class="special">,</span> <span class="identifier">Attribute</span> <span class="special">&amp;</span> retval<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
 </ol></div>
 </div>
 </div>
 </div>
-<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+<div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
-</div></td>
-</tr></table>
+</div>
 <hr>
 <div class="spirit-nav">
 <a accesskey="p" href="one_plus_parser.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/parser_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="or_parser.html"><img src="../../images/next.png" alt="Next"></a>

@@ -1,13 +1,14 @@
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Rules</title>
 <link rel="stylesheet" href="../../boostbook.css" type="text/css">
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
-<link rel="home" href="../../index.html" title="Chapter&#160;1.&#160;Boost.Parser (Proposed)">
+<link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="the__parse____api.html" title="The parse() API">
 <link rel="next" href="unicode_support.html" title="Unicode Support">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
@@ -18,7 +19,7 @@
 <a name="boost_parser__proposed_.tutorial.rules"></a><a class="link" href="rules.html" title="Rules">Rules</a>
 </h3></div></div></div>
 <p>
-        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>
+        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code>
         is flexible in what types it will accept as attribute out-parameters.
       </p>
 <p>
@@ -54,13 +55,13 @@
 </p>
 <pre class="programlisting"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">doubles</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span> <span class="identifier">doubles</span> <span class="special">=</span> <span class="string">"doubles"</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
-<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 </pre>
 <p>
       </p>
 <p>
-        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>,
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
+        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code>,
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
       </p>
 <p>
 </p>
@@ -69,7 +70,7 @@
 <p>
       </p>
 <p>
-        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
+        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
         it must be exactly <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>:
       </p>
 <pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">vec_result</span><span class="special">;</span>
@@ -93,7 +94,7 @@
 </pre>
 <p>
         So, the attribute flexibility is still available, but only <span class="bold"><strong>within</strong></span>
-        the rule &#8212; the parser <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">)</span></code> can parse into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code> or a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">deque</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>, but the rule <code class="computeroutput"><span class="identifier">doubles</span></code>
+        the rule — the parser <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">)</span></code> can parse into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code> or a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">deque</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>, but the rule <code class="computeroutput"><span class="identifier">doubles</span></code>
         must parse into only the exact attribute it was declared to generate.
       </p>
 <p>
@@ -107,8 +108,8 @@
 </pre>
 <p>
         Where <code class="computeroutput"><span class="identifier">attribute_out_param</span></code>
-        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>.
-        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19778.html" title="Function template parse">parse()</a></code>
+        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code>.
+        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19819.html" title="Function template parse">parse()</a></code>
         is too.
       </p>
 <h5>
@@ -255,8 +256,8 @@
         rule from the <a href="https://yaml.org/spec/1.2/spec.html" target="_top">YAML 1.2</a>
         spec:
       </p>
-<pre class="programlisting">[137] c-flow-sequence(n,c) ::= &#8220;[&#8221; s-separate(n,c)?
-                               ns-s-flow-seq-entries(n,in-flow(c))? &#8220;]&#8221;
+<pre class="programlisting">[137] c-flow-sequence(n,c) ::= “[” s-separate(n,c)?
+                               ns-s-flow-seq-entries(n,in-flow(c))? “]”
 </pre>
 <p>
         This YAML rule says that the parsing should proceed into two YAML subrules,
@@ -321,14 +322,11 @@
         similar.
       </p>
 </div>
-<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
-<td align="left"></td>
-<td align="right"><div class="copyright-footer">Copyright &#169; 2020 T. Zachary Laine<p>
+<div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying
         file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
       </p>
-</div></td>
-</tr></table>
+</div>
 <hr>
 <div class="spirit-nav">
 <a accesskey="p" href="the__parse____api.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="unicode_support.html"><img src="../../images/next.png" alt="Next"></a>
