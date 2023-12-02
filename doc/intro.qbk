@@ -61,6 +61,30 @@ indications of where each part of the trace is within the parse, the state of
 values produced by the parse, etc.  Again, you don't need to write any code to
 make this happen _emdash_ you just pass a parameter to _p_.
 
+Dependencies are still a nightmare in C++, so _Parser_ can be used as a purely
+standalone library, independent of Boost.
+
+[endsect]
+
+[section Configuration and Optional Features]
+
+_Parser_ can be used entirely on its own.  If Boost is available, extra
+functionality provided by Boost is also available.
+
+To use _Parser_ entirely on its own, simply define
+`BOOST_PARSER_DISABLE_HANA_TUPLE`.  This will force `std::tuple` to be the
+tuple-template used throughout _Parser_.  The Boost.Hana tuple is much nicer,
+because it has an `operator[]`; you will see this operator used throughout the
+tutorial and examples.
+
+The presence of Boost headers is detected using `__has_include()`.  When it is
+present, all the typical Boost conventions are used (e.g. `BOOST_ASSERT()`
+instead of `assert()`); otherwise, non-Boost alternatives are used.  The macro
+`BOOST_PARSER_DEFINE_RULES()`, which defines multiple rules in one go, is only
+defined when Boost.Preprocessor is present.  Without this macro, you have to
+write `BOOST_PARSER_DEFINE_RULE()` (note the singular form) once for each
+rule.
+
 [endsect]
 
 [section This Library's Relationship to Boost.Spirit]
