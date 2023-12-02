@@ -9,11 +9,17 @@
 #include <boost/parser/detail/numeric.hpp>
 #include <boost/parser/detail/printing.hpp>
 
-#if BOOST_PARSER_USE_BOOST
+#if __has_include(<boost/preprocessor/variadic/to_seq.hpp>) &&        \
+    __has_include(<boost/preprocessor/variadic/elem.hpp>) &&          \
+    __has_include(<boost/preprocessor/seq/for_each.hpp>)
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <boost/preprocessor/variadic/elem.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
+#define BOOST_PARSER_HAVE_BOOST_PP 1
+#else
+#define BOOST_PARSER_HAVE_BOOST_PP 0
 #endif
+
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
 #include <boost/parser/detail/text/detail/unpack.hpp>
@@ -4703,12 +4709,12 @@ namespace boost { namespace parser {
 
 #endif
 
-#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_BOOST
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_HAVE_BOOST_PP
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
         parsing behavior rule `t`, using the parser `t_def`.  This macro is
-        only available when `BOOST_PARSER_STANDALONE` is not defined. */
+        only available when the Boost.Preprocessor headers are available. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PP_SEQ_FOR_EACH(                                                     \
         BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))

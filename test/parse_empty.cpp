@@ -12,7 +12,7 @@ using namespace boost::parser;
 
 [[maybe_unused]] rule<class test_rule, std::string> const test_rule = "test_rule";
 [[maybe_unused]] auto const test_rule_def = +char_;
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(test_rule);
 #else
 BOOST_PARSER_DEFINE_RULE(test_rule);
@@ -22,7 +22,7 @@ BOOST_PARSER_DEFINE_RULE(test_rule);
 auto twenty_zeros = [](auto & ctx) { _val(ctx).resize(20, 0); };
 auto push_back = [](auto & ctx) { _val(ctx).push_back(_attr(ctx)); };
 [[maybe_unused]] auto const ints_def = lit("20-zeros")[twenty_zeros] | +int_[push_back];
-#if BOOST_PARSER_USE_BOOST
+#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(ints);
 #else
 BOOST_PARSER_DEFINE_RULE(ints);

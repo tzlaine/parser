@@ -6,9 +6,8 @@
 //[ extended_callback_parsing_json_example
 #include <boost/parser/parser.hpp>
 
-#include <boost/container/small_vector.hpp>
-
 #include <fstream>
+#include <vector>
 #include <climits>
 
 
@@ -162,7 +161,10 @@ namespace json {
         if (result) {
             _val(ctx) = *result;
         } else {
-            boost::container::small_vector<char, 128> chars(cp_first, cp_last);
+            // This would be more efficient if we used
+            // boost::container::small_vector, or std::inplace_vector from
+            // C++26.
+            std::vector<char> chars(cp_first, cp_last);
             auto const chars_first = &*chars.begin();
             auto chars_last = chars_first + chars.size();
             _val(ctx) = std::strtod(chars_first, &chars_last);

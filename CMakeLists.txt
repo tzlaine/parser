@@ -18,12 +18,8 @@ endif ()
 # Build config
 ##################################################
 set(BUILD_WITHOUT_HANA false CACHE BOOL "Build with BOOST_PARSER_DISABLE_HANA_TUPLE defined.")
-set(BUILD_WITHOUT_BOOST false CACHE BOOL "Build with BOOST_PARSER_STANDALONE defined.")
 if (BUILD_WITHOUT_HANA)
   add_definitions(-DBOOST_PARSER_DISABLE_HANA_TUPLE)
-endif()
-if (BUILD_WITHOUT_BOOST)
-  add_definitions(-DBOOST_PARSER_STANDALONE)
 endif()
 
 
@@ -57,13 +53,12 @@ endif()
 ##################################################
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(parser INTERFACE boost)
-
+if (Boost_FOUND)
+   target_include_directories(parser INTERFACE ${Boost_INCLUDE_DIRS})
+endif()
 
 ##################################################
 # Subdirectories
 ##################################################
 add_subdirectory(test)
-if (NOT BUILD_WITHOUT_HANA AND NOT BUILD_WITHOUT_BOOST)
-  add_subdirectory(example)
-endif()
+add_subdirectory(example)
