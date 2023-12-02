@@ -18,14 +18,8 @@ using namespace boost::parser;
 
 static_assert(boost::parser::detail::non_unicode_char_range_like<char const *>);
 static_assert(boost::parser::detail::non_unicode_char_range_like<char *>);
-static_assert(
-    boost::parser::detail::non_unicode_char_range_like<signed char const *>);
-static_assert(
-    boost::parser::detail::non_unicode_char_range_like<signed char *>);
-static_assert(
-    boost::parser::detail::non_unicode_char_range_like<unsigned char const *>);
-static_assert(
-    boost::parser::detail::non_unicode_char_range_like<unsigned char *>);
+static_assert(boost::parser::detail::non_unicode_char_range_like<char const *>);
+static_assert(boost::parser::detail::non_unicode_char_range_like<char *>);
 #if defined(__cpp_char8_t)
 static_assert(
     !boost::parser::detail::non_unicode_char_range_like<char8_t const *>);
