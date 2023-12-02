@@ -81,4 +81,11 @@
 #    define BOOST_PARSER_USE_STD_TUPLE 0
 #endif
 
+// VS2019 and VS2017 need conditional constexpr in some places, even in C++17 mode.
+#if !defined(_MSC_VER) || 1930 <= _MSC_VER
+#define BOOST_PARSER_CONSTEXPR constexpr
+#else
+#define BOOST_PARSER_CONSTEXPR
+#endif
+
 #endif

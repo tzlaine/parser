@@ -217,13 +217,13 @@ namespace boost::parser::detail { namespace text {
                 return it_;
             }
 
-            friend constexpr bool
+            friend BOOST_PARSER_CONSTEXPR bool
             operator==(optional_iter lhs, optional_iter rhs)
             {
                 return lhs.valid_ == rhs.valid_ &&
                        (!lhs.valid_ || lhs.it_ == rhs.it_);
             }
-            friend constexpr bool
+            friend BOOST_PARSER_CONSTEXPR bool
             operator!=(optional_iter lhs, optional_iter rhs)
             {
                 return !(lhs == rhs);
