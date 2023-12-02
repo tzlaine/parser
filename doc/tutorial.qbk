@@ -28,12 +28,12 @@ A /subparser/ is a parser that is the child of another parser.
 
 The /top-level parser/ is the root of the tree of parsers.
 
-The /current parser/ or /innermost parser/ is the parser with no children that
+The /current parser/ or /bottommost parser/ is the parser with no children that
 is currently being used to parse the input.
 
 A /rule/ is a kind of parser that makes building large, complex parsers
 easier.  A /subrule/ is a rule that is the child of some other rule.  The
-/current rule/ or /innermost rule/ is the one rule currently being used to
+/current rule/ or /bottommost rule/ is the one rule currently being used to
 parse the input that has no subrules.  Note that while there is always exactly
 one current parser, there may or may not be a current rule _emdash_ rules are
 one kind of parser, and you may or may not be using one at a given point in

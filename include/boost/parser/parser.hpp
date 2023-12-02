@@ -2411,7 +2411,7 @@ namespace boost { namespace parser {
             diagnostic_kind::warning, message, context);
     }
 
-    /** An invocable that returns the `I`th parameter to the innermost rule.
+    /** An invocable that returns the `I`th parameter to the bottommost rule.
         This is useful for forwarding parameters to sub-rules. */
     template<unsigned int I>
     inline constexpr detail::param_t<I> _p = {};

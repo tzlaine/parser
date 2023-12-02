@@ -366,21 +366,21 @@ namespace boost { namespace parser {
     struct callback_rule;
 
     /** Returns a reference to the attribute(s) (i.e. return value) of the
-        innermost parser; multiple attributes will be stored within a
+        bottommost parser; multiple attributes will be stored within a
         `parser::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
-        Returns `none` if the innermost parser does produce an attribute. */
+        Returns `none` if the bottommost parser does produce an attribute. */
     template<typename Context>
     decltype(auto) _val(Context const & context);
 
     /** Returns a reference to the attribute or attributes already produced by
-        the innermost parser; multiple attributes will be stored within a
-        `parser::tuple`.  Returns `none` if the innermost parser does produce
+        the bottommost parser; multiple attributes will be stored within a
+        `parser::tuple`.  Returns `none` if the bottommost parser does produce
         an attribute. */
     template<typename Context>
     decltype(auto) _attr(Context const & context);
 
-    /** Returns a `view` that describes the matched range of the innermost
+    /** Returns a `view` that describes the matched range of the bottommost
         parser. */
     template<typename Context>
     decltype(auto) _where(Context const & context);
@@ -396,34 +396,34 @@ namespace boost { namespace parser {
     decltype(auto) _end(Context const & context);
 
     /** Returns a reference to a `bool` that represents the success or failure
-        of the innermost parser.  You can assign `false` to this within a
+        of the bottommost parser.  You can assign `false` to this within a
         semantic action to force a parser to fail its parse. */
     template<typename Context>
     decltype(auto) _pass(Context const & context);
 
-    /** Returns a reference to one or more local values that the innermost
+    /** Returns a reference to one or more local values that the bottommost
         rule is declared to have; multiple values will be stored within a
-        `parser::tuple`.  Returns `none` if there is no innermost rule, or if
+        `parser::tuple`.  Returns `none` if there is no bottommost rule, or if
         that rule has no locals. */
     template<typename Context>
     decltype(auto) _locals(Context const & context);
 
-    /** Returns a reference to one or more parameters passed to the innermost
+    /** Returns a reference to one or more parameters passed to the bottommost
         rule `r`, by using `r` as `r.with(param0, param1, ... paramN)`;
         multiple values will be stored within a `parser::tuple`.  Returns
-        `none` if there is no innermost rule, or if that rule was not given
+        `none` if there is no bottommost rule, or if that rule was not given
         any parameters. */
     template<typename Context>
     decltype(auto) _params(Context const & context);
 
     /** Returns a reference to the globals object associated with the
-        innermost parser.  Returns `none` if there is no associated globals
+        bottommost parser.  Returns `none` if there is no associated globals
         object. */
     template<typename Context>
     decltype(auto) _globals(Context const & context);
 
     /** Returns a reference to the error handler object associated with the
-        innermost parser.  Returns `none` if there is no associated error
+        bottommost parser.  Returns `none` if there is no associated error
         handler. */
     template<typename Context>
     decltype(auto) _error_handler(Context const & context);
