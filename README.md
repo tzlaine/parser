@@ -49,6 +49,28 @@ This library targets submission to Boost.
 
 Online docs: https://tzlaine.github.io/parser
 
-[![Build Status](https://travis-ci.org/tzlaine/parser.svg?branch=master)](https://travis-ci.org/tzlaine/parser)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/tzlaine/parser?branch=master&svg=true)](https://ci.appveyor.com/project/tzlaine/parser)
+Master status:
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/ubuntu-20.04.yml/badge.svg?branch=master)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/ubuntu-22.04.yml/badge.svg?branch=master)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/windows-2019.yml/badge.svg?branch=master)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/windows-2022.yml/badge.svg?branch=master)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/macos-12.yml/badge.svg?branch=master)
+
+Develop status:
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/ubuntu-20.04.yml/badge.svg?branch=develop)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/ubuntu-22.04.yml/badge.svg?branch=develop)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/windows-2019.yml/badge.svg?branch=develop)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/windows-2022.yml/badge.svg?branch=develop)
+
+![example workflow](https://github.com/tzlaine/parser/actions/workflows/macos-12.yml/badge.svg?branch=develop)
+
 [![License](https://img.shields.io/badge/license-boost-brightgreen.svg)](LICENSE_1_0.txt)
