@@ -15,7 +15,7 @@ jobs:
   build:
     strategy:
       matrix:
-        cxx_std: [17, 20]
+        cxx_std: [17]
 
     runs-on: macos-12
 
