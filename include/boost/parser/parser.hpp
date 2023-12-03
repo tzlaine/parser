@@ -1061,10 +1061,22 @@ namespace boost { namespace parser {
             is_container_and_value_type<T, U>::value;
 
         template<typename T>
+        constexpr bool is_parsable_code_unit_impl =
+            std::is_same_v<T, char> || std::is_same_v<T, wchar_t> ||
+#if defined(__cpp_char8_t)
+            std::is_same_v<T, char8_t> ||
+#endif
+            std::is_same_v<T, char16_t> || std::is_same_v<T, char32_t>;
+
+        template<typename T>
+        constexpr bool is_parsable_code_unit_v =
+            is_parsable_code_unit_impl<std::remove_cv_t<T>>;
+
+        template<typename T>
         struct is_parsable_iter
             : std::integral_constant<
                   bool,
-                  std::is_integral_v<
+                  is_parsable_code_unit_v<
                       remove_cv_ref_t<detected_t<iter_value_t, T>>>>
         {};
 
@@ -1072,7 +1084,7 @@ namespace boost { namespace parser {
         struct is_parsable_range
             : std::integral_constant<
                   bool,
-                  std::is_integral_v<
+                  is_parsable_code_unit_v<
                       remove_cv_ref_t<detected_t<has_begin, T>>> &&
                       is_detected<has_end, T>::value>
         {};
@@ -1082,7 +1094,7 @@ namespace boost { namespace parser {
             : std::integral_constant<
                   bool,
                   std::is_pointer_v<remove_cv_ref_t<T>> &&
-                      std::is_integral_v<
+                      is_parsable_code_unit_v<
                           std::remove_pointer_t<remove_cv_ref_t<T>>>>
         {};
 

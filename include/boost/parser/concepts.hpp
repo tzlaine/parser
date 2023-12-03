@@ -19,27 +19,25 @@ namespace boost { namespace parser {
 
     //[ all_concepts
     template<typename T>
-    concept utf8_code_unit = std::same_as<T, char> || std::same_as<T, char8_t>;
-
-    template<typename T>
-    concept utf32_code_unit =
-#if !defined(_MSC_VER)
-        std::same_as<T, wchar_t> ||
-#endif
-        std::same_as<T, char32_t>;
+    concept parsable_code_unit =
+        std::same_as<std::remove_cv_t<T>, char> ||
+        std::same_as<std::remove_cv_t<T>, wchar_t> ||
+        std::same_as<std::remove_cv_t<T>, char8_t> ||
+        std::same_as<std::remove_cv_t<T>, char16_t>||
+        std::same_as<std::remove_cv_t<T>, char32_t>;
 
     template<typename T>
     concept parsable_iter =
-        std::forward_iterator<T> && std::is_integral_v<std::iter_value_t<T>>;
+        std::forward_iterator<T> && parsable_code_unit<std::iter_value_t<T>>;
 
     //[ parsable_range_like_concept
     template<typename T>
     concept parsable_range = std::ranges::forward_range<T> &&
-        std::integral<std::ranges::range_value_t<T>>;
+        parsable_code_unit<std::ranges::range_value_t<T>>;
 
     template<typename T>
     concept parsable_pointer = std::is_pointer_v<std::remove_cvref_t<T>> &&
-        std::integral<std::remove_pointer_t<std::remove_cvref_t<T>>>;
+        parsable_code_unit<std::remove_pointer_t<std::remove_cvref_t<T>>>;
 
     template<typename T>
     concept parsable_range_like = parsable_range<T> || parsable_pointer<T>;
