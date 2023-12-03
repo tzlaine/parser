@@ -869,7 +869,7 @@ namespace boost { namespace parser {
         decltype(auto) get_trie(
             Context const & context, symbol_parser<T> const & symbol_parser)
         {
-            using trie_t = text::trie<std::vector<uint32_t>, T>;
+            using trie_t = text::trie<std::vector<char32_t>, T>;
             symbol_table_tries_t & symbol_table_tries =
                 *context.symbol_table_tries_;
             any_copyable & a = symbol_table_tries[(void *)&symbol_parser];
@@ -896,9 +896,8 @@ namespace boost { namespace parser {
         using comparison = decltype(std::declval<T>() == std::declval<U>());
 
         template<typename T, typename U>
-        struct is_equality_comparable_with
-            : std::integral_constant<bool, is_detected<comparison, T, U>::value>
-        {};
+        constexpr bool is_equality_comparable_with_v =
+            is_detected<comparison, T, U>::value;
 
         template<typename T>
         struct is_nope : std::false_type
@@ -977,13 +976,7 @@ namespace boost { namespace parser {
         {};
 
         template<typename F, typename... Args>
-        struct is_invocable : std::integral_constant<
-                                  bool,
-                                  is_detected<callable, F, Args...>::value>
-        {};
-
-        template<typename T, typename... Args>
-        constexpr bool is_invocable_v = is_invocable<T, Args...>::value;
+        constexpr bool is_invocable_v = is_detected<callable, F, Args...>::value;
 
 #if BOOST_PARSER_USE_CONCEPTS
 
@@ -997,6 +990,9 @@ namespace boost { namespace parser {
         using iter_reference_t = std::iter_reference_t<T>;
         template<typename T>
         using range_value_t = std::ranges::range_value_t<T>;
+
+        template<typename T>
+        constexpr bool is_parsable_code_unit_v = parsable_code_unit<T>;
 
 #else
 
@@ -1231,15 +1227,24 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
+        constexpr bool needs_transcoding_to_utf8 =
+            (std::is_same_v<range_value_t<Container>, char>
+#if defined(__cpp_char8_t)
+             || std::is_same_v<range_value_t<Container>, char8_t>
+#endif
+             ) && (std::is_same_v<T, char32_t>
+#if !defined(_MSC_VER)
+             || std::is_same_v<T, wchar_t>
+#endif
+             );
+
+        template<typename Container, typename T>
         void append(Container & c, T && x, bool gen_attrs)
         {
             if (!gen_attrs)
                 return;
-            if constexpr (
-                std::is_integral_v<range_value_t<Container>> &&
-                std::is_integral_v<T> &&
-                sizeof(range_value_t<Container>) == 1 && sizeof(T) == 4) {
-                uint32_t cps[1] = {(uint32_t)x};
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)x};
                 auto const r = text::as_utf8(cps);
                 c.insert(c.end(), r.begin(), r.end());
             } else {
@@ -1262,13 +1267,9 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs)
                 return;
-            using container_value_type = range_value_t<Container>;
-            using iter_value_type = iter_value_t<Iter>;
-            if constexpr (
-                std::is_integral_v<container_value_type> &&
-                std::is_integral_v<iter_value_type> &&
-                sizeof(container_value_type) == 1 &&
-                sizeof(iter_value_type) == 4) {
+            if constexpr (needs_transcoding_to_utf8<
+                              Container,
+                              iter_value_t<Iter>>) {
                 auto const r = text::as_utf8(first, last);
                 c.insert(c.end(), r.begin(), r.end());
             } else {
@@ -1462,12 +1463,15 @@ namespace boost { namespace parser {
             }
         }
 
+        template<typename T, typename U>
+        constexpr bool both_character_types =
+            is_parsable_code_unit_v<T> && is_parsable_code_unit_v<U>;
+
         template<
             typename Context,
             typename CharType,
             typename Expected,
-            bool BothIntegral =
-                std::is_integral<CharType>{} && std::is_integral<Expected>{}>
+            bool BothCharacters = both_character_types<CharType, Expected>>
         struct unequal_impl
         {
             static bool
@@ -3877,7 +3881,7 @@ namespace boost { namespace parser {
         parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
             return trie_[parser::detail::text::as_utf32(str)];
         }
@@ -3888,7 +3892,7 @@ namespace boost { namespace parser {
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
-            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
             trie_.insert(parser::detail::text::as_utf32(str), std::move(x));
         }
@@ -3898,7 +3902,7 @@ namespace boost { namespace parser {
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<uint32_t>, T> & trie_ =
+            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
             trie_.erase(parser::detail::text::as_utf32(str));
         }
@@ -3943,7 +3947,7 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            parser::detail::text::trie<std::vector<uint32_t>, T> const & trie_ =
+            parser::detail::text::trie<std::vector<char32_t>, T> const & trie_ =
                 detail::get_trie(context, ref());
             auto const lookup = trie_.longest_match(first, last);
             if (lookup.match) {
@@ -5213,7 +5217,7 @@ namespace boost { namespace parser {
         single value comparable to a code point; a set of code point values in
         a string; a half-open range of code point values `[lo, hi)`, or a set
         of code point values passed as a range. */
-    inline constexpr parser_interface<char_parser<detail::nope, uint32_t>> cp;
+    inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
     /** The literal code unit parser.  It produces a `char` attribute.  This
         parser can be used to create code unit parsers that match one or more
@@ -5579,7 +5583,7 @@ namespace boost { namespace parser {
                     t + 4,
                     first,
                     last,
-                    [](uint32_t a, uint32_t b) { return a == b; })
+                    [](char32_t a, char32_t b) { return a == b; })
                     .first == t + 4) {
                 std::advance(first, 4);
                 detail::assign(retval, true);
@@ -5591,7 +5595,7 @@ namespace boost { namespace parser {
                     f + 5,
                     first,
                     last,
-                    [](uint32_t a, uint32_t b) { return a == b; })
+                    [](char32_t a, char32_t b) { return a == b; })
                     .first == f + 5) {
                 std::advance(first, 5);
                 detail::assign(retval, false);
@@ -6412,7 +6416,7 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool parse(
         I & first,
@@ -6518,7 +6522,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6615,7 +6619,7 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool parse(
         I & first,
@@ -6731,7 +6735,7 @@ namespace boost { namespace parser {
         typename SkipParser,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6789,7 +6793,7 @@ namespace boost { namespace parser {
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6845,7 +6849,7 @@ namespace boost { namespace parser {
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -7044,7 +7048,7 @@ namespace boost { namespace parser {
         typename Callbacks,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool callback_parse(
         I & first,
@@ -7158,7 +7162,7 @@ namespace boost { namespace parser {
         typename Callbacks,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool callback_parse(
         I & first,

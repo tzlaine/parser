@@ -1890,7 +1890,7 @@ TEST(parser, attr_out_param_compat)
         static_assert(
             std::is_same_v<
                 attr_type,
-                std::optional<tuple<std::vector<uint32_t>, std::string>>>);
+                std::optional<tuple<std::vector<char32_t>, std::string>>>);
 
         tuple<std::string, std::string> result;
         bool const success = bp::parse(
@@ -1908,7 +1908,7 @@ TEST(parser, attr_out_param_compat)
         static_assert(
             std::is_same_v<
                 attr_type,
-                std::optional<std::vector<tuple<int, std::vector<uint32_t>>>>>);
+                std::optional<std::vector<tuple<int, std::vector<char32_t>>>>>);
 
         std::vector<tuple<int, std::string>> result;
 #if 0
