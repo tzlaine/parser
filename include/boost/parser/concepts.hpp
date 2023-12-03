@@ -40,18 +40,6 @@ namespace boost { namespace parser {
     concept utf8_range_like = utf8_range<T> || utf8_pointer<T>;
 
     template<typename T>
-    concept char8_pointer =
-        utf8_pointer<T> && std::is_same_v<std::iter_value_t<T>, char8_t>;
-
-    template<typename T>
-    concept char8_iter = std::forward_iterator<T> &&
-        std::is_same_v<std::iter_value_t<T>, char8_t>;
-
-    template<typename T>
-    concept char8_range =
-        utf8_range<T> && std::is_same_v<std::ranges::range_value_t<T>, char8_t>;
-
-    template<typename T>
     concept parsable_iter =
         std::forward_iterator<T> && std::is_integral_v<std::iter_value_t<T>>;
 

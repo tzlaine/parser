@@ -998,11 +998,6 @@ namespace boost { namespace parser {
         template<typename T>
         using range_value_t = std::ranges::range_value_t<T>;
 
-        template<typename T>
-        concept non_unicode_char_range_like =
-            utf8_range_like<T> &&
-            (!is_utf8_view<remove_cv_ref_t<T>>::value && !char8_pointer<T>);
-
 #else
 
         template<typename T>
@@ -1051,32 +1046,6 @@ namespace boost { namespace parser {
         template<typename T>
         using is_utf8_range_like = std::
             integral_constant<bool, is_utf8_range<T>::value || utf8_pointer<T>>;
-
-#if defined(__cpp_char8_t)
-        template<typename T>
-        struct is_char8_pointer
-            : std::integral_constant<
-                  bool,
-                  std::is_pointer_v<T> &&
-                      std::is_same_v<detected_t<iter_value_t, T>, char8_t>>
-        {};
-#else
-        template<typename T>
-        struct is_char8_pointer : std::false_type
-        {};
-#endif
-
-        template<typename T>
-        struct is_non_unicode_char_range_like
-            : std::integral_constant<
-                  bool,
-                  is_utf8_range_like<T>::value && !is_utf8_view<T>::value &&
-                      !is_char8_pointer<T>::value>
-        {};
-
-        template<typename T>
-        constexpr bool non_unicode_char_range_like =
-            is_non_unicode_char_range_like<T>::value;
 
         template<typename T>
         using has_insert = decltype(std::declval<T>().insert(
@@ -1146,6 +1115,14 @@ namespace boost { namespace parser {
     namespace detail {
 #endif
 
+        template<typename I>
+        constexpr bool is_char8_iter_v =
+#if defined(__cpp_char8_t)
+            std::is_same_v<iter_value_t<I>, char8_t>
+#else
+            false
+#endif
+            ;
 
         // Metafunctions.
 
@@ -2198,31 +2175,41 @@ namespace boost { namespace parser {
         template<typename R>
         constexpr auto make_input_view(R && r) noexcept
         {
-            if constexpr (non_unicode_char_range_like<remove_cv_ref_t<R>>) {
-                if constexpr (utf8_pointer<remove_cv_ref_t<R>>) {
+            using r_t = remove_cv_ref_t<R>;
+            if constexpr (std::is_pointer_v<r_t>) {
+                using value_type = iter_value_t<r_t>;
+                if constexpr (std::is_same_v<value_type, char>) {
                     return parser::make_view(r, text::null_sentinel);
-                } else if constexpr (std::is_array_v<remove_cv_ref_t<R>>) {
-                    auto first = std::begin(r);
-                    auto last = std::end(r);
-                    if (first != last) {
-                        if (*
-#if BOOST_PARSER_USE_CONCEPTS
-                            std::ranges::prev(last)
-#else
-                            std::prev(last)
-#endif
-
-                            == 0) {
-                            --last;
-                        }
-                    }
-                    return parser::make_view(first, last);
                 } else {
-                    return parser::make_view(std::begin(r), std::end(r));
+                    auto r_ = text::as_utf32(r);
+                    return parser::make_view(r_.begin(), r_.end());
                 }
             } else {
-                auto r_ = detail::as_utf32_no_terminator(r);
-                return parser::make_view(r_.begin(), r_.end());
+                using value_type = range_value_t<r_t>;
+                if constexpr (std::is_array_v<r_t>) {
+                    auto first = std::begin(r);
+                    auto last = std::end(r);
+                    static_assert(std::is_pointer_v<decltype(first)>);
+                    static_assert(std::is_pointer_v<decltype(last)>);
+                     if (first != last && !*std::prev(last))
+                        --last;
+                    if constexpr (std::is_same_v<value_type, char>) {
+                        return parser::make_view(first, last);
+                    } else {
+                        auto r_ = text::as_utf32(first, last);
+                        return parser::make_view(r_.begin(), r_.end());
+                    }
+                } else {
+                    if constexpr (
+                        std::is_same_v<value_type, char> &&
+                        !is_utf8_view<r_t>::value) {
+                        return parser::make_view(std::begin(r), std::end(r));
+                    } else {
+                        auto r_ = detail::remove_utf32_terminator(
+                            text::as_utf32(std::begin(r), std::end(r)));
+                        return parser::make_view(r_.begin(), r_.end());
+                    }
+                }
             }
         }
 
@@ -6505,10 +6492,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
@@ -6613,10 +6597,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::parse_impl<true>(
                     first, last, parser, parser.error_handler_);
@@ -6716,10 +6697,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             // If you're seeing this error, you're trying to get parse() to
             // fill in attr above, using the attribute generated by parser.
             // However, parser does not generate an attribute.
@@ -6835,10 +6813,7 @@ namespace boost { namespace parser {
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
                     first, last, parser, skip, parser.error_handler_);
@@ -6896,10 +6871,7 @@ namespace boost { namespace parser {
         rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
                     first, last, parser, skip, parser.error_handler_);
@@ -6955,10 +6927,7 @@ namespace boost { namespace parser {
         callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::skip_parse_impl<true>(
                     first, last, parser, skip, parser.error_handler_);
@@ -7160,10 +7129,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::callback_parse_impl<true>(
                     first, last, parser, parser.error_handler_, callbacks);
@@ -7279,10 +7245,7 @@ namespace boost { namespace parser {
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
-        if constexpr (
-            (detail::non_unicode_char_range_like<view<I, S>> &&
-             !char8_iter<I>) ||
-            sizeof(*first) == 4u) {
+        if constexpr (!detail::is_char8_iter_v<I>) {
             if (trace_mode == trace::on) {
                 return detail::callback_skip_parse_impl<true>(
                     first,
