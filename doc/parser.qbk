@@ -52,7 +52,7 @@
 
 [def _p_iface_             [classref boost::parser::parser_interface `parser_interface`]]
 
-[def _v_                   [classref boost::parser::view `view`]]
+[def _v_                   [classref boost::parser::subrange `subrange`]]
 [def _n_                   [classref boost::parser::none `none`]]
 [def _symbols_             [classref boost::parser::symbols `symbols`]]
 [def _symbols_t_           [classref boost::parser::symbols `symbols<T>`]]

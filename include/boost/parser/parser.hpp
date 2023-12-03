@@ -31,26 +31,28 @@
 
 namespace boost { namespace parser {
 
-    /** A simple view type used throughout the rest of the library. */
+    /** A simple view type used throughout the rest of the library, similar to
+        `std::ranges::subrange`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<std::forward_iterator I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
 #endif
-    struct view : parser::detail::stl_interfaces::view_interface<view<I, S>>
+    struct subrange
+        : parser::detail::stl_interfaces::view_interface<subrange<I, S>>
     {
         using iterator = I;
         using sentinel = S;
 
-        constexpr view() = default;
-        constexpr view(iterator first, sentinel last) :
+        constexpr subrange() = default;
+        constexpr subrange(iterator first, sentinel last) :
             first_(first), last_(last)
         {}
 
         constexpr iterator begin() const noexcept { return first_; }
         constexpr sentinel end() const noexcept { return last_; }
 
-        friend bool operator==(view lhs, view rhs) noexcept
+        friend bool operator==(subrange lhs, subrange rhs) noexcept
         {
             return lhs.begin() == rhs.begin() && lhs.end() == rhs.end();
         }
@@ -60,15 +62,15 @@ namespace boost { namespace parser {
         sentinel last_;
     };
 
-    /** Makes a `view<I>` from two `I`s. */
+    /** Makes a `subrange<I>` from two `I`s. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<std::forward_iterator I, std::sentinel_for<I> S = I>
 #else
     template<typename I, typename S = I>
 #endif
-    constexpr view<I, S> make_view(I first, S last) noexcept
+    constexpr subrange<I, S> make_subrange(I first, S last) noexcept
     {
-        return view<I, S>(first, last);
+        return subrange<I, S>(first, last);
     }
 
 
@@ -1443,14 +1445,14 @@ namespace boost { namespace parser {
                 }
             }
 
-            view<Iter, Sentinel> chars_;
+            subrange<Iter, Sentinel> chars_;
         };
 
         template<typename Iter, typename Sentinel>
         auto make_char_range(Iter first, Sentinel last)
         {
             return char_range<Iter, Sentinel>{
-                view<Iter, Sentinel>{first, last}};
+                subrange<Iter, Sentinel>{first, last}};
         }
 
         template<typename R>
@@ -2132,16 +2134,16 @@ namespace boost { namespace parser {
         }
 
         template<typename R>
-        constexpr auto make_input_view(R && r) noexcept
+        constexpr auto make_input_subrange(R && r) noexcept
         {
             using r_t = remove_cv_ref_t<R>;
             if constexpr (std::is_pointer_v<r_t>) {
                 using value_type = iter_value_t<r_t>;
                 if constexpr (std::is_same_v<value_type, char>) {
-                    return parser::make_view(r, text::null_sentinel);
+                    return parser::make_subrange(r, text::null_sentinel);
                 } else {
                     auto r_ = text::as_utf32(r);
-                    return parser::make_view(r_.begin(), r_.end());
+                    return parser::make_subrange(r_.begin(), r_.end());
                 }
             } else {
                 using value_type = range_value_t<r_t>;
@@ -2153,20 +2155,20 @@ namespace boost { namespace parser {
                      if (first != last && !*std::prev(last))
                         --last;
                     if constexpr (std::is_same_v<value_type, char>) {
-                        return parser::make_view(first, last);
+                        return parser::make_subrange(first, last);
                     } else {
                         auto r_ = text::as_utf32(first, last);
-                        return parser::make_view(r_.begin(), r_.end());
+                        return parser::make_subrange(r_.begin(), r_.end());
                     }
                 } else {
                     if constexpr (
                         std::is_same_v<value_type, char> &&
                         !is_utf8_view<r_t>::value) {
-                        return parser::make_view(std::begin(r), std::end(r));
+                        return parser::make_subrange(std::begin(r), std::end(r));
                     } else {
                         auto r_ = detail::remove_utf32_terminator(
                             text::as_utf32(std::begin(r), std::end(r)));
-                        return parser::make_view(r_.begin(), r_.end());
+                        return parser::make_subrange(r_.begin(), r_.end());
                     }
                 }
             }
@@ -3415,7 +3417,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            view const where(initial_first, first);
+            subrange const where(initial_first, first);
             if (success) {
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
@@ -3501,7 +3503,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        view<Iter> call(
+        subrange<Iter> call(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3510,7 +3512,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            view<Iter> retval;
+            subrange<Iter> retval;
             call(
                 use_cbs,
                 first,
@@ -3552,7 +3554,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
-            detail::assign(retval, view<Iter>(initial_first, first));
+            detail::assign(retval, subrange<Iter>(initial_first, first));
         }
 
         Parser parser_;
@@ -4902,7 +4904,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            view const where(first, first);
+            subrange const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -4932,7 +4934,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            view const where(first, first);
+            subrange const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -6490,13 +6492,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -6581,13 +6583,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -6697,13 +6699,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -6916,13 +6918,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -6962,13 +6964,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -7006,13 +7008,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -7117,13 +7119,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
@@ -7246,13 +7248,13 @@ namespace boost { namespace parser {
         // clang-format off
         requires error_handler<
             ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_view(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_view(r))>,
+            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
+            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
             GlobalState>
     // clang-format on
 #endif
     {
-        auto r_ = detail::make_input_view(r);
+        auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
