@@ -7,12 +7,12 @@
 <link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../../header/boost/parser/error_handling_hpp.html" title="Header &lt;boost/parser/error_handling.hpp&gt;">
 <link rel="prev" href="callback_error_handler.html" title="Struct callback_error_handler">
-<link rel="next" href="write_formatted_m_idm15757.html" title="Function template write_formatted_message">
+<link rel="next" href="write_formatted_m_idm15562.html" title="Function template write_formatted_message">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="callback_error_handler.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/error_handling_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="write_formatted_m_idm15757.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="callback_error_handler.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/error_handling_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="write_formatted_m_idm15562.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="refentry">
 <a name="boost.parser.rethrow_error_handler"></a><div class="titlepage"></div>
@@ -26,30 +26,30 @@
 </span>
 <span class="keyword">struct</span> <a class="link" href="rethrow_error_handler.html" title="Struct rethrow_error_handler">rethrow_error_handler</a> <span class="special">{</span>
 
-  <span class="comment">// <a class="link" href="rethrow_error_handler.html#idm15721-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="rethrow_error_handler.html#idm15526-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">&gt;</span> 
     <span class="identifier">error_handler_result</span> 
-    <a class="link" href="rethrow_error_handler.html#idm15722-bb"><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span></a><span class="special">(</span><span class="identifier">Iter</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> <a class="link" href="parse_error.html" title="Struct template parse_error">parse_error</a><span class="special">&lt;</span> <span class="identifier">Iter</span> <span class="special">&gt;</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+    <a class="link" href="rethrow_error_handler.html#idm15527-bb"><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span></a><span class="special">(</span><span class="identifier">Iter</span><span class="special">,</span> <span class="identifier">Sentinel</span><span class="special">,</span> <a class="link" href="parse_error.html" title="Struct template parse_error">parse_error</a><span class="special">&lt;</span> <span class="identifier">Iter</span> <span class="special">&gt;</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">&gt;</span> 
-    <span class="keyword">void</span> <a class="link" href="rethrow_error_handler.html#idm15734-bb"><span class="identifier">diagnose</span></a><span class="special">(</span><span class="identifier">diagnostic_kind</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="keyword">void</span> <a class="link" href="rethrow_error_handler.html#idm15539-bb"><span class="identifier">diagnose</span></a><span class="special">(</span><span class="identifier">diagnostic_kind</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Context<span class="special">&gt;</span> 
-    <span class="keyword">void</span> <a class="link" href="rethrow_error_handler.html#idm15747-bb"><span class="identifier">diagnose</span></a><span class="special">(</span><span class="identifier">diagnostic_kind</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+    <span class="keyword">void</span> <a class="link" href="rethrow_error_handler.html#idm15552-bb"><span class="identifier">diagnose</span></a><span class="special">(</span><span class="identifier">diagnostic_kind</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm15579"></a><h2>Description</h2>
+<a name="idm15386"></a><h2>Description</h2>
 <p>An error handler that just re-throws any exception generated by the parse. </p>
 <div class="refsect2">
-<a name="idm15582"></a><h3>
-<a name="idm15721-bb"></a><code class="computeroutput">rethrow_error_handler</code> public member functions</h3>
+<a name="idm15389"></a><h3>
+<a name="idm15526-bb"></a><code class="computeroutput">rethrow_error_handler</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1">
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Sentinel<span class="special">&gt;</span> 
   <span class="identifier">error_handler_result</span> 
-  <a name="idm15722-bb"></a><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span><span class="special">(</span><span class="identifier">Iter</span> first<span class="special">,</span> <span class="identifier">Sentinel</span> last<span class="special">,</span> <a class="link" href="parse_error.html" title="Struct template parse_error">parse_error</a><span class="special">&lt;</span> <span class="identifier">Iter</span> <span class="special">&gt;</span> <span class="keyword">const</span> <span class="special">&amp;</span> e<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
+  <a name="idm15527-bb"></a><span class="keyword">operator</span><span class="special">(</span><span class="special">)</span><span class="special">(</span><span class="identifier">Iter</span> first<span class="special">,</span> <span class="identifier">Sentinel</span> last<span class="special">,</span> <a class="link" href="parse_error.html" title="Struct template parse_error">parse_error</a><span class="special">&lt;</span> <span class="identifier">Iter</span> <span class="special">&gt;</span> <span class="keyword">const</span> <span class="special">&amp;</span> e<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Context<span class="special">,</span> <span class="keyword">typename</span> Iter<span class="special">&gt;</span> 
-  <span class="keyword">void</span> <a name="idm15734-bb"></a><span class="identifier">diagnose</span><span class="special">(</span><span class="identifier">diagnostic_kind</span> kind<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> message<span class="special">,</span> 
+  <span class="keyword">void</span> <a name="idm15539-bb"></a><span class="identifier">diagnose</span><span class="special">(</span><span class="identifier">diagnostic_kind</span> kind<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> message<span class="special">,</span> 
                 <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> context<span class="special">,</span> <span class="identifier">Iter</span> it<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
 <li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Context<span class="special">&gt;</span> 
-  <span class="keyword">void</span> <a name="idm15747-bb"></a><span class="identifier">diagnose</span><span class="special">(</span><span class="identifier">diagnostic_kind</span> kind<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> message<span class="special">,</span> 
+  <span class="keyword">void</span> <a name="idm15552-bb"></a><span class="identifier">diagnose</span><span class="special">(</span><span class="identifier">diagnostic_kind</span> kind<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> message<span class="special">,</span> 
                 <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> context<span class="special">)</span> <span class="keyword">const</span><span class="special">;</span></pre></li>
 </ol></div>
 </div>
@@ -62,7 +62,7 @@
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="callback_error_handler.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/error_handling_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="write_formatted_m_idm15757.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="callback_error_handler.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../header/boost/parser/error_handling_hpp.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="write_formatted_m_idm15562.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>
