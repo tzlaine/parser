@@ -371,7 +371,7 @@ void compile_attribute_sentinel()
     {
         constexpr auto parser = cp;
         using attr_t = decltype(parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+        static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
     }
     {
         constexpr auto parser = cu;
@@ -654,7 +654,7 @@ void compile_attribute()
     {
         constexpr auto parser = cp;
         using attr_t = decltype(parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+        static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
     }
     {
         constexpr auto parser = cu;
