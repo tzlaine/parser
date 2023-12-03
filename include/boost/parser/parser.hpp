@@ -6419,27 +6419,6 @@ namespace boost { namespace parser {
 
 namespace boost { namespace parser {
 
-#if !BOOST_PARSER_USE_CONCEPTS
-#if defined(__cpp_char8_t)
-    template<typename T>
-    struct is_char8_iter
-        : std::integral_constant<
-              bool,
-              (std::is_integral_v<detail::detected_t<detail::text::detail::value_type_, T>> &&
-               std::is_same_v<
-                   detail::remove_cv_ref_t<
-                       detail::detected_t<detail::text::detail::value_type_, T>>,
-                   char8_t>)>
-    {};
-
-    template<typename T>
-    constexpr bool char8_iter = is_char8_iter<T>::value;
-#else
-    template<typename T>
-    constexpr bool char8_iter = false;
-#endif
-#endif
-
     /** An enumeration used for parameters to enable and disable trace in the
         `*parse()` functions. */
     enum class trace { on, off };
