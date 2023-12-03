@@ -1028,24 +1028,9 @@ namespace boost { namespace parser {
         {};
 
         template<typename T>
-        constexpr bool utf8_pointer = is_utf8_pointer<T>::value;
-
-        template<typename T>
         using has_begin = decltype(*std::begin(std::declval<T &>()));
         template<typename T>
         using has_end = decltype(std::end(std::declval<T &>()));
-
-        template<typename T>
-        using is_utf8_range = std::integral_constant<
-            bool,
-            (is_integral_and_n_bytes<
-                 remove_cv_ref_t<detected_t<has_begin, T>>,
-                 1>::value &&
-             is_detected<has_end, T>::value)>;
-
-        template<typename T>
-        using is_utf8_range_like = std::
-            integral_constant<bool, is_utf8_range<T>::value || utf8_pointer<T>>;
 
         template<typename T>
         using has_insert = decltype(std::declval<T>().insert(
