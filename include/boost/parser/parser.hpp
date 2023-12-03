@@ -62,7 +62,7 @@ namespace boost { namespace parser {
         sentinel last_;
     };
 
-    /** Makes a `subrange<I>` from two `I`s. */
+    /** Makes a `subrange<I, S>` from an `I` and an `S`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<std::forward_iterator I, std::sentinel_for<I> S = I>
 #else
