@@ -1552,8 +1552,9 @@ common:
 
 * They each require forward iterability of the input.
 
-* They each accept any range with an integral element type.  This means that
-  they can each parse ranges of `char`, `char8_t`, `uint16_t`, `int`, etc.
+* They each accept any range with an character element type.  This means that
+  they can each parse ranges of `char`, `wchar_t`, `char8_t`, `char16_t`, or
+  `char32_t`.
 
 * When you call any of the iterator/sentinel pair overloads of _p_, for
  example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
@@ -1565,6 +1566,9 @@ common:
 * When you call any of the range-like overloads of _p_, for example `_p_np_(r,
   p, _ws_)`, _p_ only indicates success if *all* of `r` was matched by `p`.
 
+[note `wchar_t` is an accepted value type for the input.  Please note that
+this is interpreted as UTF-16 on MSVC, and UTF-32 everywhere else.]
+
 [heading The overloads]
 
 There are eight overloads of _p_, because there are three either/or options in
@@ -1573,7 +1577,7 @@ how you call it.
 [heading Iterator/sentinel versus range-like]
 
 You can call _p_ with an iterator and sentinel that delimit a range of
-integral values.  For example:
+character values.  For example:
 
     namespace bp = boost::parser;
     auto const p = /* some parser ... */;
@@ -1590,7 +1594,7 @@ The iterator/sentinel overloads can parse successfully without matching the
 entire input.  You can tell if the entire input was matched by checking if
 `first == last` is true after _p_ returns.
 
-You can also call _p_ with a range of integral values.  When the range is a
+You can also call _p_ with a range of character values.  When the range is a
 reference to an array of characters, any terminating `0` is ignored; this
 allows calls like `_p_np_("str", p)` to work naturally.
 
@@ -1606,7 +1610,7 @@ allows calls like `_p_np_("str", p)` to work naturally.
     char const * str_3 = "str";
     auto result_3 = bp::parse(boost::text::as_utf16(str_3), p, bp::ws);
 
-You can also call _p_ with a pointer to a null-terminated string of integral
+You can also call _p_ with a pointer to a null-terminated string of character
 values.  _p_ considers pointers to null-terminated strings to be ranges,
 since, for any pointer `T *` to a null-terminated string, `T *` is isomorphic
 with `view<T *, boost::text::null_sentinel>`.
@@ -1738,20 +1742,11 @@ from this example:
   _std_vec_uint_ to `std::deque<int>`), the call to _p_ will often
   still be well-formed.
 
-* When changing out a container type, if both containers contain integral
-  values, the removed container's element type is 4 bytes in size, and the new
-  container's element type is 1 byte in size, _Parser_ assumes that this is a
-  UTF-32-to-UTF-8 conversion, and silently transcodes the data when inserting
-  into the new container.
-
-[caution The detection of the need to transcode from UTF-32 to UTF-8 applies to *all* integral values.  If you call _p_ with this parser:
-
-    auto const p = +boost::parser::uint_;
-
-using a _std_str_ as an out-parameter, it will happily transcode your unsigned
-ints to UTF-8.  This is almost certainly not what you want.  Don't worry,
-though; this kind of case comes up pretty rarely, but wanting to parse in
-Unicode mode and catch results in UTF-8 strings comes up all the time.]
+* When changing out a container type, if both containers contain character
+  values, the removed container's element type is `char32_t` (or `wchar_t` for
+  non-MSVC builds), and the new container's element type is `char` or
+  `char8_t`, _Parser_ assumes that this is a UTF-32-to-UTF-8 conversion, and
+  silently transcodes the data when inserting into the new container.
 
 Let's look at a case where another simple-seeming type replacement does *not* work:
 
@@ -1797,11 +1792,11 @@ A call to _p_ either considers the entire input to be in a UTF format (UTF-8,
 UTF-16, or UTF-32), or it considers the entire input to be in some unknown
 encoding.  Here is how it deduces which case the call falls under:
 
-* If the input range is a sequence of `char8_t`, or if the input is a
+* If the range is a sequence of `char8_t`, or if the input is a
   `boost::text::utf8_view`, the input is UTF-8.
 
-* Otherwise, if the input is a sequence of 1-byte integral values, the input
-  is in an unknown encoding.
+* Otherwise, if the value type of the range is `char`, the input is in an
+  unknown encoding.
 
 * Otherwise, the input is in a UTF encoding.
 
@@ -2140,10 +2135,7 @@ place is a simple comparison of two integral values.
 
 [note _Parser_ actually promotes any two values to a common type using
 `std::common_type` before comparing them.  This is almost always works because
-the input and any parameter passed to _ch_ must be integral types.  You're on
-your own if you want to use some non-builtin type `I` that models
-`std::integral` but that breaks when _Parser_ tries to find its common type
-with `char`s, `uint32_t`'s, etc. ]
+the input and any parameter passed to _ch_ must be character types. ]
 
 Since matches are always done at a code point level (remember, a "code point"
 in the non-Unicode path is assumed to be a single `char`), you get different
@@ -2189,7 +2181,7 @@ Additionally, it is expected that most programs will use UTF-8 for the
 encoding of Unicode strings.  _Parser_ is written with this assumption in
 mind.  This means that if you are parsing 32-bit code points (as you always
 are in the Unicode path), and you want to catch the result in a container `C`
-of 1-byte integral values, _Parser_ will silently transcode from UTF-32 to
+of `char` or `char8_t` values, _Parser_ will silently transcode from UTF-32 to
 UTF-8 and write the attribute into `C`.  This means that _std_str_,
 `std::u8string`, etc. are fine to use as attribute out-parameters for `*_ch_`,
 and the result will be UTF-8.
