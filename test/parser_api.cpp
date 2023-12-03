@@ -87,7 +87,8 @@ TEST(parser, full_parse_api)
     // returned attr, UTF-16
     {
         EXPECT_TRUE(parse(u"a", char_));
-        EXPECT_EQ(*parse(u"a", char_), uint16_t('a'));
+        auto const result = *parse(u"a", char_);
+        EXPECT_EQ(uint16_t(result), uint16_t('a'));
         EXPECT_FALSE(parse(u"a", char_('b')));
     }
 

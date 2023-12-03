@@ -119,13 +119,13 @@ void compile_attribute_unicode_utf8()
         {
             constexpr auto parser = char_;
             using attr_t = decltype(parse(first, last, parser));
-            static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+            static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
         }
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(first, last, parser));
             static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<uint32_t>>>);
+                std::is_same_v<attr_t, std::optional<std::vector<char32_t>>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -137,14 +137,14 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(first, last, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<uint32_t, std::string>>>);
+                          std::optional<tuple<char32_t, std::string>>>);
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(first, last, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<std::string, uint32_t>>>);
+                          std::optional<tuple<std::string, char32_t>>>);
         }
     }
 #endif
@@ -155,13 +155,13 @@ void compile_attribute_unicode_utf8()
         {
             constexpr auto parser = char_;
             using attr_t = decltype(parse(r, parser));
-            static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+            static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
         }
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<uint32_t>>>);
+                std::is_same_v<attr_t, std::optional<std::vector<char32_t>>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -173,14 +173,14 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<uint32_t, std::string>>>);
+                          std::optional<tuple<char32_t, std::string>>>);
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<std::string, uint32_t>>>);
+                          std::optional<tuple<std::string, char32_t>>>);
         }
     }
 #if defined(__cpp_char8_t)
@@ -190,13 +190,13 @@ void compile_attribute_unicode_utf8()
         {
             constexpr auto parser = char_;
             using attr_t = decltype(parse(r, parser));
-            static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+            static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
         }
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<uint32_t>>>);
+                std::is_same_v<attr_t, std::optional<std::vector<char32_t>>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -208,14 +208,14 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<uint32_t, std::string>>>);
+                          std::optional<tuple<char32_t, std::string>>>);
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<std::string, uint32_t>>>);
+                          std::optional<tuple<std::string, char32_t>>>);
         }
     }
     {
@@ -224,13 +224,13 @@ void compile_attribute_unicode_utf8()
         {
             constexpr auto parser = char_;
             using attr_t = decltype(parse(r, parser));
-            static_assert(std::is_same_v<attr_t, std::optional<uint32_t>>);
+            static_assert(std::is_same_v<attr_t, std::optional<char32_t>>);
         }
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<uint32_t>>>);
+                std::is_same_v<attr_t, std::optional<std::vector<char32_t>>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -242,14 +242,14 @@ void compile_attribute_unicode_utf8()
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<uint32_t, std::string>>>);
+                          std::optional<tuple<char32_t, std::string>>>);
         }
         {
             constexpr auto parser = string("foo") >> char_;
             using attr_t = decltype(parse(r, parser));
             static_assert(std::is_same_v<
                           attr_t,
-                          std::optional<tuple<std::string, uint32_t>>>);
+                          std::optional<tuple<std::string, char32_t>>>);
         }
     }
 #endif

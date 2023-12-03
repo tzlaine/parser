@@ -26,10 +26,10 @@ namespace boost::parser::detail { namespace text {
     namespace {
         constexpr uint16_t high_surrogate_base = 0xd7c0;
         constexpr uint16_t low_surrogate_base = 0xdc00;
-        constexpr uint32_t high_surrogate_min = 0xd800;
-        constexpr uint32_t high_surrogate_max = 0xdbff;
-        constexpr uint32_t low_surrogate_min = 0xdc00;
-        constexpr uint32_t low_surrogate_max = 0xdfff;
+        constexpr char32_t high_surrogate_min = 0xd800;
+        constexpr char32_t high_surrogate_max = 0xdbff;
+        constexpr char32_t low_surrogate_min = 0xdc00;
+        constexpr char32_t low_surrogate_max = 0xdfff;
     }
 
     namespace detail {
@@ -42,7 +42,7 @@ namespace boost::parser::detail { namespace text {
         {};
 
         template<typename OutIter>
-        inline constexpr OutIter read_into_buf(uint32_t cp, OutIter buf)
+        inline constexpr OutIter read_into_buf(char32_t cp, OutIter buf)
         {
             if (cp < 0x80) {
                 *buf = static_cast<char>(cp);
@@ -73,13 +73,13 @@ namespace boost::parser::detail { namespace text {
         }
 
         template<typename OutIter>
-        constexpr OutIter write_cp_utf8(uint32_t cp, OutIter out)
+        constexpr OutIter write_cp_utf8(char32_t cp, OutIter out)
         {
             return detail::read_into_buf(cp, out);
         }
 
         template<typename OutIter>
-        constexpr OutIter write_cp_utf16(uint32_t cp, OutIter out)
+        constexpr OutIter write_cp_utf16(char32_t cp, OutIter out)
         {
             if (cp < 0x10000) {
                 *out = static_cast<uint16_t>(cp);
@@ -93,9 +93,9 @@ namespace boost::parser::detail { namespace text {
             return out;
         }
 
-        inline constexpr uint32_t surrogates_to_cp(uint16_t hi, uint16_t lo)
+        inline constexpr char32_t surrogates_to_cp(uint16_t hi, uint16_t lo)
         {
-            return uint32_t((hi - high_surrogate_base) << 10) +
+            return char32_t((hi - high_surrogate_base) << 10) +
                    (lo - low_surrogate_base);
         }
 
@@ -114,22 +114,22 @@ namespace boost::parser::detail { namespace text {
         sequence when converting between two encodings.
 
         \see Unicode 3.2/C10 */
-    constexpr uint32_t replacement_character() { return 0xfffd; }
+    constexpr char32_t replacement_character() { return 0xfffd; }
 
     /** Returns true iff `c` is a Unicode surrogate. */
-    inline constexpr bool surrogate(uint32_t c)
+    inline constexpr bool surrogate(char32_t c)
     {
         return high_surrogate_min <= c && c <= low_surrogate_max;
     }
 
     /** Returns true iff `c` is a Unicode high surrogate. */
-    inline constexpr bool high_surrogate(uint32_t c)
+    inline constexpr bool high_surrogate(char32_t c)
     {
         return high_surrogate_min <= c && c <= high_surrogate_max;
     }
 
     /** Returns true iff `c` is a Unicode low surrogate. */
-    inline constexpr bool low_surrogate(uint32_t c)
+    inline constexpr bool low_surrogate(char32_t c)
     {
         return low_surrogate_min <= c && c <= low_surrogate_max;
     }
@@ -137,7 +137,7 @@ namespace boost::parser::detail { namespace text {
     /** Returns true iff `c` is a Unicode reserved noncharacter.
 
         \see Unicode 3.4/D14 */
-    inline constexpr bool reserved_noncharacter(uint32_t c)
+    inline constexpr bool reserved_noncharacter(char32_t c)
     {
         bool const byte01_reserved = (c & 0xffff) >= 0xfffe;
         bool const byte2_at_most_0x10 = ((c & 0xff0000u) >> 16) <= 0x10;
@@ -148,7 +148,7 @@ namespace boost::parser::detail { namespace text {
     /** Returns true iff `c` is a valid Unicode scalar value.
 
         \see Unicode 3.9/D90 */
-    inline constexpr bool scalar_value(uint32_t c)
+    inline constexpr bool scalar_value(char32_t c)
     {
         return c <= 0x10ffff && !surrogate(c);
     }
@@ -157,7 +157,7 @@ namespace boost::parser::detail { namespace text {
         range.
 
         \see Unicode 3.9/D90 */
-    inline constexpr bool unreserved_scalar_value(uint32_t c)
+    inline constexpr bool unreserved_scalar_value(char32_t c)
     {
         return scalar_value(c) && !reserved_noncharacter(c);
     }
@@ -521,9 +521,9 @@ namespace boost::parser::detail { namespace text {
         }
 
         template<typename InputIter, typename Sentinel>
-        uint32_t advance(InputIter & first, Sentinel last)
+        char32_t advance(InputIter & first, Sentinel last)
         {
-            uint32_t retval = 0;
+            char32_t retval = 0;
 
             first_cu const info = first_cus[(unsigned char)*first];
             ++first;
@@ -883,7 +883,7 @@ namespace boost::parser::detail { namespace text {
         provides the Unicode replacement character on errors. */
     struct use_replacement_character
     {
-        constexpr uint32_t operator()(char const *) const
+        constexpr char32_t operator()(char const *) const
         {
             return replacement_character();
         }
@@ -1150,7 +1150,7 @@ namespace boost::parser::detail { namespace text {
 
         constexpr char * read_into_buf()
         {
-            uint32_t cp = static_cast<uint32_t>(*it_);
+            char32_t cp = static_cast<char32_t>(*it_);
             index_ = 0;
             char * retval = detail::read_into_buf(cp, buf_.data());
             *retval = 0;
@@ -1253,7 +1253,7 @@ namespace boost::parser::detail { namespace text {
             detail::trans_ins_iter<utf_32_to_8_out_iterator<Iter>, Iter>(it)
         {}
 
-        utf_32_to_8_out_iterator & operator=(uint32_t cp)
+        utf_32_to_8_out_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1281,7 +1281,7 @@ namespace boost::parser::detail { namespace text {
                 std::insert_iterator<Cont>>(std::insert_iterator<Cont>(c, it))
         {}
 
-        utf_32_to_8_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_8_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1305,7 +1305,7 @@ namespace boost::parser::detail { namespace text {
                 std::front_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_8_front_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_8_front_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1329,7 +1329,7 @@ namespace boost::parser::detail { namespace text {
                 std::back_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_8_back_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_8_back_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1351,7 +1351,7 @@ namespace boost::parser::detail { namespace text {
         typename ErrorHandler = use_replacement_character>
 #endif
     struct utf_8_to_32_iterator
-        : detail::trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, uint32_t>
+        : detail::trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, char32_t>
     {
         constexpr utf_8_to_32_iterator() : first_(), it_(), last_() {}
         explicit constexpr utf_8_to_32_iterator(I first, I it, S last) :
@@ -1380,7 +1380,7 @@ namespace boost::parser::detail { namespace text {
         constexpr I begin() const { return first_; }
         constexpr S end() const { return last_; }
 
-        constexpr uint32_t operator*() const
+        constexpr char32_t operator*() const
         {
             BOOST_PARSER_DEBUG_ASSERT(!at_end(it_));
             unsigned char curr_c = *it_;
@@ -1412,7 +1412,7 @@ namespace boost::parser::detail { namespace text {
         }
 
         using base_type = detail::
-            trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, uint32_t>;
+            trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, char32_t>;
         using base_type::operator++;
         using base_type::operator--;
 
@@ -1420,7 +1420,7 @@ namespace boost::parser::detail { namespace text {
     private:
         struct get_value_result
         {
-            uint32_t value_;
+            char32_t value_;
             I it_;
         };
 
@@ -1473,7 +1473,7 @@ namespace boost::parser::detail { namespace text {
                 U+100000..U+10FFFF F4         80..8F      80..BF     80..BF
             */
 
-            uint32_t value = 0;
+            char32_t value = 0;
             I next = it_;
             unsigned char curr_c = *next;
 
@@ -1639,7 +1639,7 @@ namespace boost::parser::detail { namespace text {
             return get_value_result{value, next};
 #else
             I next = it_;
-            uint32_t const value = detail::advance(next, last_);
+            char32_t const value = detail::advance(next, last_);
             return get_value_result{value, next};
 #endif
         }
@@ -1745,7 +1745,7 @@ namespace boost::parser::detail { namespace text {
     namespace detail {
         template<typename OutIter>
         OutIter assign_8_to_32_insert(
-            unsigned char cu, uint32_t & cp, int & state, OutIter out)
+            unsigned char cu, char32_t & cp, int & state, OutIter out)
         {
             auto write = [&] {
                 *out = cp;
@@ -1779,7 +1779,7 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-8 to UTF-32. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint32_t> Iter>
+    template<std::output_iterator<char32_t> Iter>
 #else
     template<typename Iter>
 #endif
@@ -1807,7 +1807,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -1837,7 +1837,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -1868,7 +1868,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -1899,7 +1899,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -2133,7 +2133,7 @@ namespace boost::parser::detail { namespace text {
             detail::trans_ins_iter<utf_32_to_16_out_iterator<Iter>, Iter>(it)
         {}
 
-        utf_32_to_16_out_iterator & operator=(uint32_t cp)
+        utf_32_to_16_out_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2162,7 +2162,7 @@ namespace boost::parser::detail { namespace text {
                 std::insert_iterator<Cont>>(std::insert_iterator<Cont>(c, it))
         {}
 
-        utf_32_to_16_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_16_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2186,7 +2186,7 @@ namespace boost::parser::detail { namespace text {
                 std::front_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_16_front_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_16_front_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2210,7 +2210,7 @@ namespace boost::parser::detail { namespace text {
                 std::back_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_16_back_insert_iterator & operator=(uint32_t cp)
+        utf_32_to_16_back_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2233,7 +2233,7 @@ namespace boost::parser::detail { namespace text {
 #endif
     struct utf_16_to_32_iterator
         : detail::
-              trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, uint32_t>
+              trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, char32_t>
     {
 #if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         static_assert(
@@ -2278,7 +2278,7 @@ namespace boost::parser::detail { namespace text {
         constexpr I begin() const { return first_; }
         constexpr S end() const { return last_; }
 
-        constexpr uint32_t operator*() const
+        constexpr char32_t operator*() const
         {
             BOOST_PARSER_DEBUG_ASSERT(!at_end(it_));
             return get_value(*it_).value_;
@@ -2311,7 +2311,7 @@ namespace boost::parser::detail { namespace text {
         }
 
         using base_type = detail::
-            trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, uint32_t>;
+            trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, char32_t>;
         using base_type::operator++;
         using base_type::operator--;
 
@@ -2319,7 +2319,7 @@ namespace boost::parser::detail { namespace text {
     private:
         struct get_value_result
         {
-            uint32_t value_;
+            char32_t value_;
             I it_;
         };
 
@@ -2337,7 +2337,7 @@ namespace boost::parser::detail { namespace text {
 
         constexpr get_value_result get_value(uint16_t curr) const
         {
-            uint32_t value = 0;
+            char32_t value = 0;
             I next = std::next(it_);
 
             if (high_surrogate(curr)) {
@@ -2496,7 +2496,7 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-16 to UTF-32. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint32_t> Iter>
+    template<std::output_iterator<char32_t> Iter>
 #else
     template<typename Iter>
 #endif
@@ -2756,14 +2756,14 @@ namespace boost::parser::detail { namespace text {
         {
             I next = it_;
 
-            uint32_t first = static_cast<uint32_t>(*next);
-            uint32_t second = 0;
-            uint32_t cp = first;
+            char32_t first = static_cast<char32_t>(*next);
+            char32_t second = 0;
+            char32_t cp = first;
             if (boost::parser::detail::text::high_surrogate(first)) {
                 if (at_end(++next))
                     cp = replacement_character();
                 else {
-                    second = static_cast<uint32_t>(*next);
+                    second = static_cast<char32_t>(*next);
                     if (!boost::parser::detail::text::low_surrogate(second)) {
                         ErrorHandler{}(
                             "Invalid UTF-16 sequence; expected low surrogate "
@@ -2810,7 +2810,7 @@ namespace boost::parser::detail { namespace text {
 
         // Unicode 3.8/D71-D74
 
-        static uint32_t const surrogate_offset =
+        static char32_t const surrogate_offset =
             0x10000 - (high_surrogate_min << 10) - low_surrogate_min;
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
@@ -3230,7 +3230,7 @@ namespace boost::parser::detail { namespace text {
     namespace detail {
         template<typename OutIter>
         OutIter assign_8_to_16_insert(
-            unsigned char cu, uint32_t & cp, int & state, OutIter out)
+            unsigned char cu, char32_t & cp, int & state, OutIter out)
         {
             auto write = [&] {
                 out = detail::write_cp_utf16(cp, out);
@@ -3290,7 +3290,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -3320,7 +3320,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -3351,7 +3351,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -3382,7 +3382,7 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
     private:
         int state_;
-        uint32_t cp_;
+        char32_t cp_;
 #endif
     };
 
@@ -3591,7 +3591,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
     /** Returns a `utf_8_to_32_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint32_t> O>
+    template<std::output_iterator<char32_t> O>
     utf_8_to_32_out_iterator<O> utf_8_to_32_out(O it);
 
     /** Returns a `utf_32_to_16_out_iterator<O>` constructed from the given
@@ -3601,7 +3601,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
     /** Returns a `utf_16_to_32_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint32_t> O>
+    template<std::output_iterator<char32_t> O>
     utf_16_to_32_out_iterator<O> utf_16_to_32_out(O it);
 
     /** Returns a `utf_16_to_8_out_iterator<O>` constructed from the given
@@ -3892,7 +3892,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return utf_32_to_8_out_iterator<O>(it);
     }
 
-    template<std::output_iterator<uint32_t> O>
+    template<std::output_iterator<char32_t> O>
     utf_8_to_32_out_iterator<O> utf_8_to_32_out(O it)
     {
         return utf_8_to_32_out_iterator<O>(it);
@@ -3904,7 +3904,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return utf_32_to_16_out_iterator<O>(it);
     }
 
-    template<std::output_iterator<uint32_t> O>
+    template<std::output_iterator<char32_t> O>
     utf_16_to_32_out_iterator<O> utf_16_to_32_out(O it)
     {
         return utf_16_to_32_out_iterator<O>(it);
