@@ -494,7 +494,7 @@ namespace json {
                 case 0x0009: os << "\\t"; break;
                 default:
                     if (cp < 0x20) {
-                        os << "\\u" << std::setw(4) << cp;
+                        os << "\\u" << std::setw(4) << (uint32_t)cp;
                     } else {
                         uint16_t const high_surrogate_base = 0xd7c0;
                         uint16_t const low_surrogate_base = 0xdc00;
@@ -521,7 +521,7 @@ namespace json {
             boost::parser::detail::text::foreach_subrange_if(
                 r.begin(),
                 r.end(),
-                [](uint32_t cp) { return cp < 0x0020 || 0xffff < cp; },
+                [](char32_t cp) { return cp < 0x0020 || 0xffff < cp; },
                 [&](auto subr) {
                     os.write(
                         last_written_it,
