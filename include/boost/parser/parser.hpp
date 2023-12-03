@@ -4480,18 +4480,19 @@ namespace boost { namespace parser {
 
         /** Adds an entry consisting of a UTF-8 string `str` to match, and an
             associated attribute `x`, to `*this`.  The entry is added for use
-            in all subsequent parsing. */
-        symbols & add(std::string_view str, T x)
+            in all subsequent top-level parses.  Subsequent lookups during the
+            current top-level parse will not match `str`. */
+        symbols & insert_for_next_parse(std::string_view str, T x)
         {
             this->parser_.initial_elements_.push_back(
                 std::pair<std::string_view, T>(str, std::move(x)));
             return *this;
         }
 
-        /** Equivalent to `add(str, std::move(x))`. */
+        /** Equivalent to `insert_for_next_parse(str, std::move(x))`. */
         symbols & operator()(std::string_view str, T x)
         {
-            return add(str, std::move(x));
+            return insert_for_next_parse(str, std::move(x));
         }
 
         /** Uses UTF-8 string `str` to look up an attribute in the table

@@ -621,7 +621,19 @@ The full program:
 
 [note It is possible to add symbols to a _symbols_ permanently.  To do so, you
 have to use a mutable _symbols_ object `s`, and add the symbols by calling
-`s.add()`, instead of `s.insert()`.]
+`s.insert_for_next_parse()`, instead of `s.insert()`.  These two operations
+are orthogonal, so if you want to both add a symbol to the table for the
+current top-level parse, and leave it in the table for subsequent top-level
+parses, you need to call both functions. ]
+
+[tip _symbols_ also has a call operator that does exactly what
+`.insert_for_next_parse()` does.  This allows you to chain additions with a
+convenient syntax, like this:
+
+    symbols<int> roman_numerals;
+    roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
+
+]
 
 [important _symbols_ stores all its strings in UTF-32 internally.  If you do
 Unicode or ASCII parsing, this will not matter to you at all.  If you do

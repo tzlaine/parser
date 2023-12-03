@@ -135,7 +135,7 @@ TEST(parser, symbols_max_munch)
 TEST(parser, symbols_mutating)
 {
     symbols<int> roman_numerals;
-    roman_numerals.add("I", 1)("V", 5)("X", 10);
+    roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
     auto const add_numeral = [&roman_numerals](auto & context) {
         using namespace boost::parser::literals;
         char chars[2] = {get(_attr(context), 0_c), 0};
