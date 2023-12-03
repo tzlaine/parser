@@ -38,8 +38,8 @@ namespace boost { namespace parser {
         std::integral<std::ranges::range_value_t<T>>;
 
     template<typename T>
-    concept parsable_pointer = std::is_pointer_v<std::decay_t<T>> &&
-        std::integral<std::remove_pointer_t<std::decay_t<T>>>;
+    concept parsable_pointer = std::is_pointer_v<std::remove_cvref_t<T>> &&
+        std::integral<std::remove_pointer_t<std::remove_cvref_t<T>>>;
 
     template<typename T>
     concept parsable_range_like = parsable_range<T> || parsable_pointer<T>;

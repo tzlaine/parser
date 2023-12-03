@@ -1081,9 +1081,9 @@ namespace boost { namespace parser {
         struct is_parsable_pointer
             : std::integral_constant<
                   bool,
-                  std::is_pointer_v<std::decay_t<T>> &&
+                  std::is_pointer_v<remove_cv_ref_t<T>> &&
                       std::is_integral_v<
-                          std::remove_pointer_t<std::decay_t<T>>>>
+                          std::remove_pointer_t<remove_cv_ref_t<T>>>>
         {};
 
         template<typename T>
