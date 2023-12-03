@@ -1011,22 +1011,6 @@ namespace boost { namespace parser {
         template<typename T>
         using range_value_t = iter_value_t<iterator_t<T>>;
 
-        template<typename T, int N>
-        struct is_integral_and_n_bytes
-            : std::integral_constant<
-                  bool,
-                  std::is_integral_v<T> && sizeof(T) == N>
-        {};
-
-        template<typename T>
-        struct is_utf8_pointer
-            : std::integral_constant<
-                  bool,
-                  std::is_pointer_v<T> &&
-                      is_integral_and_n_bytes<detected_t<iter_value_t, T>, 1>::
-                          value>
-        {};
-
         template<typename T>
         using has_begin = decltype(*std::begin(std::declval<T &>()));
         template<typename T>
@@ -1042,23 +1026,12 @@ namespace boost { namespace parser {
             std::declval<T>().end()));
 
         template<typename T>
-        struct is_container : std::integral_constant<
-                                  bool,
-                                  is_detected<has_insert, T>::value &&
-                                      is_detected<has_range_insert, T>::value>
-        {};
+        constexpr bool is_container_v = is_detected<has_insert, T>::value &&
+            is_detected<has_range_insert, T>::value;
 
         template<typename T, typename U>
-        struct is_container_and_value_type
-            : std::integral_constant<
-                  bool,
-                  is_container<T>::value &&
-                      std::is_same_v<detected_t<range_value_t, T>, U>>
-        {};
-
-        template<typename T, typename U>
-        constexpr bool container_and_value_type =
-            is_container_and_value_type<T, U>::value;
+        constexpr bool container_and_value_type = is_container_v<T> &&
+            std::is_same_v<detected_t<range_value_t, T>, U>;
 
         template<typename T>
         constexpr bool is_parsable_code_unit_impl =
@@ -1073,41 +1046,26 @@ namespace boost { namespace parser {
             is_parsable_code_unit_impl<std::remove_cv_t<T>>;
 
         template<typename T>
-        struct is_parsable_iter
-            : std::integral_constant<
-                  bool,
-                  is_parsable_code_unit_v<
-                      remove_cv_ref_t<detected_t<iter_value_t, T>>>>
-        {};
+        constexpr bool is_parsable_iter_v = is_parsable_code_unit_v<
+            remove_cv_ref_t<detected_t<iter_value_t, T>>>;
 
         template<typename T>
-        struct is_parsable_range
-            : std::integral_constant<
-                  bool,
-                  is_parsable_code_unit_v<
-                      remove_cv_ref_t<detected_t<has_begin, T>>> &&
-                      is_detected<has_end, T>::value>
-        {};
+        constexpr bool is_parsable_range_v = is_parsable_code_unit_v<
+            remove_cv_ref_t<detected_t<has_begin, T>>> &&
+            is_detected<has_end, T>::value;
 
         template<typename T>
-        struct is_parsable_pointer
-            : std::integral_constant<
-                  bool,
-                  std::is_pointer_v<remove_cv_ref_t<T>> &&
-                      is_parsable_code_unit_v<
-                          std::remove_pointer_t<remove_cv_ref_t<T>>>>
-        {};
+        constexpr bool is_parsable_pointer_v =
+            std::is_pointer_v<remove_cv_ref_t<T>> && is_parsable_code_unit_v<
+                std::remove_pointer_t<remove_cv_ref_t<T>>>;
 
         template<typename T>
-        struct is_parsable_range_like
-            : std::integral_constant<
-                  bool,
-                  is_parsable_range<T>::value || is_parsable_pointer<T>::value>
-        {};
+        constexpr bool is_parsable_range_like_v =
+            is_parsable_range_v<T> || is_parsable_pointer_v<T>;
     }
 
     template<typename T>
-    constexpr bool container = detail::is_container<T>::value;
+    constexpr bool container = detail::is_container_v<T>;
 
     namespace detail {
 #endif
@@ -4233,7 +4191,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator>>(R && r) const noexcept;
 
@@ -4281,7 +4239,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator>(R && r) const noexcept;
 
@@ -4329,7 +4287,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator|(R && r) const noexcept;
 
@@ -4358,7 +4316,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator-(R && r) const noexcept;
 
@@ -4389,7 +4347,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator%(R && r) const noexcept;
 
@@ -5182,7 +5140,7 @@ namespace boost { namespace parser {
         template<
             typename T,
             typename Enable =
-                std::enable_if_t<!detail::is_parsable_range_like<T>::value>>
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
 #endif
         constexpr auto operator()(T x) const noexcept
         // clang-format on
@@ -5224,7 +5182,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr auto operator()(R const & r) const noexcept
         {
@@ -5287,7 +5245,7 @@ namespace boost { namespace parser {
         template<
             typename R,
             typename Enable =
-                std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
         constexpr string_parser(R && r) :
             expected_first_(detail::make_view_begin(r)),
@@ -6141,8 +6099,7 @@ namespace boost { namespace parser {
     template<
         typename R,
         typename Parser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     constexpr auto operator>>(R && r, parser_interface<Parser> rhs) noexcept
     {
@@ -6215,8 +6172,7 @@ namespace boost { namespace parser {
     template<
         typename R,
         typename Parser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     constexpr auto operator>(R && r, parser_interface<Parser> rhs) noexcept
     {
@@ -6289,8 +6245,7 @@ namespace boost { namespace parser {
     template<
         typename R,
         typename Parser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     constexpr auto operator|(R && r, parser_interface<Parser> rhs) noexcept
     {
@@ -6355,8 +6310,7 @@ namespace boost { namespace parser {
     template<
         typename R,
         typename Parser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     constexpr auto operator-(R && r, parser_interface<Parser> rhs) noexcept
     {
@@ -6417,8 +6371,7 @@ namespace boost { namespace parser {
     template<
         typename R,
         typename Parser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     constexpr auto operator%(R && r, parser_interface<Parser> rhs) noexcept
     {
@@ -6458,7 +6411,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename Attr,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     bool parse(
@@ -6521,7 +6474,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename Attr,
         typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+            std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool parse(
         R const & r,
@@ -6564,7 +6517,7 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     auto parse(
@@ -6613,8 +6566,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
@@ -6662,7 +6614,7 @@ namespace boost { namespace parser {
         typename SkipParser,
         typename Attr,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     bool parse(
@@ -6728,8 +6680,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Attr,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool parse(
         R const & r,
@@ -6779,7 +6730,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     auto parse(
@@ -6837,7 +6788,7 @@ namespace boost { namespace parser {
         typename LocalState,
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     auto parse(
@@ -6893,7 +6844,7 @@ namespace boost { namespace parser {
         typename LocalState,
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     auto parse(
@@ -6949,8 +6900,7 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename SkipParser,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
@@ -6996,8 +6946,7 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
@@ -7041,8 +6990,7 @@ namespace boost { namespace parser {
         typename Attribute,
         typename LocalState,
         typename ParamsTuple,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
@@ -7095,7 +7043,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename Callbacks,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     bool callback_parse(
@@ -7153,8 +7101,7 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Callbacks,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool callback_parse(
         R const & r,
@@ -7210,7 +7157,7 @@ namespace boost { namespace parser {
         typename SkipParser,
         typename Callbacks,
         typename Enable = std::enable_if_t<
-            detail::is_parsable_iter<I>::value &&
+            detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with<I, S>::value>>
 #endif
     bool callback_parse(
@@ -7282,8 +7229,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename SkipParser,
         typename Callbacks,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like<R>::value>>
+        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool callback_parse(
         R const & r,
