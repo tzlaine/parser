@@ -896,9 +896,8 @@ namespace boost { namespace parser {
         using comparison = decltype(std::declval<T>() == std::declval<U>());
 
         template<typename T, typename U>
-        struct is_equality_comparable_with
-            : std::integral_constant<bool, is_detected<comparison, T, U>::value>
-        {};
+        constexpr bool is_equality_comparable_with_v =
+            is_detected<comparison, T, U>::value;
 
         template<typename T>
         struct is_nope : std::false_type
@@ -977,13 +976,7 @@ namespace boost { namespace parser {
         {};
 
         template<typename F, typename... Args>
-        struct is_invocable : std::integral_constant<
-                                  bool,
-                                  is_detected<callable, F, Args...>::value>
-        {};
-
-        template<typename T, typename... Args>
-        constexpr bool is_invocable_v = is_invocable<T, Args...>::value;
+        constexpr bool is_invocable_v = is_detected<callable, F, Args...>::value;
 
 #if BOOST_PARSER_USE_CONCEPTS
 
@@ -6412,7 +6405,7 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool parse(
         I & first,
@@ -6518,7 +6511,7 @@ namespace boost { namespace parser {
         typename ErrorHandler,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6615,7 +6608,7 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool parse(
         I & first,
@@ -6731,7 +6724,7 @@ namespace boost { namespace parser {
         typename SkipParser,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6789,7 +6782,7 @@ namespace boost { namespace parser {
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -6845,7 +6838,7 @@ namespace boost { namespace parser {
         typename ParamsTuple,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     auto parse(
         I & first,
@@ -7044,7 +7037,7 @@ namespace boost { namespace parser {
         typename Callbacks,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool callback_parse(
         I & first,
@@ -7158,7 +7151,7 @@ namespace boost { namespace parser {
         typename Callbacks,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with<I, S>::value>>
+            detail::is_equality_comparable_with_v<I, S>>>
 #endif
     bool callback_parse(
         I & first,
