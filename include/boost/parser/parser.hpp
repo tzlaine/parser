@@ -991,6 +991,9 @@ namespace boost { namespace parser {
         template<typename T>
         using range_value_t = std::ranges::range_value_t<T>;
 
+        template<typename T>
+        constexpr bool is_parsable_code_unit_v = parsable_code_unit<T>;
+
 #else
 
         template<typename T>
@@ -1455,12 +1458,15 @@ namespace boost { namespace parser {
             }
         }
 
+        template<typename T, typename U>
+        constexpr bool both_character_types =
+            is_parsable_code_unit_v<T> && is_parsable_code_unit_v<U>;
+
         template<
             typename Context,
             typename CharType,
             typename Expected,
-            bool BothIntegral =
-                std::is_integral<CharType>{} && std::is_integral<Expected>{}>
+            bool BothCharacters = both_character_types<CharType, Expected>>
         struct unequal_impl
         {
             static bool
