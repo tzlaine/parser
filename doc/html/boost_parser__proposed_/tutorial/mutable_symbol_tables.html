@@ -132,8 +132,29 @@
 </tr>
 <tr><td align="left" valign="top"><p>
           It is possible to add symbols to a <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> permanently. To do
-          so, you have to use a mutable <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> object <code class="computeroutput"><span class="identifier">s</span></code>, and add the symbols by calling <code class="computeroutput"><span class="identifier">s</span><span class="special">.</span><span class="identifier">add</span><span class="special">()</span></code>, instead of <code class="computeroutput"><span class="identifier">s</span><span class="special">.</span><span class="identifier">insert</span><span class="special">()</span></code>.
+          so, you have to use a mutable <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> object <code class="computeroutput"><span class="identifier">s</span></code>, and add the symbols by calling <code class="computeroutput"><span class="identifier">s</span><span class="special">.</span><span class="identifier">insert_for_next_parse</span><span class="special">()</span></code>, instead of <code class="computeroutput"><span class="identifier">s</span><span class="special">.</span><span class="identifier">insert</span><span class="special">()</span></code>. These two operations are orthogonal,
+          so if you want to both add a symbol to the table for the current top-level
+          parse, and leave it in the table for subsequent top-level parses, you need
+          to call both functions.
         </p></td></tr>
+</table></div>
+<div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top">
+<p>
+          <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code>
+          also has a call operator that does exactly what <code class="computeroutput"><span class="special">.</span><span class="identifier">insert_for_next_parse</span><span class="special">()</span></code>
+          does. This allows you to chain additions with a convenient syntax, like
+          this:
+        </p>
+<p>
+          symbols&lt;int&gt; roman_numerals; roman_numerals.insert_for_next_parse("I",
+          1)("V", 5)("X", 10);
+        </p>
+</td></tr>
 </table></div>
 <div class="important"><table border="0" summary="Important">
 <tr>
