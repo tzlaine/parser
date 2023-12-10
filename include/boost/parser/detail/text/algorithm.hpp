@@ -321,9 +321,9 @@ namespace boost::parser::detail { namespace text {
         if (first1 == last1 || first2 == last2)
             return {first1, first1};
 
-        if (std::next(first2) == last2) {
+        if (detail::next(first2) == last2) {
             auto const it = parser::detail::text::find(first1, last1, *first2);
-            return {it, std::next(it)};
+            return {it, detail::next(it)};
         }
 
         auto it = first1;
@@ -333,7 +333,7 @@ namespace boost::parser::detail { namespace text {
             if (first1 == last1)
                 return {first1, first1};
 
-            auto it2 = std::next(first2);
+            auto it2 = detail::next(first2);
             it = first1;
             if (++it == last1)
                 return {it, it};

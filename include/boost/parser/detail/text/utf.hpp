@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <cstdint>
 
 
 namespace boost::parser::detail { namespace text {
@@ -21,16 +22,23 @@ namespace boost::parser::detail { namespace text {
         template<typename T>
         constexpr format format_of()
         {
-            constexpr uint32_t size = sizeof(T);
-            static_assert(std::is_integral<T>::value, "");
-            static_assert(size == 1 || size == 2 || size == 4, "");
-            constexpr format formats[] = {
-                format::utf8,
-                format::utf8,
-                format::utf16,
-                format::utf32,
-                format::utf32};
-            return formats[size];
+            if constexpr (
+                std::is_same_v<T, char>
+#if defined(__cpp_char8_t)
+                || std::is_same_v<T, char8_t>
+#endif
+            ) {
+                return format::utf8;
+            } else if (
+                std::is_same_v<T, char16_t>
+#ifdef _MSC_VER
+                || std::is_same_v<T, wchar_t>
+#endif
+            ) {
+                return format::utf16;
+            } else {
+                return format::utf32;
+            }
         }
     }
 

@@ -119,7 +119,7 @@ namespace boost { namespace parser {
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
     {
-        auto const r = parser::detail::text::as_utf8(filename);
+        auto const r = filename | parser::detail::text::as_utf8;
         std::string s(r.begin(), r.end());
         return parser::write_formatted_message(
             os,
@@ -167,7 +167,7 @@ namespace boost { namespace parser {
         int64_t preferred_max_line_length,
         int64_t max_after_caret)
     {
-        auto const r = parser::detail::text::as_utf8(filename);
+        auto const r = filename | parser::detail::text::as_utf8;
         std::string s(r.begin(), r.end());
         return parser::write_formatted_expectation_failure_error_message(
             os, s, first, last, e, preferred_max_line_length, max_after_caret);
@@ -197,7 +197,7 @@ namespace boost { namespace parser {
             std::wstring_view filename) :
             error_(error), warning_(warning)
         {
-            auto const r = parser::detail::text::as_utf8(filename);
+            auto const r = filename | parser::detail::text::as_utf8;
             filename_.assign(r.begin(), r.end());
         }
 #endif

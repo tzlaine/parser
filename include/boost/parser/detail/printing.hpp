@@ -306,7 +306,7 @@ namespace boost { namespace parser { namespace detail {
             static_assert(
                 std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
             static_assert(SizeofValueType == 4, "");
-            auto utf8 = text::as_utf8(first_, last_);
+            auto utf8 = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first_, last_) | text::as_utf8;
             auto first = utf8.begin();
             auto last = utf8.end();
             if (quote)
@@ -330,7 +330,7 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            auto utf32 = text::as_utf32(first_, last_);
+            auto utf32 = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first_, last_) | text::as_utf32;
             auto first = utf32.begin();
             auto const last = utf32.end();
             static_assert(sizeof(*first_) == 1);
