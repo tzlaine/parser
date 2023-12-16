@@ -6,6 +6,7 @@
  *   http://www.boost.org/LICENSE_1_0.txt)
  */
 #include <boost/parser/parser.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #include "ill_formed.hpp"
 
@@ -490,7 +491,7 @@ TEST(parser, bool_)
     }
     {
         char const * str = "true ";
-        auto r = boost::parser::detail::text::as_utf32(str);
+        auto r = boost::parser::as_utf32(str);
         bool b = false;
         auto first = r.begin();
         auto const last = r.end();
@@ -499,7 +500,7 @@ TEST(parser, bool_)
     }
     {
         char const * str = "false";
-        auto r = boost::parser::detail::text::as_utf32(str);
+        auto r = boost::parser::as_utf32(str);
         bool b = true;
         auto first = r.begin();
         auto const last = r.end();
@@ -1901,8 +1902,8 @@ TEST(parser, attr_out_param_compat)
                 std::optional<tuple<std::vector<char32_t>, std::string>>>);
 
         tuple<std::string, std::string> result;
-        bool const success = bp::parse(
-            boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
+        bool const success =
+            bp::parse(boost::parser::as_utf8(u8"rôle foofoo"), p, result);
         using namespace bp::literals;
         assert(
             success && get(result, 0_c) == (char const *)u8"rôle" &&
