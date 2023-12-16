@@ -740,44 +740,51 @@ TEST(parser, raw)
 {
     {
         constexpr auto parser = raw[*string("zs")];
-        using range_t = subrange<std::string::const_iterator>;
+        using range_t =
+            BOOST_PARSER_DETAIL_TEXT_SUBRANGE<std::string::const_iterator>;
 
         {
             std::string const str = "";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.begin());
         }
         {
             std::string const str = "z";
             range_t r;
             EXPECT_FALSE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.begin());
         }
         {
             std::string const str = "z";
             range_t r;
             auto first = str.begin();
             EXPECT_TRUE(parse(first, str.end(), parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.begin());
         }
         {
             std::string const str = "zs";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.end()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.end());
         }
         {
             std::string const str = "zszs";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.end()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.end());
         }
         {
             std::string const str = "";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.begin());
         }
         {
             std::string const str = "z";
@@ -789,19 +796,22 @@ TEST(parser, raw)
             auto first = str.begin();
             std::optional<range_t> result = parse(first, str.end(), parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.begin());
         }
         {
             std::string const str = "zs";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.end()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.end());
         }
         {
             std::string const str = "zszs";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.end()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.end());
         }
     }
 }

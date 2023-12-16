@@ -4,6 +4,7 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
+#include <boost/parser/subrange.hpp>
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
@@ -30,49 +31,6 @@
 
 
 namespace boost { namespace parser {
-
-    /** A simple view type used throughout the rest of the library, similar to
-        `std::ranges::subrange`. */
-#if BOOST_PARSER_USE_CONCEPTS
-    template<std::forward_iterator I, std::sentinel_for<I> S = I>
-#else
-    template<typename I, typename S = I>
-#endif
-    struct subrange
-        : parser::detail::stl_interfaces::view_interface<subrange<I, S>>
-    {
-        using iterator = I;
-        using sentinel = S;
-
-        constexpr subrange() = default;
-        constexpr subrange(iterator first, sentinel last) :
-            first_(first), last_(last)
-        {}
-
-        constexpr iterator begin() const noexcept { return first_; }
-        constexpr sentinel end() const noexcept { return last_; }
-
-        friend bool operator==(subrange lhs, subrange rhs) noexcept
-        {
-            return lhs.begin() == rhs.begin() && lhs.end() == rhs.end();
-        }
-
-    private:
-        iterator first_;
-        sentinel last_;
-    };
-
-    /** Makes a `subrange<I, S>` from an `I` and an `S`. */
-#if BOOST_PARSER_USE_CONCEPTS
-    template<std::forward_iterator I, std::sentinel_for<I> S = I>
-#else
-    template<typename I, typename S = I>
-#endif
-    constexpr subrange<I, S> make_subrange(I first, S last) noexcept
-    {
-        return subrange<I, S>(first, last);
-    }
-
 
     /** A placeholder type used to represent the absence of information,
         value, etc., inside semantic actions.  For instance, calling

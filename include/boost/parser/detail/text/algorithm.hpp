@@ -6,7 +6,7 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 
-#include <boost/parser/detail/text/subrange.hpp>
+#include <boost/parser/subrange.hpp>
 #include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
 #include <boost/parser/detail/stl_interfaces/view_interface.hpp>
@@ -307,7 +307,7 @@ namespace boost::parser::detail { namespace text {
 
     /** The view type returned by `boost::parser::detail::text::search()`. */
     template<typename Iter>
-    using search_result = subrange<Iter>;
+    using search_result = BOOST_PARSER_DETAIL_TEXT_SUBRANGE<Iter>;
 
     /** Sentinel-friendly version of `std::search()`. */
     template<

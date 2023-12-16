@@ -6,7 +6,6 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 
-#include <boost/parser/detail/text/subrange.hpp>
 #include <boost/parser/detail/text/transcode_algorithm.hpp>
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 
@@ -419,11 +418,8 @@ namespace boost::parser::detail { namespace text {
                     return 42; // Never gonna happen.
 #endif
                 } else if constexpr (std::is_pointer_v<T>) {
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-                    return View(std::ranges::subrange(r, null_sentinel));
-#else
-                    return View(subrange{r, null_sentinel});
-#endif
+                    return View(
+                        BOOST_PARSER_DETAIL_TEXT_SUBRANGE(r, null_sentinel));
                 } else {
                     return View(std::forward<R>(r));
                 }
@@ -475,11 +471,7 @@ namespace boost::parser::detail { namespace text {
 
       constexpr auto code_units() const noexcept {
         auto unpacked = boost::parser::detail::text::unpack_iterator_and_sentinel(detail::begin(base_), detail::end(base_));
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        return std::ranges::subrange(unpacked.first, unpacked.last);
-#else
-        return subrange{unpacked.first, unpacked.last};
-#endif
+        return BOOST_PARSER_DETAIL_TEXT_SUBRANGE(unpacked.first, unpacked.last);
       }
 
       constexpr auto begin() { return code_units().begin(); }
@@ -747,11 +739,7 @@ namespace boost::parser::detail { namespace text {
                     constexpr auto n = std::extent_v<T>;
                     if (n && !r[n - 1])
                         --unpacked.last;
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-                    return std::ranges::subrange(unpacked.first, unpacked.last);
-#else
-                    return subrange{unpacked.first, unpacked.last};
-#endif
+                    return BOOST_PARSER_DETAIL_TEXT_SUBRANGE(unpacked.first, unpacked.last);
                 } else if constexpr (
                     !std::is_same_v<decltype(unpacked.first), iterator_t<R>> ||
                     !std::is_same_v<decltype(unpacked.last), sentinel_t<R>>) {
@@ -793,11 +781,8 @@ namespace boost::parser::detail { namespace text {
                 } else if constexpr (detail::is_charn_view<T>) {
                     return View(std::forward<R>(r));
                 } else if constexpr (std::is_pointer_v<T>) {
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-                    return View(std::ranges::subrange(r, null_sentinel));
-#else
-                    return View(subrange{r, null_sentinel});
-#endif
+                    return View(
+                        BOOST_PARSER_DETAIL_TEXT_SUBRANGE(r, null_sentinel));
                 } else {
                     return View(detail::unpack_range(std::forward<R>(r)));
                 }

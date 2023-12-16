@@ -44,8 +44,8 @@ namespace boost::parser::detail { namespace text { namespace detail {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 #    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE std::ranges::subrange
 #else
-#    include <boost/parser/detail/text/subrange.hpp>
-#    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE boost::parser::detail::text::subrange
+#    include <boost/parser/subrange.hpp>
+#    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE boost::parser::subrange
 #endif
 
 namespace boost::parser::detail { namespace text {
