@@ -3232,13 +3232,6 @@ namespace boost { namespace parser {
                 constexpr bool attr_container = container<attr_t>;
 
                 if constexpr (out_container == attr_container) {
-                    // TODO: Document that the user can pass anything she
-                    // likes for retval, but that if retval is not a
-                    // container, but the default retval would have been,
-                    // weird assignments may occur.  For instance,
-                    // parse(first, last, char_ >> char_, a), where 'a' is
-                    // a boost::any, will only yeild a single char in the
-                    // any.
                     parser.call(
                         use_cbs,
                         first,

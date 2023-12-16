@@ -12,6 +12,7 @@
 
 #include <gtest/gtest.h>
 
+#include <any>
 #include <deque>
 
 
@@ -1722,14 +1723,12 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = string("a") >> string("b") >> string("c") |
                                 string("x") >> string("y") >> string("z");
-#if 0 // TODO: Document why this assigns "c" instead of "abc" to the any.
         {
             char const * str = "abc";
-            boost::parser::detail::any_copyable chars;
+            std::any chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars.cast<std::string>(), "abc");
+            EXPECT_EQ(std::any_cast<std::string>(chars), "c");
         }
-#endif
 
         {
             char const * str = "xyz";
