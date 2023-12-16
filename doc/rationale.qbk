@@ -44,6 +44,10 @@ users.  In light of just how inscrutable error messages are that come from
 parser combinator libraries, using your favorite debugger to step through the
 stack to diagnose the problem is a *much* faster way to fix problems.
 
+[note The example below is taken from an older version of _Parser_, so some of
+the symbol names may be unfamiliar.  However, it's a real example, and it
+applies just as well to later versions of _Parser_.]
+
 To demonstrate the difference, I added these three lines to the end of the
 `object_init` lambda in the _ex_json_:
 
@@ -51,8 +55,8 @@ To demonstrate the difference, I added these three lines to the end of the
     if (x)
         std::cout << "Oops!  What x?";
 
-Note that the parser that `object_init` is attached to has no locals.  Here is
-an example of how you can investigate this error at run time:
+The parser that `object_init` is attached to has no locals.  Here is an
+example of how you can investigate this error at run time:
 
 [teletype]``
 $ gdb --args example/json ../meta/libraries.json 
