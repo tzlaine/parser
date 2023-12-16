@@ -748,7 +748,7 @@ namespace boost { namespace parser {
         template<
             typename Context,
             typename T,
-            bool Callable = is_detected<callable, T const &, Context const &>{}>
+            bool Callable = is_detected_v<callable, T const &, Context const &>>
         struct resolve_impl
         {
             static auto call(Context const &, T const & x) { return x; }
@@ -857,7 +857,7 @@ namespace boost { namespace parser {
 
         template<typename T, typename U>
         constexpr bool is_equality_comparable_with_v =
-            is_detected<comparison, T, U>::value;
+            is_detected_v<comparison, T, U>;
 
         template<typename T>
         struct is_nope : std::false_type
@@ -936,7 +936,7 @@ namespace boost { namespace parser {
         {};
 
         template<typename F, typename... Args>
-        constexpr bool is_invocable_v = is_detected<callable, F, Args...>::value;
+        constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
 #if BOOST_PARSER_USE_CONCEPTS
 
@@ -982,8 +982,8 @@ namespace boost { namespace parser {
             std::declval<T>().end()));
 
         template<typename T>
-        constexpr bool is_container_v = is_detected<has_insert, T>::value &&
-            is_detected<has_range_insert, T>::value;
+        constexpr bool is_container_v =
+            is_detected_v<has_insert, T> && is_detected_v<has_range_insert, T>;
 
         template<typename T, typename U>
         constexpr bool container_and_value_type = is_container_v<T> &&
@@ -1008,7 +1008,7 @@ namespace boost { namespace parser {
         template<typename T>
         constexpr bool is_parsable_range_v = is_parsable_code_unit_v<
             remove_cv_ref_t<detected_t<has_begin, T>>> &&
-            is_detected<has_end, T>::value;
+            is_detected_v<has_end, T>;
 
         template<typename T>
         constexpr bool is_parsable_pointer_v =

@@ -407,7 +407,7 @@ namespace boost { namespace parser { namespace detail {
     using streamable =
         decltype(std::declval<std::ostream &>() << std::declval<T const &>());
 
-    template<typename T, bool Streamable = is_detected<streamable, T>{}>
+    template<typename T, bool Streamable = is_detected_v<streamable, T>>
     struct printer
     {
         std::ostream & operator()(std::ostream & os, T const &)

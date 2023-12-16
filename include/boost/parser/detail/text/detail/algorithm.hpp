@@ -7,7 +7,7 @@
 #define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 
 #include <boost/parser/detail/text/concepts.hpp>
-#include <boost/parser/detail/text/detail/detection.hpp>
+#include <boost/parser/detail/detection.hpp>
 #include <boost/parser/detail/text/detail/iterator.hpp>
 
 #include <numeric>

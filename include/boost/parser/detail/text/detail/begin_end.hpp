@@ -6,7 +6,7 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_BEGIN_END_HPP
 #define BOOST_PARSER_DETAIL_TEXT_BEGIN_END_HPP
 
-#include <boost/parser/detail/text/detail/detection.hpp>
+#include <boost/parser/detail/detection.hpp>
 
 #include <initializer_list>
 
@@ -35,10 +35,9 @@ namespace boost::parser::detail { namespace text { namespace detail {
         template<typename T>
         using adl_begin_expr = decltype(begin(std::declval<T &>()));
         template<typename T>
-        constexpr bool has_member_begin_v =
-            is_detected<member_begin_expr, T>::value;
+        constexpr bool has_member_begin_v = is_detected_v<member_begin_expr, T>;
         template<typename T>
-        constexpr bool has_adl_begin_v = is_detected<adl_begin_expr, T>::value;
+        constexpr bool has_adl_begin_v = is_detected_v<adl_begin_expr, T>;
 
         template<typename R>
         using member_return_t =
@@ -99,10 +98,9 @@ namespace boost::parser::detail { namespace text { namespace detail {
         template<typename T>
         using adl_end_expr = decltype(end(std::declval<T &>()));
         template<typename T>
-        constexpr bool has_member_end_v =
-            is_detected<member_end_expr, T>::value;
+        constexpr bool has_member_end_v = is_detected_v<member_end_expr, T>;
         template<typename T>
-        constexpr bool has_adl_end_v = is_detected<adl_end_expr, T>::value;
+        constexpr bool has_adl_end_v = is_detected_v<adl_end_expr, T>;
 
         template<typename R>
         using member_return_t =
