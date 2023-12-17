@@ -37,7 +37,7 @@ namespace boost::parser {
 
 #else
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -47,7 +47,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf8_view()
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             requires std::default_initializable<V>
 #endif
         = default;
@@ -55,7 +55,7 @@ namespace boost::parser {
             detail::text::utf_view<format::utf8, V>{std::move(base)}
         {}
     };
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -65,7 +65,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf16_view()
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             requires std::default_initializable<V>
 #endif
         = default;
@@ -73,7 +73,7 @@ namespace boost::parser {
             detail::text::utf_view<format::utf16, V>{std::move(base)}
         {}
     };
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -83,7 +83,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf32_view()
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             requires std::default_initializable<V>
 #endif
         = default;
@@ -92,7 +92,7 @@ namespace boost::parser {
         {}
     };
 
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<class R>
     utf8_view(R &&) -> utf8_view<std::views::all_t<R>>;
     template<class R>

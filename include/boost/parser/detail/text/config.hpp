@@ -16,17 +16,15 @@
 #endif
 
 
-// The contents of <ranges> in libstdc++ is incomplete (e.g. no owning_view)
-// before GCC 12.
-#if !BOOST_PARSER_USE_CONCEPTS
+#if !BOOST_PARSER_USE_CONCEPTS || defined(_MSC_VER)
 #    define BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS 0
 #else
 #    define BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS 1
 #endif
 
 // GCC 12 claims to support 201907L <= __cpp_deduction_guides, but does not.
-#if defined(__cpp_deduction_guides) && 201907L <= __cpp_deduction_guides &&    \
-    (!defined(__GNUC__) || 13 <= __GNUC__)
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS && defined(__cpp_deduction_guides) &&    \
+    201907L <= __cpp_deduction_guides && (!defined(__GNUC__) || 13 <= __GNUC__)
 #define BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD 1
 #else
 #define BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD 0

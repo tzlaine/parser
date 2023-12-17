@@ -303,7 +303,7 @@ namespace boost::parser::detail { namespace text {
 #else
     template<typename F>
 #endif
-    constexpr detail::project_impl<F> project;
+    constexpr detail::project_impl<F> project{};
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD
 
