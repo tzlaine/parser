@@ -7,8 +7,7 @@
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ITERATOR_HPP
 
 #include <boost/parser/detail/debug_assert.hpp>
-
-#include <boost/parser/detail/text/config.hpp>
+#include <boost/parser/detail/text/transcode_iterator_fwd.hpp>
 #include <boost/parser/detail/text/concepts.hpp>
 #include <boost/parser/detail/text/utf.hpp>
 #include <boost/parser/detail/text/detail/algorithm.hpp>
@@ -19,17 +18,18 @@
 #include <iterator>
 #include <type_traits>
 #include <stdexcept>
-
+#include <string_view>
 
 namespace boost::parser::detail { namespace text {
 
     namespace {
-        constexpr uint16_t high_surrogate_base = 0xd7c0;
-        constexpr uint16_t low_surrogate_base = 0xdc00;
+        constexpr char16_t high_surrogate_base = 0xd7c0;
+        constexpr char16_t low_surrogate_base = 0xdc00;
         constexpr char32_t high_surrogate_min = 0xd800;
         constexpr char32_t high_surrogate_max = 0xdbff;
         constexpr char32_t low_surrogate_min = 0xdc00;
         constexpr char32_t low_surrogate_max = 0xdfff;
+        constexpr char32_t replacement_character = 0xfffd;
     }
 
     namespace detail {
@@ -82,18 +82,18 @@ namespace boost::parser::detail { namespace text {
         constexpr OutIter write_cp_utf16(char32_t cp, OutIter out)
         {
             if (cp < 0x10000) {
-                *out = static_cast<uint16_t>(cp);
+                *out = static_cast<char16_t>(cp);
                 ++out;
             } else {
-                *out = static_cast<uint16_t>(cp >> 10) + high_surrogate_base;
+                *out = static_cast<char16_t>(cp >> 10) + high_surrogate_base;
                 ++out;
-                *out = static_cast<uint16_t>(cp & 0x3ff) + low_surrogate_base;
+                *out = static_cast<char16_t>(cp & 0x3ff) + low_surrogate_base;
                 ++out;
             }
             return out;
         }
 
-        inline constexpr char32_t surrogates_to_cp(uint16_t hi, uint16_t lo)
+        inline constexpr char32_t surrogates_to_cp(char16_t hi, char16_t lo)
         {
             return char32_t((hi - high_surrogate_base) << 10) +
                    (lo - low_surrogate_base);
@@ -108,13 +108,34 @@ namespace boost::parser::detail { namespace text {
         using enable_utf16_cp = std::enable_if<is_16_iter_v<T>, U>;
         template<typename T, typename U = T>
         using enable_utf16_cp_t = typename enable_utf16_cp<T, U>::type;
+
+        template<typename I>
+        auto bidirectional_at_most()
+        {
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            if constexpr (std::bidirectional_iterator<I>) {
+                return std::bidirectional_iterator_tag{};
+            } else if constexpr (std::forward_iterator<I>) {
+                return std::forward_iterator_tag{};
+            } else if constexpr (std::input_iterator<I>) {
+                return std::input_iterator_tag{};
+            }
+#else
+            using category =
+                typename std::iterator_traits<I>::iterator_category;
+            if constexpr (std::is_base_of_v<
+                              std::bidirectional_iterator_tag,
+                              category>) {
+                return std::bidirectional_iterator_tag{};
+            } else {
+                return category{};
+            }
+#endif
+        }
+
+        template<typename I>
+        using bidirectional_at_most_t = decltype(bidirectional_at_most<I>());
     }
-
-    /** The replacement character used to mark invalid portions of a Unicode
-        sequence when converting between two encodings.
-
-        \see Unicode 3.2/C10 */
-    constexpr char32_t replacement_character() { return 0xfffd; }
 
     /** Returns true iff `c` is a Unicode surrogate. */
     inline constexpr bool surrogate(char32_t c)
@@ -164,20 +185,21 @@ namespace boost::parser::detail { namespace text {
 
     /** Returns true iff `c` is a UTF-8 lead code unit (which must be followed
         by 1-3 following units). */
-    constexpr bool lead_code_unit(unsigned char c)
+    constexpr bool lead_code_unit(char8_type c)
     {
-        return uint8_t(c - 0xc2) <= 0x32;
+        return uint8_t((unsigned char)c - 0xc2) <= 0x32;
     }
 
     /** Returns true iff `c` is a UTF-8 continuation code unit. */
-    constexpr bool continuation(unsigned char c) { return (int8_t)c < -0x40; }
+    constexpr bool continuation(char8_type c) { return (int8_t)c < -0x40; }
 
     /** Given the first (and possibly only) code unit of a UTF-8-encoded code
         point, returns the number of bytes occupied by that code point (in the
         range `[1, 4]`).  Returns a value < 0 if `first_unit` is not a valid
         initial UTF-8 code unit. */
-    inline constexpr int utf8_code_units(unsigned char first_unit)
+    inline constexpr int utf8_code_units(char8_type first_unit_)
     {
+        auto first_unit = (unsigned int)first_unit_;
         return first_unit <= 0x7f ? 1
                : boost::parser::detail::text::lead_code_unit(first_unit)
                    ? int(0xe0 <= first_unit) + int(0xf0 <= first_unit) + 2
@@ -188,7 +210,7 @@ namespace boost::parser::detail { namespace text {
         point, returns the number of code units occupied by that code point
         (in the range `[1, 2]`).  Returns a negative value if `first_unit` is
         not a valid initial UTF-16 code unit. */
-    inline constexpr int utf16_code_units(uint16_t first_unit)
+    inline constexpr int utf16_code_units(char16_t first_unit)
     {
         if (boost::parser::detail::text::low_surrogate(first_unit))
             return -1;
@@ -357,7 +379,7 @@ namespace boost::parser::detail { namespace text {
             Iter retval = it;
 
             int backup = 0;
-            while (backup < 4 && it != first &&
+            while (backup < 4 && retval != first &&
                    boost::parser::detail::text::continuation(*--retval)) {
                 ++backup;
             }
@@ -538,10 +560,10 @@ namespace boost::parser::detail { namespace text {
                     char_class const class_ = octet_classes[cu];
                     state = transitions[state + class_];
                     if (state == err)
-                        return replacement_character();
+                        return replacement_character;
                     ++first;
                 } else {
-                    return replacement_character();
+                    return replacement_character;
                 }
             }
 
@@ -562,25 +584,28 @@ namespace boost::parser::detail { namespace text {
             using reference = void;
             using iterator_category = std::output_iterator_tag;
 
-            trans_ins_iter() {}
-            trans_ins_iter(Iter it) : it_(it) {}
-            Derived & operator*() { return derived(); }
-            Derived & operator++() { return derived(); }
-            Derived operator++(int) { return derived(); }
-            Iter base() const { return it_; }
+            constexpr trans_ins_iter() {}
+            constexpr trans_ins_iter(Iter it) : it_(it) {}
+            constexpr Derived & operator*() { return derived(); }
+            constexpr Derived & operator++() { return derived(); }
+            constexpr Derived operator++(int) { return derived(); }
+            constexpr Iter base() const { return it_; }
 
         protected:
-            Iter & iter() { return it_; }
+            constexpr Iter & iter() { return it_; }
 
         private:
-            Derived & derived() { return static_cast<Derived &>(*this); }
+            constexpr Derived & derived()
+            {
+                return static_cast<Derived &>(*this);
+            }
             Iter it_;
         };
 
-        template<typename Derived, typename ValueType>
+        template<typename Derived, typename I, typename ValueType>
         using trans_iter = stl_interfaces::iterator_interface<
             Derived,
-            std::bidirectional_iterator_tag,
+            bidirectional_at_most_t<I>,
             ValueType,
             ValueType>;
     }
@@ -591,51 +616,55 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 #if defined(BOOST_TEXT_DOXYGEN)
 
-    /** Returns the first code unit in `[first, last)` that is not properly
-        UTF-8 encoded, or `last` if no such code unit is found. */
-    template<utf8_iter I>
-    requires std::random_access_iterator<I>
-    constexpr I find_invalid_encoding(I first, I last);
+    /** Returns the first code unit in `[r.begin(), r.end())` that is not
+        properly UTF-8 encoded, or `r.begin() + std::distance(r)` if no such
+        code unit is found. */
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr std::ranges::borrowed_iterator_t<R> find_invalid_encoding(R && r);
 
-    /** Returns the first code unit in `[first, last)` that is not properly
-        UTF-16 encoded, or `last` if no such code unit is found. */
-    template<utf16_iter I>
-    requires std::random_access_iterator<I>
-    constexpr I find_invalid_encoding(I first, I last);
+    /** Returns the first code unit in `[r.begin(), r.end())` that is not
+        properly UTF-16 encoded, or `r.begin() + std::distance(r)` if no such
+        code unit is found. */
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr std::ranges::borrowed_iterator_t<R> find_invalid_encoding(R && r);
 
-    /** Returns true iff `[first, last)` is properly UTF-8 encoded. */
-    template<utf8_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool encoded(I first, I last);
+    /** Returns true iff `r` is properly UTF-8 encoded. */
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool encoded(R && r);
 
-    /** Returns true iff `[first, last)` is properly UTF-16 encoded */
-    template<utf16_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool encoded(I first, I last);
+    /** Returns true iff `r` is properly UTF-16 encoded */
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool encoded(R && r);
 
-    /** Returns true iff `[first, last)` is empty or the initial UTF-8 code
-        units in `[first, last)` form a valid Unicode code point. */
-    template<utf8_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool starts_encoded(I first, I last);
+    /** Returns true iff `r` is empty or the initial UTF-8 code units in `r`
+        form a valid Unicode code point. */
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool starts_encoded(R && r);
 
-    /** Returns true iff `[first, last)` is empty or the initial UTF-16 code
-        units in `[first, last)` form a valid Unicode code point. */
-    template<utf16_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool starts_encoded(I first, I last);
+    /** Returns true iff `r` is empty or the initial UTF-16 code units in `r`
+        form a valid Unicode code point. */
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool starts_encoded(R && r);
 
-    /** Returns true iff `[first, last)` is empty or the final UTF-8 code
-       units in `[first, last)` form a valid Unicode code point. */
-    template<utf8_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool ends_encoded(I first, I last);
+    /** Returns true iff `r` is empty or the final UTF-8 code units in `r`
+        form a valid Unicode code point. */
+    template<utf8_range R>
+        requires std::ranges::bidirectional_range<R> &&
+                 std::ranges::common_range<R>
+    constexpr bool ends_encoded(R && r);
 
-    /** Returns true iff `[first, last)` is empty or the final UTF-16 code
-       units in `[first, last)` form a valid Unicode code point. */
-    template<utf16_iter I>
-    requires std::random_access_iterator<I>
-    constexpr bool ends_encoded(I first, I last);
+    /** Returns true iff `r` is empty or the final UTF-16 code units in `r`
+        form a valid Unicode code point. */
+    template<utf8_range R>
+        requires std::ranges::bidirectional_range<R> &&
+                 std::ranges::common_range<R>
+    constexpr bool ends_encoded(R && r);
 
 #endif
 
@@ -751,12 +780,13 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
-    template<utf8_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr I find_invalid_encoding(I first, I last)
-    // clang-format on
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr std::ranges::borrowed_iterator_t<R> find_invalid_encoding(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         while (first != last) {
             int const cp_bytes = boost::parser::detail::text::utf8_code_units(*first);
             if (cp_bytes == -1 || last - first < cp_bytes)
@@ -768,15 +798,20 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
             first += cp_bytes;
         }
 
-        return last;
+        if constexpr (std::ranges::borrowed_range<R>) {
+            return last;
+        } else {
+            return std::ranges::dangling{};
+        }
     }
 
-    template<utf16_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr I find_invalid_encoding(I first, I last)
-    // clang-format on
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr std::ranges::borrowed_iterator_t<R> find_invalid_encoding(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         while (first != last) {
             int const cp_units = boost::parser::detail::text::utf16_code_units(*first);
             if (cp_units == -1 || last - first < cp_units)
@@ -788,33 +823,36 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
             first += cp_units;
         }
 
-        return last;
+        if constexpr (std::ranges::borrowed_range<R>) {
+            return last;
+        } else {
+            return std::ranges::dangling{};
+        }
     }
 
-    template<utf8_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool encoded(I first, I last)
-    // clang-format on
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool encoded(R && r)
     {
-        return boost::parser::detail::text::find_invalid_encoding(first, last) == last;
+        return boost::parser::detail::text::v1::find_invalid_encoding(r.begin(), r.end()) ==
+               r.end();
     }
 
-    template<utf16_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool encoded(I first, I last)
-    // clang-format on
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool encoded(R && r)
     {
-        return boost::parser::detail::text::find_invalid_encoding(first, last) == last;
+        return boost::parser::detail::text::v1::find_invalid_encoding(r.begin(), r.end()) ==
+               r.end();
     }
 
-    template<utf8_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool starts_encoded(I first, I last)
-    // clang-format on
+    template<utf8_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool starts_encoded(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         if (first == last)
             return true;
 
@@ -825,12 +863,13 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return !detail::end_of_invalid_utf8(first);
     }
 
-    template<utf16_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool starts_encoded(I first, I last)
-    // clang-format on
+    template<utf16_range R>
+        requires std::ranges::forward_range<R>
+    constexpr bool starts_encoded(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         if (first == last)
             return true;
 
@@ -841,12 +880,14 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return cp_units == 1 || boost::parser::detail::text::low_surrogate(*(first + 1));
     }
 
-    template<utf8_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool ends_encoded(I first, I last)
-    // clang-format on
+    template<utf8_range R>
+        requires std::ranges::bidirectional_range<R> &&
+                 std::ranges::common_range<R>
+    constexpr bool ends_encoded(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         if (first == last)
             return true;
 
@@ -857,12 +898,14 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return boost::parser::detail::text::starts_encoded(it, last);
     }
 
-    template<utf16_iter I>
-    // clang-format off
-        requires std::random_access_iterator<I>
-    constexpr bool ends_encoded(I first, I last)
-    // clang-format on
+    template<utf16_range R>
+        requires std::ranges::bidirectional_range<R> &&
+                 std::ranges::common_range<R>
+    constexpr bool ends_encoded(R && r)
     {
+        auto first = std::ranges::begin(r);
+        auto last = std::ranges::end(r);
+
         if (first == last)
             return true;
 
@@ -883,18 +926,44 @@ namespace boost::parser::detail { namespace text {
         provides the Unicode replacement character on errors. */
     struct use_replacement_character
     {
-        constexpr char32_t operator()(char const *) const
+        constexpr char32_t operator()(std::string_view) const noexcept
         {
-            return replacement_character();
+            return replacement_character;
         }
     };
-
 
     /** A sentinel type that compares equal to a pointer to a 1-, 2-, or
         4-byte integral value, iff the pointer is null. */
     struct null_sentinel_t
     {
-        constexpr null_sentinel_t base() const { return {}; }
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<std::input_iterator I>
+            requires std::default_initializable<std::iter_value_t<I>> &&
+                     std::equality_comparable_with<std::iter_reference_t<I>, std::iter_value_t<I>>
+#else
+        template<typename I>
+#endif
+        friend constexpr auto operator==(I it, null_sentinel_t)
+        {
+            return *it == detail::iter_value_t<I>{};
+        }
+#if !defined(__cpp_impl_three_way_comparison)
+        template<typename I>
+        friend constexpr auto operator==(null_sentinel_t, I it)
+        {
+            return *it == detail::iter_value_t<I>{};
+        }
+        template<typename I>
+        friend constexpr auto operator!=(I it, null_sentinel_t)
+        {
+            return *it != detail::iter_value_t<I>{};
+        }
+        template<typename I>
+        friend constexpr auto operator!=(null_sentinel_t, I it)
+        {
+            return *it != detail::iter_value_t<I>{};
+        }
+#endif
     };
 
 #if defined(__cpp_inline_variables)
@@ -905,364 +974,25 @@ namespace boost::parser::detail { namespace text {
     }
 #endif
 
-#if defined(BOOST_TEXT_DOXYGEN)
-
-    template<typename T>
-    requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator==(T * p, null_sentinel_t);
-
-    template<typename T>
-    requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator!=(T * p, null_sentinel_t);
-
-    template<typename T>
-    requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator==(null_sentinel_t, T * p);
-
-    template<typename T>
-    requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator!=(null_sentinel_t, T * p);
-
-#else
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-
-    template<typename T>
-        // clang-format off
-        requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator==(T * p, null_sentinel_t)
-    // clang-format on
-    {
-        return *p == 0;
-    }
-#if 1 // TODO: This should not be necessary, one better support for op==
-      // rewriting is widely supported.
-    template<typename T>
-        // clang-format off
-        requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator!=(T * p, null_sentinel_t)
-    // clang-format on
-    {
-        return *p != 0;
-    }
-    template<typename T>
-        // clang-format off
-        requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator==(null_sentinel_t, T * p)
-    // clang-format on
-    {
-        return *p == 0;
-    }
-    template<typename T>
-        // clang-format off
-        requires utf8_code_unit<T> || utf16_code_unit<T> || utf32_code_unit<T>
-    constexpr auto operator!=(null_sentinel_t, T * p)
-    // clang-format on
-    {
-        return *p != 0;
-    }
-#endif
-
-#else
-
-    namespace detail {
-        template<typename Iter, bool UTF8 = is_utf_ptr_v<Iter>>
-        struct null_sent_eq_dispatch
-        {};
-
-        template<typename Ptr>
-        struct null_sent_eq_dispatch<Ptr, true>
-        {
-            static constexpr bool call(Ptr p) { return *p == 0; }
-        };
-    }
-
-    template<typename T>
-    constexpr auto operator==(T * p, null_sentinel_t)
-        -> decltype(detail::null_sent_eq_dispatch<T *>::call(p))
-    {
-        return detail::null_sent_eq_dispatch<T *>::call(p);
-    }
-    template<typename T>
-    constexpr auto operator!=(T * p, null_sentinel_t)
-        -> decltype(detail::null_sent_eq_dispatch<T *>::call(p))
-    {
-        return !detail::null_sent_eq_dispatch<T *>::call(p);
-    }
-    template<typename T>
-    constexpr auto operator==(null_sentinel_t, T * p)
-        -> decltype(detail::null_sent_eq_dispatch<T *>::call(p))
-    {
-        return detail::null_sent_eq_dispatch<T *>::call(p);
-    }
-    template<typename T>
-    constexpr auto operator!=(null_sentinel_t, T * p)
-        -> decltype(detail::null_sent_eq_dispatch<T *>::call(p))
-    {
-        return !detail::null_sent_eq_dispatch<T *>::call(p);
-    }
-
-#endif
-
-#endif
-
-
-    /** A UTF-8 to UTF-16 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf8_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename Sentinel = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_8_to_16_iterator;
-
-
-    /** A UTF-32 to UTF-8 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf32_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename S = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_32_to_8_iterator
-        : detail::trans_iter<utf_32_to_8_iterator<I, S, ErrorHandler>, char>
-    {
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        static_assert(
-            std::is_same<
-                typename std::iterator_traits<I>::iterator_category,
-                std::bidirectional_iterator_tag>::value ||
-                std::is_same<
-                    typename std::iterator_traits<I>::iterator_category,
-                    std::random_access_iterator_tag>::value,
-            "utf_32_to_8_iterator requires its I parameter to be at least "
-            "bidirectional.");
-        static_assert(
-            sizeof(typename std::iterator_traits<I>::value_type) == 4,
-            "utf_32_to_8_iterator requires its I parameter to produce a "
-            "4-byte value_type.");
-#endif
-
-        constexpr utf_32_to_8_iterator() :
-            first_(), it_(), last_(), index_(4), buf_()
-        {}
-        explicit constexpr utf_32_to_8_iterator(I first, I it, S last) :
-            first_(first), it_(it), last_(last), index_(0), buf_()
-        {
-            if (it_ != last_)
-                read_into_buf();
-        }
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_32_to_8_iterator(
-            utf_32_to_8_iterator<I2, S2, ErrorHandler> const & other) :
-            // clang-format on
-            first_(other.first_),
-            it_(other.it_),
-            last_(other.last_),
-            index_(other.index_),
-            buf_(other.buf_)
-        {}
-
-        constexpr I begin() const { return first_; }
-        constexpr S end() const { return last_; }
-
-        constexpr char operator*() const
-        {
-            return buf_[index_];
-        }
-
-        constexpr I base() const { return it_; }
-
-        constexpr utf_32_to_8_iterator & operator++()
-        {
-            ++index_;
-            if (at_buf_end()) {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != last_);
-                ++it_;
-                index_ = 0;
-                if (it_ != last_)
-                    read_into_buf();
-            }
-            return *this;
-        }
-
-        constexpr utf_32_to_8_iterator & operator--()
-        {
-            if (0 < index_) {
-                --index_;
-            } else {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-                --it_;
-                auto out = read_into_buf();
-                index_ = out - buf_.data() - 1;
-            }
-            return *this;
-        }
-
-        template<
-            typename I1,
-            typename S1,
-            typename I2,
-            typename S2,
-            typename ErrorHandler2>
-        friend constexpr auto operator==(
-            utf_32_to_8_iterator<I1, S1, ErrorHandler2> const & lhs,
-            utf_32_to_8_iterator<I2, S2, ErrorHandler2> const & rhs)
-            -> decltype(lhs.base() == rhs.base());
-
-        friend bool
-        operator==(utf_32_to_8_iterator lhs, utf_32_to_8_iterator rhs)
-        {
-            return lhs.base() == rhs.base() && lhs.index_ == rhs.index_;
-        }
-
-        using base_type =
-            detail::trans_iter<utf_32_to_8_iterator<I, S, ErrorHandler>, char>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        constexpr bool buf_empty() const { return index_ == 4; }
-
-        constexpr bool at_buf_end() const { return buf_[index_] == '\0'; }
-
-        constexpr char * read_into_buf()
-        {
-            char32_t cp = static_cast<char32_t>(*it_);
-            index_ = 0;
-            char * retval = detail::read_into_buf(cp, buf_.data());
-            *retval = 0;
-            return retval;
-        }
-
-        I first_;
-        I it_;
-        S last_;
-        int index_;
-        std::array<char, 5> buf_;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf32_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_32_to_8_iterator;
-
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_32_to_8_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_32_to_8_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_32_to_8_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_32_to_8_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_32_to_8_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_32_to_8_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base() && rhs.index_ == lhs.index_;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_32_to_8_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_32_to_8_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
-
-
     /** An out iterator that converts UTF-32 to UTF-8. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint8_t> Iter>
+    template<std::output_iterator<char8_t> Iter>
 #else
     template<typename Iter>
 #endif
     struct utf_32_to_8_out_iterator
         : detail::trans_ins_iter<utf_32_to_8_out_iterator<Iter>, Iter>
     {
-        utf_32_to_8_out_iterator() {}
-        explicit utf_32_to_8_out_iterator(Iter it) :
+        constexpr utf_32_to_8_out_iterator() {}
+        explicit constexpr utf_32_to_8_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_32_to_8_out_iterator<Iter>, Iter>(it)
         {}
 
-        utf_32_to_8_out_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_8_out_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
             return *this;
-        }
-
-        Iter base() const
-        {
-            return const_cast<utf_32_to_8_out_iterator * const>(this)->iter();
         }
     };
 
@@ -1273,15 +1003,15 @@ namespace boost::parser::detail { namespace text {
                                              utf_32_to_8_insert_iterator<Cont>,
                                              std::insert_iterator<Cont>>
     {
-        utf_32_to_8_insert_iterator() {}
-        utf_32_to_8_insert_iterator(
+        constexpr utf_32_to_8_insert_iterator() {}
+        constexpr utf_32_to_8_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_32_to_8_insert_iterator<Cont>,
                 std::insert_iterator<Cont>>(std::insert_iterator<Cont>(c, it))
         {}
 
-        utf_32_to_8_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_8_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1297,15 +1027,15 @@ namespace boost::parser::detail { namespace text {
               utf_32_to_8_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_32_to_8_front_insert_iterator() {}
-        explicit utf_32_to_8_front_insert_iterator(Cont & c) :
+        constexpr utf_32_to_8_front_insert_iterator() {}
+        explicit constexpr utf_32_to_8_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_32_to_8_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
                 std::front_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_8_front_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_8_front_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
@@ -1321,425 +1051,21 @@ namespace boost::parser::detail { namespace text {
               utf_32_to_8_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_32_to_8_back_insert_iterator() {}
-        explicit utf_32_to_8_back_insert_iterator(Cont & c) :
+        constexpr utf_32_to_8_back_insert_iterator() {}
+        explicit constexpr utf_32_to_8_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_32_to_8_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
                 std::back_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_8_back_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_8_back_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf8(cp, out);
             return *this;
         }
     };
-
-
-    /** A UTF-8 to UTF-32 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf8_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename S = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_8_to_32_iterator
-        : detail::trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, char32_t>
-    {
-        constexpr utf_8_to_32_iterator() : first_(), it_(), last_() {}
-        explicit constexpr utf_8_to_32_iterator(I first, I it, S last) :
-            first_(first), it_(it), last_(last)
-        {}
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_8_to_32_iterator(
-            utf_8_to_32_iterator<I2, S2, ErrorHandler> const & other) :
-            // clang-format on
-            first_(other.first_),
-            it_(other.it_),
-            last_(other.last_)
-        {}
-
-        constexpr I begin() const { return first_; }
-        constexpr S end() const { return last_; }
-
-        constexpr char32_t operator*() const
-        {
-            BOOST_PARSER_DEBUG_ASSERT(!at_end(it_));
-            unsigned char curr_c = *it_;
-            if (curr_c < 0x80)
-                return curr_c;
-            return get_value().value_;
-        }
-
-        constexpr I base() const { return it_; }
-
-        constexpr utf_8_to_32_iterator & operator++()
-        {
-            BOOST_PARSER_DEBUG_ASSERT(it_ != last_);
-            it_ = increment();
-            return *this;
-        }
-
-        constexpr utf_8_to_32_iterator & operator--()
-        {
-            BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-            it_ = detail::decrement(first_, it_);
-            return *this;
-        }
-
-        friend bool
-        operator==(utf_8_to_32_iterator lhs, utf_8_to_32_iterator rhs)
-        {
-            return lhs.base() == rhs.base();
-        }
-
-        using base_type = detail::
-            trans_iter<utf_8_to_32_iterator<I, S, ErrorHandler>, char32_t>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        struct get_value_result
-        {
-            char32_t value_;
-            I it_;
-        };
-
-        constexpr bool check_continuation(
-            unsigned char c,
-            unsigned char lo = 0x80,
-            unsigned char hi = 0xbf) const
-        {
-            if (detail::in(lo, c, hi)) {
-                return true;
-            } else {
-                ErrorHandler{}(
-                    "Invalid UTF-8 sequence; an expected continuation "
-                    "code unit is missing.");
-                return false;
-            }
-        }
-
-        constexpr bool at_end(I it) const
-        {
-            if (it == last_) {
-                ErrorHandler{}(
-                    "Invalid UTF-8 sequence; expected another code unit "
-                    "before the end of string.");
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        constexpr get_value_result get_value() const
-        {
-            // It turns out that this naive implementation is faster than the
-            // table implementation for the converting iterators.
-#if 1
-            /*
-                Unicode 3.9/D92
-                Table 3-7. Well-Formed UTF-8 Byte Sequences
-
-                Code Points        First Byte Second Byte Third Byte Fourth Byte
-                ===========        ========== =========== ========== ===========
-                U+0000..U+007F     00..7F
-                U+0080..U+07FF     C2..DF     80..BF
-                U+0800..U+0FFF     E0         A0..BF      80..BF
-                U+1000..U+CFFF     E1..EC     80..BF      80..BF
-                U+D000..U+D7FF     ED         80..9F      80..BF
-                U+E000..U+FFFF     EE..EF     80..BF      80..BF
-                U+10000..U+3FFFF   F0         90..BF      80..BF     80..BF
-                U+40000..U+FFFFF   F1..F3     80..BF      80..BF     80..BF
-                U+100000..U+10FFFF F4         80..8F      80..BF     80..BF
-            */
-
-            char32_t value = 0;
-            I next = it_;
-            unsigned char curr_c = *next;
-
-            // One-byte case handled by caller
-
-            // Two-byte
-            if (detail::in(0xc2, curr_c, 0xdf)) {
-                value = curr_c & 0b00011111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                // Three-byte
-            } else if (curr_c == 0xe0) {
-                value = curr_c & 0b00001111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c, 0xa0, 0xbf))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else if (detail::in(0xe1, curr_c, 0xec)) {
-                value = curr_c & 0b00001111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else if (curr_c == 0xed) {
-                value = curr_c & 0b00001111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c, 0x80, 0x9f))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else if (detail::in(0xed, curr_c, 0xef)) {
-                value = curr_c & 0b00001111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                // Four-byte
-            } else if (curr_c == 0xf0) {
-                value = curr_c & 0b00000111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c, 0x90, 0xbf))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else if (detail::in(0xf1, curr_c, 0xf3)) {
-                value = curr_c & 0b00000111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else if (curr_c == 0xf4) {
-                value = curr_c & 0b00000111;
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c, 0x80, 0x8f))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-                if (at_end(next))
-                    return get_value_result{replacement_character(), next};
-                curr_c = *next;
-                if (!check_continuation(curr_c))
-                    return get_value_result{replacement_character(), next};
-                value = (value << 6) + (curr_c & 0b00111111);
-                ++next;
-            } else {
-                value = ErrorHandler{}("Invalid initial UTF-8 code unit.");
-                ++next;
-            }
-            return get_value_result{value, next};
-#else
-            I next = it_;
-            char32_t const value = detail::advance(next, last_);
-            return get_value_result{value, next};
-#endif
-        }
-
-        constexpr I increment() const
-        {
-            unsigned char curr_c = *it_;
-            if (curr_c < 0x80)
-                return std::next(it_);
-            return get_value().it_;
-        }
-
-        I first_;
-        I it_;
-        S last_;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf8_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_8_to_16_iterator;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf8_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_8_to_32_iterator;
-
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_8_to_32_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_8_to_32_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_8_to_32_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_8_to_32_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_8_to_32_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_8_to_32_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base();
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_8_to_32_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_8_to_32_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
 
 
     namespace detail {
@@ -1768,7 +1094,7 @@ namespace boost::parser::detail { namespace text {
                 if (state == bgn) {
                     write();
                 } else if (state == err) {
-                    *out = replacement_character();
+                    *out = replacement_character;
                     ++out;
                     start_cp();
                 }
@@ -1786,22 +1112,17 @@ namespace boost::parser::detail { namespace text {
     struct utf_8_to_32_out_iterator
         : detail::trans_ins_iter<utf_8_to_32_out_iterator<Iter>, Iter>
     {
-        utf_8_to_32_out_iterator() {}
-        explicit utf_8_to_32_out_iterator(Iter it) :
+        constexpr utf_8_to_32_out_iterator() {}
+        explicit constexpr utf_8_to_32_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_8_to_32_out_iterator<Iter>, Iter>(it),
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_32_out_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_32_out_iterator & operator=(char8_type cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_32_insert(cu, cp_, state_, out);
             return *this;
-        }
-
-        Iter base() const
-        {
-            return const_cast<utf_8_to_32_out_iterator * const>(this)->iter();
         }
 
 #ifndef BOOST_TEXT_DOXYGEN
@@ -1818,8 +1139,8 @@ namespace boost::parser::detail { namespace text {
                                              utf_8_to_32_insert_iterator<Cont>,
                                              std::insert_iterator<Cont>>
     {
-        utf_8_to_32_insert_iterator() {}
-        utf_8_to_32_insert_iterator(
+        constexpr utf_8_to_32_insert_iterator() {}
+        constexpr utf_8_to_32_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_8_to_32_insert_iterator<Cont>,
@@ -1827,7 +1148,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_32_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_32_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_32_insert(cu, cp_, state_, out);
@@ -1849,8 +1170,8 @@ namespace boost::parser::detail { namespace text {
               utf_8_to_32_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_8_to_32_front_insert_iterator() {}
-        explicit utf_8_to_32_front_insert_iterator(Cont & c) :
+        constexpr utf_8_to_32_front_insert_iterator() {}
+        explicit constexpr utf_8_to_32_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_8_to_32_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
@@ -1858,7 +1179,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_32_front_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_32_front_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_32_insert(cu, cp_, state_, out);
@@ -1880,8 +1201,8 @@ namespace boost::parser::detail { namespace text {
               utf_8_to_32_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_8_to_32_back_insert_iterator() {}
-        explicit utf_8_to_32_back_insert_iterator(Cont & c) :
+        constexpr utf_8_to_32_back_insert_iterator() {}
+        explicit constexpr utf_8_to_32_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_8_to_32_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
@@ -1889,7 +1210,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_32_back_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_32_back_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_32_insert(cu, cp_, state_, out);
@@ -1904,245 +1225,25 @@ namespace boost::parser::detail { namespace text {
     };
 
 
-    /** A UTF-32 to UTF-16 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf32_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename S = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_32_to_16_iterator
-        : detail::
-              trans_iter<utf_32_to_16_iterator<I, S, ErrorHandler>, uint16_t>
-    {
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        static_assert(
-            std::is_same<
-                typename std::iterator_traits<I>::iterator_category,
-                std::bidirectional_iterator_tag>::value ||
-                std::is_same<
-                    typename std::iterator_traits<I>::iterator_category,
-                    std::random_access_iterator_tag>::value,
-            "utf_32_to_16_iterator requires its I parameter to be at "
-            "least "
-            "bidirectional.");
-        static_assert(
-            sizeof(typename std::iterator_traits<I>::value_type) == 4,
-            "utf_32_to_16_iterator requires its I parameter to produce a "
-            "4-byte value_type.");
-#endif
-
-        constexpr utf_32_to_16_iterator() :
-            first_(), it_(), last_(), index_(2), buf_()
-        {}
-        explicit constexpr utf_32_to_16_iterator(I first, I it, S last) :
-            first_(first), it_(it), last_(last), index_(0), buf_()
-        {
-            if (it_ != last_)
-                read_into_buf();
-        }
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_32_to_16_iterator(
-            utf_32_to_16_iterator<I2, S2, ErrorHandler> const & other)
-            // clang-format on
-            :
-            first_(other.first_),
-            it_(other.it_),
-            last_(other.last_),
-            index_(other.index_),
-            buf_(other.buf_)
-        {}
-
-        constexpr I begin() const { return first_; }
-        constexpr S end() const { return last_; }
-
-        constexpr uint16_t operator*() const
-        {
-            return buf_[index_];
-        }
-
-        constexpr I base() const { return it_; }
-
-        constexpr utf_32_to_16_iterator & operator++()
-        {
-            ++index_;
-            if (at_buf_end()) {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != last_);
-                ++it_;
-                index_ = 0;
-                if (it_ != last_)
-                    read_into_buf();
-            }
-            return *this;
-        }
-
-        constexpr utf_32_to_16_iterator & operator--()
-        {
-            if (0 < index_) {
-                --index_;
-            } else {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-                --it_;
-                auto out = read_into_buf();
-                index_ = out - buf_.data() - 1;
-            }
-            return *this;
-        }
-
-        template<
-            typename I1,
-            typename S1,
-            typename I2,
-            typename S2,
-            typename ErrorHandler2>
-        friend constexpr auto operator==(
-            utf_32_to_16_iterator<I1, S1, ErrorHandler2> const & lhs,
-            utf_32_to_16_iterator<I2, S2, ErrorHandler2> const & rhs)
-            -> decltype(lhs.base() == rhs.base());
-
-        friend bool operator==(
-            utf_32_to_16_iterator lhs, utf_32_to_16_iterator rhs)
-        {
-            return lhs.base() == rhs.base() && lhs.index_ == rhs.index_;
-        }
-
-        using base_type = detail::
-            trans_iter<utf_32_to_16_iterator<I, S, ErrorHandler>, uint16_t>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        constexpr bool at_buf_end() const { return buf_[index_] == 0; }
-
-        constexpr uint16_t * read_into_buf()
-        {
-            auto const last = detail::write_cp_utf16(*it_, buf_.data());
-            *last = 0;
-            return last;
-        }
-
-        I first_;
-        I it_;
-        S last_;
-        int index_;
-        std::array<uint16_t, 4> buf_;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf32_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_32_to_16_iterator;
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_32_to_16_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_32_to_16_iterator<Iter, Sentinel, ErrorHandler> const &
-            rhs) -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_32_to_16_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_32_to_16_iterator<Iter, Sentinel, ErrorHandler> const &
-            rhs) -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_32_to_16_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_32_to_16_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base() && rhs.index_ == lhs.index_;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_32_to_16_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_32_to_16_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
-
-
     /** An out iterator that converts UTF-8 to UTF-16. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint16_t> Iter>
+    template<std::output_iterator<char16_t> Iter>
 #else
     template<typename Iter>
 #endif
     struct utf_32_to_16_out_iterator
         : detail::trans_ins_iter<utf_32_to_16_out_iterator<Iter>, Iter>
     {
-        utf_32_to_16_out_iterator() {}
-        explicit utf_32_to_16_out_iterator(Iter it) :
+        constexpr utf_32_to_16_out_iterator() {}
+        explicit constexpr utf_32_to_16_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_32_to_16_out_iterator<Iter>, Iter>(it)
         {}
 
-        utf_32_to_16_out_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_16_out_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
             return *this;
-        }
-
-        Iter base() const
-        {
-            return const_cast<utf_32_to_16_out_iterator * const>(this)->iter();
         }
     };
 
@@ -2154,15 +1255,15 @@ namespace boost::parser::detail { namespace text {
               utf_32_to_16_insert_iterator<Cont>,
               std::insert_iterator<Cont>>
     {
-        utf_32_to_16_insert_iterator() {}
-        utf_32_to_16_insert_iterator(
+        constexpr utf_32_to_16_insert_iterator() {}
+        constexpr utf_32_to_16_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_32_to_16_insert_iterator<Cont>,
                 std::insert_iterator<Cont>>(std::insert_iterator<Cont>(c, it))
         {}
 
-        utf_32_to_16_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_16_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2178,15 +1279,15 @@ namespace boost::parser::detail { namespace text {
               utf_32_to_16_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_32_to_16_front_insert_iterator() {}
-        explicit utf_32_to_16_front_insert_iterator(Cont & c) :
+        constexpr utf_32_to_16_front_insert_iterator() {}
+        explicit constexpr utf_32_to_16_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_32_to_16_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
                 std::front_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_16_front_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_16_front_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2202,15 +1303,15 @@ namespace boost::parser::detail { namespace text {
               utf_32_to_16_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_32_to_16_back_insert_iterator() {}
-        explicit utf_32_to_16_back_insert_iterator(Cont & c) :
+        constexpr utf_32_to_16_back_insert_iterator() {}
+        explicit constexpr utf_32_to_16_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_32_to_16_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
                 std::back_insert_iterator<Cont>(c))
         {}
 
-        utf_32_to_16_back_insert_iterator & operator=(char32_t cp)
+        constexpr utf_32_to_16_back_insert_iterator & operator=(char32_t cp)
         {
             auto & out = this->iter();
             out = detail::write_cp_utf16(cp, out);
@@ -2219,256 +1320,14 @@ namespace boost::parser::detail { namespace text {
     };
 
 
-    /** A UTF-16 to UTF-32 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf16_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename S = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_16_to_32_iterator
-        : detail::
-              trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, char32_t>
-    {
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        static_assert(
-            std::is_same<
-                typename std::iterator_traits<I>::iterator_category,
-                std::bidirectional_iterator_tag>::value ||
-                std::is_same<
-                    typename std::iterator_traits<I>::iterator_category,
-                    std::random_access_iterator_tag>::value,
-            "utf_16_to_32_iterator requires its I parameter to be at "
-            "least "
-            "bidirectional.");
-        static_assert(
-            sizeof(typename std::iterator_traits<I>::value_type) == 2,
-            "utf_16_to_32_iterator requires its I parameter to produce a "
-            "2-byte value_type.");
-#endif
-
-        constexpr utf_16_to_32_iterator() : first_(), it_(), last_() {}
-        explicit constexpr utf_16_to_32_iterator(I first, I it, S last) :
-            first_(first), it_(it), last_(last)
-        {}
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_16_to_32_iterator(
-            utf_16_to_32_iterator<I2, S2, ErrorHandler> const & other)
-            :
-        // clang-format off
-            first_(other.first_), it_(other.it_), last_(other.last_)
-        {}
-
-        constexpr I begin() const { return first_; }
-        constexpr S end() const { return last_; }
-
-        constexpr char32_t operator*() const
-        {
-            BOOST_PARSER_DEBUG_ASSERT(!at_end(it_));
-            return get_value(*it_).value_;
-        }
-
-        constexpr I base() const { return it_; }
-
-        constexpr utf_16_to_32_iterator & operator++()
-        {
-            BOOST_PARSER_DEBUG_ASSERT(it_ != last_);
-            it_ = increment();
-            return *this;
-        }
-
-        constexpr utf_16_to_32_iterator & operator--()
-        {
-            BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-            if (boost::parser::detail::text::low_surrogate(*--it_)) {
-                if (it_ != first_ &&
-                    boost::parser::detail::text::high_surrogate(*std::prev(it_)))
-                    --it_;
-            }
-            return *this;
-        }
-
-        friend bool operator==(
-            utf_16_to_32_iterator lhs, utf_16_to_32_iterator rhs)
-        {
-            return lhs.base() == rhs.base();
-        }
-
-        using base_type = detail::
-            trans_iter<utf_16_to_32_iterator<I, S, ErrorHandler>, char32_t>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        struct get_value_result
-        {
-            char32_t value_;
-            I it_;
-        };
-
-        constexpr bool at_end(I it) const
-        {
-            if (it == last_) {
-                ErrorHandler{}(
-                    "Invalid UTF-16 sequence; expected another code unit "
-                    "before the end of string.");
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        constexpr get_value_result get_value(uint16_t curr) const
-        {
-            char32_t value = 0;
-            I next = std::next(it_);
-
-            if (high_surrogate(curr)) {
-                value = (curr - high_surrogate_base) << 10;
-                if (at_end(next)) {
-                    return get_value_result{replacement_character(), next};
-                }
-                curr = *next++;
-                if (!low_surrogate(curr)) {
-                    return get_value_result{replacement_character(), next};
-                }
-                value += curr - low_surrogate_base;
-            } else if (low_surrogate(curr)) {
-                value = ErrorHandler{}("Invalid initial UTF-16 code unit.");
-                return get_value_result{replacement_character(), next};
-            } else {
-                value = curr;
-            }
-
-            if (!unreserved_scalar_value(value)) {
-                value = ErrorHandler{}(
-                    "UTF-16 sequence results in a non-scalar value, or a "
-                    "reserved scalar value UTF-32 code point.");
-            }
-
-            return get_value_result{value, next};
-        }
-
-        constexpr I increment() const
-        {
-            return get_value(*it_).it_;
-        }
-
-        I first_;
-        I it_;
-        S last_;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf32_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_32_to_16_iterator;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf16_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_16_to_32_iterator;
-
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_16_to_32_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_16_to_32_iterator<Iter, Sentinel, ErrorHandler> const &
-            rhs) -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_16_to_32_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_16_to_32_iterator<Iter, Sentinel, ErrorHandler> const &
-            rhs) -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_16_to_32_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_16_to_32_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base();
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_16_to_32_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_16_to_32_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
-
-
     namespace detail {
         template<typename OutIter>
         OutIter
-        assign_16_to_32_insert(uint16_t & prev_cu, uint16_t cu, OutIter out)
+        assign_16_to_32_insert(char16_t & prev_cu, char16_t cu, OutIter out)
         {
             if (high_surrogate(cu)) {
                 if (prev_cu) {
-                    *out = replacement_character();
+                    *out = replacement_character;
                     ++out;
                 }
                 prev_cu = cu;
@@ -2477,13 +1336,13 @@ namespace boost::parser::detail { namespace text {
                     *out = detail::surrogates_to_cp(prev_cu, cu);
                     ++out;
                 } else {
-                    *out = replacement_character();
+                    *out = replacement_character;
                     ++out;
                 }
                 prev_cu = 0;
             } else {
                 if (prev_cu) {
-                    *out = replacement_character();
+                    *out = replacement_character;
                     ++out;
                 }
                 *out = cu;
@@ -2503,27 +1362,22 @@ namespace boost::parser::detail { namespace text {
     struct utf_16_to_32_out_iterator
         : detail::trans_ins_iter<utf_16_to_32_out_iterator<Iter>, Iter>
     {
-        utf_16_to_32_out_iterator() {}
-        explicit utf_16_to_32_out_iterator(Iter it) :
+        constexpr utf_16_to_32_out_iterator() {}
+        explicit constexpr utf_16_to_32_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_16_to_32_out_iterator<Iter>, Iter>(it),
             prev_cu_(0)
         {}
 
-        utf_16_to_32_out_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_32_out_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_32_insert(prev_cu_, cu, out);
             return *this;
         }
 
-        Iter base() const
-        {
-            return const_cast<utf_16_to_32_out_iterator * const>(this)->iter();
-        }
-
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -2535,8 +1389,8 @@ namespace boost::parser::detail { namespace text {
               utf_16_to_32_insert_iterator<Cont>,
               std::insert_iterator<Cont>>
     {
-        utf_16_to_32_insert_iterator() {}
-        utf_16_to_32_insert_iterator(
+        constexpr utf_16_to_32_insert_iterator() {}
+        constexpr utf_16_to_32_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_16_to_32_insert_iterator<Cont>,
@@ -2544,7 +1398,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_32_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_32_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_32_insert(prev_cu_, cu, out);
@@ -2553,7 +1407,7 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -2565,8 +1419,8 @@ namespace boost::parser::detail { namespace text {
               utf_16_to_32_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_16_to_32_front_insert_iterator() {}
-        explicit utf_16_to_32_front_insert_iterator(Cont & c) :
+        constexpr utf_16_to_32_front_insert_iterator() {}
+        explicit constexpr utf_16_to_32_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_16_to_32_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
@@ -2574,7 +1428,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_32_front_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_32_front_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_32_insert(prev_cu_, cu, out);
@@ -2583,7 +1437,7 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -2595,8 +1449,8 @@ namespace boost::parser::detail { namespace text {
               utf_16_to_32_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_16_to_32_back_insert_iterator() {}
-        explicit utf_16_to_32_back_insert_iterator(Cont & c) :
+        constexpr utf_16_to_32_back_insert_iterator() {}
+        explicit constexpr utf_16_to_32_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_16_to_32_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
@@ -2604,7 +1458,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_32_back_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_32_back_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_32_insert(prev_cu_, cu, out);
@@ -2613,301 +1467,31 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
-
-
-    /** A UTF-16 to UTF-8 converting iterator. */
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf16_iter I,
-        std::sentinel_for<I> S = I,
-        transcoding_error_handler ErrorHandler = use_replacement_character>
-#else
-    template<
-        typename I,
-        typename S = I,
-        typename ErrorHandler = use_replacement_character>
-#endif
-    struct utf_16_to_8_iterator
-        : detail::trans_iter<utf_16_to_8_iterator<I, S, ErrorHandler>, char>
-    {
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        static_assert(
-            std::is_same<
-                typename std::iterator_traits<I>::iterator_category,
-                std::bidirectional_iterator_tag>::value ||
-                std::is_same<
-                    typename std::iterator_traits<I>::iterator_category,
-                    std::random_access_iterator_tag>::value,
-            "utf_16_to_8_iterator requires its I parameter to be at least "
-            "bidirectional.");
-        static_assert(
-            sizeof(typename std::iterator_traits<I>::value_type) == 2,
-            "utf_16_to_8_iterator requires its I parameter to produce a "
-            "2-byte value_type.");
-#endif
-
-        constexpr utf_16_to_8_iterator() :
-            first_(), it_(), last_(), index_(4), buf_()
-        {}
-        explicit constexpr
-        utf_16_to_8_iterator(I first, I it, S last) :
-            first_(first), it_(it), last_(last), index_(0), buf_()
-        {
-            if (it_ != last_)
-                read_into_buf();
-        }
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_16_to_8_iterator(
-            utf_16_to_8_iterator<I2, S2> const & other) :
-            // clang-format on
-            first_(other.first_),
-            it_(other.it_),
-            last_(other.last_),
-            index_(other.index_),
-            buf_(other.buf_)
-        {}
-
-        constexpr I begin() const { return first_; }
-        constexpr S end() const { return last_; }
-
-        constexpr char operator*() const { return buf_[index_]; }
-
-        constexpr I base() const { return it_; }
-
-        constexpr utf_16_to_8_iterator & operator++()
-        {
-            ++index_;
-            if (at_buf_end()) {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != last_);
-                increment();
-                index_ = 0;
-                if (it_ != last_)
-                    read_into_buf();
-            }
-            return *this;
-        }
-
-        constexpr utf_16_to_8_iterator & operator--()
-        {
-            if (0 < index_) {
-                --index_;
-            } else {
-                BOOST_PARSER_DEBUG_ASSERT(it_ != first_);
-                decrement();
-                auto out = read_into_buf();
-                index_ = out - buf_.data() - 1;
-            }
-            return *this;
-        }
-
-        template<
-            typename I1,
-            typename S1,
-            typename I2,
-            typename S2,
-            typename ErrorHandler2>
-        friend constexpr auto operator==(
-            utf_16_to_8_iterator<I1, S1, ErrorHandler2> const & lhs,
-            utf_16_to_8_iterator<I2, S2, ErrorHandler2> const & rhs)
-            -> decltype(lhs.base() == rhs.base());
-
-        friend bool
-        operator==(utf_16_to_8_iterator lhs, utf_16_to_8_iterator rhs)
-        {
-            return lhs.base() == rhs.base() && lhs.index_ == rhs.index_;
-        }
-
-        using base_type =
-            detail::trans_iter<utf_16_to_8_iterator<I, S, ErrorHandler>, char>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        constexpr bool at_end(I it) const
-        {
-            if (it == last_) {
-                ErrorHandler{}(
-                    "Invalid UTF-16 sequence; expected another code unit "
-                    "before the end of string.");
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        constexpr bool at_buf_end() const { return buf_[index_] == '\0'; }
-
-        constexpr char * read_into_buf()
-        {
-            I next = it_;
-
-            char32_t first = static_cast<char32_t>(*next);
-            char32_t second = 0;
-            char32_t cp = first;
-            if (boost::parser::detail::text::high_surrogate(first)) {
-                if (at_end(++next))
-                    cp = replacement_character();
-                else {
-                    second = static_cast<char32_t>(*next);
-                    if (!boost::parser::detail::text::low_surrogate(second)) {
-                        ErrorHandler{}(
-                            "Invalid UTF-16 sequence; expected low surrogate "
-                            "after high surrogate.");
-                        cp = replacement_character();
-                    } else {
-                        cp = (first << 10) + second + surrogate_offset;
-                    }
-                }
-            } else if (boost::parser::detail::text::surrogate(first)) {
-                ErrorHandler{}("Invalid initial UTF-16 code unit.");
-                cp = replacement_character();
-            }
-
-            char * retval = detail::read_into_buf(cp, buf_.data());
-            *retval = 0;
-            return retval;
-        }
-
-        constexpr void increment()
-        {
-            if (boost::parser::detail::text::high_surrogate(*it_)) {
-                ++it_;
-                if (it_ != last_ && boost::parser::detail::text::low_surrogate(*it_))
-                    ++it_;
-            } else {
-                ++it_;
-            }
-        }
-
-        constexpr void decrement()
-        {
-            if (boost::parser::detail::text::low_surrogate(*--it_)) {
-                if (it_ != first_)
-                    --it_;
-            }
-        }
-
-        I first_;
-        I it_;
-        S last_;
-        int index_;
-        std::array<char, 5> buf_;
-
-        // Unicode 3.8/D71-D74
-
-        static char32_t const surrogate_offset =
-            0x10000 - (high_surrogate_min << 10) - low_surrogate_min;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf16_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_16_to_8_iterator;
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_16_to_8_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_16_to_8_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_16_to_8_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_16_to_8_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_16_to_8_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_16_to_8_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base() && rhs.index_ == lhs.index_;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_16_to_8_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_16_to_8_iterator<Iter2, Sentinel2, ErrorHandler> const &
-            rhs) -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
 
 
     namespace detail {
         template<typename OutIter>
         OutIter
-        assign_16_to_8_insert(uint16_t & prev_cu, uint16_t cu, OutIter out)
+        assign_16_to_8_insert(char16_t & prev_cu, char16_t cu, OutIter out)
         {
             if (high_surrogate(cu)) {
                 if (prev_cu)
-                    out = detail::write_cp_utf8(replacement_character(), out);
+                    out = detail::write_cp_utf8(replacement_character, out);
                 prev_cu = cu;
             } else if (low_surrogate(cu)) {
                 if (prev_cu) {
                     auto const cp = detail::surrogates_to_cp(prev_cu, cu);
                     out = detail::write_cp_utf8(cp, out);
                 } else {
-                    out = detail::write_cp_utf8(replacement_character(), out);
+                    out = detail::write_cp_utf8(replacement_character, out);
                 }
                 prev_cu = 0;
             } else {
                 if (prev_cu)
-                    out = detail::write_cp_utf8(replacement_character(), out);
+                    out = detail::write_cp_utf8(replacement_character, out);
                 out = detail::write_cp_utf8(cu, out);
                 prev_cu = 0;
             }
@@ -2917,34 +1501,29 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-16 to UTF-8. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint8_t> Iter>
+    template<std::output_iterator<char8_t> Iter>
 #else
     template<typename Iter>
 #endif
     struct utf_16_to_8_out_iterator
         : detail::trans_ins_iter<utf_16_to_8_out_iterator<Iter>, Iter>
     {
-        utf_16_to_8_out_iterator() {}
-        explicit utf_16_to_8_out_iterator(Iter it) :
+        constexpr utf_16_to_8_out_iterator() {}
+        explicit constexpr utf_16_to_8_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_16_to_8_out_iterator<Iter>, Iter>(it),
             prev_cu_(0)
         {}
 
-        utf_16_to_8_out_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_8_out_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_8_insert(prev_cu_, cu, out);
             return *this;
         }
 
-        Iter base() const
-        {
-            return const_cast<utf_16_to_8_out_iterator * const>(this)->iter();
-        }
-
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -2955,8 +1534,8 @@ namespace boost::parser::detail { namespace text {
                                              utf_16_to_8_insert_iterator<Cont>,
                                              std::insert_iterator<Cont>>
     {
-        utf_16_to_8_insert_iterator() {}
-        utf_16_to_8_insert_iterator(
+        constexpr utf_16_to_8_insert_iterator() {}
+        constexpr utf_16_to_8_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_16_to_8_insert_iterator<Cont>,
@@ -2964,7 +1543,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_8_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_8_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_8_insert(prev_cu_, cu, out);
@@ -2973,7 +1552,7 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -2985,8 +1564,8 @@ namespace boost::parser::detail { namespace text {
               utf_16_to_8_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_16_to_8_front_insert_iterator() {}
-        explicit utf_16_to_8_front_insert_iterator(Cont & c) :
+        constexpr utf_16_to_8_front_insert_iterator() {}
+        explicit constexpr utf_16_to_8_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_16_to_8_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
@@ -2994,7 +1573,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_8_front_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_8_front_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_8_insert(prev_cu_, cu, out);
@@ -3003,7 +1582,7 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
 
@@ -3015,8 +1594,8 @@ namespace boost::parser::detail { namespace text {
               utf_16_to_8_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_16_to_8_back_insert_iterator() {}
-        explicit utf_16_to_8_back_insert_iterator(Cont & c) :
+        constexpr utf_16_to_8_back_insert_iterator() {}
+        explicit constexpr utf_16_to_8_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_16_to_8_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
@@ -3024,7 +1603,7 @@ namespace boost::parser::detail { namespace text {
             prev_cu_(0)
         {}
 
-        utf_16_to_8_back_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_16_to_8_back_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_16_to_8_insert(prev_cu_, cu, out);
@@ -3033,198 +1612,9 @@ namespace boost::parser::detail { namespace text {
 
 #ifndef BOOST_TEXT_DOXYGEN
     private:
-        uint16_t prev_cu_;
+        char16_t prev_cu_;
 #endif
     };
-
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<
-        utf8_iter I,
-        std::sentinel_for<I> S,
-        transcoding_error_handler ErrorHandler>
-#else
-    template<typename I, typename S, typename ErrorHandler>
-#endif
-    struct utf_8_to_16_iterator
-        : detail::trans_iter<utf_8_to_16_iterator<I, S, ErrorHandler>, uint16_t>
-    {
-        constexpr utf_8_to_16_iterator() : it_(), index_(2), buf_() {}
-        explicit constexpr utf_8_to_16_iterator(I first, I it, S last) :
-            it_(first, it, last), index_(0), buf_()
-        {
-            if (it_.it_ != it_.last_)
-                read_into_buf();
-        }
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<typename I2, typename S2>
-        // clang-format off
-        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
-#else
-        template<
-            typename I2,
-            typename S2,
-            typename Enable = std::enable_if_t<
-                std::is_convertible<I2, I>::value &&
-                std::is_convertible<S2, S>::value>>
-#endif
-        constexpr utf_8_to_16_iterator(
-            utf_8_to_16_iterator<I2, S2, ErrorHandler> const & other) :
-            // clang-format on
-            it_(other.it_),
-            index_(other.index_),
-            buf_(other.buf_)
-        {}
-
-        constexpr I begin() const { return it_.begin(); }
-        constexpr S end() const { return it_.end(); }
-
-        constexpr uint16_t operator*() const
-        {
-            return buf_[index_];
-        }
-
-        constexpr I base() const
-        {
-            return it_.base();
-        }
-
-        constexpr utf_8_to_16_iterator & operator++()
-        {
-            ++index_;
-            if (at_buf_end()) {
-                BOOST_PARSER_DEBUG_ASSERT(it_.it_ != it_.last_);
-                ++it_;
-                index_ = 0;
-                if (it_.it_ != it_.last_)
-                    read_into_buf();
-            }
-            return *this;
-        }
-
-        constexpr utf_8_to_16_iterator & operator--()
-        {
-            if (0 < index_) {
-                --index_;
-            } else {
-                BOOST_PARSER_DEBUG_ASSERT(it_.it_ != it_.first_);
-                --it_;
-                auto out = read_into_buf();
-                index_ = out - buf_.data() - 1;
-            }
-            return *this;
-        }
-
-        template<
-            typename I1,
-            typename S1,
-            typename I2,
-            typename S2,
-            typename ErrorHandler2>
-        friend constexpr auto operator==(
-            utf_8_to_16_iterator<I1, S1, ErrorHandler2> const & lhs,
-            utf_8_to_16_iterator<I2, S2, ErrorHandler2> const & rhs)
-            -> decltype(lhs.base() == rhs.base());
-
-        friend bool
-        operator==(utf_8_to_16_iterator lhs, utf_8_to_16_iterator rhs)
-        {
-            return lhs.base() == rhs.base() && lhs.index_ == rhs.index_;
-        }
-
-        using base_type = detail::
-            trans_iter<utf_8_to_16_iterator<I, S, ErrorHandler>, uint16_t>;
-        using base_type::operator++;
-        using base_type::operator--;
-
-#ifndef BOOST_TEXT_DOXYGEN
-    private:
-        constexpr bool at_buf_end() const { return buf_[index_] == 0; }
-
-        constexpr uint16_t * read_into_buf()
-        {
-            auto const last = detail::write_cp_utf16(*it_, buf_.data());
-            *last = 0;
-            return last;
-        }
-
-        utf_8_to_32_iterator<I, S> it_;
-        int index_;
-        std::array<uint16_t, 4> buf_;
-
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            utf8_iter I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-#else
-        template<typename I2, typename S2, typename ErrorHandler2>
-#endif
-        friend struct utf_8_to_16_iterator;
-#endif
-    };
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        utf_8_to_16_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() == rhs)
-    {
-        return lhs.base() == rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator==(
-        Sentinel lhs,
-        utf_8_to_16_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() == lhs)
-    {
-        return rhs.base() == lhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_8_to_16_iterator<Iter, Sentinel, ErrorHandler> const & lhs,
-        Sentinel rhs) -> decltype(lhs.base() != rhs)
-    {
-        return lhs.base() != rhs;
-    }
-
-    template<typename Iter, typename Sentinel, typename ErrorHandler>
-    constexpr auto operator!=(
-        Sentinel lhs,
-        utf_8_to_16_iterator<Iter, Sentinel, ErrorHandler> const & rhs)
-        -> decltype(rhs.base() != lhs)
-    {
-        return rhs.base() != lhs;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator==(
-        utf_8_to_16_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_8_to_16_iterator<Iter2, Sentinel2, ErrorHandler> const & rhs)
-        -> decltype(lhs.base() == rhs.base())
-    {
-        return lhs.base() == rhs.base() && rhs.index_ == lhs.index_;
-    }
-
-    template<
-        typename Iter1,
-        typename Sentinel1,
-        typename Iter2,
-        typename Sentinel2,
-        typename ErrorHandler>
-    constexpr auto operator!=(
-        utf_8_to_16_iterator<Iter1, Sentinel1, ErrorHandler> const & lhs,
-        utf_8_to_16_iterator<Iter2, Sentinel2, ErrorHandler> const & rhs)
-        -> decltype(!(lhs == rhs))
-    {
-        return !(lhs == rhs);
-    }
 
 
     namespace detail {
@@ -3252,7 +1642,7 @@ namespace boost::parser::detail { namespace text {
                 if (state == bgn) {
                     write();
                 } else if (state == err) {
-                    out = detail::write_cp_utf16(replacement_character(), out);
+                    out = detail::write_cp_utf16(replacement_character, out);
                     start_cp();
                 }
             }
@@ -3262,29 +1652,24 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-8 to UTF-16. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<uint16_t> Iter>
+    template<std::output_iterator<char16_t> Iter>
 #else
     template<typename Iter>
 #endif
     struct utf_8_to_16_out_iterator
         : detail::trans_ins_iter<utf_8_to_16_out_iterator<Iter>, Iter>
     {
-        utf_8_to_16_out_iterator() {}
-        explicit utf_8_to_16_out_iterator(Iter it) :
+        constexpr utf_8_to_16_out_iterator() {}
+        explicit constexpr utf_8_to_16_out_iterator(Iter it) :
             detail::trans_ins_iter<utf_8_to_16_out_iterator<Iter>, Iter>(it),
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_16_out_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_16_out_iterator & operator=(char8_type cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_16_insert(cu, cp_, state_, out);
             return *this;
-        }
-
-        Iter base() const
-        {
-            return const_cast<utf_8_to_16_out_iterator * const>(this)->iter();
         }
 
 #ifndef BOOST_TEXT_DOXYGEN
@@ -3301,8 +1686,8 @@ namespace boost::parser::detail { namespace text {
                                              utf_8_to_16_insert_iterator<Cont>,
                                              std::insert_iterator<Cont>>
     {
-        utf_8_to_16_insert_iterator() {}
-        utf_8_to_16_insert_iterator(
+        constexpr utf_8_to_16_insert_iterator() {}
+        constexpr utf_8_to_16_insert_iterator(
             Cont & c, typename Cont::iterator it) :
             detail::trans_ins_iter<
                 utf_8_to_16_insert_iterator<Cont>,
@@ -3310,7 +1695,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_16_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_16_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_16_insert(cu, cp_, state_, out);
@@ -3332,8 +1717,8 @@ namespace boost::parser::detail { namespace text {
               utf_8_to_16_front_insert_iterator<Cont>,
               std::front_insert_iterator<Cont>>
     {
-        utf_8_to_16_front_insert_iterator() {}
-        explicit utf_8_to_16_front_insert_iterator(Cont & c) :
+        constexpr utf_8_to_16_front_insert_iterator() {}
+        explicit constexpr utf_8_to_16_front_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_8_to_16_front_insert_iterator<Cont>,
                 std::front_insert_iterator<Cont>>(
@@ -3341,7 +1726,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_16_front_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_16_front_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_16_insert(cu, cp_, state_, out);
@@ -3363,8 +1748,8 @@ namespace boost::parser::detail { namespace text {
               utf_8_to_16_back_insert_iterator<Cont>,
               std::back_insert_iterator<Cont>>
     {
-        utf_8_to_16_back_insert_iterator() {}
-        explicit utf_8_to_16_back_insert_iterator(Cont & c) :
+        constexpr utf_8_to_16_back_insert_iterator() {}
+        explicit constexpr utf_8_to_16_back_insert_iterator(Cont & c) :
             detail::trans_ins_iter<
                 utf_8_to_16_back_insert_iterator<Cont>,
                 std::back_insert_iterator<Cont>>(
@@ -3372,7 +1757,7 @@ namespace boost::parser::detail { namespace text {
             state_(detail::invalid_table_state)
         {}
 
-        utf_8_to_16_back_insert_iterator & operator=(uint16_t cu)
+        constexpr utf_8_to_16_back_insert_iterator & operator=(char16_t cu)
         {
             auto & out = this->iter();
             out = detail::assign_8_to_16_insert(cu, cp_, state_, out);
@@ -3388,15 +1773,15 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#include <boost/parser/detail/text/detail/unpack.hpp>
+#include <boost/parser/detail/text/unpack.hpp>
 
 namespace boost::parser::detail { namespace text { namespace detail {
 
-    template<typename Tag>
+    template<format Tag>
     struct make_utf8_dispatch;
 
     template<>
-    struct make_utf8_dispatch<detail::utf8_tag>
+    struct make_utf8_dispatch<format::utf8>
     {
         template<typename Iter, typename Sentinel>
         static constexpr Iter call(Iter first, Iter it, Sentinel last)
@@ -3406,43 +1791,55 @@ namespace boost::parser::detail { namespace text { namespace detail {
     };
 
     template<>
-    struct make_utf8_dispatch<detail::utf16_tag>
+    struct make_utf8_dispatch<format::utf16>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_16_to_8_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf16,
+            format::utf8,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_16_to_8_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
     template<>
-    struct make_utf8_dispatch<detail::utf32_tag>
+    struct make_utf8_dispatch<format::utf32>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_32_to_8_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf32,
+            format::utf8,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_32_to_8_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
-    template<typename Tag>
+    template<format Tag>
     struct make_utf16_dispatch;
 
     template<>
-    struct make_utf16_dispatch<detail::utf8_tag>
+    struct make_utf16_dispatch<format::utf8>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_8_to_16_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf8,
+            format::utf16,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_8_to_16_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
     template<>
-    struct make_utf16_dispatch<detail::utf16_tag>
+    struct make_utf16_dispatch<format::utf16>
     {
         template<typename Iter, typename Sentinel>
         static constexpr Iter call(Iter first, Iter it, Sentinel last)
@@ -3452,43 +1849,55 @@ namespace boost::parser::detail { namespace text { namespace detail {
     };
 
     template<>
-    struct make_utf16_dispatch<detail::utf32_tag>
+    struct make_utf16_dispatch<format::utf32>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_32_to_16_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf32,
+            format::utf16,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_32_to_16_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
-    template<typename Tag>
+    template<format Tag>
     struct make_utf32_dispatch;
 
     template<>
-    struct make_utf32_dispatch<detail::utf8_tag>
+    struct make_utf32_dispatch<format::utf8>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_8_to_32_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf8,
+            format::utf32,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_8_to_32_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
     template<>
-    struct make_utf32_dispatch<detail::utf16_tag>
+    struct make_utf32_dispatch<format::utf16>
     {
         template<typename Iter, typename Sentinel>
-        static constexpr utf_16_to_32_iterator<Iter, Sentinel>
+        static constexpr utf_iterator<
+            format::utf16,
+            format::utf32,
+            Iter,
+            Sentinel>
         call(Iter first, Iter it, Sentinel last)
         {
-            return utf_16_to_32_iterator<Iter, Sentinel>(first, it, last);
+            return {first, it, last};
         }
     };
 
     template<>
-    struct make_utf32_dispatch<detail::utf32_tag>
+    struct make_utf32_dispatch<format::utf32>
     {
         template<typename Iter, typename Sentinel>
         static constexpr Iter call(Iter first, Iter it, Sentinel last)
@@ -3586,7 +1995,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
     /** Returns a `utf_32_to_8_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint8_t> O>
+    template<std::output_iterator<char8_t> O>
     utf_32_to_8_out_iterator<O> utf_32_to_8_out(O it);
 
     /** Returns a `utf_8_to_32_out_iterator<O>` constructed from the given
@@ -3596,7 +2005,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
     /** Returns a `utf_32_to_16_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint16_t> O>
+    template<std::output_iterator<char16_t> O>
     utf_32_to_16_out_iterator<O> utf_32_to_16_out(O it);
 
     /** Returns a `utf_16_to_32_out_iterator<O>` constructed from the given
@@ -3606,27 +2015,27 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
     /** Returns a `utf_16_to_8_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint8_t> O>
+    template<std::output_iterator<char8_t> O>
     utf_16_to_8_out_iterator<O> utf_16_to_8_out(O it);
 
     /** Returns a `utf_8_to_16_out_iterator<O>` constructed from the given
         iterator. */
-    template<std::output_iterator<uint16_t> O>
+    template<std::output_iterator<char16_t> O>
     utf_8_to_16_out_iterator<O> utf_8_to_16_out(O it);
 
     /** Returns an iterator equivalent to `it` that transcodes `[first, last)`
         to UTF-8. */
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
+    template<std::input_iterator I, std::sentinel_for<I> S>
     auto utf8_iterator(I first, I it, S last);
 
     /** Returns an iterator equivalent to `it` that transcodes `[first, last)`
         to UTF-16. */
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
+    template<std::input_iterator I, std::sentinel_for<I> S>
     auto utf16_iterator(I first, I it, S last);
 
     /** Returns an iterator equivalent to `it` that transcodes `[first, last)`
         to UTF-32. */
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
+    template<std::input_iterator I, std::sentinel_for<I> S>
     auto utf32_iterator(I first, I it, S last);
 
     /** Returns a inserting iterator that transcodes from UTF-8 to UTF-8,
@@ -3751,34 +2160,34 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Iter, typename Sentinel>
     auto utf8_iterator(Iter first, Iter it, Sentinel last)
     {
-        auto const unpacked = detail::unpack_iterator_and_sentinel(first, last);
+        auto const unpacked = text::unpack_iterator_and_sentinel(first, last);
         auto const unpacked_it =
-            detail::unpack_iterator_and_sentinel(it, last).f_;
-        using tag_type = decltype(unpacked.tag_);
-        return detail::make_utf8_dispatch<tag_type>::call(
-            unpacked.f_, unpacked_it, unpacked.l_);
+            text::unpack_iterator_and_sentinel(it, last).first;
+        constexpr format tag = unpacked.format_tag;
+        return detail::make_utf8_dispatch<tag>::call(
+            unpacked.first, unpacked_it, unpacked.last);
     }
 
     template<typename Iter, typename Sentinel>
     auto utf16_iterator(Iter first, Iter it, Sentinel last)
     {
-        auto const unpacked = detail::unpack_iterator_and_sentinel(first, last);
+        auto const unpacked = text::unpack_iterator_and_sentinel(first, last);
         auto const unpacked_it =
-            detail::unpack_iterator_and_sentinel(it, last).f_;
-        using tag_type = decltype(unpacked.tag_);
-        return detail::make_utf16_dispatch<tag_type>::call(
-            unpacked.f_, unpacked_it, unpacked.l_);
+            text::unpack_iterator_and_sentinel(it, last).first;
+        constexpr format tag = unpacked.format_tag;
+        return detail::make_utf16_dispatch<tag>::call(
+            unpacked.first, unpacked_it, unpacked.last);
     }
 
     template<typename Iter, typename Sentinel>
     auto utf32_iterator(Iter first, Iter it, Sentinel last)
     {
-        auto const unpacked = detail::unpack_iterator_and_sentinel(first, last);
+        auto const unpacked = text::unpack_iterator_and_sentinel(first, last);
         auto const unpacked_it =
-            detail::unpack_iterator_and_sentinel(it, last).f_;
-        using tag_type = decltype(unpacked.tag_);
-        return detail::make_utf32_dispatch<tag_type>::call(
-            unpacked.f_, unpacked_it, unpacked.l_);
+            text::unpack_iterator_and_sentinel(it, last).first;
+        constexpr format tag = unpacked.format_tag;
+        return detail::make_utf32_dispatch<tag>::call(
+            unpacked.first, unpacked_it, unpacked.last);
     }
 
     template<typename Cont>
@@ -3886,56 +2295,56 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
-    template<std::output_iterator<uint8_t> O>
-    utf_32_to_8_out_iterator<O> utf_32_to_8_out(O it)
+    template<std::output_iterator<char8_t> O>
+    constexpr utf_32_to_8_out_iterator<O> utf_32_to_8_out(O it)
     {
         return utf_32_to_8_out_iterator<O>(it);
     }
 
     template<std::output_iterator<char32_t> O>
-    utf_8_to_32_out_iterator<O> utf_8_to_32_out(O it)
+    constexpr utf_8_to_32_out_iterator<O> utf_8_to_32_out(O it)
     {
         return utf_8_to_32_out_iterator<O>(it);
     }
 
-    template<std::output_iterator<uint16_t> O>
-    utf_32_to_16_out_iterator<O> utf_32_to_16_out(O it)
+    template<std::output_iterator<char16_t> O>
+    constexpr utf_32_to_16_out_iterator<O> utf_32_to_16_out(O it)
     {
         return utf_32_to_16_out_iterator<O>(it);
     }
 
     template<std::output_iterator<char32_t> O>
-    utf_16_to_32_out_iterator<O> utf_16_to_32_out(O it)
+    constexpr utf_16_to_32_out_iterator<O> utf_16_to_32_out(O it)
     {
         return utf_16_to_32_out_iterator<O>(it);
     }
 
-    template<std::output_iterator<uint8_t> O>
-    utf_16_to_8_out_iterator<O> utf_16_to_8_out(O it)
+    template<std::output_iterator<char8_t> O>
+    constexpr utf_16_to_8_out_iterator<O> utf_16_to_8_out(O it)
     {
         return utf_16_to_8_out_iterator<O>(it);
     }
 
-    template<std::output_iterator<uint16_t> O>
-    utf_8_to_16_out_iterator<O> utf_8_to_16_out(O it)
+    template<std::output_iterator<char16_t> O>
+    constexpr utf_8_to_16_out_iterator<O> utf_8_to_16_out(O it)
     {
         return utf_8_to_16_out_iterator<O>(it);
     }
 
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
-    auto utf8_iterator(I first, I it, S last)
+    template<std::input_iterator I, std::sentinel_for<I> S>
+    constexpr auto utf8_iterator(I first, I it, S last)
     {
         return v1::utf8_iterator(first, it, last);
     }
 
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
-    auto utf16_iterator(I first, I it, S last)
+    template<std::input_iterator I, std::sentinel_for<I> S>
+    constexpr auto utf16_iterator(I first, I it, S last)
     {
         return v1::utf16_iterator(first, it, last);
     }
 
-    template<std::bidirectional_iterator I, std::sentinel_for<I> S>
-    auto utf32_iterator(I first, I it, S last)
+    template<std::input_iterator I, std::sentinel_for<I> S>
+    constexpr auto utf32_iterator(I first, I it, S last)
     {
         return v1::utf32_iterator(first, it, last);
     }
@@ -3943,8 +2352,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf8_inserter(Cont & c, typename Cont::iterator it)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf8_inserter(Cont & c, typename Cont::iterator it)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -3959,8 +2368,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf16_inserter(Cont & c, typename Cont::iterator it)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf16_inserter(Cont & c, typename Cont::iterator it)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -3975,8 +2384,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf32_inserter(Cont & c, typename Cont::iterator it)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf32_inserter(Cont & c, typename Cont::iterator it)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -3991,8 +2400,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf8_back_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf8_back_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4007,8 +2416,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf16_back_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf16_back_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4023,8 +2432,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf32_back_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf32_back_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4039,8 +2448,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf8_front_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf8_front_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4055,8 +2464,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf16_front_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf16_front_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4071,8 +2480,8 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     template<typename Cont>
     // clang-format off
         requires requires { typename Cont::value_type; } &&
-        std::is_integral_v<typename Cont::value_type>
-    auto from_utf32_front_inserter(Cont & c)
+        utf_code_unit<typename Cont::value_type>
+    constexpr auto from_utf32_front_inserter(Cont & c)
     // clang-format on
     {
         if constexpr (sizeof(typename Cont::value_type) == 1) {
@@ -4087,5 +2496,989 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 }}}
 
 #endif
+
+namespace boost::parser::detail { namespace text {
+    namespace detail {
+        template<format Format>
+        constexpr auto format_to_type()
+        {
+            if constexpr (Format == format::utf8) {
+                return char8_type{};
+            } else if constexpr (Format == format::utf16) {
+                return char16_t{};
+            } else {
+                return char32_t{};
+            }
+        }
+
+        template<typename I>
+        constexpr bool is_bidi =
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            std::bidirectional_iterator<I>
+#else
+            std::is_base_of_v<
+                std::bidirectional_iterator_tag,
+                typename std::iterator_traits<I>::iterator_category>
+#endif
+            ;
+
+        template<typename I, bool SupportReverse = is_bidi<I>>
+        struct first_and_curr
+        {
+            first_and_curr() = default;
+            first_and_curr(I curr) : curr{curr} {}
+            first_and_curr(const first_and_curr & other) = default;
+            template<
+                class I2
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                ,
+                typename Enable = std::enable_if_t<std::is_convertible_v<I2, I>>
+#endif
+                >
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS // TODO
+            requires std::convertible_to<I2, I>
+#endif
+            first_and_curr(const first_and_curr<I2> & other) : curr{other.curr}
+            {}
+
+            I curr;
+        };
+        template<typename I>
+        struct first_and_curr<I, true>
+        {
+            first_and_curr() = default;
+            first_and_curr(I first, I curr) : first{first}, curr{curr} {}
+            first_and_curr(const first_and_curr & other) = default;
+            template<
+                class I2
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                ,
+                typename Enable = std::enable_if_t<std::is_convertible_v<I2, I>>
+#endif
+                >
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::convertible_to<I2, I>
+#endif
+            first_and_curr(const first_and_curr<I2> & other) :
+                first{other.first}, curr{other.curr}
+            {}
+
+            I first;
+            I curr;
+        };
+    }
+
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+    template<
+        format FromFormat,
+        format ToFormat,
+        std::input_iterator I,
+        std::sentinel_for<I> S,
+        transcoding_error_handler ErrorHandler>
+        requires std::convertible_to<std::iter_value_t<I>, detail::format_to_type_t<FromFormat>>
+#else
+    template<
+        format FromFormat,
+        format ToFormat,
+        typename I,
+        typename S,
+        typename ErrorHandler>
+#endif
+    class utf_iterator
+        : public stl_interfaces::iterator_interface<
+              utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>,
+              detail::bidirectional_at_most_t<I>,
+              detail::format_to_type_t<ToFormat>,
+              detail::format_to_type_t<ToFormat>>
+    {
+        static_assert(
+            FromFormat == format::utf8 || FromFormat == format::utf16 ||
+            FromFormat == format::utf32);
+        static_assert(
+            ToFormat == format::utf8 || ToFormat == format::utf16 ||
+            ToFormat == format::utf32);
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<typename T>
+        constexpr static bool is_bidirectional = std::is_base_of_v<
+            std::bidirectional_iterator_tag,
+            detail::bidirectional_at_most_t<T>>;
+        template<typename T>
+        constexpr static bool is_forward = std::is_base_of_v<
+            std::forward_iterator_tag,
+            detail::bidirectional_at_most_t<T>>;
+        template<typename T>
+        constexpr static bool is_input = !is_bidirectional<T> && !is_forward<T>;
+#endif
+
+        static_assert(
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            std::forward_iterator<I>
+#else
+            is_forward<I>
+#endif
+            || noexcept(ErrorHandler{}("")));
+
+    public:
+        using value_type = detail::format_to_type_t<ToFormat>;
+
+        constexpr utf_iterator() = default;
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr utf_iterator(I first, I it, S last)
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::bidirectional_iterator<I>
+#endif
+            : first_and_curr_{first, it}, last_(last)
+        {
+            if (curr() != last_)
+                read();
+        }
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr utf_iterator(I it, S last)
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires(!std::bidirectional_iterator<I>)
+#endif
+            :
+            first_and_curr_{it}, last_(last)
+        {
+            if (curr() != last_)
+                read();
+        }
+
+        template<
+            class I2,
+            class S2
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            ,
+            typename Enable = std::enable_if_t<
+                std::is_convertible_v<I2, I> && std::is_convertible_v<S2, S>>
+#endif
+            >
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        requires std::convertible_to<I2, I> && std::convertible_to<S2, S>
+#endif
+        constexpr utf_iterator(
+            utf_iterator<FromFormat, ToFormat, I2, S2, ErrorHandler> const &
+                other) :
+            buf_(other.buf_),
+            first_and_curr_(other.first_and_curr_),
+            buf_index_(other.buf_index_),
+            buf_last_(other.buf_last_),
+            last_(other.last_)
+        {}
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr I begin() const
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::bidirectional_iterator<I>
+#endif
+        {
+            return first();
+        }
+        constexpr S end() const { return last_; }
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_forward<J>>>
+#endif
+        constexpr I base() const
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::forward_iterator<I>
+#endif
+        {
+            return curr();
+        }
+
+        constexpr value_type operator*() const
+        {
+            BOOST_PARSER_DEBUG_ASSERT(buf_index_ < buf_last_);
+            return buf_[buf_index_];
+        }
+
+        constexpr utf_iterator & operator++()
+        {
+            BOOST_PARSER_DEBUG_ASSERT(buf_index_ != buf_last_ || curr() != last_);
+            if (buf_index_ + 1 == buf_last_ && curr() != last_) {
+                if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                    std::forward_iterator<I>
+#else
+                    is_forward<I>
+#endif
+                ) {
+                    std::advance(curr(), to_increment_);
+                }
+                if (curr() == last_)
+                    buf_index_ = 0;
+                else
+                    read();
+            } else if (buf_index_ + 1 <= buf_last_) {
+                ++buf_index_;
+            }
+            return *this;
+        }
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr utf_iterator & operator--()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::bidirectional_iterator<I>
+#endif
+        {
+            BOOST_PARSER_DEBUG_ASSERT(buf_index_ || curr() != first());
+            if (!buf_index_ && curr() != first())
+                read_reverse();
+            else if (buf_index_)
+                --buf_index_;
+            return *this;
+        }
+
+        friend constexpr bool operator==(
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            utf_iterator
+#else
+            std::enable_if_t<is_forward<I>, utf_iterator>
+#endif
+            lhs, utf_iterator rhs)
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::forward_iterator<I> || requires(I i) { i == i; }
+#endif
+        {
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                std::forward_iterator<I>
+#else
+                is_forward<I>
+#endif
+            ) {
+                return lhs.curr() == rhs.curr() && lhs.buf_index_ == rhs.buf_index_;
+            } else {
+                if (lhs.curr() != rhs.curr())
+                    return false;
+
+                if (lhs.buf_index_ == rhs.buf_index_ &&
+                    lhs.buf_last_ == rhs.buf_last_) {
+                    return true;
+                }
+
+                return lhs.buf_index_ == lhs.buf_last_ &&
+                       rhs.buf_index_ == rhs.buf_last_;
+            }
+        }
+
+#if !defined(__cpp_impl_three_way_comparison)
+        friend BOOST_PARSER_CONSTEXPR bool operator!=(
+            std::enable_if_t<is_forward<I>, utf_iterator> lhs, utf_iterator rhs)
+        { return !(lhs == rhs); }
+#endif
+
+        friend constexpr bool operator==(utf_iterator lhs, S rhs)
+        {
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                std::forward_iterator<I>
+#else
+                is_forward<I>
+#endif
+            ) {
+                return lhs.curr() == rhs;
+            } else {
+                return lhs.curr() == rhs && lhs.buf_index_ == lhs.buf_last_;
+            }
+        }
+
+#if !defined(__cpp_impl_three_way_comparison)
+        friend BOOST_PARSER_CONSTEXPR bool operator!=(utf_iterator lhs, S rhs)
+        { return !(lhs == rhs); }
+#endif
+
+        // exposition only
+        using base_type = stl_interfaces::iterator_interface<
+            utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>,
+            detail::bidirectional_at_most_t<I>,
+            value_type,
+            value_type>;
+        using base_type::operator++;
+        using base_type::operator--;
+
+    private:
+        constexpr char32_t decode_code_point()
+        {
+            if constexpr (FromFormat == format::utf8) {
+                char32_t cp = *curr();
+                ++curr();
+                to_increment_ = 1;
+                if (cp < 0x80)
+                    return cp;
+
+                // clang-format off
+
+                // It turns out that this naive implementation is faster than
+                // the table implementation for the converting iterators.
+
+            /*
+                Unicode 3.9/D92
+                Table 3-7. Well-Formed UTF-8 Byte Sequences
+
+                Code Points        First Byte Second Byte Third Byte Fourth Byte
+                ===========        ========== =========== ========== ===========
+                U+0000..U+007F     00..7F
+                U+0080..U+07FF     C2..DF     80..BF
+                U+0800..U+0FFF     E0         A0..BF      80..BF
+                U+1000..U+CFFF     E1..EC     80..BF      80..BF
+                U+D000..U+D7FF     ED         80..9F      80..BF
+                U+E000..U+FFFF     EE..EF     80..BF      80..BF
+                U+10000..U+3FFFF   F0         90..BF      80..BF     80..BF
+                U+40000..U+FFFFF   F1..F3     80..BF      80..BF     80..BF
+                U+100000..U+10FFFF F4         80..8F      80..BF     80..BF
+            */
+                // clang-format on
+
+                char8_type curr_c = cp;
+
+                auto error = [&]() {
+                    return ErrorHandler{}("Ill-formed UTF-8.");
+                };
+                auto next = [&]() {
+                    ++curr();
+                    ++to_increment_;
+                };
+
+                // One-byte case handled above
+
+                // Two-byte
+                if (detail::in(0xc2, curr_c, 0xdf)) {
+                    cp = curr_c & 0b00011111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    // Three-byte
+                } else if (curr_c == 0xe0) {
+                    cp = curr_c & 0b00001111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0xa0, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else if (detail::in(0xe1, curr_c, 0xec)) {
+                    cp = curr_c & 0b00001111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else if (curr_c == 0xed) {
+                    cp = curr_c & 0b00001111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0x9f))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else if (detail::in(0xee, curr_c, 0xef)) {
+                    cp = curr_c & 0b00001111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    // Four-byte
+                } else if (curr_c == 0xf0) {
+                    cp = curr_c & 0b00000111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x90, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else if (detail::in(0xf1, curr_c, 0xf3)) {
+                    cp = curr_c & 0b00000111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else if (curr_c == 0xf4) {
+                    cp = curr_c & 0b00000111;
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0x8f))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                    if (curr() == last_)
+                        return error();
+                    curr_c = *curr();
+                    if (!detail::in(0x80, curr_c, 0xbf))
+                        return error();
+                    cp = (cp << 6) + (curr_c & 0b00111111);
+                    next();
+                } else {
+                    return error();
+                }
+                return cp;
+            } else if constexpr (FromFormat == format::utf16) {
+                char16_t hi = *curr();
+                ++curr();
+                to_increment_ = 1;
+                if (!boost::parser::detail::text::surrogate(hi))
+                    return hi;
+
+                if (boost::parser::detail::text::low_surrogate(hi)) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                }
+
+                // high surrogate
+                if (curr() == last_) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                }
+
+                char16_t lo = *curr();
+                ++curr();
+                ++to_increment_;
+                if (!boost::parser::detail::text::low_surrogate(lo)) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                }
+
+                return char32_t((hi - high_surrogate_base) << 10) +
+                       (lo - low_surrogate_base);
+            } else {
+                char32_t retval = *curr();
+                ++curr();
+                to_increment_ = 1;
+                return retval;
+            }
+        }
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr char32_t decode_code_point_reverse()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::bidirectional_iterator<I>
+#endif
+        {
+            if constexpr (FromFormat == format::utf8) {
+                curr() = detail::decrement(first(), curr());
+                auto initial = curr();
+                char32_t cp = decode_code_point();
+                curr() = initial;
+                return cp;
+            } else if constexpr (FromFormat == format::utf16) {
+                char16_t lo = *--curr();
+                if (!boost::parser::detail::text::surrogate(lo))
+                    return lo;
+
+                if (boost::parser::detail::text::high_surrogate(lo)) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone leading surrogate.");
+                }
+
+                // low surrogate
+                if (curr() == first()) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                }
+
+                char16_t hi = *detail::prev(curr());
+                if (!boost::parser::detail::text::high_surrogate(hi)) {
+                    return ErrorHandler{}(
+                        "Invalid UTF-16 sequence; lone trailing surrogate.");
+                }
+                --curr();
+
+                return char32_t((hi - high_surrogate_base) << 10) +
+                       (lo - low_surrogate_base);
+            } else {
+                return *--curr();
+            }
+        }
+
+        template<class Out>
+        static constexpr Out encode_code_point(char32_t cp, Out out)
+        {
+            if constexpr (ToFormat == format::utf8) {
+                if (cp < 0x80) {
+                    *out++ = static_cast<char8_type>(cp);
+                } else if (cp < 0x800) {
+                    *out++ = static_cast<char8_type>(0xC0 + (cp >> 6));
+                    *out++ = static_cast<char8_type>(0x80 + (cp & 0x3f));
+                } else if (cp < 0x10000) {
+                    *out++ = static_cast<char8_type>(0xe0 + (cp >> 12));
+                    *out++ = static_cast<char8_type>(0x80 + ((cp >> 6) & 0x3f));
+                    *out++ = static_cast<char8_type>(0x80 + (cp & 0x3f));
+                } else {
+                    *out++ = static_cast<char8_type>(0xf0 + (cp >> 18));
+                    *out++ = static_cast<char8_type>(0x80 + ((cp >> 12) & 0x3f));
+                    *out++ = static_cast<char8_type>(0x80 + ((cp >> 6) & 0x3f));
+                    *out++ = static_cast<char8_type>(0x80 + (cp & 0x3f));
+                }
+            } else if constexpr (ToFormat == format::utf16) {
+                if (cp < 0x10000) {
+                    *out++ = static_cast<char16_t>(cp);
+                } else {
+                    *out++ =
+                        static_cast<char16_t>(cp >> 10) + high_surrogate_base;
+                    *out++ =
+                        static_cast<char16_t>(cp & 0x3ff) + low_surrogate_base;
+                }
+            } else {
+                *out++ = cp;
+            }
+            return out;
+        }
+
+        constexpr void read()
+        {
+            I initial;
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                std::forward_iterator<I>
+#else
+                is_forward<I>
+#endif
+            ) {
+                initial = curr();
+            }
+            if constexpr (noexcept(ErrorHandler{}(""))) {
+                char32_t cp = decode_code_point();
+                auto it = encode_code_point(cp, buf_.begin());
+                buf_index_ = 0;
+                buf_last_ = it - buf_.begin();
+            } else {
+                auto buf = buf_;
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                try {
+#endif
+                    char32_t cp = decode_code_point();
+                    auto it = encode_code_point(cp, buf_.begin());
+                    buf_index_ = 0;
+                    buf_last_ = it - buf_.begin();
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                } catch (...) {
+                    buf_ = buf;
+                    curr() = initial;
+                    throw;
+                }
+#endif
+            }
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                std::forward_iterator<I>
+#else
+            is_forward<I>
+#endif
+            ) {
+                curr() = initial;
+            }
+        }
+
+        constexpr void read_reverse()
+        {
+            auto initial = curr();
+            if constexpr (noexcept(ErrorHandler{}(""))) {
+                char32_t cp = decode_code_point_reverse();
+                auto it = encode_code_point(cp, buf_.begin());
+                buf_last_ = it - buf_.begin();
+                buf_index_ = buf_last_ - 1;
+                to_increment_ = std::distance(curr(), initial);
+            } else {
+                auto buf = buf_;
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                try {
+#endif
+                    char32_t cp = decode_code_point_reverse();
+                    auto it = encode_code_point(cp, buf_.begin());
+                    buf_last_ = it - buf_.begin();
+                    buf_index_ = buf_last_ - 1;
+                    to_increment_ = std::distance(curr(), initial);
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                } catch (...) {
+                    buf_ = buf;
+                    curr() = initial;
+                    throw;
+                }
+#endif
+            }
+        }
+
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename J = I,
+            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+#endif
+        constexpr I first() const
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::bidirectional_iterator<I>
+#endif
+        {
+            return first_and_curr_.first;
+        }
+        constexpr I & curr() { return first_and_curr_.curr; }
+        constexpr I curr() const { return first_and_curr_.curr; }
+
+        std::array<value_type, 4 / static_cast<int>(ToFormat)> buf_;
+
+        detail::first_and_curr<I> first_and_curr_;
+
+        uint8_t buf_index_ = 0;
+        uint8_t buf_last_ = 0;
+        uint8_t to_increment_ = 0;
+
+        [[no_unique_address]] S last_;
+
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            format FromFormat2,
+            format ToFormat2,
+            std::input_iterator I2,
+            std::sentinel_for<I2> S2,
+            transcoding_error_handler ErrorHandler2>
+        requires std::convertible_to<std::iter_value_t<I2>, detail::format_to_type_t<FromFormat2>>
+#else
+        template<
+            format FromFormat2,
+            format ToFormat2,
+            typename I2,
+            typename S2,
+            typename ErrorHandler2>
+#endif
+        friend class utf_iterator;
+    };
+
+}}
+
+namespace boost::parser::detail { namespace text { namespace detail {
+
+    template<class T>
+    constexpr bool is_utf_iter = false;
+    template<
+        format FromFormat,
+        format ToFormat,
+        class I,
+        class S,
+        class ErrorHandler>
+    constexpr bool
+        is_utf_iter<utf_iterator<FromFormat, ToFormat, I, S, ErrorHandler>> =
+            true;
+
+    // These are here because so many downstream views that use
+    // utf_iterator use them.
+
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+
+    template<typename V>
+    constexpr bool common_range_v = std::ranges::common_range<V>;
+    template<typename V>
+    constexpr bool forward_range_v = std::ranges::forward_range<V>;
+    template<typename V>
+    constexpr bool bidirectional_range_v = std::ranges::bidirectional_range<V>;
+    template<typename T>
+    constexpr bool default_initializable_v = std::default_initializable<T>;
+
+    template<typename V>
+    constexpr bool utf32_range_v = utf32_range<V>;
+
+#else
+
+    template<typename T>
+    using range_expr =
+        decltype(detail::begin(std::declval<T &>()) == detail::end(std::declval<T &>()));
+    template<typename T>
+    constexpr bool is_range_v = is_detected_v<range_expr, T>;
+
+    template<typename V>
+    constexpr bool common_range_v =
+        is_range_v<V> && std::is_same_v<iterator_t<V>, sentinel_t<V>>;
+    template<typename V>
+    constexpr bool input_range_v = is_range_v<V> && std::is_base_of_v<
+        std::input_iterator_tag,
+        typename std::iterator_traits<iterator_t<V>>::iterator_category>;
+    template<typename V>
+    constexpr bool forward_range_v = is_range_v<V> && std::is_base_of_v<
+        std::forward_iterator_tag,
+        typename std::iterator_traits<iterator_t<V>>::iterator_category>;
+    template<typename V>
+    constexpr bool bidirectional_range_v = is_range_v<V> && std::is_base_of_v<
+        std::bidirectional_iterator_tag,
+        typename std::iterator_traits<iterator_t<V>>::iterator_category>;
+    template<typename T>
+    constexpr bool default_initializable_v = std::is_default_constructible_v<T>;
+
+    template<typename V>
+    constexpr bool utf_range_v = is_range_v<V> && code_unit_v<range_value_t<V>>;
+
+    template<typename V>
+    constexpr bool
+        utf32_range_v = is_range_v<V> &&
+                        (
+#if !defined(_MSC_VER)
+                            std::is_same_v<range_value_t<V>, wchar_t> ||
+#endif
+                            std::is_same_v<range_value_t<V>, char32_t>);
+
+#endif
+
+    template<typename I>
+    constexpr bool random_access_iterator_v = std::is_base_of_v<
+        std::random_access_iterator_tag,
+        typename std::iterator_traits<I>::iterator_category>;
+    template<typename I>
+    constexpr bool bidirectional_iterator_v = std::is_base_of_v<
+        std::bidirectional_iterator_tag,
+        typename std::iterator_traits<I>::iterator_category>;
+    template<typename I>
+    constexpr bool forward_iterator_v = std::is_base_of_v<
+        std::forward_iterator_tag,
+        typename std::iterator_traits<I>::iterator_category>;
+
+    template<
+        class V,
+        bool StoreFirst = !is_utf_iter<iterator_t<V>> && common_range_v<V> &&
+                          bidirectional_range_v<V>,
+        bool StoreLast = !is_utf_iter<iterator_t<V>>>
+    struct first_last_storage
+    {
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename Enable = std::enable_if_t<
+                default_initializable_v<iterator_t<V>> &&
+                default_initializable_v<sentinel_t<V>>>>
+#endif
+        constexpr first_last_storage()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires default_initializable_v<iterator_t<V>> &&
+            default_initializable_v<sentinel_t<V>>
+#endif
+        {}
+        constexpr first_last_storage(V & base) :
+            first_{detail::begin(base)}, last_{detail::end(base)}
+        {}
+
+        constexpr auto begin(iterator_t<V> & it) const { return first_; }
+        constexpr auto end(iterator_t<V> & it) const { return last_; }
+
+        iterator_t<V> first_;
+        sentinel_t<V> last_;
+    };
+
+    template<typename I>
+    using trinary_iter_ctor = decltype(I(
+        std::declval<I>().begin(),
+        std::declval<I>().end(),
+        std::declval<I>().end()));
+
+    template<class V>
+    struct first_last_storage<V, true, false>
+    {
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename Enable =
+                std::enable_if_t<default_initializable_v<iterator_t<V>>>>
+#endif
+        constexpr first_last_storage()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires default_initializable_v<iterator_t<V>>
+#endif
+        {}
+        constexpr first_last_storage(V & base) : first_{detail::begin(base)} {}
+
+        constexpr auto begin(iterator_t<V> & it) const { return first_; }
+        constexpr auto end(iterator_t<V> & it) const {
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                requires { iterator_t<V>(it.begin(), it.end(), it.end()); }
+#else
+                is_detected_v<trinary_iter_ctor, iterator_t<V>>
+#endif
+            ) {
+                return iterator_t<V>(it.begin(), it.end(), it.end());
+            } else {
+                return it.end();
+            }
+        }
+
+        iterator_t<V> first_;
+    };
+
+    template<class V>
+    struct first_last_storage<V, false, true>
+    {
+#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        template<
+            typename Enable =
+                std::enable_if_t<default_initializable_v<sentinel_t<V>>>>
+#endif
+        constexpr first_last_storage()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires default_initializable_v<sentinel_t<V>>
+#endif
+        {}
+        constexpr first_last_storage(V & base) : last_{detail::end(base)} {}
+
+        constexpr auto begin(iterator_t<V> & it) const {
+            if constexpr (is_utf_iter<iterator_t<V>>) {
+                return iterator_t<V>(it.begin(), it.begin(), it.end());
+            } else {
+                return;
+            }
+        }
+        constexpr auto end(iterator_t<V> & it) const { return last_; }
+
+        sentinel_t<V> last_;
+    };
+
+    template<class V>
+    struct first_last_storage<V, false, false>
+    {
+        constexpr first_last_storage() = default;
+        constexpr first_last_storage(V & base) {}
+
+        constexpr auto begin(iterator_t<V> & it) const {
+            if constexpr (is_utf_iter<iterator_t<V>>) {
+                return iterator_t<V>(it.begin(), it.begin(), it.end());
+            } else {
+                return;
+            }
+        }
+        constexpr auto end(iterator_t<V> & it) const {
+            if constexpr (
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                requires { iterator_t<V>(it.begin(), it.end(), it.end()); }
+#else
+                is_detected_v<trinary_iter_ctor, iterator_t<V>>
+#endif
+            ) {
+                return iterator_t<V>(it.begin(), it.end(), it.end());
+            } else {
+                return it.end();
+            }
+        }
+    };
+
+
+    template<class V>
+    constexpr auto uc_view_category() {
+        if constexpr (common_range_v<V> && bidirectional_range_v<V>) {
+            return std::bidirectional_iterator_tag{};
+        } else {
+            return std::forward_iterator_tag{};
+        }
+    }
+
+    template<class V>
+    using uc_view_category_t = decltype(uc_view_category<V>());
+
+    template<bool Const, class T>
+    using maybe_const = std::conditional_t<Const, const T, T>;
+
+    template<class T>
+    constexpr bool is_empty_view = false;
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+    template<class T>
+    constexpr bool is_empty_view<std::ranges::empty_view<T>> = true;
+#endif
+
+}}}
 
 #endif

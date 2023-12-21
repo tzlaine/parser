@@ -6,12 +6,11 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
 
+#include <boost/parser/detail/text/config.hpp>
 #include <boost/parser/detail/text/trie_fwd.hpp>
-#include <boost/parser/detail/text/algorithm.hpp>
 
 #include <algorithm>
 #include <memory>
-#include <optional>
 #include <type_traits>
 #include <vector>
 

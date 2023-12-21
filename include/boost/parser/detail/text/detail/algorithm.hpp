@@ -6,37 +6,46 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 
-#include <boost/parser/detail/text/config.hpp>
 #include <boost/parser/detail/text/concepts.hpp>
-#include <boost/parser/detail/text/detail/detection.hpp>
+#include <boost/parser/detail/detection.hpp>
 #include <boost/parser/detail/text/detail/iterator.hpp>
 
 #include <numeric>
 #include <type_traits>
 #include <utility>
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#include <ranges>
+#endif
 
 #include <cstdint>
 
 
 namespace boost::parser::detail { namespace text { namespace detail {
 
+    template<typename I>
+    auto prev(I it)
+    {
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        return std::ranges::prev(it);
+#else
+        return std::prev(it);
+#endif
+    }
+    template<typename I>
+    auto next(I it)
+    {
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+        return std::ranges::next(it);
+#else
+        return std::next(it);
+#endif
+    }
+
     template<typename T>
     using remove_cv_ref_t =
         typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-
-    template<typename T>
-    using iterator_t = std::ranges::iterator_t<T>;
-    template<typename T>
-    using sentinel_t = std::ranges::sentinel_t<T>;
-    template<typename T>
-    using iter_value_t = std::iter_value_t<T>;
-    template<typename T>
-    using iter_reference_t = std::iter_reference_t<T>;
-    template<typename T>
-    using range_value_t = std::ranges::range_value_t<T>;
-
     // A grapheme_range that has a sentinel type that is not an iterator, but
     // that is comparable with T's interator type.
     template<typename T>
@@ -58,17 +67,6 @@ namespace boost::parser::detail { namespace text { namespace detail {
         gr_rng_cp_iter_t<T>>;
 
 #else
-
-    template<typename T>
-    using iterator_t = decltype(detail::begin(std::declval<T &>()));
-    template<typename T>
-    using sentinel_t = decltype(detail::end(std::declval<T &>()));
-    template<typename T>
-    using iter_value_t = typename std::iterator_traits<T>::value_type;
-    template<typename T>
-    using iter_reference_t = decltype(*std::declval<T &>());
-    template<typename T>
-    using range_value_t = iter_value_t<iterator_t<T>>;
 
     template<typename T>
     using has_base = decltype(std::declval<T>().base());
@@ -97,6 +95,41 @@ namespace boost::parser::detail { namespace text { namespace detail {
         gr_rng_cp_iter_t<T>>;
 
 #endif
+
+#if 0 // TODO
+    template<typename...>
+    struct void_
+    {
+        using type = void;
+        static constexpr bool value = true;
+    };
+
+    template<typename... T>
+    using void_t = typename void_<T...>::type;
+
+    template<typename T>
+    struct fixup_ptr
+    {
+        using type = T;
+    };
+
+    template<typename T>
+    using remove_v_t = typename std::remove_volatile<T>::type;
+
+    template<typename T>
+    struct fixup_ptr<T *>
+    {
+        using type = remove_v_t<T> const *;
+    };
+
+    template<typename T>
+    using fixup_ptr_t = typename fixup_ptr<T>::type;
+
+    template<typename T>
+    using remove_cv_ref_t =
+        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+#endif
+
 
     template<typename T>
     using has_begin = decltype(*detail::begin(std::declval<T &>()));
@@ -881,71 +914,38 @@ namespace boost::parser::detail { namespace text { namespace detail {
         return detail::hash_combine_(retval, cps);
     }
 
-    template<typename T>
-    constexpr bool is_cu8_v = std::integral_constant<
-        bool,
-        std::is_same_v<T, char>
-#if defined(__cpp_char8_t)
-            || std::is_same_v<T, char8_t>
-#endif
-        >{};
-
     template<typename Iter>
     using char_value_expr = std::integral_constant<
         bool,
-        is_cu8_v<typename std::iterator_traits<Iter>::value_type>>;
+        std::is_integral<
+            typename std::iterator_traits<Iter>::value_type>::value &&
+            sizeof(typename std::iterator_traits<Iter>::value_type) == 1>;
 
     template<typename Iter>
     constexpr bool is_char_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, char_value_expr, Iter>::value;
 
-    template<typename T>
-    constexpr bool is_cu16_v = std::integral_constant<
-        bool,
-#if defined(_MSC_VER)
-        std::is_same_v<T, wchar_t> ||
-#endif
-            std::is_same_v<T, char16_t>>{};
-
     template<typename Iter>
     using _16_value_expr = std::integral_constant<
         bool,
-        is_cu16_v<typename std::iterator_traits<Iter>::value_type>>;
+        std::is_integral<
+            typename std::iterator_traits<Iter>::value_type>::value &&
+            sizeof(typename std::iterator_traits<Iter>::value_type) == 2>;
 
     template<typename Iter>
     constexpr bool is_16_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, _16_value_expr, Iter>::value;
 
-    template<typename T>
-    constexpr bool is_cp_v = std::integral_constant<
-        bool,
-#if !defined(_MSC_VER)
-        std::is_same_v<T, wchar_t> ||
-#endif
-            std::is_same_v<T, char32_t>>{};
-
     template<typename Iter>
     using cp_value_expr = std::integral_constant<
         bool,
-        is_cp_v<typename std::iterator_traits<Iter>::value_type>>;
+        std::is_integral<
+            typename std::iterator_traits<Iter>::value_type>::value &&
+            sizeof(typename std::iterator_traits<Iter>::value_type) == 4>;
 
     template<typename Iter>
     constexpr bool is_cp_ptr_v = std::is_pointer<Iter>::value &&
         detected_or_t<std::false_type, cp_value_expr, Iter>::value;
-
-    template<typename Iter>
-    using iter_traits_value_expr =
-        typename std::iterator_traits<Iter>::value_type;
-
-    template<typename Iter>
-    using iter_traits_value_t =
-        detected_or_t<void, iter_traits_value_expr, remove_cv_ref_t<Iter>>;
-
-    template<typename Iter>
-    constexpr bool is_utf_ptr_v = std::is_pointer_v<remove_cv_ref_t<Iter>> &&
-                                  (is_cu8_v<iter_traits_value_t<Iter>> ||
-                                   is_cu16_v<iter_traits_value_t<Iter>> ||
-                                   is_cp_v<iter_traits_value_t<Iter>>);
 
 }}}
 

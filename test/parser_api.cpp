@@ -6,11 +6,13 @@
  *   http://www.boost.org/LICENSE_1_0.txt)
  */
 #include <boost/parser/parser.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #include "ill_formed.hpp"
 
 #include <gtest/gtest.h>
 
+#include <any>
 #include <deque>
 
 
@@ -490,7 +492,7 @@ TEST(parser, bool_)
     }
     {
         char const * str = "true ";
-        auto r = boost::parser::detail::text::as_utf32(str);
+        auto r = boost::parser::as_utf32(str);
         bool b = false;
         auto first = r.begin();
         auto const last = r.end();
@@ -499,7 +501,7 @@ TEST(parser, bool_)
     }
     {
         char const * str = "false";
-        auto r = boost::parser::detail::text::as_utf32(str);
+        auto r = boost::parser::as_utf32(str);
         bool b = true;
         auto first = r.begin();
         auto const last = r.end();
@@ -1027,7 +1029,8 @@ TEST(parser, raw)
             std::string const str = "";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.begin());
         }
         {
             std::string const str = "z";
@@ -1039,25 +1042,29 @@ TEST(parser, raw)
             range_t r;
             auto first = str.begin();
             EXPECT_TRUE(parse(first, str.end(), parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.begin());
         }
         {
             std::string const str = "zs";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.end()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.end());
         }
         {
             std::string const str = "zszs";
             range_t r;
             EXPECT_TRUE(parse(str, parser, r));
-            EXPECT_EQ(r, range_t(str.begin(), str.end()));
+            EXPECT_EQ(r.begin(), str.begin());
+            EXPECT_EQ(r.end(), str.end());
         }
         {
             std::string const str = "";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.begin());
         }
         {
             std::string const str = "z";
@@ -1069,19 +1076,22 @@ TEST(parser, raw)
             auto first = str.begin();
             std::optional<range_t> result = parse(first, str.end(), parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.begin()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.begin());
         }
         {
             std::string const str = "zs";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.end()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.end());
         }
         {
             std::string const str = "zszs";
             std::optional<range_t> result = parse(str, parser);
             EXPECT_TRUE(result);
-            EXPECT_EQ(*result, range_t(str.begin(), str.end()));
+            EXPECT_EQ(result->begin(), str.begin());
+            EXPECT_EQ(result->end(), str.end());
         }
     }
 }
@@ -1713,14 +1723,12 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = string("a") >> string("b") >> string("c") |
                                 string("x") >> string("y") >> string("z");
-#if 0 // TODO: Document why this assigns "c" instead of "abc" to the any.
         {
             char const * str = "abc";
-            boost::parser::detail::any_copyable chars;
+            std::any chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars.cast<std::string>(), "abc");
+            EXPECT_EQ(std::any_cast<std::string>(chars), "c");
         }
-#endif
 
         {
             char const * str = "xyz";
@@ -1893,8 +1901,8 @@ TEST(parser, attr_out_param_compat)
                 std::optional<tuple<std::vector<char32_t>, std::string>>>);
 
         tuple<std::string, std::string> result;
-        bool const success = bp::parse(
-            boost::parser::detail::text::as_utf8(u8"rôle foofoo"), p, result);
+        bool const success =
+            bp::parse(boost::parser::as_utf8(u8"rôle foofoo"), p, result);
         using namespace bp::literals;
         assert(
             success && get(result, 0_c) == (char const *)u8"rôle" &&

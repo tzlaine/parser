@@ -4,6 +4,7 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
+#include <boost/parser/subrange.hpp>
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
@@ -22,7 +23,7 @@
 
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
-#include <boost/parser/detail/text/detail/unpack.hpp>
+#include <boost/parser/detail/text/unpack.hpp>
 
 #include <type_traits>
 #include <variant>
@@ -30,49 +31,6 @@
 
 
 namespace boost { namespace parser {
-
-    /** A simple view type used throughout the rest of the library, similar to
-        `std::ranges::subrange`. */
-#if BOOST_PARSER_USE_CONCEPTS
-    template<std::forward_iterator I, std::sentinel_for<I> S = I>
-#else
-    template<typename I, typename S = I>
-#endif
-    struct subrange
-        : parser::detail::stl_interfaces::view_interface<subrange<I, S>>
-    {
-        using iterator = I;
-        using sentinel = S;
-
-        constexpr subrange() = default;
-        constexpr subrange(iterator first, sentinel last) :
-            first_(first), last_(last)
-        {}
-
-        constexpr iterator begin() const noexcept { return first_; }
-        constexpr sentinel end() const noexcept { return last_; }
-
-        friend bool operator==(subrange lhs, subrange rhs) noexcept
-        {
-            return lhs.begin() == rhs.begin() && lhs.end() == rhs.end();
-        }
-
-    private:
-        iterator first_;
-        sentinel last_;
-    };
-
-    /** Makes a `subrange<I, S>` from an `I` and an `S`. */
-#if BOOST_PARSER_USE_CONCEPTS
-    template<std::forward_iterator I, std::sentinel_for<I> S = I>
-#else
-    template<typename I, typename S = I>
-#endif
-    constexpr subrange<I, S> make_subrange(I first, S last) noexcept
-    {
-        return subrange<I, S>(first, last);
-    }
-
 
     /** A placeholder type used to represent the absence of information,
         value, etc., inside semantic actions.  For instance, calling
@@ -790,7 +748,7 @@ namespace boost { namespace parser {
         template<
             typename Context,
             typename T,
-            bool Callable = is_detected<callable, T const &, Context const &>{}>
+            bool Callable = is_detected_v<callable, T const &, Context const &>>
         struct resolve_impl
         {
             static auto call(Context const &, T const & x) { return x; }
@@ -879,7 +837,7 @@ namespace boost { namespace parser {
                 a = trie_t{};
                 trie_t & trie = a.cast<trie_t>();
                 for (auto const & e : symbol_parser.initial_elements()) {
-                    trie.insert(text::as_utf32(e.first), e.second);
+                    trie.insert(e.first | text::as_utf32, e.second);
                 }
                 return trie;
             } else {
@@ -899,7 +857,7 @@ namespace boost { namespace parser {
 
         template<typename T, typename U>
         constexpr bool is_equality_comparable_with_v =
-            is_detected<comparison, T, U>::value;
+            is_detected_v<comparison, T, U>;
 
         template<typename T>
         struct is_nope : std::false_type
@@ -973,12 +931,12 @@ namespace boost { namespace parser {
         template<typename T>
         struct is_utf8_view : std::false_type
         {};
-        template<typename I, typename S>
-        struct is_utf8_view<text::utf8_view<I, S>> : std::true_type
+        template<typename V>
+        struct is_utf8_view<text::utf8_view<V>> : std::true_type
         {};
 
         template<typename F, typename... Args>
-        constexpr bool is_invocable_v = is_detected<callable, F, Args...>::value;
+        constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
 #if BOOST_PARSER_USE_CONCEPTS
 
@@ -1024,8 +982,8 @@ namespace boost { namespace parser {
             std::declval<T>().end()));
 
         template<typename T>
-        constexpr bool is_container_v = is_detected<has_insert, T>::value &&
-            is_detected<has_range_insert, T>::value;
+        constexpr bool is_container_v =
+            is_detected_v<has_insert, T> && is_detected_v<has_range_insert, T>;
 
         template<typename T, typename U>
         constexpr bool container_and_value_type = is_container_v<T> &&
@@ -1050,7 +1008,7 @@ namespace boost { namespace parser {
         template<typename T>
         constexpr bool is_parsable_range_v = is_parsable_code_unit_v<
             remove_cv_ref_t<detected_t<has_begin, T>>> &&
-            is_detected<has_end, T>::value;
+            is_detected_v<has_end, T>;
 
         template<typename T>
         constexpr bool is_parsable_pointer_v =
@@ -1247,7 +1205,7 @@ namespace boost { namespace parser {
                 return;
             if constexpr (needs_transcoding_to_utf8<Container, T>) {
                 char32_t cps[1] = {(char32_t)x};
-                auto const r = text::as_utf8(cps);
+                auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
                 c.insert(c.end(), std::move(x));
@@ -1272,7 +1230,8 @@ namespace boost { namespace parser {
             if constexpr (needs_transcoding_to_utf8<
                               Container,
                               iter_value_t<Iter>>) {
-                auto const r = text::as_utf8(first, last);
+                auto const r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                               text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
                 c.insert(c.end(), first, last);
@@ -1432,7 +1391,7 @@ namespace boost { namespace parser {
             operator!=(T c_, char_range<Iter, Sentinel> const & chars)
             {
                 if (sizeof(c_) == 4) {
-                    auto const cps = text::as_utf32(chars.chars_);
+                    auto const cps = chars.chars_ | text::as_utf32;
                     using element_type = decltype(*cps.begin());
                     element_type const c = c_;
                     return text::find(cps.begin(), cps.end(), c) == cps.end();
@@ -2105,34 +2064,6 @@ namespace boost { namespace parser {
             }
         }
 
-        template<typename I, typename S>
-        text::utf32_view<I, S>
-        remove_utf32_terminator(text::utf32_view<I, S> view)
-        {
-            return view;
-        }
-        template<typename I>
-        text::utf32_view<I> remove_utf32_terminator(text::utf32_view<I> view)
-        {
-            if (!view.empty() && view.back() == 0) {
-                return text::utf32_view<I>(
-                    view.begin(),
-#if BOOST_PARSER_USE_CONCEPTS
-                    std::ranges::prev(view.end())
-#else
-                    std::prev(view.end())
-#endif
-                );
-            }
-            return view;
-        }
-        template<typename R>
-        auto as_utf32_no_terminator(R & r)
-            -> decltype(detail::remove_utf32_terminator(text::as_utf32(r)))
-        {
-            return detail::remove_utf32_terminator(text::as_utf32(r));
-        }
-
         template<typename R>
         constexpr auto make_input_subrange(R && r) noexcept
         {
@@ -2142,23 +2073,19 @@ namespace boost { namespace parser {
                 if constexpr (std::is_same_v<value_type, char>) {
                     return parser::make_subrange(r, text::null_sentinel);
                 } else {
-                    auto r_ = text::as_utf32(r);
-                    return parser::make_subrange(r_.begin(), r_.end());
+                    return r | text::as_utf32;
                 }
             } else {
                 using value_type = range_value_t<r_t>;
                 if constexpr (std::is_array_v<r_t>) {
-                    auto first = std::begin(r);
-                    auto last = std::end(r);
-                    static_assert(std::is_pointer_v<decltype(first)>);
-                    static_assert(std::is_pointer_v<decltype(last)>);
-                     if (first != last && !*std::prev(last))
-                        --last;
                     if constexpr (std::is_same_v<value_type, char>) {
+                        auto first = std::begin(r);
+                        auto last = std::end(r);
+                        if (first != last && !*std::prev(last))
+                            --last;
                         return parser::make_subrange(first, last);
                     } else {
-                        auto r_ = text::as_utf32(first, last);
-                        return parser::make_subrange(r_.begin(), r_.end());
+                        return r | text::as_utf32;
                     }
                 } else {
                     if constexpr (
@@ -2166,9 +2093,7 @@ namespace boost { namespace parser {
                         !is_utf8_view<r_t>::value) {
                         return parser::make_subrange(std::begin(r), std::end(r));
                     } else {
-                        auto r_ = detail::remove_utf32_terminator(
-                            text::as_utf32(std::begin(r), std::end(r)));
-                        return parser::make_subrange(r_.begin(), r_.end());
+                        return r | text::as_utf32;
                     }
                 }
             }
@@ -3307,13 +3232,6 @@ namespace boost { namespace parser {
                 constexpr bool attr_container = container<attr_t>;
 
                 if constexpr (out_container == attr_container) {
-                    // TODO: Document that the user can pass anything she
-                    // likes for retval, but that if retval is not a
-                    // container, but the default retval would have been,
-                    // weird assignments may occur.  For instance,
-                    // parse(first, last, char_ >> char_, a), where 'a' is
-                    // a boost::any, will only yeild a single char in the
-                    // any.
                     parser.call(
                         use_cbs,
                         first,
@@ -3885,7 +3803,7 @@ namespace boost { namespace parser {
         {
             parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            return trie_[parser::detail::text::as_utf32(str)];
+            return trie_[str | detail::text::as_utf32];
         }
 
         /** Inserts an entry consisting of a UTF-8 string `str` to match, and
@@ -3896,7 +3814,7 @@ namespace boost { namespace parser {
         {
             parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.insert(parser::detail::text::as_utf32(str), std::move(x));
+            trie_.insert(str | detail::text::as_utf32, std::move(x));
         }
 
         /** Erases the entry whose UTF-8 match string is `str` from the copy
@@ -3906,7 +3824,7 @@ namespace boost { namespace parser {
         {
             parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
                 detail::get_trie(context, ref());
-            trie_.erase(parser::detail::text::as_utf32(str));
+            trie_.erase(str | detail::text::as_utf32);
         }
 
         template<
@@ -5305,8 +5223,9 @@ namespace boost { namespace parser {
             }
 
             if constexpr (sizeof(*first) == 4) {
-                auto const cps = parser::detail::text::as_utf32(
-                    expected_first_, expected_last_);
+                auto const cps = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(
+                                     expected_first_, expected_last_) |
+                                 detail::text::as_utf32;
                 auto const mismatch =
                     detail::mismatch(first, last, cps.begin(), cps.end());
                 if (mismatch.second != cps.end()) {
@@ -6442,7 +6361,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6542,7 +6462,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6646,7 +6567,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_, attr);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6756,7 +6678,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6814,7 +6737,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -6870,7 +6794,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7069,7 +6994,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7194,7 +7120,8 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = parser::detail::text::as_utf32(first, last);
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
+                     detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);

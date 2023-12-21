@@ -196,7 +196,7 @@ namespace boost { namespace parser { namespace detail::hl {
         template<typename T, typename U>
         constexpr bool operator()(T const & t, U const & u)
         {
-            if constexpr (detail::is_detected<comparable, T, U>::value) {
+            if constexpr (detail::is_detected_v<comparable, T, U>) {
                 return t == u;
             } else {
                 return false;

@@ -9,7 +9,7 @@
 #include <boost/parser/detail/stl_interfaces/config.hpp>
 #include <boost/parser/detail/stl_interfaces/detail/view_closure.hpp>
 
-#include <boost/parser/detail/text/detail/detection.hpp>
+#include <boost/parser/detail/detection.hpp>
 
 #include <tuple>
 #include <type_traits>
@@ -50,10 +50,6 @@
 
 namespace boost::parser::detail { namespace stl_interfaces {
     namespace detail {
-        template<template<typename...> class Template, typename... Args>
-        constexpr bool is_detected_v =
-            text::detail::is_detected<Template, Args...>::value;
-
         template<typename F, typename... Args>
         using invocable_expr =
             decltype(std::declval<F>()(std::declval<Args>()...));
