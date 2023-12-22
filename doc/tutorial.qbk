@@ -1167,7 +1167,7 @@ parser, but want to parse strings that may contain spaces, you should use
 _lexeme_:
 
     namespace bp = boost::parser;
-    auto const string_parser = bp::lexeme['"' >> *(bp::char_ = '"') >> '"'];
+    auto const string_parser = bp::lexeme['"' >> *(bp::char_ - '"') >> '"'];
 
 Without _lexeme_, our string parser would correctly match `"foo bar"`, but the
 generated attribute would be `"foobar"`.
@@ -1649,7 +1649,7 @@ overloads of _p_ indicate failure if the entire input is not matched.
 [heading With or without an attribute out-parameter]
 
     namespace bp = boost::parser;
-    auto const p = '"' >> *(bp::char_ = '"') >> '"';
+    auto const p = '"' >> *(bp::char_ - '"') >> '"';
     char const * str = "\"two words\"" ;
 
     std::string result_1;
@@ -1671,7 +1671,7 @@ so, the parser was successful, but it still generates an attribute that is an
 [heading With or without a skipper]
 
     namespace bp = boost::parser;
-    auto const p = '"' >> *(bp::char_ = '"') >> '"';
+    auto const p = '"' >> *(bp::char_ - '"') >> '"';
     char const * str = "\"two words\"" ;
 
     auto result_1 = bp::parse(str, p);         // !!result_1 is true; *result_1 is "two words"
@@ -1831,7 +1831,7 @@ subparser, the result of that parse is assigned/appended to the attribute
 out-param.  Since appending would not work (you cannot append to a sequence
 inside a `std::any`, because you cannot see that there is a sequence in
 there), assignment is done instead.  This assignemnt is done for each of the
-three subparsers, but of course it replaces what in the `std::any` previously.
+three subparsers, but of course it replaces what was in the `std::any` previously.
 
 If we had passed a `std::string` for `O` instead, the result would hae been
 much less surprising.
