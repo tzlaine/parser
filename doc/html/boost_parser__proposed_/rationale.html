@@ -6,12 +6,12 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../index.html" title="Chapter 1. Boost.Parser (Proposed)">
-<link rel="prev" href="../boost/parser/get_idm20162.html" title="Function template get">
+<link rel="prev" href="../boost/parser/get_idm20577.html" title="Function template get">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="../boost/parser/get_idm20162.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a>
+<a accesskey="p" href="../boost/parser/get_idm20577.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
@@ -70,6 +70,17 @@
       using your favorite debugger to step through the stack to diagnose the problem
       is a <span class="bold"><strong>much</strong></span> faster way to fix problems.
     </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        The example below is taken from an older version of Boost.Parser, so some
+        of the symbol names may be unfamiliar. However, it's a real example, and
+        it applies just as well to later versions of Boost.Parser.
+      </p></td></tr>
+</table></div>
 <p>
       To demonstrate the difference, I added these three lines to the end of the
       <code class="computeroutput">object_init</code> lambda in the <a class="link" href="extended_examples/parsing_json.html" title="Parsing JSON">Parsing
@@ -80,8 +91,8 @@ if (x)
     std::cout &lt;&lt; "Oops!  What x?";
 </pre>
 <p>
-      Note that the parser that <code class="computeroutput">object_init</code> is attached to has no locals.
-      Here is an example of how you can investigate this error at run time:
+      The parser that <code class="computeroutput">object_init</code> is attached to has no locals. Here
+      is an example of how you can investigate this error at run time:
     </p>
 <p>
 </p>
@@ -239,7 +250,7 @@ make: *** [Makefile:827: json] Error 2
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../boost/parser/get_idm20162.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a>
+<a accesskey="p" href="../boost/parser/get_idm20577.html"><img src="../images/prev.png" alt="Prev"></a><a accesskey="u" href="../index.html"><img src="../images/up.png" alt="Up"></a><a accesskey="h" href="../index.html"><img src="../images/home.png" alt="Home"></a>
 </div>
 </body>
 </html>

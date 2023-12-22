@@ -42,7 +42,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19627.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -199,7 +199,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19361.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -453,7 +453,7 @@
         code path, all matching is code point based, and so the attribute type is
         the type used to represent code points. For typical uses, that type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>. All parsing of UTF-8 falls under
         this typical case. The only time the code point type will be something different
-        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19627.html" title="Function template parse">parse()</a></code> with a code point sequence
+        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code> with a code point sequence
         whose element type is something besides <code class="computeroutput"><span class="identifier">uint32_t</span></code>.
         For example, when you parse plain <code class="computeroutput"><span class="keyword">char</span></code>s,
         meaning that the parsing is in the non-Unicode code path, the attribute of
@@ -468,11 +468,11 @@
         code point type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>,
         so the attribute type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>:
       </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf8</span><span class="special">(</span><span class="string">"some text"</span><span class="special">),</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"some text"</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf8</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;));</span>
 </pre>
 <p>
-        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19627.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
+        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
         the input range's element type is:
       </p>
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="identifier">U</span><span class="string">"some text"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
@@ -761,7 +761,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19310.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -773,7 +773,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19310.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>

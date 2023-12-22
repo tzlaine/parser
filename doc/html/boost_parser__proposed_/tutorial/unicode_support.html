@@ -27,12 +27,12 @@
         different in the two code paths, as they are written generically. The only
         difference is that the Unicode code path parses the input as a range of code
         points, and the non-Unicode path does not. In effect, this means that, in
-        the Unicode code path, when you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19627.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code> for some input range <code class="computeroutput"><span class="identifier">r</span></code>
+        the Unicode code path, when you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code> for some input range <code class="computeroutput"><span class="identifier">r</span></code>
         and some parser <code class="computeroutput"><span class="identifier">p</span></code>, the parse
-        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19627.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">r</span><span class="special">),</span> <span class="identifier">p</span><span class="special">)</span></code> instead. (Of course, it does not matter
-        if <code class="computeroutput"><span class="identifier">r</span></code> is a null-terminated
-        pointer, a proper range, or an iterator/sentinel pair; those all work fine
-        with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">()</span></code>.)
+        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code>
+        instead. (Of course, it does not matter if <code class="computeroutput"><span class="identifier">r</span></code>
+        is a null-terminated pointer, a proper range, or an iterator/sentinel pair;
+        those all work fine with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span></code>.)
       </p>
 <p>
         Matching "characters" within Boost.Parser's parsers is assumed
@@ -115,7 +115,7 @@
 
     <span class="comment">// Since the input is a range of char8_t, this will do Unicode</span>
     <span class="comment">// parsing.  The same thing would have happened if we passed</span>
-    <span class="comment">// boost::text::as_utf32(str) or even boost::text::as_utf8(str).</span>
+    <span class="comment">// str | boost::parser::as_utf32 or even str | boost::parser::as_utf8.</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">chars</span><span class="special">;</span>
     <span class="identifier">assert</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">str</span><span class="special">.</span><span class="identifier">end</span><span class="special">(),</span> <span class="special">*</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span><span class="special">(</span><span class="char">'\xcc'</span><span class="special">),</span> <span class="identifier">chars</span><span class="special">));</span>
 
@@ -127,7 +127,8 @@
 </pre>
 <h5>
 <a name="boost_parser__proposed_.tutorial.unicode_support.h0"></a>
-        <span class="phrase"><a name="boost_parser__proposed_.tutorial.unicode_support.transcoding"></a></span><a class="link" href="unicode_support.html#boost_parser__proposed_.tutorial.unicode_support.transcoding">Transcoding</a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.unicode_support.implicit_transcoding"></a></span><a class="link" href="unicode_support.html#boost_parser__proposed_.tutorial.unicode_support.implicit_transcoding">Implicit
+        Transcoding</a>
       </h5>
 <p>
         Additionally, it is expected that most programs will use UTF-8 for the encoding
@@ -157,6 +158,63 @@
         instance, though the entire interface of <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
         or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span></code>, UTF-32 comparisons are used
         internally.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.unicode_support.h1"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.unicode_support.explicit_transcoding"></a></span><a class="link" href="unicode_support.html#boost_parser__proposed_.tutorial.unicode_support.explicit_transcoding">Explicit
+        Transcoding</a>
+      </h5>
+<p>
+        I mentioned above that the use of <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">utf</span><span class="special">*</span><span class="identifier">_view</span></code> as the range to parse opts you in
+        to Unicode parsing. Here's a bit more about these views and how best to use
+        them.
+      </p>
+<p>
+        If you want to do Unicode parsing, you're always going to be comparing code
+        points at each step of the parse. As such, you're going to implicitly convert
+        any parse input to UTF-32, if needed. This is what all the parse API functions
+        do internally.
+      </p>
+<p>
+        However, there are times when you have parse input that is a sequence of
+        UTF-8-encoded <code class="computeroutput"><span class="keyword">char</span></code>s, and you
+        want to do Unicode-aware parsing. As mentioned previously, Boost.Parser has
+        a special case for <code class="computeroutput"><span class="keyword">char</span></code> inputs,
+        and it will <span class="bold"><strong>not</strong></span> assume that <code class="computeroutput"><span class="keyword">char</span></code> sequenes are UTF-8. If you want to tell
+        the parse API to do Unicode processing on them anyway, you can use the <code class="computeroutput"><span class="identifier">as_utf32</span></code> range adapter.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">p</span> <span class="special">=</span> <span class="char">'"'</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">-</span> <span class="char">'"'</span> <span class="special">-</span> <span class="number">0xb6</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="char">'"'</span><span class="special">;</span>
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="special">*</span> <span class="identifier">str</span> <span class="special">=</span> <span class="string">"\"two wörds\""</span><span class="special">;</span> <span class="comment">// ö is two code units, 0xc3 0xb6</span>
+
+<span class="keyword">auto</span> <span class="identifier">result_1</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span>                <span class="comment">// Treat each char as a code point (typically ASCII).</span>
+<span class="identifier">assert</span><span class="special">(!</span><span class="identifier">result_1</span><span class="special">);</span>
+<span class="keyword">auto</span> <span class="identifier">result_2</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">str</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">,</span> <span class="identifier">p</span><span class="special">);</span> <span class="comment">// Unicode-aware parsing on code points.</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">result_2</span><span class="special">);</span>
+</pre>
+<p>
+        The first call to <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+        treats each <code class="computeroutput"><span class="keyword">char</span></code> as a code point,
+        and since <code class="computeroutput"><span class="string">"ö"</span></code> is the
+        pair of code units <code class="computeroutput"><span class="number">0xc3</span></code> <code class="computeroutput"><span class="number">0xb6</span></code>, the parse matches the second code unit
+        against the <code class="computeroutput"><span class="special">-</span> <span class="number">0xb6</span></code>
+        part of the parser above, causing the parse to fail. This happens because
+        each code unit/<code class="computeroutput"><span class="keyword">char</span></code> in <code class="computeroutput"><span class="identifier">str</span></code> is treated as an independent code point.
+      </p>
+<p>
+        The second call to <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code> succeeds because, when the parse gets to
+        the code point for <code class="computeroutput"><span class="char">'ö'</span></code>, it is
+        <code class="computeroutput"><span class="number">0xf6</span></code> (U+00F6), which does not
+        match the <code class="computeroutput"><span class="special">-</span> <span class="number">0xb6</span></code>
+        part of the parser.
+      </p>
+<p>
+        The other adaptors <code class="computeroutput"><span class="identifier">as_utf16</span></code>
+        and <code class="computeroutput"><span class="identifier">as_utf32</span></code> are also provided
+        for completeness, if you want to use them. They each can transcode any sequence
+        of character types. A null-terminated string is considered a sequence of
+        character type.
       </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
