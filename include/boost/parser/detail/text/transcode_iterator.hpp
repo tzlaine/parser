@@ -947,9 +947,19 @@ namespace boost::parser::detail { namespace text {
         {
             return *it == detail::iter_value_t<I>{};
         }
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if !defined(__cpp_impl_three_way_comparison)
+        template<typename I>
+        friend constexpr auto operator==(null_sentinel_t, I it)
+        {
+            return *it == detail::iter_value_t<I>{};
+        }
         template<typename I>
         friend constexpr auto operator!=(I it, null_sentinel_t)
+        {
+            return *it != detail::iter_value_t<I>{};
+        }
+        template<typename I>
+        friend constexpr auto operator!=(null_sentinel_t, I it)
         {
             return *it != detail::iter_value_t<I>{};
         }
@@ -2773,8 +2783,8 @@ namespace boost::parser::detail { namespace text {
             }
         }
 
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        friend constexpr bool operator!=(
+#if !defined(__cpp_impl_three_way_comparison)
+        friend BOOST_PARSER_CONSTEXPR bool operator!=(
             std::enable_if_t<is_forward<I>, utf_iterator> lhs, utf_iterator rhs)
         { return !(lhs == rhs); }
 #endif
@@ -2794,8 +2804,8 @@ namespace boost::parser::detail { namespace text {
             }
         }
 
-#if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        friend constexpr bool operator!=(utf_iterator lhs, S rhs)
+#if !defined(__cpp_impl_three_way_comparison)
+        friend BOOST_PARSER_CONSTEXPR bool operator!=(utf_iterator lhs, S rhs)
         { return !(lhs == rhs); }
 #endif
 
