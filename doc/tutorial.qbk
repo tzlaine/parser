@@ -2236,7 +2236,7 @@ results trying to match UTF-8 input in the Unicode and non-Unicode code paths:
     }
 
 
-[heading Transcoding]
+[heading Implicit Transcoding]
 
 Additionally, it is expected that most programs will use UTF-8 for the
 encoding of Unicode strings.  _Parser_ is written with this assumption in
@@ -2254,6 +2254,50 @@ or UTF-32 attribute to UTF-16 within a semantic action.]
 The treatment of strings as UTF-8 is ubiquitous within _Parser_.  For
 instance, though the entire interface of _symbols_ uses _std_str_ or
 `std::string_view`, UTF-32 comparisons are used internally.
+
+
+[heading Explicit Transcoding]
+
+I mentioned above that the use of `boost::parser::utf*_view` as the range to
+parse opts you in to Unicode parsing.  Here's a bit more about these views and
+how best to use them.
+
+If you want to do Unicode parsing, you're always going to be comparing code
+points at each step of the parse.  As such, you're going to implicitly convert
+any parse input to UTF-32, if needed.  This is what all the parse API
+functions do internally.
+
+However, there are times when you have parse input that is a sequence of
+UTF-8-encoded `char`s, and you want to do Unicode-aware parsing.  As mentioned
+previously, _Parser_ has a special case for `char` inputs, and it will *not*
+assume that `char` sequenes are UTF-8.  If you want to tell the parse API to
+do Unicode processing on them anyway, you can use the `as_utf32` range
+adapter.
+
+    namespace bp = boost::parser;
+
+    auto const p = '"' >> *(bp::char_ - '"' - 0xb6) >> '"';
+    char const * str = "\"two wörds\""; // ö is two code units, 0xc3 0xb6
+
+    auto result_1 = bp::parse(str, p);                // Treat each char as a code point (typically ASCII).
+    assert(!result_1);
+    auto result_2 = bp::parse(str | bp::as_utf32, p); // Unicode-aware parsing on code points.
+    assert(result_2);
+
+The first call to `parse()` treats each `char` as a code point, and since
+`"ö"` is the pair of code units `0xc3` `0xb6`, the parse matches the second
+code unit against the `- 0xb6` part of the parser above, causing the parse to
+fail.  This happens because each code unit/`char` in `str` is treated as an
+independent code point.
+
+The second call to `parse()` succeeds because, when the parse gets to the code
+point for `'ö'`, it is `0xf6` (U+00F6), which does not match the `- 0xb6` part
+of the parser.
+
+The other adaptors `as_utf16` and `as_utf32` are also provided for
+completeness, if you want to use them.  They each can transcode any sequence
+of character types.  A null-terminated string is considered a sequence of
+character type.
 
 [endsect]
 
