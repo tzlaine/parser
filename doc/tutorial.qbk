@@ -59,7 +59,7 @@ of its subparsers to the input, one at a time, in order; it stops after
 matching at most one subparser.  It matches the input iff one of its
 subparsers does.
 
-_Parser_ parsers each have an attribute associated with them, or explicitly
+_Parser_ parsers each have an /attribute/ associated with them, or explicitly
 have no attribute.  An attribute is a value that the parser generates when it
 matches the input.  For instance, the parser _d_ generates a `double` when it
 matches the input.  Since it is not possible to write a type trait that
@@ -99,7 +99,7 @@ The arguments here are: `input`, the range to parse; `*bp::char_`, the parser
 used to do the parse; and `result`, an out-parameter into which to put the
 result of the parse.  Don't get too caught up on this method of getting the
 parse result out of _p_; there are multiple ways of doing so, and we'll cover
-all of them in subsequent examples.
+all of them in subsequent sections.
 
 Also, just ignore for now the fact that _Parser_ somehow figured out that the
 result type of the `*bp::char_` parser is a _std_str_.  There are clear rules
@@ -835,19 +835,19 @@ the input they match unless otherwise stated in the table below.]
      []]
 
     [[ `_ch_(arg0, arg1)` ]
-     [ Matches the next code point in the input `n`, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
+     [ Matches the next code point `n` in the input, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
      []]
 
     [[ `_ch_(r)` ]
-     [ Matches the next code point in the input `n`, if `n` is one of the code points in `r`. ]
+     [ Matches the next code point `n` in the input, if `n` is one of the code points in `r`. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on the size of `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC may not be.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of `r`.  This overload of _ch_ does *not* take parse arguments. ]]
+     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC is not.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of `r`.  This overload of _ch_ does *not* take parse arguments. ]]
 
     [[ _cp_ ]
      [ Matches a single code point. ]
-     [ `uint32_t` ]
-     [ Similar to _ch_, but with a fixed `uint32_t` attribute type; _cp_ has all the same call operator overloads as _ch_, though they are not repeated here, for brevity. ]]
+     [ `char32_t` ]
+     [ Similar to _ch_, but with a fixed `char32_t` attribute type; _cp_ has all the same call operator overloads as _ch_, though they are not repeated here, for brevity. ]]
 
     [[ _cu_ ]
      [ Matches a single code point. ]
@@ -1207,7 +1207,7 @@ already seen some of them used in this tutorial, especially `operator>>()` and
 `operator|()`, which are used to form sequence parsers and alternative
 parsers, respectively.
 
-Here are all the operators overloaded for parsers.  In the tables below:
+Here are all the operator overloaded for parsers.  In the tables below:
 
 * `c` is a character of type `char` or `char32_t`;
 
@@ -1230,14 +1230,14 @@ consume the input they match unless otherwise stated in the table below.]
     [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to undconditional _e_ only). ]]
     [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
     [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
-    [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p1)`] []]
-    [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p)`] []]
+    [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p)`] []]
     [[`p1 > p2`] [ Matches iff `p1` matches and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
-    [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p1)`] []]
-    [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p)`] []]
+    [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p)`] []]
     [[`p1 | p2`] [ Matches iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
-    [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p1)`] []]
-    [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p1)`] []]
+    [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p)`] []]
+    [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p)`] []]
     [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
     [[`p - c`] [ Equivalent to `p - lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p - r`] [ Equivalent to `p - lit(r)`. ] [`_ATTR_np_(p)`] []]
@@ -1259,6 +1259,14 @@ because, for any parser `p`, `_e_ | p` is equivalent to _e_, since _e_ always
 matches.  This is not true for _e_ parameterized with a condition.  For any
 condition `cond`, `_e_(cond)` is allowed to appear anywhere within an
 alternative parser.
+
+[note When looking at _Parser_ parsers in a debugger, or when looking at their
+reference documentation, you may see reference to the template _p_iface_.
+This template exists to provide the operator overloads described above.  It
+allows the parsers themselves to be very simple _emdash_ most parsers are just
+a struct with two member functions.  _p_iface_ is essentially invisible when
+using _Parser_, and you should never have to name this template in your own
+code. ]
 
 [endsect]
 
@@ -1302,7 +1310,7 @@ or evaluation of a parse predicate, and
     [[ `_attr_np_(x)` ]    [ `decltype(_RES_np_(x))` ][]]
     [[ _ch_ ]              [ The code point type in Unicode parsing, or `char` in non-Unicode parsing; see below. ]
      [Includes all the `_p` _udls_ that take a single character, and all parsers in the `boost::parser::ascii` namespace.]]
-    [[ _cp_ ]              [ `uint32_t` ]                []]
+    [[ _cp_ ]              [ `char32_t` ]                []]
     [[ _cu_ ]              [ `char` ]                    []]
     [[ `_lit_np_(x)`]      [ None. ]
      [Includes all the `_l` _udls_.]]
@@ -1332,26 +1340,18 @@ _ch_ is a bit odd, since its attribute type is polymorphic.  When you use _ch_
 to parse text in the non-Unicode code path (i.e. a string of `char`), the
 attribute is `char`.  When you use the exact same _ch_ to parse in the
 Unicode-aware code path, all matching is code point based, and so the
-attribute type is the type used to represent code points.  For typical uses,
-that type is `uint32_t`.  All parsing of UTF-8 falls under this typical case.
-The only time the code point type will be something different is if you call
-_p_ with a code point sequence whose element type is something besides
-`uint32_t`.  For example, when you parse plain `char`s, meaning that the
-parsing is in the non-Unicode code path, the attribute of _ch_ is `char`:
+attribute type is the type used to represent code points, `char32_t`.  All
+parsing of UTF-8 falls under this case.  For example, when you parse plain
+`char`s, meaning that the parsing is in the non-Unicode code path, the
+attribute of _ch_ is `char`:
 
     auto result = parse("some text", boost::parser::char_);
     static_assert(std::is_same_v<decltype(result), std::optional<char>>));
 
 When you parse UTF-8, the matching is done on a code point basis, and the code
-point type is `uint32_t`, so the attribute type is `uint32_t`:
+point type is `char32_t`, so the attribute type is `char32_t`:
 
     auto result = parse("some text" | boost::parser::as_utf8, boost::parser::char_);
-    static_assert(std::is_same_v<decltype(result), std::optional<uint32_t>>));
-
-When you parse code points by explicitly giving a code point range to _p_, the
-attribute type is whatever the input range's element type is:
-
-    auto result = parse(U"some text", boost::parser::char_);
     static_assert(std::is_same_v<decltype(result), std::optional<char32_t>>));
 
 [tip If you know or suspect that you will want to use the same parser in
@@ -1437,7 +1437,7 @@ simple:
 
 More formally, the attribute generation algorithm works like this.  For a
 sequence parser `p`, let the list of attribute types for the subparsers of `p`
-be `{a0, a1, a2, ..., an}`.
+be `a0, a1, a2, ..., an`.
 
 We get the attribute of `p` by evaluating a compile-time left fold operation,
 `left-fold({a1, a2, ..., an}, a0, OP)`.  `OP` is the combining operation that
@@ -1453,6 +1453,7 @@ that indicates that there is no attribute; `T` is a type; and `Ts...` is a
 parameter pack of one or more types.  Note that `T` may be the special type
 `none`.
 
+* `none >> T -> T`
 * `T >> none -> T`
 * `C<T> >> C<T> -> C<T>`
 * `T >> T -> vector<T>`
@@ -1461,6 +1462,7 @@ parameter pack of one or more types.  Note that `T` may be the special type
 * `C<T> >> optional<T> -> C<T>`
 * `optional<T> >> C<T> -> C<T>`
 * `hana::tuple<none> >> T -> hana::tuple<T>`
+* `T >> hana::tuple<none> -> hana::tuple<T>`
 * `hana::tuple<Ts...> >> T -> hana::tuple<Ts..., T>`
 
 Again, if the result is that the attribute is `hana::tuple<T>`, the attribute
@@ -1474,16 +1476,18 @@ becomes `T`.
 [heading Alternative parser attribute rules]
 
 The rules for alternative parsers are much simpler.  For an alternative parer
-`p`, let the list of attribute types for the subparsers of `p` be `{a0, a1,
-a2, ..., an}`.  The attribute of `p` is `std::variant<a0, a1, a2, ..., an>`,
-with these exceptions:
+`p`, let the list of attribute types for the subparsers of `p` be `a0, a1, a2,
+..., an`.  The attribute of `p` is `std::variant<a0, a1, a2, ..., an>`, with
+the following steps applied:
 
-* all the `none` attributes are left out, but if any were taken out, the
-  attribute become a `std::optional`;
+* all the `none` attributes are left out, and if any are, the attribute is
+  wrapped in a `std::optional`, like `std::optional<std::variant</*...*/>>`;
 
-* if the result is `std::variant<T>`, the result becomes `T` instead; and
+* if the attribute is `std::variant<T>` or `std::optional<std::variant<T>>`,
+  the attribute becomes instead `T` or `std::optional<T>`, respectively; and
 
-* if the result is `std::variant<>`, the result becomes `none` instead.
+* if the attribute is `std::variant<>` or `std::optional<std::variant<>>`, the
+  result becomes `none` instead.
 
 [heading Formation of containers in attributes]
 
@@ -1500,8 +1504,8 @@ containing elements of `x`'s type will form a single container.  However,
 of `char_ >> string("str")` is odd.  In the non-Unicode code path, `char_`'s
 attribute type is guaranteed to be `char`, so `_ATTR_np_(char_ >>
 string("str"))` is _std_str_.  If you are parsing UTF-8 in the Unicode code
-path, `char_`'s attribute type is `uint32_t`, and `_ATTR_np_(char_ >>
-string("str"))` is therefor `hana::tuple<uint32_t, std::string>`.
+path, `char_`'s attribute type is `char32_t`, and `_ATTR_np_(char_ >>
+string("str"))` is therefor `hana::tuple<char32_t, std::string>`.
 
 Again, there are no special rules for combining values and containers.  Every
 combination results from an exact match.
@@ -1561,18 +1565,18 @@ common:
 * They each take at least a range to parse and a parser.  The "range to parse"
   may be an iterator/sentinel pair or an single range-like object.
 
-* They each require forward iterability of the input.
+* They each require forward iterability of the range to parse.
 
 * They each accept any range with an character element type.  This means that
   they can each parse ranges of `char`, `wchar_t`, `char8_t`, `char16_t`, or
   `char32_t`.
 
 * When you call any of the iterator/sentinel pair overloads of _p_, for
- example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
- advancing `first` as it goes.  If the parse succeeds, the entire input may or
- may not have been matched.  The value of `first` will indicate the last
- location within the input that `p` matched.  The *whole* input was matched if
- and only if `first == last` after the call to _p_.
+  example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
+  advancing `first` as it goes.  If the parse succeeds, the entire input may
+  or may not have been matched.  The value of `first` will indicate the last
+  location within the input that `p` matched.  The *whole* input was matched
+  if and only if `first == last` after the call to _p_.
 
 * When you call any of the range-like overloads of _p_, for example `_p_np_(r,
   p, _ws_)`, _p_ only indicates success if *all* of `r` was matched by `p`.
@@ -1711,8 +1715,8 @@ everything is fine:
     assert(success && result == std::deque<int>({'f', 'o', 'o'}));
 
 This works, too, even though it requires inserting elements from a generated
-sequence of `uint32_t` into a container of `char` (remember that the attribute
-type of `+_cp_` is _std_vec_uint_):
+sequence of `char32_t` into a container of `char` (remember that the attribute
+type of `+_cp_` is _std_vec_char32_):
 
     namespace bp = boost::parser;
     auto const p = +bp::cp;
@@ -1734,9 +1738,9 @@ at the top level.  It is an element of the result tuple:
         std::is_same_v<
             attr_type,
             std::optional<
-                boost::hana::tuple<std::vector<uint32_t>, std::string>>>);
+                boost::hana::tuple<std::vector<char32_t>, std::string>>>);
 
-    // This is similar to attr_type, with the std::vector<uint32_t> changed to a std::string.
+    // This is similar to attr_type, with the std::vector<char32_t> changed to a std::string.
     boost::hana::tuple<std::string, std::string> result;
     bool const success = bp::parse(u8"rôle foofoo", p, result);
     using namespace boost::hana::literals;
@@ -1749,9 +1753,9 @@ at the top level.  It is an element of the result tuple:
 As indicated in the inline comments, there are a couple of things to take away
 from this example:
 
-* If you change a container (such as _std_str_ to `std::vector<int>`, or
-  _std_vec_uint_ to `std::deque<int>`), the call to _p_ will often
-  still be well-formed.
+* If you change an attribute out-param (such as _std_str_ to
+  `std::vector<int>`, or _std_vec_char32_ to `std::deque<int>`), the call to
+  _p_ will often still be well-formed.
 
 * When changing out a container type, if both containers contain character
   values, the removed container's element type is `char32_t` (or `wchar_t` for
@@ -1768,18 +1772,18 @@ Let's look at a case where another simple-seeming type replacement does *not* wo
         static_assert(std::is_same_v<
                       attr_type,
                       std::optional<std::vector<
-                          boost::hana::tuple<int, std::vector<uint32_t>>>>>);
+                          boost::hana::tuple<int, std::vector<char32_t>>>>>);
 
         std::vector<boost::hana::tuple<int, std::string>> result;
     #if 0
         bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
     #endif
 
-In this case, removing a _std_vec_uint_ and putting a _std_str_ in its place
+In this case, removing a _std_vec_char32_ and putting a _std_str_ in its place
 makes the code ill-formed, even though we saw a similar replacement earlier.
 The reason this one does not work is that the replaced container is part of
 the element type of yet another container.  At some point in the code, `p`
-would try to insert a `boost::hana::tuple<int, std::vector<uint32_t>>`
+would try to insert a `boost::hana::tuple<int, std::vector<char32_t>>`
 _emdash_ the element type of the attribute type it normally generates _emdash_
 into a vector of `boost::hana::tuple<int, std::string>`s.  There's no implicit
 conversion there, so the code is ill-formed.
@@ -1794,8 +1798,8 @@ attributes can help when writing complicated parsers.
 They make good examples because that is more likely to be surprising, and so
 it's getting lots of coverage here.  You can also do much simpler things like
 parse using a _ui_, and writing its attribute into a `double`.  In general,
-you can swap any type `T` out of the attribute, as long as `T` is not part of
-the element type for some container within the attribute. ]
+you can swap any type `T` out of the attribute, as long as the swap would not
+result in some ill-formed assignment within the parse. ]
 
 [heading An Odd Case]
 
@@ -1812,8 +1816,8 @@ are the same, and if that type is a container, `_ATTR_np_(P1 >> P2 >> P3)` is
 `_ATTR_np_(P1)`.
 
 However, since you can pass just about any old thing as `O`, and since there
-are three assign/append steps (one for each parser in the sequence) involved
-in parsing `P1 >> P2 >> P3`, you can get unexpected results if you pass a
+are three assign/append steps involved in parsing `P1 >> P2 >> P3` (one for
+each subparser in the sequence), you can get unexpected results if you pass a
 scalar value for `O`.  For example:
 
     using namespace boost::parser;
@@ -1833,7 +1837,7 @@ inside a `std::any`, because you cannot see that there is a sequence in
 there), assignment is done instead.  This assignemnt is done for each of the
 three subparsers, but of course it replaces what was in the `std::any` previously.
 
-If we had passed a `std::string` for `O` instead, the result would hae been
+If we had passed a `std::string` for `O` instead, the result would have been
 much less surprising.
 
     using namespace boost::parser;
@@ -1861,8 +1865,9 @@ encoding.  Here is how it deduces which case the call falls under:
 
 * Otherwise, the input is in a UTF encoding.
 
-[tip if you want to want to parse in ASCII-only mode, or in some unknown
-encoding, using only sequences of `char`, like _std_str_ or `char const *`.]
+[tip if you want to want to parse in ASCII-only mode, or in some other
+non-Unicode encoding, use only sequences of `char`, like _std_str_ or `char
+const *`.]
 
 [tip If you want to ensure all input is parsed as Unicode, pass the input
 range `r` as `r | boost::parser::as_utf32` _emdash_ that's the first thing that
@@ -1876,14 +1881,14 @@ whereas `boost::parser::parse(r, p)` does not.]
 [heading The `trace_mode` parameter to _p_]
 
 Debugging parsers is notoriously difficult once they reach a certain size.  To
-get a verbose trace of your parse, pass `boost::parser::trace::on` as the final
-parameter to _p_.  It will show you the current parser being matched, the
-front of the input, and any attributes generated.  See the _eh_debugging_
-section of the tutorial for details.
+get a verbose trace of your parse, pass `boost::parser::trace::on` as the
+final parameter to _p_.  It will show you the current parser being matched,
+the next few characters to be parsed, and any attributes generated.  See the
+_eh_debugging_ section of the tutorial for details.
 
 [heading Globals and error handlers]
 
-Each call to _p_ can optionally have a globals object associated with in.  To
+Each call to _p_ can optionally have a globals object associated with it.  To
 use a particular globals object with you parser, you call _w_glb_ to create a
 new parser with the globals object in it:
 
@@ -2000,7 +2005,7 @@ themselves to get the attribute flexibility we want across our code:
 
     // Attribute changed to std::deque<double>.
     bp::rule<struct deque_doubles, std::deque<double>> deque_doubles = "deque_doubles";
-    auto const & deque_doubles_def = generic_doubles_def; // .. and re-use again.
+    auto const & deque_doubles_def = generic_doubles_def; // ... and re-use it again.
     BOOST_PARSER_DEFINE_RULES(deque_doubles);
 
 Now we have one of each, and we did not have to copy any parsing logic that
@@ -2216,7 +2221,7 @@ results trying to match UTF-8 input in the Unicode and non-Unicode code paths:
 
         // Finds one match of the *char* 0xcc, because the value in the parser
         // (0xcc) was matched against the two code points in the input (0xcc and
-        // 0x80), an the first one was a match.
+        // 0x80), and the first one was a match.
         assert(chars == "\xcc");
     }
     {
@@ -2239,7 +2244,7 @@ results trying to match UTF-8 input in the Unicode and non-Unicode code paths:
 [heading Implicit Transcoding]
 
 Additionally, it is expected that most programs will use UTF-8 for the
-encoding of Unicode strings.  _Parser_ is written with this assumption in
+encoding of Unicode strings.  _Parser_ is written with this typical case in
 mind.  This means that if you are parsing 32-bit code points (as you always
 are in the Unicode path), and you want to catch the result in a container `C`
 of `char` or `char8_t` values, _Parser_ will silently transcode from UTF-32 to
@@ -2249,9 +2254,10 @@ and the result will be UTF-8.
 
 [note UTF-16 strings as attributes are not supported directly.  If you want to
 use UTF-16 strings as attributes, you may need to do so by transcoding a UTF-8
-or UTF-32 attribute to UTF-16 within a semantic action.]
+or UTF-32 attribute to UTF-16 within a semantic action.  You can do this by
+using `boost::parser::as_utf16`.]
 
-The treatment of strings as UTF-8 is ubiquitous within _Parser_.  For
+The treatment of strings as UTF-8 is nearly ubiquitous within _Parser_.  For
 instance, though the entire interface of _symbols_ uses _std_str_ or
 `std::string_view`, UTF-32 comparisons are used internally.
 
@@ -2272,7 +2278,8 @@ UTF-8-encoded `char`s, and you want to do Unicode-aware parsing.  As mentioned
 previously, _Parser_ has a special case for `char` inputs, and it will *not*
 assume that `char` sequenes are UTF-8.  If you want to tell the parse API to
 do Unicode processing on them anyway, you can use the `as_utf32` range
-adapter.
+adapter.  (Note that you can use any of the `as_utf*` adaptors and the
+semantics will not differ from the semantics below.)
 
     namespace bp = boost::parser;
 
@@ -2294,7 +2301,7 @@ The second call to `parse()` succeeds because, when the parse gets to the code
 point for `'ö'`, it is `0xf6` (U+00F6), which does not match the `- 0xb6` part
 of the parser.
 
-The other adaptors `as_utf16` and `as_utf32` are also provided for
+The other adaptors `as_utf8` and `as_utf16` are also provided for
 completeness, if you want to use them.  They each can transcode any sequence
 of character types.  A null-terminated string is considered a sequence of
 character type.
@@ -2638,9 +2645,11 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
   the attribute that does not allocate.
 
 * The attribute for `_rpt_np_(p)` in all its forms, including `operator*()`,
-  `operator+()`, and `operator%()`, is `std::vector<_ATTR_np_(p)>`,the use of
+  `operator+()`, and `operator%()`, is `std::vector<_ATTR_np_(p)>`, the use of
   which implies allocation.  You can avoid this allocation by explicitly using
   a different sequence container for the attribute that does not allocate.
+  `boost::container::static_vector` or C++26's `std::inplace_vector` may be
+  useful as such replacements.
 
 With the exception of allocating the name of the parser that was expected in a
 failed expectation situation, _Parser_ does not does not allocate unless you
@@ -2655,10 +2664,10 @@ trace, or parsing into attributes that allocate.
 
 If you want to parse ASCII, using the Unicode parsing API will not actually
 cost you anything.  Your input will be parsed, `char` by `char`, and compared
-to values that are Unicode code points (which are `int`s or `unsigned int`s).
-One caveat is that there may be an extra branch on each char, if the input is
-UTF-8.  If your performance requirements can tolerate this, your life will be
-much easier if you just start with Unicode and stick with it.
+to values that are Unicode code points (which are `char32_t`s).  One caveat is
+that there may be an extra branch on each char, if the input is UTF-8.  If
+your performance requirements can tolerate this, your life will be much easier
+if you just start with Unicode and stick with it.
 
 Starting with Unicode support and UTF-8 input will allow you to properly
 handle unexpected input, like non-ASCII languages (that's most of them), with

@@ -66,7 +66,7 @@ namespace json {
     // whole thing (object_element).  This was done because the value after
     // the ':' may have many parts.  It may be an array, for example.  This
     // implies that we need to report that we have the string part of the
-    // objet-element, and that the rest -- the value -- is coming.
+    // object-element, and that the rest -- the value -- is coming.
     bp::callback_rule<class object_element_key_tag, std::string> const
         object_element_key = "string";
     bp::rule<class object_element_tag> const object_element = "object-element";

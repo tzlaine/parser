@@ -69,7 +69,7 @@
 
 [def _std_str_             `std::string`]
 [def _std_vec_char_        `std::vector<char>`]
-[def _std_vec_uint_        `std::vector<uint32_t>`]
+[def _std_vec_char32_      `std::vector<char32_t>`]
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _p_np_                [funcref boost::parser::parse `parse`]]
