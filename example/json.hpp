@@ -9,7 +9,7 @@
 #include "json_fwd.hpp"
 
 #include <boost/parser/detail/text/algorithm.hpp>
-#include <boost/parser/detail/text/transcode_view.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #include <functional>
 #include <iomanip>
@@ -516,7 +516,7 @@ namespace json {
         to_json(std::ostream & os, std::string_view s) noexcept
         {
             os << '"';
-            auto const r = boost::parser::detail::text::as_utf32(s);
+            auto const r = boost::parser::as_utf32(s);
             char const * last_written_it = &*s.begin();
             boost::parser::detail::text::foreach_subrange_if(
                 r.begin(),

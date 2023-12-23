@@ -182,7 +182,7 @@ namespace json {
         {"t", 0x0009u}};
 
     // A string may be a matched UTF-16 escaped surrogate pair, a single
-    // escaped UTF-16 code uint treated as a whole code point, a single
+    // escaped UTF-16 code unit treated as a whole code point, a single
     // escaped character like \f, or any other code point outside the range
     // [0x0000u, 0x001fu].  Note that we had to put escape_double_seq before
     // escape_seq.  Otherwise, escape_seq would eat all the escape sequences
@@ -210,7 +210,7 @@ namespace json {
         auto cp_first = cp_range.begin();
         auto const cp_last = cp_range.end();
 
-        auto const result = bp::parse(cp_first, cp_last, bp::double_);
+        auto const result = bp::prefix_parse(cp_first, cp_last, bp::double_);
         if (result) {
             _val(ctx) = *result;
         } else {
@@ -252,7 +252,7 @@ namespace json {
     auto const value_p_def =
         number | bp::bool_ | null | string | array_p | object_p;
 
-    // Here, we define all the rules we've declared about, which also connects
+    // Here, we define all the rules we've declared above, which also connects
     // each rule to its _def-suffixed parser.
     BOOST_PARSER_DEFINE_RULES(
         ws,
@@ -281,7 +281,7 @@ namespace json {
         // Turn the input range into a UTF-32 range, so that we can be sure
         // that we fall into the Unicode-aware parsing path inside parse()
         // below.
-        auto const range = boost::parser::detail::text::as_utf32(str);
+        auto const range = boost::parser::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)
@@ -305,7 +305,7 @@ namespace json {
             // generate an error message.
             return bp::parse(range, parser, ws);
         } catch (excessive_nesting<iter_t> const & e) {
-            // If we catch an excessive_nesting exception, just reported it
+            // If we catch an excessive_nesting exception, just report it
             // and return an empty/failure result.
             if (errors_callback) {
                 std::string const message = "error: Exceeded maximum number (" +

@@ -11,19 +11,6 @@
 
 namespace boost::parser {
 
-#if defined(BOOST_PARSER_DOXYGEN)
-
-    /** A view adaptor that produces a UTF-8 view of the given view. */
-    constexpr detail::unspecified as_utf8;
-
-    /** A view adaptor that produces a UTF-16 view of the given view. */
-    constexpr detail::unspecified as_utf16;
-
-    /** A view adaptor that produces a UTF-32 view of the given view. */
-    constexpr detail::unspecified as_utf32;
-
-#else
-
     using format = detail::text::format;
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD
@@ -37,7 +24,8 @@ namespace boost::parser {
 
 #else
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+    /** A view that produces UTF-8 from an given sequence of UTF. */
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -47,7 +35,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf8_view()
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
             requires std::default_initializable<V>
 #endif
         = default;
@@ -55,7 +43,9 @@ namespace boost::parser {
             detail::text::utf_view<format::utf8, V>{std::move(base)}
         {}
     };
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+
+    /** A view that produces UTF-16 from an given sequence of UTF. */
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -65,7 +55,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf16_view()
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
             requires std::default_initializable<V>
 #endif
         = default;
@@ -73,7 +63,9 @@ namespace boost::parser {
             detail::text::utf_view<format::utf16, V>{std::move(base)}
         {}
     };
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+
+    /** A view that produces UTF-32 from an given sequence of UTF. */
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
 #else
@@ -83,7 +75,7 @@ namespace boost::parser {
     {
     public:
         constexpr utf32_view()
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
             requires std::default_initializable<V>
 #endif
         = default;
@@ -103,11 +95,13 @@ namespace boost::parser {
 
 #endif
 
+    /** A view adaptor that produces a `utf8_view` of the given view. */
     inline constexpr auto as_utf8 = detail::text::as_utf8;
+    /** A view adaptor that produces a `utf16_view` of the given view. */
     inline constexpr auto as_utf16 = detail::text::as_utf16;
+    /** A view adaptor that produces a `utf32_view` of the given view. */
     inline constexpr auto as_utf32 = detail::text::as_utf32;
 
-#endif
 }
 
 #endif

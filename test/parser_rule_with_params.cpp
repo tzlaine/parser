@@ -47,12 +47,12 @@ TEST(param_parser, no_attribute_rules)
     {
         std::string const str = "abcaabc";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(
+        EXPECT_TRUE(prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             flat_rule.with(15.0, make_13)));
         first = str.c_str();
-        EXPECT_TRUE(parse(
+        EXPECT_TRUE(prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             recursive_rule.with(15.0, make_13)));
@@ -100,14 +100,14 @@ TEST(param_parser, string_attribute_rules)
         std::string const str = "abcaabc";
         auto first = str.c_str();
         EXPECT_EQ(
-            *parse(
+            *prefix_parse(
                 first,
                 boost::parser::detail::text::null_sentinel,
                 flat_string_rule.with(15.0, make_13)),
             "abc");
         first = str.c_str();
         EXPECT_EQ(
-            *parse(
+            *prefix_parse(
                 first,
                 boost::parser::detail::text::null_sentinel,
                 recursive_string_rule.with(15.0, make_13)),
@@ -147,7 +147,7 @@ TEST(param_parser, vector_attribute_rules)
         std::string const str = "abcaabc";
         auto first = str.c_str();
         EXPECT_EQ(
-            *parse(
+            *prefix_parse(
                 first,
                 boost::parser::detail::text::null_sentinel,
                 flat_vector_rule.with(15.0, make_13)),
@@ -161,7 +161,7 @@ TEST(param_parser, vector_attribute_rules)
     {
         std::string const str = "abcaabc";
         auto first = str.c_str();
-        EXPECT_TRUE(callback_parse(
+        EXPECT_TRUE(callback_prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             flat_vector_rule.with(15.0, make_13),

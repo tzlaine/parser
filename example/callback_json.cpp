@@ -5,6 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //[ extended_callback_parsing_json_example
 #include <boost/parser/parser.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #include <fstream>
 #include <vector>
@@ -65,7 +66,7 @@ namespace json {
     // whole thing (object_element).  This was done because the value after
     // the ':' may have many parts.  It may be an array, for example.  This
     // implies that we need to report that we have the string part of the
-    // objet-element, and that the rest -- the value -- is coming.
+    // object-element, and that the rest -- the value -- is coming.
     bp::callback_rule<class object_element_key_tag, std::string> const
         object_element_key = "string";
     bp::rule<class object_element_tag> const object_element = "object-element";
@@ -157,7 +158,7 @@ namespace json {
         auto cp_first = cp_range.begin();
         auto const cp_last = cp_range.end();
 
-        auto const result = bp::parse(cp_first, cp_last, bp::double_);
+        auto const result = bp::prefix_parse(cp_first, cp_last, bp::double_);
         if (result) {
             _val(ctx) = *result;
         } else {
@@ -239,7 +240,7 @@ namespace json {
         Callbacks const & callbacks,
         int max_recursion = 512)
     {
-        auto const range = boost::parser::detail::text::as_utf32(str);
+        auto const range = boost::parser::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)

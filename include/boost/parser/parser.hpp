@@ -5079,7 +5079,7 @@ namespace boost { namespace parser {
         }
 
         /** Returns a `parser_interface` containing a `char_parser` that
-            matches any value in `[lo, hi)`. */
+            matches any value in `[lo, hi]`. */
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
@@ -5128,15 +5128,15 @@ namespace boost { namespace parser {
         the matched code point.  This parser can be used to create code point
         parsers that match one or more specific code point values, by calling
         it with: a single value comparable to a code point; a set of code
-        point values in a string; a half-open range of code point values `[lo,
-        hi)`, or a set of code point values passed as a range. */
+        point values in a string; a closed range of code point values `[lo,
+        hi]`, or a set of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
     /** The literal code point parser.  It produces a 32-bit unsigned integer
         attribute.  This parser can be used to create code point parsers that
         match one or more specific code point values, by calling it with: a
         single value comparable to a code point; a set of code point values in
-        a string; a half-open range of code point values `[lo, hi)`, or a set
+        a string; a closed range of code point values `[lo, hi]`, or a set
         of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
@@ -5144,7 +5144,7 @@ namespace boost { namespace parser {
         parser can be used to create code unit parsers that match one or more
         specific code unit values, by calling it with: a single value
         comparable to a code unit; a set of code unit values in a string; a
-        half-open range of code unit values `[lo, hi)`, or a set of code unit
+        closed range of code unit values `[lo, hi]`, or a set of code unit
         values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
@@ -6340,7 +6340,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    bool parse(
+    bool prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6422,7 +6422,9 @@ namespace boost { namespace parser {
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
-            first, last, parser::parse(first, last, parser, attr, trace_mode));
+            first,
+            last,
+            parser::prefix_parse(first, last, parser, attr, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`.  Returns a `std::optional`
@@ -6447,7 +6449,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    auto parse(
+    auto prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6514,7 +6516,7 @@ namespace boost { namespace parser {
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
-            first, last, parser::parse(first, last, parser, trace_mode));
+            first, last, parser::prefix_parse(first, last, parser, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -6545,7 +6547,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    bool parse(
+    bool prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6633,7 +6635,7 @@ namespace boost { namespace parser {
         return detail::if_full_parse(
             first,
             last,
-            parser::parse(first, last, parser, skip, attr, trace_mode));
+            parser::prefix_parse(first, last, parser, skip, attr, trace_mode));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -6662,7 +6664,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    auto parse(
+    auto prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6721,7 +6723,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    auto parse(
+    auto prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6778,7 +6780,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    auto parse(
+    auto prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -6853,7 +6855,9 @@ namespace boost { namespace parser {
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
-            first, last, parser::parse(first, last, parser, skip, trace_mode));
+            first,
+            last,
+            parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -6899,7 +6903,9 @@ namespace boost { namespace parser {
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
-            first, last, parser::parse(first, last, parser, skip, trace_mode));
+            first,
+            last,
+            parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
 
 #if BOOST_PARSER_USE_CONCEPTS
@@ -6943,7 +6949,9 @@ namespace boost { namespace parser {
         auto first = r_.begin();
         auto const last = r_.end();
         return detail::if_full_parse(
-            first, last, parser::parse(first, last, parser, skip, trace_mode));
+            first,
+            last,
+            parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
 
 #endif
@@ -6978,7 +6986,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    bool callback_parse(
+    bool callback_prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -7057,7 +7065,7 @@ namespace boost { namespace parser {
         return detail::if_full_parse(
             first,
             last,
-            parser::callback_parse(first, last, parser, callbacks));
+            parser::callback_prefix_parse(first, last, parser, callbacks));
     }
 
     /** Parses `[first, last)` using `parser`, skipping all input recognized
@@ -7093,7 +7101,7 @@ namespace boost { namespace parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
 #endif
-    bool callback_parse(
+    bool callback_prefix_parse(
         I & first,
         S last,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
@@ -7187,7 +7195,7 @@ namespace boost { namespace parser {
         return detail::if_full_parse(
             first,
             last,
-            parser::callback_parse(
+            parser::callback_prefix_parse(
                 first, last, parser, skip, callbacks, trace_mode));
     }
 
