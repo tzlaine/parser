@@ -52,6 +52,7 @@
 
 [def _p_iface_             [classref boost::parser::parser_interface `parser_interface`]]
 
+[def _null_sent_           [classref boost::parser::null_sentinel_t `null_sentinel_t`]]
 [def _v_                   [classref boost::parser::subrange `subrange`]]
 [def _n_                   [classref boost::parser::none `none`]]
 [def _symbols_             [classref boost::parser::symbols `symbols`]]
