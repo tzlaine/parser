@@ -5079,7 +5079,7 @@ namespace boost { namespace parser {
         }
 
         /** Returns a `parser_interface` containing a `char_parser` that
-            matches any value in `[lo, hi)`. */
+            matches any value in `[lo, hi]`. */
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
@@ -5128,15 +5128,15 @@ namespace boost { namespace parser {
         the matched code point.  This parser can be used to create code point
         parsers that match one or more specific code point values, by calling
         it with: a single value comparable to a code point; a set of code
-        point values in a string; a half-open range of code point values `[lo,
-        hi)`, or a set of code point values passed as a range. */
+        point values in a string; a closed range of code point values `[lo,
+        hi]`, or a set of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
     /** The literal code point parser.  It produces a 32-bit unsigned integer
         attribute.  This parser can be used to create code point parsers that
         match one or more specific code point values, by calling it with: a
         single value comparable to a code point; a set of code point values in
-        a string; a half-open range of code point values `[lo, hi)`, or a set
+        a string; a closed range of code point values `[lo, hi]`, or a set
         of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
@@ -5144,7 +5144,7 @@ namespace boost { namespace parser {
         parser can be used to create code unit parsers that match one or more
         specific code unit values, by calling it with: a single value
         comparable to a code unit; a set of code unit values in a string; a
-        half-open range of code unit values `[lo, hi)`, or a set of code unit
+        closed range of code unit values `[lo, hi]`, or a set of code unit
         values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
