@@ -14,7 +14,15 @@
 #include <memory>
 
 
+namespace boost::parser::detail { namespace text {
+    struct null_sentinel_t;
+}}
+
 namespace boost { namespace parser {
+
+    /** A sentinel type that compares equal to a pointer to a character value
+        type, iff the pointer is null. */
+    using null_sentinel_t = boost::parser::detail::text::null_sentinel_t;
 
     namespace detail {
         struct nope;
