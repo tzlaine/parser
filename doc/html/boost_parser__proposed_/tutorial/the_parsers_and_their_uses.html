@@ -187,7 +187,7 @@
 <p>
           It is intended to be a range-like thing; a null-terminated sequence of
           characters is considered range-like, given that a pointer <code class="computeroutput"><span class="identifier">T</span> <span class="special">*</span></code> to
-          a null-terminated string is isomorphic with <code class="computeroutput"><span class="identifier">subrange</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*,</span> <span class="identifier">null_sentinel</span><span class="special">&gt;</span></code>.
+          a null-terminated string is isomorphic with <code class="computeroutput"><span class="identifier">subrange</span><span class="special">&lt;</span><span class="identifier">T</span> <span class="special">*,</span> <a class="link" href="../../boost/parser/null_sentinel_t.html" title="Type definition null_sentinel_t">null_sentinel_t</a><span class="special">&gt;</span></code>.
         </p>
 </td></tr>
 </table></div>
@@ -433,8 +433,8 @@
               </td>
 <td>
                 <p>
-                  Matches the next code point in the input <code class="computeroutput"><span class="identifier">n</span></code>,
-                  if <code class="computeroutput"><span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">arg0</span><span class="special">)</span> <span class="special">&lt;=</span>
+                  Matches the next code point <code class="computeroutput"><span class="identifier">n</span></code>
+                  in the input, if <code class="computeroutput"><span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">arg0</span><span class="special">)</span> <span class="special">&lt;=</span>
                   <span class="identifier">n</span> <span class="special">&amp;&amp;</span>
                   <span class="identifier">n</span> <span class="special">&lt;=</span>
                   <span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">arg1</span><span class="special">)</span></code>.
@@ -458,9 +458,9 @@
               </td>
 <td>
                 <p>
-                  Matches the next code point in the input <code class="computeroutput"><span class="identifier">n</span></code>,
-                  if <code class="computeroutput"><span class="identifier">n</span></code> is one of
-                  the code points in <code class="computeroutput"><span class="identifier">r</span></code>.
+                  Matches the next code point <code class="computeroutput"><span class="identifier">n</span></code>
+                  in the input, if <code class="computeroutput"><span class="identifier">n</span></code>
+                  is one of the code points in <code class="computeroutput"><span class="identifier">r</span></code>.
                 </p>
               </td>
 <td>
@@ -473,12 +473,12 @@
 <td>
                 <p>
                   <code class="computeroutput"><span class="identifier">r</span></code> is taken to be
-                  in a UTF encoding. The exact UTF used depends on the size of <code class="computeroutput"><span class="identifier">r</span></code>'s element type. If you do not
+                  in a UTF encoding. The exact UTF used depends on <code class="computeroutput"><span class="identifier">r</span></code>'s element type. If you do not
                   pass UTF encoded ranges for <code class="computeroutput"><span class="identifier">r</span></code>,
                   the behavior of <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code> is undefined.
                   Note that ASCII is a subset of UTF-8, so ASCII is fine. EBCDIC
-                  may not be. <code class="computeroutput"><span class="identifier">r</span></code> is
-                  not copied; a reference to it is taken. The lifetime of <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code> must be within the lifetime of
+                  is not. <code class="computeroutput"><span class="identifier">r</span></code> is not
+                  copied; a reference to it is taken. The lifetime of <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code> must be within the lifetime of
                   <code class="computeroutput"><span class="identifier">r</span></code>. This overload
                   of <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>
                   does <span class="bold"><strong>not</strong></span> take parse arguments.
@@ -498,15 +498,15 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">uint32_t</span></code>
+                  <code class="computeroutput"><span class="keyword">char32_t</span></code>
                 </p>
               </td>
 <td>
                 <p>
                   Similar to <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>, but with
-                  a fixed <code class="computeroutput"><span class="identifier">uint32_t</span></code>
-                  attribute type; <code class="computeroutput"><a class="link" href="../../boost/parser/cp.html" title="Global cp">cp</a></code> has all the same
-                  call operator overloads as <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>, though they
+                  a fixed <code class="computeroutput"><span class="keyword">char32_t</span></code> attribute
+                  type; <code class="computeroutput"><a class="link" href="../../boost/parser/cp.html" title="Global cp">cp</a></code>
+                  has all the same call operator overloads as <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>, though they
                   are not repeated here, for brevity.
                 </p>
               </td>
@@ -830,7 +830,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -845,7 +845,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
                 </p>
               </td>
 </tr>
@@ -868,7 +868,7 @@
 <td>
                 <p>
                   This is a <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
-                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>,
+                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>,
                   for example <code class="computeroutput"><span class="char">'F'</span><span class="identifier">_l</span></code>.
                 </p>
               </td>
@@ -876,7 +876,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -891,7 +891,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
                 </p>
               </td>
 </tr>
@@ -914,7 +914,7 @@
 <td>
                 <p>
                   This is a <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
-                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">s</span><span class="special">)</span></code>,
+                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">s</span><span class="special">)</span></code>,
                   for example <code class="computeroutput"><span class="string">"a string"</span><span class="identifier">_l</span></code>.
                 </p>
               </td>
@@ -1473,7 +1473,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1495,7 +1495,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>
@@ -1504,7 +1504,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1526,7 +1526,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>

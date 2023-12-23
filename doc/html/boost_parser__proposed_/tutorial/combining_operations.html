@@ -26,7 +26,7 @@
         which are used to form sequence parsers and alternative parsers, respectively.
       </p>
 <p>
-        Here are all the operators overloaded for parsers. In the tables below:
+        Here are all the operator overloaded for parsers. In the tables below:
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
@@ -256,7 +256,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -276,7 +276,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -336,7 +336,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -356,7 +356,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -412,7 +412,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -432,7 +432,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">)</span></code>
+                  <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -611,6 +611,21 @@
         <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">(</span><span class="identifier">cond</span><span class="special">)</span></code>
         is allowed to appear anywhere within an alternative parser.
       </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          When looking at Boost.Parser parsers in a debugger, or when looking at
+          their reference documentation, you may see reference to the template <code class="computeroutput"><a class="link" href="../../boost/parser/parser_interface.html" title="Struct template parser_interface">parser_interface</a></code>.
+          This template exists to provide the operator overloads described above.
+          It allows the parsers themselves to be very simple — most parsers
+          are just a struct with two member functions. <code class="computeroutput"><a class="link" href="../../boost/parser/parser_interface.html" title="Struct template parser_interface">parser_interface</a></code> is essentially
+          invisible when using Boost.Parser, and you should never have to name this
+          template in your own code.
+        </p></td></tr>
+</table></div>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

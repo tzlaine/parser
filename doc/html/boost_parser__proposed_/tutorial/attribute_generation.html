@@ -42,7 +42,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20127.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -176,7 +176,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">uint32_t</span></code>
+                  <code class="computeroutput"><span class="keyword">char32_t</span></code>
                 </p>
               </td>
 <td>
@@ -199,7 +199,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19691.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19830.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -451,31 +451,20 @@
         to parse text in the non-Unicode code path (i.e. a string of <code class="computeroutput"><span class="keyword">char</span></code>), the attribute is <code class="computeroutput"><span class="keyword">char</span></code>.
         When you use the exact same <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code> to parse in the Unicode-aware
         code path, all matching is code point based, and so the attribute type is
-        the type used to represent code points. For typical uses, that type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>. All parsing of UTF-8 falls under
-        this typical case. The only time the code point type will be something different
-        is if you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code> with a code point sequence
-        whose element type is something besides <code class="computeroutput"><span class="identifier">uint32_t</span></code>.
-        For example, when you parse plain <code class="computeroutput"><span class="keyword">char</span></code>s,
-        meaning that the parsing is in the non-Unicode code path, the attribute of
-        <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>
-        is <code class="computeroutput"><span class="keyword">char</span></code>:
+        the type used to represent code points, <code class="computeroutput"><span class="keyword">char32_t</span></code>.
+        All parsing of UTF-8 falls under this case. For example, when you parse plain
+        <code class="computeroutput"><span class="keyword">char</span></code>s, meaning that the parsing
+        is in the non-Unicode code path, the attribute of <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code> is <code class="computeroutput"><span class="keyword">char</span></code>:
       </p>
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"some text"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;&gt;));</span>
 </pre>
 <p>
         When you parse UTF-8, the matching is done on a code point basis, and the
-        code point type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>,
-        so the attribute type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>:
+        code point type is <code class="computeroutput"><span class="keyword">char32_t</span></code>,
+        so the attribute type is <code class="computeroutput"><span class="keyword">char32_t</span></code>:
       </p>
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"some text"</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf8</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
-<span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">&gt;&gt;));</span>
-</pre>
-<p>
-        When you parse code points by explicitly giving a code point range to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm19957.html" title="Function template parse">parse()</a></code>, the attribute type is whatever
-        the input range's element type is:
-      </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="identifier">U</span><span class="string">"some text"</span><span class="special">,</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span><span class="special">);</span>
 <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_same_v</span><span class="special">&lt;</span><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">result</span><span class="special">),</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="keyword">char32_t</span><span class="special">&gt;&gt;));</span>
 </pre>
 <div class="tip"><table border="0" summary="Tip">
@@ -761,7 +750,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -773,7 +762,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19640.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19779.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -861,8 +850,9 @@
         More formally, the attribute generation algorithm works like this. For a
         sequence parser <code class="computeroutput"><span class="identifier">p</span></code>, let the
         list of attribute types for the subparsers of <code class="computeroutput"><span class="identifier">p</span></code>
-        be <code class="computeroutput"><span class="special">{</span><span class="identifier">a0</span><span class="special">,</span> <span class="identifier">a1</span><span class="special">,</span>
-        <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span> <span class="identifier">an</span><span class="special">}</span></code>.
+        be <code class="computeroutput"><span class="identifier">a0</span><span class="special">,</span>
+        <span class="identifier">a1</span><span class="special">,</span> <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span>
+        <span class="identifier">an</span></code>.
       </p>
 <p>
         We get the attribute of <code class="computeroutput"><span class="identifier">p</span></code>
@@ -889,6 +879,11 @@
         may be the special type <code class="computeroutput"><span class="identifier">none</span></code>.
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">none</span> <span class="special">&gt;&gt;</span>
+            <span class="identifier">T</span> <span class="special">-&gt;</span>
+            <span class="identifier">T</span></code>
+          </li>
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
             <span class="identifier">none</span> <span class="special">-&gt;</span>
@@ -919,6 +914,11 @@
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">none</span><span class="special">&gt;</span>
             <span class="special">&gt;&gt;</span> <span class="identifier">T</span>
+            <span class="special">-&gt;</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
+            <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">none</span><span class="special">&gt;</span>
             <span class="special">-&gt;</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
@@ -963,21 +963,22 @@
         The rules for alternative parsers are much simpler. For an alternative parer
         <code class="computeroutput"><span class="identifier">p</span></code>, let the list of attribute
         types for the subparsers of <code class="computeroutput"><span class="identifier">p</span></code>
-        be <code class="computeroutput"><span class="special">{</span><span class="identifier">a0</span><span class="special">,</span> <span class="identifier">a1</span><span class="special">,</span>
-        <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span> <span class="identifier">an</span><span class="special">}</span></code>. The attribute of <code class="computeroutput"><span class="identifier">p</span></code>
-        is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">a0</span><span class="special">,</span> <span class="identifier">a1</span><span class="special">,</span> <span class="identifier">a2</span><span class="special">,</span>
-        <span class="special">...,</span> <span class="identifier">an</span><span class="special">&gt;</span></code>, with these exceptions:
+        be <code class="computeroutput"><span class="identifier">a0</span><span class="special">,</span>
+        <span class="identifier">a1</span><span class="special">,</span> <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span>
+        <span class="identifier">an</span></code>. The attribute of <code class="computeroutput"><span class="identifier">p</span></code> is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">a0</span><span class="special">,</span> <span class="identifier">a1</span><span class="special">,</span>
+        <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span> <span class="identifier">an</span><span class="special">&gt;</span></code>, with the following steps applied:
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
             all the <code class="computeroutput"><span class="identifier">none</span></code> attributes
-            are left out, but if any were taken out, the attribute become a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code>;
+            are left out, and if any are, the attribute is wrapped in a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code>, like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;/*...*/&gt;&gt;</span></code>;
           </li>
 <li class="listitem">
-            if the result is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, the result becomes <code class="computeroutput"><span class="identifier">T</span></code> instead; and
+            if the attribute is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span></code>, the attribute becomes instead
+            <code class="computeroutput"><span class="identifier">T</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>, respectively; and
           </li>
 <li class="listitem">
-            if the result is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;&gt;</span></code>, the result becomes <code class="computeroutput"><span class="identifier">none</span></code> instead.
+            if the attribute is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;&gt;</span></code> or <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;&gt;&gt;</span></code>, the result becomes <code class="computeroutput"><span class="identifier">none</span></code> instead.
           </li>
 </ul></div>
 <h5>
@@ -1003,10 +1004,10 @@
         So, the attribute of <code class="computeroutput"><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">string</span><span class="special">(</span><span class="string">"str"</span><span class="special">)</span></code> is odd. In the non-Unicode code path, <code class="computeroutput"><span class="identifier">char_</span></code>'s attribute type is guaranteed to
         be <code class="computeroutput"><span class="keyword">char</span></code>, so <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">string</span><span class="special">(</span><span class="string">"str"</span><span class="special">))</span></code> is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>.
         If you are parsing UTF-8 in the Unicode code path, <code class="computeroutput"><span class="identifier">char_</span></code>'s
-        attribute type is <code class="computeroutput"><span class="identifier">uint32_t</span></code>,
+        attribute type is <code class="computeroutput"><span class="keyword">char32_t</span></code>,
         and <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span>
         <span class="identifier">string</span><span class="special">(</span><span class="string">"str"</span><span class="special">))</span></code>
-        is therefor <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
+        is therefor <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">char32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
       </p>
 <p>
         Again, there are no special rules for combining values and containers. Every
@@ -1321,7 +1322,10 @@
         disables attribute generation for the parser <code class="computeroutput"><span class="identifier">p</span></code>.
         <code class="computeroutput"><a class="link" href="../../boost/parser/raw.html" title="Global raw">raw</a><span class="special">[</span><span class="identifier">p</span><span class="special">]</span></code>
         changes the attribute from <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
-        to a view that indicates the subrange of the input that was matched by <code class="computeroutput"><span class="identifier">p</span></code>. See <a class="link" href="directives.html" title="Directives">Directives</a>
+        to a view that indicates the subrange of the input that was matched by <code class="computeroutput"><span class="identifier">p</span></code>. <code class="computeroutput"><a class="link" href="../../boost/parser/string_view.html" title="Global string_view">string_view</a><span class="special">[</span><span class="identifier">p</span><span class="special">]</span></code> is just
+        like <code class="computeroutput"><a class="link" href="../../boost/parser/raw.html" title="Global raw">raw</a><span class="special">[</span><span class="identifier">p</span><span class="special">]</span></code>,
+        except that it produces <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string_view</span></code>s.
+        See <a class="link" href="directives.html" title="Directives">Directives</a>
         for details.
       </p>
 </div>

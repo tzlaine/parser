@@ -29,6 +29,7 @@
 <p>
 </p>
 <pre class="programlisting"><span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">parser</span><span class="special">/</span><span class="identifier">parser</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
+<span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">parser</span><span class="special">/</span><span class="identifier">transcode_view</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span>
 
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">fstream</span><span class="special">&gt;</span>
 <span class="preprocessor">#include</span> <span class="special">&lt;</span><span class="identifier">vector</span><span class="special">&gt;</span>
@@ -89,7 +90,7 @@
     <span class="comment">// whole thing (object_element).  This was done because the value after</span>
     <span class="comment">// the ':' may have many parts.  It may be an array, for example.  This</span>
     <span class="comment">// implies that we need to report that we have the string part of the</span>
-    <span class="comment">// objet-element, and that the rest -- the value -- is coming.</span>
+    <span class="comment">// object-element, and that the rest -- the value -- is coming.</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">callback_rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">object_element_key_tag</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span> <span class="keyword">const</span>
         <span class="identifier">object_element_key</span> <span class="special">=</span> <span class="string">"string"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">object_element_tag</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">object_element</span> <span class="special">=</span> <span class="string">"object-element"</span><span class="special">;</span>
@@ -181,7 +182,7 @@
         <span class="keyword">auto</span> <span class="identifier">cp_first</span> <span class="special">=</span> <span class="identifier">cp_range</span><span class="special">.</span><span class="identifier">begin</span><span class="special">();</span>
         <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">cp_last</span> <span class="special">=</span> <span class="identifier">cp_range</span><span class="special">.</span><span class="identifier">end</span><span class="special">();</span>
 
-        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">cp_first</span><span class="special">,</span> <span class="identifier">cp_last</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
+        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">prefix_parse</span><span class="special">(</span><span class="identifier">cp_first</span><span class="special">,</span> <span class="identifier">cp_last</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
         <span class="keyword">if</span> <span class="special">(</span><span class="identifier">result</span><span class="special">)</span> <span class="special">{</span>
             <span class="identifier">_val</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="special">*</span><span class="identifier">result</span><span class="special">;</span>
         <span class="special">}</span> <span class="keyword">else</span> <span class="special">{</span>
@@ -263,7 +264,7 @@
         <span class="identifier">Callbacks</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">callbacks</span><span class="special">,</span>
         <span class="keyword">int</span> <span class="identifier">max_recursion</span> <span class="special">=</span> <span class="number">512</span><span class="special">)</span>
     <span class="special">{</span>
-        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">range</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">text</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
+        <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">range</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">(</span><span class="identifier">str</span><span class="special">);</span>
         <span class="keyword">using</span> <span class="identifier">iter_t</span> <span class="special">=</span> <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">range</span><span class="special">.</span><span class="identifier">begin</span><span class="special">());</span>
 
         <span class="keyword">if</span> <span class="special">(</span><span class="identifier">max_recursion</span> <span class="special">&lt;=</span> <span class="number">0</span><span class="special">)</span>

@@ -27,11 +27,10 @@
 <p>
         If you want to parse ASCII, using the Unicode parsing API will not actually
         cost you anything. Your input will be parsed, <code class="computeroutput">char</code> by <code class="computeroutput">char</code>,
-        and compared to values that are Unicode code points (which are <code class="computeroutput">int</code>s
-        or <code class="computeroutput">unsigned int</code>s). One caveat is that there may be an extra
-        branch on each char, if the input is UTF-8. If your performance requirements
-        can tolerate this, your life will be much easier if you just start with Unicode
-        and stick with it.
+        and compared to values that are Unicode code points (which are <code class="computeroutput">char32_t</code>s).
+        One caveat is that there may be an extra branch on each char, if the input
+        is UTF-8. If your performance requirements can tolerate this, your life will
+        be much easier if you just start with Unicode and stick with it.
       </p>
 <p>
         Starting with Unicode support and UTF-8 input will allow you to properly
