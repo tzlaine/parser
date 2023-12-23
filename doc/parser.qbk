@@ -74,7 +74,10 @@
 
 [def _p_                   [funcref boost::parser::parse `parse()`]]
 [def _p_np_                [funcref boost::parser::parse `parse`]]
+[def _pp_                  [funcref boost::parser::prefix_parse `prefix_parse()`]]
+[def _pp_np_               [funcref boost::parser::prefix_parse `prefix_parse`]]
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
+[def _cbpp_                [funcref boost::parser::callback_prefix_parse `callback_prefix_parse()`]]
 
 [def _w_glb_               [funcref boost::parser::with_globals `with_globals()`]]
 [def _w_eh_                [funcref boost::parser::with_error_handler `with_error_handler()`]]
@@ -169,6 +172,7 @@
 [def _ATTR_                ['[^ATTR]]`()`]
 [def _ATTR_np_             ['[^ATTR]]]
 
+[def _p_api_               [link boost_parser__proposed_.tutorial.the__parse____api the `parse()` API]]
 [def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
 [def _directives_          [link boost_parser__proposed_.tutorial.directives Directives]]
 [def _eh_debugging_        [link boost_parser__proposed_.tutorial.error_handling_and_debugging Error Handling and Debugging]]

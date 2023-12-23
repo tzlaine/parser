@@ -45,6 +45,10 @@ to a particular parser, some parse failures cause the call to _p_ to indicate
 failure of the entire parse.  For these cases, we say that such a local
 failure "causes the top-level parse to fail".
 
+Throughout the _Parser_ documentation, I will refer to "the call to _p_".
+Read this as "the call to any one of the functions described in _p_api_".
+That includes _pp_, _cbp_, and _cbpp_.
+
 There are a couple of special kinds of parsers that come up often in this
 documentation.
 
@@ -1572,7 +1576,7 @@ indicates the subrange of the input that was matched by `p`.
 
 [section The `parse()` API]
 
-There are multiple overloads of _p_.  These overloads have some things in
+There are multiple top-level parse functions.  They have some things in
 common:
 
 * They each return a value contextually convertible to `bool`.
@@ -1586,12 +1590,12 @@ common:
   they can each parse ranges of `char`, `wchar_t`, `char8_t`, `char16_t`, or
   `char32_t`.
 
-* When you call any of the iterator/sentinel pair overloads of _p_, for
-  example `_p_np_(first, last, p, _ws_)`, it parses the range `[first, last)`,
-  advancing `first` as it goes.  If the parse succeeds, the entire input may
-  or may not have been matched.  The value of `first` will indicate the last
-  location within the input that `p` matched.  The *whole* input was matched
-  if and only if `first == last` after the call to _p_.
+* The overloads with `prefix_` in their name take an iterator/sentinel pair.
+  For example `_pp_np_(first, last, p, _ws_)`, which parses the range `[first,
+  last)`, advancing `first` as it goes.  If the parse succeeds, the entire
+  input may or may not have been matched.  The value of `first` will indicate
+  the last location within the input that `p` matched.  The *whole* input was
+  matched if and only if `first == last` after the call to _p_.
 
 * When you call any of the range-like overloads of _p_, for example `_p_np_(r,
   p, _ws_)`, _p_ only indicates success if *all* of `r` was matched by `p`.
@@ -1601,12 +1605,12 @@ this is interpreted as UTF-16 on MSVC, and UTF-32 everywhere else.]
 
 [heading The overloads]
 
-There are eight overloads of _p_, because there are three either/or options in
-how you call it.
+There are eight overloads of _p_ and _pp_ combined, because there are three
+either/or options in how you call them.
 
 [heading Iterator/sentinel versus range-like]
 
-You can call _p_ with an iterator and sentinel that delimit a range of
+You can call _pp_ with an iterator and sentinel that delimit a range of
 character values.  For example:
 
     namespace bp = boost::parser;
@@ -1614,18 +1618,18 @@ character values.  For example:
 
     char const * str_1 = /* ... */;
     // Using null_sentinel, str_1 can point to three billion characters, and
-    // we can call parse() without having to find the end of the string first.
-    auto result_1 = bp::parse(str_1, bp::null_sentinel, p, bp::ws);
+    // we can call prefix_parse() without having to find the end of the string first.
+    auto result_1 = bp::prefix_parse(str_1, bp::null_sentinel, p, bp::ws);
 
     char str_2[] = /* ... */;
-    auto result_2 = bp::parse(std::begin(str_2), std::end(str_2), p, bp::ws);
+    auto result_2 = bp::prefix_parse(std::begin(str_2), std::end(str_2), p, bp::ws);
 
 The iterator/sentinel overloads can parse successfully without matching the
 entire input.  You can tell if the entire input was matched by checking if
-`first == last` is true after _p_ returns.
+`first == last` is true after _pp_ returns.
 
-You can also call _p_ with a range of character values.  When the range is a
-reference to an array of characters, any terminating `0` is ignored; this
+By contrast, you call _p_ with a range of character values.  When the range is
+a reference to an array of characters, any terminating `0` is ignored; this
 allows calls like `_p_np_("str", p)` to work naturally.
 
     namespace bp = boost::parser;
@@ -2306,15 +2310,15 @@ semantics will not differ from the semantics below.)
     auto result_2 = bp::parse(str | bp::as_utf32, p); // Unicode-aware parsing on code points.
     assert(result_2);
 
-The first call to `parse()` treats each `char` as a code point, and since
-`"ö"` is the pair of code units `0xc3` `0xb6`, the parse matches the second
-code unit against the `- 0xb6` part of the parser above, causing the parse to
-fail.  This happens because each code unit/`char` in `str` is treated as an
+The first call to _p_ treats each `char` as a code point, and since `"ö"` is
+the pair of code units `0xc3` `0xb6`, the parse matches the second code unit
+against the `- 0xb6` part of the parser above, causing the parse to fail.
+This happens because each code unit/`char` in `str` is treated as an
 independent code point.
 
-The second call to `parse()` succeeds because, when the parse gets to the code
-point for `'ö'`, it is `0xf6` (U+00F6), which does not match the `- 0xb6` part
-of the parser.
+The second call to _p_ succeeds because, when the parse gets to the code point
+for `'ö'`, it is `0xf6` (U+00F6), which does not match the `- 0xb6` part of
+the parser.
 
 The other adaptors `as_utf8` and `as_utf16` are also provided for
 completeness, if you want to use them.  They each can transcode any sequence

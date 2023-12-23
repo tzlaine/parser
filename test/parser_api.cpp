@@ -37,13 +37,13 @@ TEST(parser, full_parse_api)
     {
         char out = 0;
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, char_, out));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, char_, out));
         first = str.c_str();
         EXPECT_EQ(out, 'a');
         out = 0;
         first = str.c_str();
         EXPECT_TRUE(
-            !parse(first, boost::parser::detail::text::null_sentinel, char_('b'), out));
+            !prefix_parse(first, boost::parser::detail::text::null_sentinel, char_('b'), out));
         EXPECT_EQ(out, 0);
     }
     // attr out param, range
@@ -68,11 +68,11 @@ TEST(parser, full_parse_api)
     // returned attr, iter/sent
     {
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, char_));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, char_));
         first = str.c_str();
-        EXPECT_EQ(*parse(first, boost::parser::detail::text::null_sentinel, char_), 'a');
+        EXPECT_EQ(*prefix_parse(first, boost::parser::detail::text::null_sentinel, char_), 'a');
         first = str.c_str();
-        EXPECT_FALSE(parse(first, boost::parser::detail::text::null_sentinel, char_('b')));
+        EXPECT_FALSE(prefix_parse(first, boost::parser::detail::text::null_sentinel, char_('b')));
     }
     // returned attr, range
     {
@@ -99,12 +99,12 @@ TEST(parser, full_parse_api)
         char out = 0;
         auto first = str.c_str();
         EXPECT_TRUE(
-            parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws, out));
+            prefix_parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws, out));
         first = str.c_str();
         EXPECT_EQ(out, 'a');
         out = 0;
         first = str.c_str();
-        EXPECT_FALSE(parse(
+        EXPECT_FALSE(prefix_parse(
             first, boost::parser::detail::text::null_sentinel, char_('b'), skip_ws, out));
         EXPECT_EQ(out, 0);
     }
@@ -130,13 +130,13 @@ TEST(parser, full_parse_api)
     // returned attr, using skipper, iter/sent
     {
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws));
         first = str.c_str();
         EXPECT_EQ(
-            *parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws), 'a');
+            *prefix_parse(first, boost::parser::detail::text::null_sentinel, char_, skip_ws), 'a');
         first = str.c_str();
         EXPECT_TRUE(
-            !parse(first, boost::parser::detail::text::null_sentinel, char_('b'), skip_ws));
+            !prefix_parse(first, boost::parser::detail::text::null_sentinel, char_('b'), skip_ws));
     }
     // returned attr, using skipper, range
     {
@@ -156,7 +156,7 @@ TEST(parser, full_parse_api)
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
         auto first = str.c_str();
-        EXPECT_TRUE(callback_parse(
+        EXPECT_TRUE(callback_prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             callback_char_rule,
@@ -184,7 +184,7 @@ TEST(parser, full_parse_api)
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
         auto first = str.c_str();
-        EXPECT_TRUE(callback_parse(
+        EXPECT_TRUE(callback_prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             callback_char_rule,
@@ -270,9 +270,9 @@ TEST(parser, basic)
     {
         std::string str = "ab";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, char_));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, char_));
         first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_1));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser_1));
         first = str.c_str();
         EXPECT_FALSE(parse(str, parser_2));
     }
@@ -292,9 +292,9 @@ TEST(parser, basic)
     {
         std::string str = "abc";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_1));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser_1));
         first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_2));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser_2));
     }
     {
         char const * str = "abc";
@@ -338,7 +338,7 @@ TEST(parser, basic)
     {
         std::string str = "z";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_5));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser_5));
     }
     {
         char const * str = "a";
@@ -355,7 +355,7 @@ TEST(parser, basic)
         std::string str = "z";
         std::optional<char> c;
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser_5, c));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser_5, c));
         EXPECT_EQ(c, std::nullopt);
     }
 }
@@ -487,7 +487,7 @@ TEST(parser, bool_)
         std::string str = "false ";
         bool b = true;
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, bool_, b));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, bool_, b));
         EXPECT_EQ(b, false);
     }
     {
@@ -496,7 +496,7 @@ TEST(parser, bool_)
         bool b = false;
         auto first = r.begin();
         auto const last = r.end();
-        EXPECT_TRUE(parse(first, last, bool_, b));
+        EXPECT_TRUE(prefix_parse(first, last, bool_, b));
         EXPECT_EQ(b, true);
     }
     {
@@ -505,7 +505,7 @@ TEST(parser, bool_)
         bool b = true;
         auto first = r.begin();
         auto const last = r.end();
-        EXPECT_TRUE(parse(first, last, bool_, b));
+        EXPECT_TRUE(prefix_parse(first, last, bool_, b));
         EXPECT_EQ(b, false);
     }
 }
@@ -830,7 +830,7 @@ TEST(parser, star_as_string_or_vector)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "");
             }
 
@@ -841,7 +841,7 @@ TEST(parser, star_as_string_or_vector)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel, parser);
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "");
             }
@@ -891,7 +891,7 @@ TEST(parser, star_as_string_or_vector)
             std::vector<char> chars;
             auto first = str.c_str();
             EXPECT_TRUE(
-                parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
+                prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
         }
         {
             char const * str = "zs";
@@ -953,7 +953,7 @@ TEST(parser, omit)
         {
             std::string str = "z";
             auto first = str.c_str();
-            EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser));
+            EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser));
         }
         {
             char const * str = "zs";
@@ -1041,7 +1041,7 @@ TEST(parser, raw)
             std::string const str = "z";
             range_t r;
             auto first = str.begin();
-            EXPECT_TRUE(parse(first, str.end(), parser, r));
+            EXPECT_TRUE(prefix_parse(first, str.end(), parser, r));
             EXPECT_EQ(r.begin(), str.begin());
             EXPECT_EQ(r.end(), str.begin());
         }
@@ -1074,7 +1074,7 @@ TEST(parser, raw)
         {
             std::string const str = "z";
             auto first = str.begin();
-            std::optional<range_t> result = parse(first, str.end(), parser);
+            std::optional<range_t> result = prefix_parse(first, str.end(), parser);
             EXPECT_TRUE(result);
             EXPECT_EQ(result->begin(), str.begin());
             EXPECT_EQ(result->end(), str.begin());
@@ -1167,7 +1167,7 @@ TEST(parser, delimited)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "yay");
             }
 
@@ -1178,7 +1178,7 @@ TEST(parser, delimited)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel, parser);
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1193,7 +1193,7 @@ TEST(parser, delimited)
                 std::string chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(
-                    parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, chars));
                 EXPECT_EQ(chars, "yay");
             }
 
@@ -1204,7 +1204,7 @@ TEST(parser, delimited)
             {
                 auto first = str.c_str();
                 std::optional<std::string> const chars =
-                    parse(first, boost::parser::detail::text::null_sentinel, parser);
+                    prefix_parse(first, boost::parser::detail::text::null_sentinel, parser);
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
             }
@@ -1333,7 +1333,7 @@ TEST(parser, delimited)
             std::string str = "yayyay";
             std::string chars;
             auto first = str.c_str();
-            EXPECT_TRUE(parse(
+            EXPECT_TRUE(prefix_parse(
                 first,
                 boost::parser::detail::text::null_sentinel,
                 parser,
@@ -1351,7 +1351,7 @@ TEST(parser, delimited)
             std::string str = "yayyay";
             auto first = str.c_str();
             std::optional<std::string> const chars =
-                parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
+                prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
@@ -1364,7 +1364,7 @@ TEST(parser, delimited)
             std::string str = "yay,";
             std::string chars;
             auto first = str.c_str();
-            EXPECT_TRUE(parse(
+            EXPECT_TRUE(prefix_parse(
                 first,
                 boost::parser::detail::text::null_sentinel,
                 parser,
@@ -1382,7 +1382,7 @@ TEST(parser, delimited)
             std::string str = "yay,";
             auto first = str.c_str();
             std::optional<std::string> const chars =
-                parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
+                prefix_parse(first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
             EXPECT_TRUE(chars);
             EXPECT_EQ(*chars, "yay");
         }
@@ -1526,7 +1526,7 @@ TEST(parser, lexeme)
             {
                 std::string chars;
                 auto first = str.c_str();
-                EXPECT_TRUE(parse(
+                EXPECT_TRUE(prefix_parse(
                     first,
                     boost::parser::detail::text::null_sentinel,
                     parser,
@@ -1544,7 +1544,7 @@ TEST(parser, lexeme)
             {
                 std::string str = "yay, yay, yay";
                 auto first = str.c_str();
-                std::optional<std::string> const chars = parse(
+                std::optional<std::string> const chars = prefix_parse(
                     first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
@@ -1559,7 +1559,7 @@ TEST(parser, lexeme)
             {
                 std::string chars;
                 auto first = str.c_str();
-                EXPECT_TRUE(parse(
+                EXPECT_TRUE(prefix_parse(
                     first,
                     boost::parser::detail::text::null_sentinel,
                     parser,
@@ -1577,7 +1577,7 @@ TEST(parser, lexeme)
             {
                 std::string str = " yay, yay, yay";
                 auto first = str.c_str();
-                std::optional<std::string> const chars = parse(
+                std::optional<std::string> const chars = prefix_parse(
                     first, boost::parser::detail::text::null_sentinel, parser, char_(' '));
                 EXPECT_TRUE(chars);
                 EXPECT_EQ(*chars, "yay");
@@ -1753,7 +1753,7 @@ TEST(parser, combined_seq_and_or)
         constexpr auto parser = &char_('a');
         std::string str = "a";
         auto first = str.c_str();
-        EXPECT_TRUE(parse(first, boost::parser::detail::text::null_sentinel, parser));
+        EXPECT_TRUE(prefix_parse(first, boost::parser::detail::text::null_sentinel, parser));
     }
 
     {
@@ -1857,7 +1857,7 @@ TEST(parser, broken_utf8)
         std::string str = array;
         std::string chars;
         auto first = str.begin();
-        EXPECT_TRUE(parse(first, str.end(), parser, chars));
+        EXPECT_TRUE(prefix_parse(first, str.end(), parser, chars));
         char const expected[2] = {(char)0xcc, 0};
         EXPECT_EQ(chars, expected); // Finds one match of the *char* 0xcc.
     }
@@ -1866,7 +1866,7 @@ TEST(parser, broken_utf8)
         std::u8string str = u8"\xcc\x80"; // U+0300
         std::string chars;
         auto first = str.begin();
-        EXPECT_TRUE(parse(first, str.end(), parser, chars));
+        EXPECT_TRUE(prefix_parse(first, str.end(), parser, chars));
         EXPECT_EQ(chars, ""); // Finds zero matches of the *code point* 0xcc.
     }
 #endif

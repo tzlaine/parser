@@ -158,7 +158,7 @@ namespace json {
         auto cp_first = cp_range.begin();
         auto const cp_last = cp_range.end();
 
-        auto const result = bp::parse(cp_first, cp_last, bp::double_);
+        auto const result = bp::prefix_parse(cp_first, cp_last, bp::double_);
         if (result) {
             _val(ctx) = *result;
         } else {
