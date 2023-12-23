@@ -1157,6 +1157,20 @@ iterator.  Just like _omit_, _raw_ causes all attribute-generation work within
 Similar to the re-use scenario for _omit_ above, _raw_ could be used to find
 the *locations* of all non-overlapping matches of `p` in a string.
 
+[heading _string_view_]
+
+`_string_view_np_[p]` is very similar to `_raw_np_[p]`, except that it changes
+the attribute of `p` to `std::basic_string_view<C>`, where `C` is the
+character type of the underlying sequence being parsed.  _string_view_
+requires that the underlying range being parsed is contiguous.  Since this can
+only be detected in C++20 and later, _string_view_ is not available in C++17
+mode.
+
+Similar to the re-use scenario for _omit_ above, _string_view_ could be used
+to find the *locations* of all non-overlapping matches of `p` in a string.
+Whether _raw_ or _string_view_ is more natural to use to report the locations
+depends on your use case, but they are essentially the same.
+
 [heading _lexeme_]
 
 `_lexeme_np_[p]` disables use of the skipper, if a skipper is being used,
@@ -1550,8 +1564,9 @@ same attribute generation rules.
 
 `_omit_np_[p]` disables attribute generation for the parser `p`.
 `_raw_np_[p]` changes the attribute from `_ATTR_np_(p)` to a view that
-indicates the subrange of the input that was matched by `p`.  See _directives_
-for details.
+indicates the subrange of the input that was matched by `p`.
+`_string_view_np_[p]` is just like `_raw_np_[p]`, except that it produces
+`std::basic_string_view`s.  See _directives_ for details.
 
 [endsect]
 

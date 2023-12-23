@@ -142,11 +142,13 @@
 [def _omit_                [globalref boost::parser::omit `omit[]`]]
 [def _raw_                 [globalref boost::parser::raw `raw[]`]]
 [def _lexeme_              [globalref boost::parser::lexeme `lexeme[]`]]
+[def _string_view_         [globalref boost::parser::string_view `string_view[]`]]
 [def _skip_                [globalref boost::parser::skip `skip[]`]]
 
 [def _omit_np_             [globalref boost::parser::omit `omit`]]
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
 [def _lexeme_np_           [globalref boost::parser::lexeme `lexeme`]]
+[def _string_view_np_      [globalref boost::parser::string_view `string_view`]]
 [def _skip_np_             [globalref boost::parser::skip `skip`]]
 
 [def _alnum_               [globalref boost::parser::ascii::alnum `ascii::alnum`]]
