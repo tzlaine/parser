@@ -281,7 +281,7 @@ namespace json {
         // Turn the input range into a UTF-32 range, so that we can be sure
         // that we fall into the Unicode-aware parsing path inside parse()
         // below.
-        auto const range = boost::parser::detail::text::as_utf32(str);
+        auto const range = boost::parser::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)

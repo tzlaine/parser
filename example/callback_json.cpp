@@ -5,6 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //[ extended_callback_parsing_json_example
 #include <boost/parser/parser.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #include <fstream>
 #include <vector>
@@ -239,7 +240,7 @@ namespace json {
         Callbacks const & callbacks,
         int max_recursion = 512)
     {
-        auto const range = boost::parser::detail::text::as_utf32(str);
+        auto const range = boost::parser::as_utf32(str);
         using iter_t = decltype(range.begin());
 
         if (max_recursion <= 0)
