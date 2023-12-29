@@ -72,9 +72,9 @@
 <li class="listitem">
             <code class="computeroutput"><a class="link" href="../../boost/parser/default_error_handler.html" title="Struct default_error_handler">default_error_handler</a></code>:
             Produces formatted diagnostics like the one above, and prints them to
-            <code class="computeroutput">std::cout</code>. <code class="computeroutput"><a class="link" href="../../boost/parser/default_error_handler.html" title="Struct default_error_handler">default_error_handler</a></code> has
+            <code class="computeroutput">std::cerr</code>. <code class="computeroutput"><a class="link" href="../../boost/parser/default_error_handler.html" title="Struct default_error_handler">default_error_handler</a></code> has
             no associated file name, and both errors and diagnostics are printed
-            to <code class="computeroutput">std::cout</code>. This handler is <code class="computeroutput">constexpr</code>-friendly.
+            to <code class="computeroutput">std::cerr</code>. This handler is <code class="computeroutput">constexpr</code>-friendly.
           </li>
 <li class="listitem">
             <code class="computeroutput"><a class="link" href="../../boost/parser/stream_error_handler.html" title="Struct stream_error_handler">stream_error_handler</a></code>:
@@ -118,7 +118,7 @@
         Sometimes, during the writing of a parser, you make a simple mistake that
         is diagnosed horrifyingly, due to the high number of template instantiations
         between the line you just wrote and the point of use (usually, the call to
-        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20127.html" title="Function template parse">parse()</a></code>). By "sometimes",
+        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>). By "sometimes",
         I mean "almost always and many, many times". Boost.Parser has a
         workaround for situations like this. The workaround is to make the ill-formed
         code well-formed in as many circumstances as possible, and then do a runtime
@@ -145,14 +145,14 @@
         nearly impossible to debug simply by looking at the parser's code. Stepping
         through the parse in a debugger is even worse. To provide a reasonable chance
         of debugging your parsers, Boost.Parser has a trace mode that you can turn
-        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20127.html" title="Function template parse">parse()</a></code>
-        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20387.html" title="Function template callback_parse">callback_parse()</a></code>:
+        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>
+        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20398.html" title="Function template callback_parse">callback_parse()</a></code>:
       </p>
 <pre class="programlisting">boost::parser::parse(input, parser, boost::parser::trace::on);
 </pre>
 <p>
-        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20127.html" title="Function template parse">parse()</a></code>
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20387.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
+        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm20398.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
         which is defaulted to <code class="computeroutput">boost::parser::trace::off</code>.
       </p>
 <p>
