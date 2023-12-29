@@ -494,6 +494,10 @@ like we might any other parser:
 
 [rule_intro_parse_call]
 
+[note We used _RULE_ in this example.  There is also another macro that allows
+you to define multiple rules in one macro expansion, _RULES_.  _RULES_ is only
+available if the necessary Boost.Preprocessor headers are available.]
+
 The full program:
 
 [rule_intro_example]
