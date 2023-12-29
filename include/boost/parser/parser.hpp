@@ -6380,7 +6380,7 @@ namespace boost { namespace parser {
         }
     }
 
-    /** Parses `str` using `parser`, and returns whether the parse was
+    /** Parses `r` using `parser`, and returns whether the parse was
         successful.  The entire input range `r` must be consumed for the parse
         to be considered successful.  On success, `attr` will be assigned the
         value of the attribute produced by `parser`.  If `trace_mode ==
@@ -6479,7 +6479,7 @@ namespace boost { namespace parser {
         }
     }
 
-    /** Parses `str` using `parser`.  Returns a `std::optional` containing the
+    /** Parses `r` using `parser`.  Returns a `std::optional` containing the
         attribute produced by `parser` on parse success, and `std::nullopt` on
         parse failure.  The entire input range `r` must be consumed for the
         parse to be considered successful.  If `trace_mode == trace::on`, a
@@ -6588,7 +6588,7 @@ namespace boost { namespace parser {
         }
     }
 
-    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+    /** Parses `r` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers, and returns whether the
         parse was successful.  The entire input range `r` must be consumed for
         the parse to be considered successful.  On success, `attr` will be
@@ -6813,7 +6813,7 @@ namespace boost { namespace parser {
 
 #endif
 
-    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+    /** Parses `r` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
         `std::nullopt` on parse failure.  The entire input range `r` must be
@@ -7017,7 +7017,7 @@ namespace boost { namespace parser {
         }
     }
 
-    /** Parses `str` using `parser`, and returns whether the parse was
+    /** Parses `r` using `parser`, and returns whether the parse was
         successful.  The entire input range `r` must be consumed for the parse
         to be considered successful.  When a callback rule `r` is successful
         during the parse, one of two things happens: 1) if `r` has an
@@ -7143,7 +7143,7 @@ namespace boost { namespace parser {
         }
     }
 
-    /** Parses `str` using `parser`, skipping all input recognized by `skip`
+    /** Parses `r` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers, and returns whether the
         parse was successful.  The entire input range `r` must be consumed for
         the parse to be considered successful.  When a callback rule `r` is
