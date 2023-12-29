@@ -672,7 +672,7 @@ since it is zero length and consumes no input.  It even matches the end of
 input.  This means that `parser_3` is equivalent to _e_ by itself.
 
 [note For this reason, writing `_e_ | p` for any parser p is considered a bug.
-Debug builds will assert when `_e_ | p` is encoutered. ]
+Debug builds will assert when `_e_ | p` is encountered. ]
 
 [endsect]
 
