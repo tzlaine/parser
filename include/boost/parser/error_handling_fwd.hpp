@@ -103,20 +103,20 @@ namespace boost { namespace parser {
     };
 
     /** The error handler used when the user does not specify a custom one.
-        This error handler prints warnings and errors to `std::cout`, and does
+        This error handler prints warnings and errors to `std::cerr`, and does
         not have an associcated filename. */
     struct default_error_handler
     {
         constexpr default_error_handler() = default;
 
         /** Handles a `parse_error` exception thrown during parsing.  A
-            formatted parse-expectation failure is printed to `std::cout`.
+            formatted parse-expectation failure is printed to `std::cerr`.
             Always returns `error_handler_result::fail`. */
         template<typename Iter, typename Sentinel>
         error_handler_result operator()(
             Iter first, Sentinel last, parse_error<Iter> const & e) const;
 
-        /** Prints `message` to `std::cout`.  The diagnostic is printed with
+        /** Prints `message` to `std::cerr`.  The diagnostic is printed with
             the given `kind`, indicating the location as being at `it`.  This
             must be called within a parser semantic action, providing the
             parse context. */
@@ -129,7 +129,7 @@ namespace boost { namespace parser {
             Iter it) const;
         //]
 
-        /** Prints `message` to `std::cout`.  The diagnostic is printed with
+        /** Prints `message` to `std::cerr`.  The diagnostic is printed with
             the given `kind`, at no particular location.  This must be called
             within a parser semantic action, providing the parse context. */
         //[ error_handler_api_2
@@ -142,13 +142,13 @@ namespace boost { namespace parser {
     };
 
     /** Prints warnings and errors to the `std::ostream`s provided by the
-        user, or `std::cout` if neither stream is specified.  If a filename is
+        user, or `std::cerr` if neither stream is specified.  If a filename is
         provided, that is used to print all diagnostics. */
     struct stream_error_handler
     {
-        stream_error_handler() : err_os_(&std::cout), warn_os_(err_os_) {}
+        stream_error_handler() : err_os_(&std::cerr), warn_os_(err_os_) {}
         stream_error_handler(std::string_view filename) :
-            filename_(filename), err_os_(&std::cout), warn_os_(err_os_)
+            filename_(filename), err_os_(&std::cerr), warn_os_(err_os_)
         {}
         stream_error_handler(std::string_view filename, std::ostream & errors) :
             filename_(filename), err_os_(&errors), warn_os_(&errors)
@@ -162,7 +162,7 @@ namespace boost { namespace parser {
 #if defined(_MSC_VER) || defined(BOOST_PARSER_DOXYGEN)
         /** This overload is Windows-only. */
         stream_error_handler(std::wstring_view filename) :
-            err_os_(&std::cout), warn_os_(err_os_)
+            err_os_(&std::cerr), warn_os_(err_os_)
         {
             auto const r = filename | detail::text::as_utf8;
             filename_.assign(r.begin(), r.end());
@@ -189,7 +189,7 @@ namespace boost { namespace parser {
 
         /** Handles a `parse_error` exception thrown during parsing.  A
             formatted parse-expectation failure is printed to `*err_os_` when
-            `err_os_` is non-null, or `std::cout` otherwise.  Always returns
+            `err_os_` is non-null, or `std::cerr` otherwise.  Always returns
             `error_handler_result::fail`. */
         template<typename Iter, typename Sentinel>
         error_handler_result
@@ -197,7 +197,7 @@ namespace boost { namespace parser {
 
         /** Let `std::ostream * s = kind == diagnostic_kind::error : err_os_ :
             warn_os_`; prints `message` to `*s` when `s` is non-null, or
-            `std::cout` otherwise.  The diagnostic is printed with the given
+            `std::cerr` otherwise.  The diagnostic is printed with the given
             `kind`, indicating the location as being at `it`.  This must be
             called within a parser semantic action, providing the parse
             context. */
@@ -210,7 +210,7 @@ namespace boost { namespace parser {
 
         /** Let `std::ostream * s = kind == diagnostic_kind::error : err_os_ :
             warn_os_`; prints `message` to `*s` when `s` is non-null, or
-            `std::cout` otherwise.  The diagnostic is printed with the given
+            `std::cerr` otherwise.  The diagnostic is printed with the given
             `kind`, at no particular location.  This must be called within a
             parser semantic action, providing the parse context. */
         template<typename Context>

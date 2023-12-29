@@ -2424,8 +2424,8 @@ whatever you want, as long as it meets the error handler interface.  See
 The _Parser_ error handlers are:
 
 * _default_eh_: Produces formatted diagnostics like the one above, and prints
-  them to `std::cout`.  _default_eh_ has no associated file name, and both
-  errors and diagnostics are printed to `std::cout`.  This handler is
+  them to `std::cerr`.  _default_eh_ has no associated file name, and both
+  errors and diagnostics are printed to `std::cerr`.  This handler is
   `constexpr`-friendly.
 
 * _stream_eh_: Produces formatted diagnostics.  One or two streams may be

@@ -25,11 +25,11 @@ by returning an object that represents the result of the parse.  Other parsing
 may best be done by filling in a preexisting data structure.  Yet other
 parsing may best be done by parsing small sections of a large document, and
 reporting the results of subparsers as they are finished, via callbacks.
-_Parser_ accommodates all these ways of working, and even makes is possible to
+_Parser_ accommodates all these ways of working, and even makes ist possible to
 do callback-based or non-callback-based parsing without rewriting any code
 (except by changing the top-level call from _p_ to _cbp_).
 
-All of _Parser_'s public interface are sentinel- and range-friendly, just like
+All of _Parser_'s public interfaces are sentinel- and range-friendly, just like
 the interfaces in `std::ranges`.
 
 _Parser_ is Unicode-aware through and through.  When you parse ranges of
@@ -110,8 +110,8 @@ However, it does not suit user needs in some ways.
   produced by a rule can change depending on the context in which you use the
   rule.
 
-* Spirit X3 is missing many of the convenient interface to parsers that Spirit
-  2 had.  For instance, you cannot add parameters to a parser.
+* Spirit X3 is missing many of the convenient interfaces to parsers that
+  Spirit 2 had.  For instance, you cannot add parameters to a parser.
 
 * All versions of Spirit have Unicode support, but it is quite difficult to
   get working.
