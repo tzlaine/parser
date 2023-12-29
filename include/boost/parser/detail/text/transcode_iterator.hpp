@@ -2851,7 +2851,7 @@ namespace boost::parser::detail { namespace text {
             */
                 // clang-format on
 
-                char8_type curr_c = cp;
+                char8_type curr_c = char8_type(cp);
 
                 auto error = [&]() {
                     return ErrorHandler{}("Ill-formed UTF-8.");
@@ -3144,7 +3144,7 @@ namespace boost::parser::detail { namespace text {
                 char32_t cp = decode_code_point();
                 auto it = encode_code_point(cp, buf_.begin());
                 buf_index_ = 0;
-                buf_last_ = it - buf_.begin();
+                buf_last_ = uint8_t(it - buf_.begin());
             } else {
                 auto buf = buf_;
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
@@ -3179,7 +3179,7 @@ namespace boost::parser::detail { namespace text {
             if constexpr (noexcept(ErrorHandler{}(""))) {
                 char32_t cp = decode_code_point_reverse();
                 auto it = encode_code_point(cp, buf_.begin());
-                buf_last_ = it - buf_.begin();
+                buf_last_ = uint8_t(it - buf_.begin());
                 buf_index_ = buf_last_ - 1;
                 to_increment_ = std::distance(curr(), initial);
             } else {
