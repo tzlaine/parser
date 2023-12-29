@@ -494,6 +494,10 @@ like we might any other parser:
 
 [rule_intro_parse_call]
 
+[note We used _RULE_ in this example.  There is also another macro that allows
+you to define multiple rules in one macro expansion, _RULES_.  _RULES_ is only
+available if the necessary Boost.Preprocessor headers are available.]
+
 The full program:
 
 [rule_intro_example]
@@ -672,7 +676,7 @@ since it is zero length and consumes no input.  It even matches the end of
 input.  This means that `parser_3` is equivalent to _e_ by itself.
 
 [note For this reason, writing `_e_ | p` for any parser p is considered a bug.
-Debug builds will assert when `_e_ | p` is encoutered. ]
+Debug builds will assert when `_e_ | p` is encountered. ]
 
 [endsect]
 
@@ -2424,8 +2428,8 @@ whatever you want, as long as it meets the error handler interface.  See
 The _Parser_ error handlers are:
 
 * _default_eh_: Produces formatted diagnostics like the one above, and prints
-  them to `std::cout`.  _default_eh_ has no associated file name, and both
-  errors and diagnostics are printed to `std::cout`.  This handler is
+  them to `std::cerr`.  _default_eh_ has no associated file name, and both
+  errors and diagnostics are printed to `std::cerr`.  This handler is
   `constexpr`-friendly.
 
 * _stream_eh_: Produces formatted diagnostics.  One or two streams may be

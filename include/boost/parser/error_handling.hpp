@@ -285,7 +285,7 @@ namespace boost { namespace parser {
         Iter first, Sentinel last, parse_error<Iter> const & e) const
     {
         parser::write_formatted_expectation_failure_error_message(
-            std::cout, "", first, last, e);
+            std::cerr, "", first, last, e);
         return error_handler_result::fail;
     }
 
@@ -297,7 +297,7 @@ namespace boost { namespace parser {
         Iter it) const
     {
         parser::write_formatted_message(
-            std::cout,
+            std::cerr,
             "",
             parser::_begin(context),
             it,
@@ -320,7 +320,7 @@ namespace boost { namespace parser {
     {
         std::ostream * os = err_os_;
         if (!os)
-            os = &std::cout;
+            os = &std::cerr;
         parser::write_formatted_expectation_failure_error_message(
             *os, filename_, first, last, e);
         return error_handler_result::fail;
@@ -335,7 +335,7 @@ namespace boost { namespace parser {
     {
         std::ostream * os = kind == diagnostic_kind::error ? err_os_ : warn_os_;
         if (!os)
-            os = &std::cout;
+            os = &std::cerr;
         parser::write_formatted_message(
             *os,
             filename_,
