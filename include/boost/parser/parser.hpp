@@ -5619,7 +5619,7 @@ namespace boost { namespace parser {
         attribute.  To parse a particular value `x`, use `oct(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 8>> oct;
 
-    /** The hexidecimal unsigned integer parser.  Produces an `unsigned int`
+    /** The hexadecimal unsigned integer parser.  Produces an `unsigned int`
         attribute.  To parse a particular value `x`, use `hex(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 16>> hex;
 
