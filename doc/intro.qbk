@@ -90,7 +90,7 @@ rule.
 [section This Library's Relationship to Boost.Spirit]
 
 [note If you are familiar with Spirit 2 and/or Spirit X3, you may be
-interested in this section.  If you are not, and you have not ready the
+interested in this section.  If you are not, and you have not read the
 tutorial for _Parser_ yet, very little of this will make sense.]
 
 _Spirit_ is a library that is already in Boost, and it has been around for a
