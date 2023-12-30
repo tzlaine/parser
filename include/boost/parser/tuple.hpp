@@ -189,7 +189,7 @@ namespace boost { namespace parser {
                 -> decltype(T{whatever{Is}...}, ce_int<1>{});
 
         template<typename T, typename N>
-        using constructible_expr = decltype(constructible_expr_impl<T>(
+        using constructible_expr = decltype(detail::constructible_expr_impl<T>(
             std::make_integer_sequence<int, N::value>()));
 
         template<typename T, int... Is>
@@ -206,8 +206,10 @@ namespace boost { namespace parser {
         // Fortunately, we don't care -- we never assign from tuples of size
         // 1.
         template<typename T>
-        constexpr int struct_arity_v =
-            struct_arity_impl<T>(std::make_integer_sequence<int, 256>()) - 1;
+        constexpr int
+            struct_arity_v = detail::struct_arity_impl<T>(
+                                 std::make_integer_sequence<int, 100>()) -
+                             1;
 
         template<typename T>
         constexpr int tuple_size_ = -1;
@@ -224,18 +226,42 @@ namespace boost { namespace parser {
         }
 
         template<typename T, typename Tuple>
-        using initialize_from_tuple_expr = decltype(initialize_from_tuple(
-            std::declval<T &>(),
-            std::declval<Tuple>(),
-            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+        using initialize_from_tuple_expr =
+            decltype(detail::initialize_from_tuple(
+                std::declval<T &>(),
+                std::declval<Tuple>(),
+                std::make_integer_sequence<int, tuple_size_<Tuple>>()));
 
         template<typename Struct, typename Tuple>
         constexpr bool is_struct_assignable_v =
             struct_arity_v<Struct> == tuple_size_<Tuple>
                 ? is_detected_v<initialize_from_tuple_expr, Struct, Tuple>
                 : false;
+
+        template<int N>
+        struct aggregate_to_tuple_impl
+        {
+            template<typename T>
+            static constexpr auto call(T x)
+            {
+                static_assert(
+                    sizeof(T) && false,
+                    "It looks like you're trying to use a struct larger than "
+                    "the limit.");
+            }
+        };
+
+        template<typename T>
+        constexpr auto aggregate_to_tuple(T x)
+        {
+            static_assert(!std::is_union_v<T>);
+            return aggregate_to_tuple_impl<struct_arity_v<T>>::call(
+                std::move(x));
+        }
     }
 
 }}
+
+#include <boost/parser/detail/aggr_to_tuple_generated.hpp>
 
 #endif
