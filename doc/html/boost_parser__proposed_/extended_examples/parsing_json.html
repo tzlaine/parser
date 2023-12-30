@@ -77,7 +77,7 @@
 
     <span class="comment">// Here are all the rules declared.  I've given them names that are</span>
     <span class="comment">// end-user friendly, so that if there is a parse error, you get a message</span>
-    <span class="comment">// like "expected four hexidecimal digits here:", instead of "expected</span>
+    <span class="comment">// like "expected four hexadecimal digits here:", instead of "expected</span>
     <span class="comment">// hex_4 here:".</span>
 
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">ws</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">ws</span> <span class="special">=</span> <span class="string">"whitespace"</span><span class="special">;</span>
@@ -85,11 +85,11 @@
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">string_char</span><span class="special">,</span> <span class="identifier">uint32_t</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">string_char</span> <span class="special">=</span>
         <span class="string">"code point (code points &lt;= U+001F must be escaped)"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">four_hex_digits</span><span class="special">,</span> <span class="identifier">uint32_t</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">hex_4</span> <span class="special">=</span>
-        <span class="string">"four hexidecimal digits"</span><span class="special">;</span>
+        <span class="string">"four hexadecimal digits"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">escape_seq</span><span class="special">,</span> <span class="identifier">uint32_t</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">escape_seq</span> <span class="special">=</span>
-        <span class="string">"\\uXXXX hexidecimal escape sequence"</span><span class="special">;</span>
+        <span class="string">"\\uXXXX hexadecimal escape sequence"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">escape_double_seq</span><span class="special">,</span> <span class="identifier">uint32_t</span><span class="special">,</span> <span class="identifier">double_escape_locals</span><span class="special">&gt;</span> <span class="keyword">const</span>
-        <span class="identifier">escape_double_seq</span> <span class="special">=</span> <span class="string">"\\uXXXX hexidecimal escape sequence"</span><span class="special">;</span>
+        <span class="identifier">escape_double_seq</span> <span class="special">=</span> <span class="string">"\\uXXXX hexadecimal escape sequence"</span><span class="special">;</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">class</span> <span class="identifier">single_escaped_char</span><span class="special">,</span> <span class="identifier">uint32_t</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="identifier">single_escaped_char</span> <span class="special">=</span>
         <span class="string">"'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'"</span><span class="special">;</span>
 
@@ -178,7 +178,7 @@
     <span class="comment">// integer parsers int_parser and uint_parser.  In this case, we don't</span>
     <span class="comment">// want to use boost::parser::hex directly, since it has a variable number</span>
     <span class="comment">// of digits.  We want to match exactly 4 digits, and this is how we</span>
-    <span class="comment">// declare a hexidecimal parser that matches exactly 4.</span>
+    <span class="comment">// declare a hexadecimal parser that matches exactly 4.</span>
     <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parser_interface</span><span class="special">&lt;</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">uint_parser</span><span class="special">&lt;</span><span class="identifier">uint32_t</span><span class="special">,</span> <span class="number">16</span><span class="special">,</span> <span class="number">4</span><span class="special">,</span> <span class="number">4</span><span class="special">&gt;&gt;</span> <span class="keyword">const</span> <span class="identifier">hex_4_def</span><span class="special">;</span>
 
     <span class="comment">// We use &gt; here instead of &gt;&gt;, because once we see \u, we know that</span>

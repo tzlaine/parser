@@ -32,7 +32,7 @@
              <span class="identifier">trace</span> trace_mode <span class="special">=</span> <span class="identifier">trace</span><span class="special">::</span><span class="identifier">off</span><span class="special">)</span><span class="special">;</span></pre></div>
 <div class="refsect1">
 <a name="idm32778"></a><h2>Description</h2>
-<p>Parses <code class="computeroutput">str</code> using <code class="computeroutput">parser</code>. Returns a <code class="computeroutput">std::optional</code> containing the attribute produced by <code class="computeroutput">parser</code> on parse success, and <code class="computeroutput">std::nullopt</code> on parse failure. The entire input range <code class="computeroutput">r</code> must be consumed for the parse to be considered successful. If <code class="computeroutput">trace_mode == trace::on</code>, a verbose trace of the parse will be streamed to <code class="computeroutput">std::cout</code>. </p>
+<p>Parses <code class="computeroutput">r</code> using <code class="computeroutput">parser</code>. Returns a <code class="computeroutput">std::optional</code> containing the attribute produced by <code class="computeroutput">parser</code> on parse success, and <code class="computeroutput">std::nullopt</code> on parse failure. The entire input range <code class="computeroutput">r</code> must be consumed for the parse to be considered successful. If <code class="computeroutput">trace_mode == trace::on</code>, a verbose trace of the parse will be streamed to <code class="computeroutput">std::cout</code>. </p>
 </div>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>

@@ -36,7 +36,7 @@
         Starting with Unicode support and UTF-8 input will allow you to properly
         handle unexpected input, like non-ASCII languages (that's most of them),
         with no additional effort on your part. For instance, matching whitespace
-        is a little funky in the general (meanining Unicode) case, and only matching
+        is a little funky in the general (meaning Unicode) case, and only matching
         the ones in the ASCII range is an unnecessary limitation.
       </p>
 <h5>
@@ -81,9 +81,9 @@
         the JSON examples have these rules:
       </p>
 <pre class="programlisting">bp::rule&lt;class escape_seq, uint32_t&gt; const escape_seq =
-    "\\uXXXX hexidecimal escape sequence";
+    "\\uXXXX hexadecimal escape sequence";
 bp::rule&lt;class escape_double_seq, uint32_t, double_escape_locals&gt; const
-    escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+    escape_double_seq = "\\uXXXX hexadecimal escape sequence";
 bp::rule&lt;class single_escaped_char, uint32_t&gt; const single_escaped_char =
     "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 </pre>
@@ -93,9 +93,9 @@ bp::rule&lt;class single_escaped_char, uint32_t&gt; const single_escaped_char =
 <p>
         - <code class="computeroutput">escape_seq</code> and <code class="computeroutput">escape_double_seq</code> have the same
         name-string. To an end-user who is trying to figure out why their input failed
-        to parse, it doesn't matter which kind of result a parser rule gernerates.
+        to parse, it doesn't matter which kind of result a parser rule generates.
         They just want to know how to fix their input. For either rule, the fix is
-        the same: put a hexidecimal escape sequence there.
+        the same: put a hexadecimal escape sequence there.
       </p>
 <p>
         - <code class="computeroutput">single_escaped_char</code> has a terrible-looking name. However,

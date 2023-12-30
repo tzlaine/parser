@@ -268,7 +268,7 @@
                   undefined behavior in C++. Boost.Parser will assert in debug mode
                   when it encounters <code class="computeroutput"><span class="special">*</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>,
                   <code class="computeroutput"><span class="special">+</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>, etc
-                  (this applies to undconditional <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code> only).
+                  (this applies to unconditional <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code> only).
                 </p>
               </td>
 </tr>
@@ -1081,7 +1081,7 @@
               </td>
 <td>
                 <p>
-                  Matches a hexidecimal unsigned integral value.
+                  Matches a hexadecimal unsigned integral value.
                 </p>
               </td>
 <td>
@@ -1105,7 +1105,7 @@
               </td>
 <td>
                 <p>
-                  Matches exactly the hexidecimal unsigned integral value <code class="computeroutput"><span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">arg0</span><span class="special">)</span></code>.
+                  Matches exactly the hexadecimal unsigned integral value <code class="computeroutput"><span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">arg0</span><span class="special">)</span></code>.
                 </p>
               </td>
 <td>
@@ -1495,7 +1495,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19790.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19790.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>
@@ -1526,7 +1526,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19790.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to undconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19790.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>
@@ -1641,7 +1641,7 @@
         a sentinel value meaning that there is no max number of digits.
       </p>
 <p>
-        So, if you wanted to parse exactly eight hexidecimal digits in a row in order
+        So, if you wanted to parse exactly eight hexadecimal digits in a row in order
         to recognize Unicode character literals like C++ has (e.g. <code class="computeroutput"><span class="special">\</span><span class="identifier">Udeadbeef</span></code>),
         you could use this parser for the digits at the end:
       </p>

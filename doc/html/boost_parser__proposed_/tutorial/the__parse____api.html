@@ -371,7 +371,7 @@
         into an attribute out-param <code class="computeroutput"><span class="identifier">O</span></code>,
         you can pass many types of things for <code class="computeroutput"><span class="identifier">O</span></code>
         that are not <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">P</span><span class="special">)</span></code>, as
-        shown above. This works because each step of attribute generation attemps
+        shown above. This works because each step of attribute generation attempts
         to assign/append to the associated out-param attribute, if there is one,
         and tries several strategies to get that assignment/append operation to work.
       </p>
@@ -408,7 +408,7 @@
         result of that parse is assigned/appended to the attribute out-param. Since
         appending would not work (you cannot append to a sequence inside a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">any</span></code>,
         because you cannot see that there is a sequence in there), assignment is
-        done instead. This assignemnt is done for each of the three subparsers, but
+        done instead. This assignment is done for each of the three subparsers, but
         of course it replaces what was in the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">any</span></code> previously.
       </p>
 <p>
