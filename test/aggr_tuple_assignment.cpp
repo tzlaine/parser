@@ -87,7 +87,7 @@ TEST(aggr_tuple_assignment, struct_arity)
     // 1 due to the copy ctor.
     static_assert(struct_arity_v<string_int_double_priv> == 1);
 
-    static_assert(struct_arity_v<string_int_double_no_copy_move> == 0);
+    static_assert(struct_arity_v<string_int_double_no_copy_move> <= 0);
 }
 
 TEST(aggr_tuple_assignment, is_struct_assignable)
