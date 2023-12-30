@@ -978,12 +978,12 @@ the input they match unless otherwise stated in the table below.]
      []]
 
     [[ _hex_ ]
-     [ Matches a hexidecimal unsigned integral value. ]
+     [ Matches a hexadecimal unsigned integral value. ]
      [ `unsigned int` ]
      [ For example, _hex_ would match `"ff"`, and generate an attribute of `255u`. ]]
 
     [[ `_hex_(arg0)` ]
-     [ Matches exactly the hexidecimal unsigned integral value `_RES_np_(arg0)`. ]
+     [ Matches exactly the hexadecimal unsigned integral value `_RES_np_(arg0)`. ]
      [ `unsigned int` ]
      []]
 
@@ -1115,7 +1115,7 @@ after the type parameter.  They are `Radix`, `MinDigits`, and `MaxDigits`.
 `Radix` defaults to `10`, `MinDigits` to `1`, and `MaxDigits` to `-1`, which
 is a sentinel value meaning that there is no max number of digits.
 
-So, if you wanted to parse exactly eight hexidecimal digits in a row in order
+So, if you wanted to parse exactly eight hexadecimal digits in a row in order
 to recognize Unicode character literals like C++ has (e.g. `\Udeadbeef`), you
 could use this parser for the digits at the end:
 
@@ -2726,9 +2726,9 @@ that will read well in error messages like this.  For instance, the JSON
 examples have these rules:
 
     bp::rule<class escape_seq, uint32_t> const escape_seq =
-        "\\uXXXX hexidecimal escape sequence";
+        "\\uXXXX hexadecimal escape sequence";
     bp::rule<class escape_double_seq, uint32_t, double_escape_locals> const
-        escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+        escape_double_seq = "\\uXXXX hexadecimal escape sequence";
     bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
         "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 
@@ -2738,7 +2738,7 @@ Some things to note:
   end-user who is trying to figure out why their input failed to parse, it
   doesn't matter which kind of result a parser rule gernerates.  They just
   want to know how to fix their input.  For either rule, the fix is the same:
-  put a hexidecimal escape sequence there.
+  put a hexadecimal escape sequence there.
 
 - `single_escaped_char` has a terrible-looking name.  However, it's not really
   used as a name anywhere per se.  In error messages, it works nicely, though.

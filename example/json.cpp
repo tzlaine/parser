@@ -54,7 +54,7 @@ namespace json {
 
     // Here are all the rules declared.  I've given them names that are
     // end-user friendly, so that if there is a parse error, you get a message
-    // like "expected four hexidecimal digits here:", instead of "expected
+    // like "expected four hexadecimal digits here:", instead of "expected
     // hex_4 here:".
 
     bp::rule<class ws> const ws = "whitespace";
@@ -62,11 +62,11 @@ namespace json {
     bp::rule<class string_char, uint32_t> const string_char =
         "code point (code points <= U+001F must be escaped)";
     bp::rule<class four_hex_digits, uint32_t> const hex_4 =
-        "four hexidecimal digits";
+        "four hexadecimal digits";
     bp::rule<class escape_seq, uint32_t> const escape_seq =
-        "\\uXXXX hexidecimal escape sequence";
+        "\\uXXXX hexadecimal escape sequence";
     bp::rule<class escape_double_seq, uint32_t, double_escape_locals> const
-        escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+        escape_double_seq = "\\uXXXX hexadecimal escape sequence";
     bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
         "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 
@@ -155,7 +155,7 @@ namespace json {
     // integer parsers int_parser and uint_parser.  In this case, we don't
     // want to use boost::parser::hex directly, since it has a variable number
     // of digits.  We want to match exactly 4 digits, and this is how we
-    // declare a hexidecimal parser that matches exactly 4.
+    // declare a hexadecimal parser that matches exactly 4.
     bp::parser_interface<bp::uint_parser<uint32_t, 16, 4, 4>> const hex_4_def;
 
     // We use > here instead of >>, because once we see \u, we know that
