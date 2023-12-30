@@ -39,8 +39,12 @@ def destructuring_str():
     return f'''auto & [
 {bindings_str(lambda x: x, 15)}] = x;'''
 
+def typenames_str():
+    return f'''<
+{bindings_str(lambda x: f'decltype({x})', 5)}>'''
+
 def initializers_str():
-    return f'''return parser::tuple(
+    return f'''return parser::tuple{typenames_str()}(
 {bindings_str(lambda x: f'std::move({x})', 5)});'''
 
 for i in range(1, specializations + 1):

@@ -218,24 +218,23 @@ namespace boost { namespace parser {
         constexpr int tuple_size_<tuple<Elems...>> = sizeof...(Elems);
 
         template<typename T, typename Tuple, int... Is>
-        auto initialize_from_tuple(
-            T & x, Tuple && tup, std::integer_sequence<int, Is...>)
-            -> decltype(x = T{std::get<Is>(std::move(tup))...})
+        auto
+        tuple_to_aggregate(T & x, Tuple tup, std::integer_sequence<int, Is...>)
+            -> decltype(x = T{parser::get(std::move(tup), llong<Is>{})...})
         {
-            return x = T{std::get<Is>(std::move(tup))...};
+            return x = T{parser::get(std::move(tup), llong<Is>{})...};
         }
 
         template<typename T, typename Tuple>
-        using initialize_from_tuple_expr =
-            decltype(detail::initialize_from_tuple(
-                std::declval<T &>(),
-                std::declval<Tuple>(),
-                std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+        using tuple_to_aggregate_expr = decltype(detail::tuple_to_aggregate(
+            std::declval<T &>(),
+            std::declval<Tuple>(),
+            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
 
         template<typename Struct, typename Tuple>
         constexpr bool is_struct_assignable_v =
             struct_arity_v<Struct> == tuple_size_<Tuple>
-                ? is_detected_v<initialize_from_tuple_expr, Struct, Tuple>
+                ? is_detected_v<tuple_to_aggregate_expr, Struct, Tuple>
                 : false;
 
         template<int N>
