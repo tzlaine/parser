@@ -44,11 +44,11 @@ namespace json {
     bp::rule<class string_char, uint32_t> const string_char =
         "code point (code points <= U+001F must be escaped)";
     bp::rule<class four_hex_digits, uint32_t> const hex_4 =
-        "four hexidecimal digits";
+        "four hexadecimal digits";
     bp::rule<class escape_seq, uint32_t> const escape_seq =
-        "\\uXXXX hexidecimal escape sequence";
+        "\\uXXXX hexadecimal escape sequence";
     bp::rule<class escape_double_seq, uint32_t, double_escape_locals> const
-        escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+        escape_double_seq = "\\uXXXX hexadecimal escape sequence";
     bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
         "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 

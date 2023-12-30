@@ -805,7 +805,7 @@ the input they match unless otherwise stated in the table below.]
     [[ _e_ ]
       [ Matches /epsilon/, the empty string.  Always matches, and consumes no input. ]
       [ None. ]
-      [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_`, `+_e_`, etc (this applies to undconditional _e_ only). ]]
+      [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_`, `+_e_`, etc (this applies to unconditional _e_ only). ]]
 
     [[ `_e_(pred)` ]
      [ Fails to match the input if `_RES_np_(pred) == false`.  Otherwise, the semantics are those of _e_. ]
@@ -978,12 +978,12 @@ the input they match unless otherwise stated in the table below.]
      []]
 
     [[ _hex_ ]
-     [ Matches a hexidecimal unsigned integral value. ]
+     [ Matches a hexadecimal unsigned integral value. ]
      [ `unsigned int` ]
      [ For example, _hex_ would match `"ff"`, and generate an attribute of `255u`. ]]
 
     [[ `_hex_(arg0)` ]
-     [ Matches exactly the hexidecimal unsigned integral value `_RES_np_(arg0)`. ]
+     [ Matches exactly the hexadecimal unsigned integral value `_RES_np_(arg0)`. ]
      [ `unsigned int` ]
      []]
 
@@ -1080,12 +1080,12 @@ the input they match unless otherwise stated in the table below.]
     [[ `_rpt_np_(arg0)[p]` ]
      [ Matches iff `p` matches exactly `_RES_np_(arg0)` times. ]
      [ `std::vector<_ATTR_np_(p)>` ]
-     [ The special value _inf_ may be used; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(_inf_)[_e_]` (this applies to undconditional _e_ only). ]]
+     [ The special value _inf_ may be used; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(_inf_)[_e_]` (this applies to unconditional _e_ only). ]]
 
     [[ `_rpt_np_(arg0, arg1)[p]` ]
      [ Matches iff `p` matches between `_RES_np_(arg0)` and `_RES_np_(arg1)` times, inclusively. ]
      [ `std::vector<_ATTR_np_(p)>` ]
-     [ The special value _inf_ may be used for the upper bound; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` and `decltype(_RES_np_(arg1))` each must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(n, _inf_)[_e_]` (this applies to undconditional _e_ only). ]]
+     [ The special value _inf_ may be used for the upper bound; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` and `decltype(_RES_np_(arg1))` each must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(n, _inf_)[_e_]` (this applies to unconditional _e_ only). ]]
 
     [[ `_if_np_(pred)[p]` ]
      [ Equivalent to `_e_(pred) >> p`. ]
@@ -1115,7 +1115,7 @@ after the type parameter.  They are `Radix`, `MinDigits`, and `MaxDigits`.
 `Radix` defaults to `10`, `MinDigits` to `1`, and `MaxDigits` to `-1`, which
 is a sentinel value meaning that there is no max number of digits.
 
-So, if you wanted to parse exactly eight hexidecimal digits in a row in order
+So, if you wanted to parse exactly eight hexadecimal digits in a row in order
 to recognize Unicode character literals like C++ has (e.g. `\Udeadbeef`), you
 could use this parser for the digits at the end:
 
@@ -1248,8 +1248,8 @@ consume the input they match unless otherwise stated in the table below.]
 
     [[`!p`] [ Matches iff `p` does not match; consumes no input. ] [None.] []]
     [[`&p`] [ Matches iff `p` matches; consumes no input. ] [None.] []]
-    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to undconditional _e_ only). ]]
-    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to undconditional _e_ only). ]]
+    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to unconditional _e_ only). ]]
+    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to unconditional _e_ only). ]]
     [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
     [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p)`] []]
@@ -1828,7 +1828,7 @@ result in some ill-formed assignment within the parse. ]
 
 When parsing using parser `P` into an attribute out-param `O`, you can pass
 many types of things for `O` that are not `_ATTR_np_(P)`, as shown above.
-This works because each step of attribute generation attemps to assign/append
+This works because each step of attribute generation attempts to assign/append
 to the associated out-param attribute, if there is one, and tries several
 strategies to get that assignment/append operation to work.
 
@@ -1857,7 +1857,7 @@ all three, `"abc"`.  This happens because each step of the first alternative
 subparser, the result of that parse is assigned/appended to the attribute
 out-param.  Since appending would not work (you cannot append to a sequence
 inside a `std::any`, because you cannot see that there is a sequence in
-there), assignment is done instead.  This assignemnt is done for each of the
+there), assignment is done instead.  This assignment is done for each of the
 three subparsers, but of course it replaces what was in the `std::any` previously.
 
 If we had passed a `std::string` for `O` instead, the result would have been
@@ -2299,7 +2299,7 @@ functions do internally.
 However, there are times when you have parse input that is a sequence of
 UTF-8-encoded `char`s, and you want to do Unicode-aware parsing.  As mentioned
 previously, _Parser_ has a special case for `char` inputs, and it will *not*
-assume that `char` sequenes are UTF-8.  If you want to tell the parse API to
+assume that `char` sequences are UTF-8.  If you want to tell the parse API to
 do Unicode processing on them anyway, you can use the `as_utf32` range
 adapter.  (Note that you can use any of the `as_utf*` adaptors and the
 semantics will not differ from the semantics below.)
@@ -2695,7 +2695,7 @@ if you just start with Unicode and stick with it.
 Starting with Unicode support and UTF-8 input will allow you to properly
 handle unexpected input, like non-ASCII languages (that's most of them), with
 no additional effort on your part.  For instance, matching whitespace is a
-little funky in the general (meanining Unicode) case, and only matching the
+little funky in the general (meaning Unicode) case, and only matching the
 ones in the ASCII range is an unnecessary limitation.
 
 [heading Write rules, and test them in isolation]
@@ -2726,9 +2726,9 @@ that will read well in error messages like this.  For instance, the JSON
 examples have these rules:
 
     bp::rule<class escape_seq, uint32_t> const escape_seq =
-        "\\uXXXX hexidecimal escape sequence";
+        "\\uXXXX hexadecimal escape sequence";
     bp::rule<class escape_double_seq, uint32_t, double_escape_locals> const
-        escape_double_seq = "\\uXXXX hexidecimal escape sequence";
+        escape_double_seq = "\\uXXXX hexadecimal escape sequence";
     bp::rule<class single_escaped_char, uint32_t> const single_escaped_char =
         "'\"', '\\', '/', 'b', 'f', 'n', 'r', or 't'";
 
@@ -2736,9 +2736,9 @@ Some things to note:
 
 - `escape_seq` and `escape_double_seq` have the same name-string.  To an
   end-user who is trying to figure out why their input failed to parse, it
-  doesn't matter which kind of result a parser rule gernerates.  They just
+  doesn't matter which kind of result a parser rule generates.  They just
   want to know how to fix their input.  For either rule, the fix is the same:
-  put a hexidecimal escape sequence there.
+  put a hexadecimal escape sequence there.
 
 - `single_escaped_char` has a terrible-looking name.  However, it's not really
   used as a name anywhere per se.  In error messages, it works nicely, though.

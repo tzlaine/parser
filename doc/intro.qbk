@@ -25,7 +25,7 @@ by returning an object that represents the result of the parse.  Other parsing
 may best be done by filling in a preexisting data structure.  Yet other
 parsing may best be done by parsing small sections of a large document, and
 reporting the results of subparsers as they are finished, via callbacks.
-_Parser_ accommodates all these ways of working, and even makes ist possible to
+_Parser_ accommodates all these ways of working, and even makes it possible to
 do callback-based or non-callback-based parsing without rewriting any code
 (except by changing the top-level call from _p_ to _cbp_).
 
@@ -90,7 +90,7 @@ rule.
 [section This Library's Relationship to Boost.Spirit]
 
 [note If you are familiar with Spirit 2 and/or Spirit X3, you may be
-interested in this section.  If you are not, and you have not ready the
+interested in this section.  If you are not, and you have not read the
 tutorial for _Parser_ yet, very little of this will make sense.]
 
 _Spirit_ is a library that is already in Boost, and it has been around for a

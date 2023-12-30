@@ -11,10 +11,6 @@
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 
-#if 202002L <= __cplusplus && defined(__cpp_impl_coroutine) && __has_include(<coroutine>)
-#include <coroutine>
-#endif
-
 
 #if !BOOST_PARSER_USE_CONCEPTS || defined(_MSC_VER)
 #    define BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS 0

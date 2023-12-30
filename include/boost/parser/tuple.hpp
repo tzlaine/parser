@@ -8,6 +8,7 @@
 #define BOOST_PARSER_TUPLE_HPP
 
 #include <boost/parser/config.hpp>
+#include <boost/parser/detail/detection.hpp>
 
 #if BOOST_PARSER_USE_STD_TUPLE
 
@@ -165,6 +166,101 @@ namespace boost { namespace parser {
 #endif
     }
 
+    namespace detail {
+        template<int N>
+        struct ce_int
+        {
+            constexpr static int value = N;
+        };
+
+        struct whatever
+        {
+            int _;
+            template<typename T>
+            operator T() const && noexcept
+            {
+                return std::declval<T>();
+            }
+        };
+
+        template<typename T, int... Is>
+        constexpr auto
+            constructible_expr_impl(std::integer_sequence<int, Is...>)
+                -> decltype(T{whatever{Is}...}, ce_int<1>{});
+
+        template<typename T, typename N>
+        using constructible_expr = decltype(detail::constructible_expr_impl<T>(
+            std::make_integer_sequence<int, N::value>()));
+
+        template<typename T, int... Is>
+        constexpr int struct_arity_impl(std::integer_sequence<int, Is...>)
+        {
+            return (
+                detected_or_t<ce_int<0>, constructible_expr, T, ce_int<Is>>::
+                    value +
+                ... + 0);
+        }
+
+        // This often mistakenly returns 1 when you give it a struct with
+        // private/protected members, because of copy/move construction.
+        // Fortunately, we don't care -- we never assign from tuples of size
+        // 1.
+        template<typename T>
+        constexpr int
+            struct_arity_v = detail::struct_arity_impl<T>(
+                                 std::make_integer_sequence<int, 100>()) -
+                             1;
+
+        template<typename T>
+        constexpr int tuple_size_ = -1;
+
+        template<typename... Elems>
+        constexpr int tuple_size_<tuple<Elems...>> = sizeof...(Elems);
+
+        template<typename T, typename Tuple, int... Is>
+        auto
+        tuple_to_aggregate(T & x, Tuple tup, std::integer_sequence<int, Is...>)
+            -> decltype(x = T{parser::get(std::move(tup), llong<Is>{})...})
+        {
+            return x = T{parser::get(std::move(tup), llong<Is>{})...};
+        }
+
+        template<typename T, typename Tuple>
+        using tuple_to_aggregate_expr = decltype(detail::tuple_to_aggregate(
+            std::declval<T &>(),
+            std::declval<Tuple>(),
+            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+
+        template<typename Struct, typename Tuple>
+        constexpr bool is_struct_assignable_v =
+            struct_arity_v<Struct> == tuple_size_<Tuple>
+                ? is_detected_v<tuple_to_aggregate_expr, Struct, Tuple>
+                : false;
+
+        template<int N>
+        struct aggregate_to_tuple_impl
+        {
+            template<typename T>
+            static constexpr auto call(T x)
+            {
+                static_assert(
+                    sizeof(T) && false,
+                    "It looks like you're trying to use a struct larger than "
+                    "the limit.");
+            }
+        };
+
+        template<typename T>
+        constexpr auto aggregate_to_tuple(T x)
+        {
+            static_assert(!std::is_union_v<T>);
+            return aggregate_to_tuple_impl<struct_arity_v<T>>::call(
+                std::move(x));
+        }
+    }
+
 }}
+
+#include <boost/parser/detail/aggr_to_tuple_generated.hpp>
 
 #endif
