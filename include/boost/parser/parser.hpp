@@ -10,16 +10,7 @@
 #include <boost/parser/detail/numeric.hpp>
 #include <boost/parser/detail/printing.hpp>
 
-#if __has_include(<boost/preprocessor/variadic/to_seq.hpp>) &&        \
-    __has_include(<boost/preprocessor/variadic/elem.hpp>) &&          \
-    __has_include(<boost/preprocessor/seq/for_each.hpp>)
-#include <boost/preprocessor/variadic/to_seq.hpp>
-#include <boost/preprocessor/variadic/elem.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
-#define BOOST_PARSER_HAVE_BOOST_PP 1
-#else
-#define BOOST_PARSER_HAVE_BOOST_PP 0
-#endif
+#include <boost/parser/detail/pp_for_each.hpp> // TODO: Renaming
 
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
@@ -4517,15 +4508,7 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-#define BOOST_PARSER_CAT(a, b) BOOST_PARSER_CAT_I(a, b)
-#if defined(_MSC_VER)
-#define BOOST_PARSER_CAT_I(a, b) BOOST_PARSER_CAT_II(~, a##b)
-#define BOOST_PARSER_CAT_II(p, res) res
-#else
-#define BOOST_PARSER_CAT_I(a, b) a##b
-#endif
-
-#define BOOST_PARSER_DEFINE_IMPL(r, data, name_)                               \
+#define BOOST_PARSER_DEFINE_IMPL(_, name_)                                     \
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
@@ -4542,7 +4525,7 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_CAT(name_, _def);                   \
+        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
         return parser(use_cbs, first, last, context, skip, flags, success);    \
     }                                                                          \
                                                                                \
@@ -4564,34 +4547,30 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_CAT(name_, _def);                   \
-        using attr_t = decltype(                                               \
-            parser(use_cbs, first, last, context, skip, flags, success));      \
-        if constexpr (boost::parser::detail::is_nope_v<attr_t>)                \
+        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
+        using attr_t = decltype(parser(                                        \
+            use_cbs, first, last, context, skip, flags, success));             \
+        if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
             parser(use_cbs, first, last, context, skip, flags, success);       \
-        else                                                                   \
+        } else {                                                               \
             parser(                                                            \
                 use_cbs, first, last, context, skip, flags, success, retval);  \
+        }                                                                      \
     }
 
 #endif
-
-#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_HAVE_BOOST_PP
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
         parsing behavior rule `t`, using the parser `t_def`.  This macro is
         only available when the Boost.Preprocessor headers are available. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
-    BOOST_PP_SEQ_FOR_EACH(                                                     \
-        BOOST_PARSER_DEFINE_IMPL, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
-
-#endif
+    BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
 
     /** Defines a pair of `parse_rule()` overloads for the given rule, used
         internally within Boost.Parser.  The pair implements the parsing
         behavior rule `rule`, using the parser `rule_def`. */
-#define BOOST_PARSER_DEFINE_RULE(rule) BOOST_PARSER_DEFINE_IMPL(_, _, rule)
+#define BOOST_PARSER_DEFINE_RULE(rule) BOOST_PARSER_DEFINE_IMPL(_, rule)
 
 
 #ifndef BOOST_PARSER_DOXYGEN
