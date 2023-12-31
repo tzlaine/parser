@@ -63,7 +63,7 @@
         fail. Even an empty string will match it.
       </p>
 <p>
-        The parse operation is performed by calling the <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>
+        The parse operation is performed by calling the <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code>
         function, passing the parser as one of the arguments:
       </p>
 <pre class="programlisting"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">input</span><span class="special">,</span> <span class="special">*</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
@@ -73,7 +73,7 @@
         the range to parse; <code class="computeroutput"><span class="special">*</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span></code>,
         the parser used to do the parse; and <code class="computeroutput"><span class="identifier">result</span></code>,
         an out-parameter into which to put the result of the parse. Don't get too
-        caught up on this method of getting the parse result out of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>; there are multiple ways
+        caught up on this method of getting the parse result out of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code>; there are multiple ways
         of doing so, and we'll cover all of them in subsequent sections.
       </p>
 <p>
@@ -83,7 +83,7 @@
         that we'll cover later.
       </p>
 <p>
-        The effects of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20138.html" title="Function template parse">parse()</a></code>
+        The effects of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code>
         is not very interesting — since the parser we gave it cannot ever
         fail, and because we're placing the output in the same type as the input,
         it just copies the contents of <code class="computeroutput"><span class="identifier">input</span></code>

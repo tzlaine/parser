@@ -59,14 +59,14 @@
 <p>
         These are broken for many use cases, because they use the implementations
         from the C library (e.g. <code class="computeroutput">isalnum()</code>). Those implementations do
-        not work for non-ASCII values. A general implementation of each of these
-        is also difficult even in Unicode parsing, because the meaning of many of
-        them is contextual. For example, whether a code point is lower case or not
-        can depend on where it is within the text you're parsing, and can depend
-        on the language you're parsing. You're better off naming the specific code
-        points or ranges of code points you want to match. The <code class="computeroutput">boost::parser::ascii</code>
-        parsers are included for ASCII-only users, and for those porting parsers
-        from Spirit.
+        not work for non-ASCII values, *even though they take <code class="computeroutput">int</code> parameters*.
+        A general implementation of each of these is also difficult even in Unicode
+        parsing, because the meaning of many of them is contextual. For example,
+        whether a code point is lower case or not can depend on where it is within
+        the text you're parsing, and can depend on the language you're parsing. You're
+        better off naming the specific code points or ranges of code points you want
+        to match. The <code class="computeroutput">boost::parser::ascii</code> parsers are included for
+        ASCII-only users, and for those porting parsers from Spirit.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.best_practices.h3"></a>

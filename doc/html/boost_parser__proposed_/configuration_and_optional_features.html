@@ -32,9 +32,6 @@
 <p>
       The presence of Boost headers is detected using <code class="computeroutput"><span class="identifier">__has_include</span><span class="special">()</span></code>. When it is present, all the typical Boost
       conventions are used (e.g. <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span><span class="special">()</span></code> instead of <code class="computeroutput"><span class="identifier">assert</span><span class="special">()</span></code>); otherwise, non-Boost alternatives are used.
-      The macro <code class="computeroutput"><span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">()</span></code>, which defines multiple rules in one go,
-      is only defined when Boost.Preprocessor is present. Without this macro, you
-      have to write <code class="computeroutput"><span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">()</span></code> (note the singular form) once for each rule.
     </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
