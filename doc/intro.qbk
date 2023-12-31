@@ -78,8 +78,10 @@ because it has an `operator[]`; you will see this operator used throughout the
 tutorial and examples.
 
 The presence of Boost headers is detected using `__has_include()`.  When it is
-present, all the typical Boost conventions are used (e.g. `BOOST_ASSERT()`
-instead of `assert()`); otherwise, non-Boost alternatives are used.
+present, all the typical Boost conventions are used; otherwise, non-Boost
+alternatives are used.  This applies to the use of `BOOST_ASSERT` versus
+`assert`, and printing typenames with Boost.TypeIndex versus with
+`std::typeinfo`.
 
 [endsect]
 
