@@ -79,11 +79,7 @@ tutorial and examples.
 
 The presence of Boost headers is detected using `__has_include()`.  When it is
 present, all the typical Boost conventions are used (e.g. `BOOST_ASSERT()`
-instead of `assert()`); otherwise, non-Boost alternatives are used.  The macro
-`BOOST_PARSER_DEFINE_RULES()`, which defines multiple rules in one go, is only
-defined when Boost.Preprocessor is present.  Without this macro, you have to
-write `BOOST_PARSER_DEFINE_RULE()` (note the singular form) once for each
-rule.
+instead of `assert()`); otherwise, non-Boost alternatives are used.
 
 [endsect]
 
