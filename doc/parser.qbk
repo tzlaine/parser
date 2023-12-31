@@ -62,6 +62,11 @@
 [def _cb_r_                [classref boost::parser::callback_rule `callback_rule`]]
 [def _cb_rs_               [classref boost::parser::callback_rules `callback_rule`s]]
 
+[def _bp_tup_              [classref boost::parser::tuple `boost::parser::tuple`]]
+[def _bp_get_              [funcref boost::parser::get `boost::parser::get`]]
+[def _bh_tup_              `boost::hana::tuple`]
+[def _std_tup_             `std::tuple`]
+
 [def _default_eh_          [classref boost::parser::default_error_handler `default_error_handler`]]
 [def _stream_eh_           [classref boost::parser::stream_error_handler `stream_error_handler`]]
 [def _cb_eh_               [classref boost::parser::callback_error_handler `callback_error_handler`]]

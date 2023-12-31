@@ -72,10 +72,18 @@ _Parser_ can be used entirely on its own.  If Boost is available, extra
 functionality provided by Boost is also available.
 
 To use _Parser_ entirely on its own, simply define
-`BOOST_PARSER_DISABLE_HANA_TUPLE`.  This will force `std::tuple` to be the
+`BOOST_PARSER_DISABLE_HANA_TUPLE`.  This will force _std_tup_ to be the
 tuple-template used throughout _Parser_.  The Boost.Hana tuple is much nicer,
 because it has an `operator[]`; you will see this operator used throughout the
 tutorial and examples.
+
+[important _Parser_ defines a template alias _bp_tup_ that aliases to _bh_tup_
+by default, and _std_tup_ when `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined.
+You can future-proof your code slightly by using _bp_tup_, so that the code is
+well-formed, whether or not `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined.  For
+the same reason, _Parser_ also provides a generic _bp_get_ that works with
+both kinds of tuple (since _std_tup_ has no `operator[]` and _bh_tup_ does not
+work with `std::get`).]
 
 The presence of Boost headers is detected using `__has_include()`.  When it is
 present, all the typical Boost conventions are used; otherwise, non-Boost
