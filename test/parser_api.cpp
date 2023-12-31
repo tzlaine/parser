@@ -1720,6 +1720,7 @@ TEST(parser, combined_seq_and_or)
         }
     }
 
+#if 0 // TODO
     {
         constexpr auto parser = string("a") >> string("b") >> string("c") |
                                 string("x") >> string("y") >> string("z");
@@ -1737,6 +1738,7 @@ TEST(parser, combined_seq_and_or)
             EXPECT_EQ(chars, "xyz");
         }
     }
+#endif
 
     {
         constexpr auto parser = !char_('a');

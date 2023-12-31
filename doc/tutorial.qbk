@@ -1479,22 +1479,26 @@ sequence parser `p`, let the list of attribute types for the subparsers of `p`
 be `a0, a1, a2, ..., an`.
 
 We get the attribute of `p` by evaluating a compile-time left fold operation,
-`left-fold({a1, a2, ..., an}, a0, OP)`.  `OP` is the combining operation that
-takes the current attribute type (initially `a0`) and the next attribute type,
-and returns the new current attribute type.  The current attribute type at the
-end is the attribute type for `p`.
+`left-fold({a1, a2, ..., an}, tuple<a0>, OP)`.  `OP` is the combining
+operation that takes the current attribute type (initially `_bp_tup_<a0>`) and
+the next attribute type, and returns the new current attribute type.  The
+current attribute type at the end of the fold operation is the attribute type
+for `p`.
 
 `OP` attempts to apply a series of rules, one at a time.  The rules are noted
-as `X >> Y -> Z`, where `X` is the type of the current attribute type, `Y` is
-the type of the next attribute type, and `Z` is the new current attribute
-type.  In these rules, `C<T>` is a container of `T`; `none` is a special type
-that indicates that there is no attribute; `T` is a type; and `Ts...` is a
+as `X >> Y -> Z`, where `X` is the type of the current attribute, `Y` is the
+type of the next attribute, and `Z` is the new current attribute type.  In
+these rules, `C<T>` is a container of `T`; `none` is a special type that
+indicates that there is no attribute; `T` is a type; and `Ts...` is a
 parameter pack of one or more types.  Note that `T` may be the special type
 `none`.
 
+[note The current attribute is always a tuple (call it `Tup`), so the "current
+attribute `X`" refers to the last element of `Tup`, not `Tup` itself, except
+for those rules that explicitly mention `_bp_tup_<>` as part of `X`'s type.]
+
 * `none >> T -> T`
 * `T >> none -> T`
-* `C<T> >> C<T> -> C<T>`
 * `T >> T -> vector<T>`
 * `C<T> >> T -> C<T>`
 * `T >> C<T> -> C<T>`

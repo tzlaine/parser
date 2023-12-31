@@ -390,6 +390,7 @@ namespace boost { namespace parser {
             typename Callbacks = nope,
             typename Attr = nope,
             typename Val = nope,
+            typename RuleTag = void,
             typename RuleLocals = nope,
             typename RuleParams = nope,
             typename Where = nope>
@@ -398,6 +399,8 @@ namespace boost { namespace parser {
             parse_context() = default;
             parse_context(parse_context const &) = default;
             parse_context & operator=(parse_context const &) = default;
+
+            using rule_tag = RuleTag;
 
             I first_;
             S last_;
@@ -471,9 +474,11 @@ namespace boost { namespace parser {
             // For making rule contexts.
             template<
                 typename OldVal,
+                typename OldRuleTag,
                 typename OldRuleLocals,
                 typename OldRuleParams,
                 typename NewVal,
+                typename NewRuleTag,
                 typename NewRuleLocals,
                 typename NewRuleParams>
             parse_context(
@@ -485,8 +490,10 @@ namespace boost { namespace parser {
                     Callbacks,
                     Attr,
                     OldVal,
+                    OldRuleTag,
                     OldRuleLocals,
                     OldRuleParams> const & other,
+                NewRuleTag * tag_ptr,
                 NewVal & value,
                 NewRuleLocals & locals,
                 NewRuleParams const & params) :
@@ -498,11 +505,20 @@ namespace boost { namespace parser {
                 error_handler_(other.error_handler_),
                 globals_(other.globals_),
                 callbacks_(other.callbacks_),
-                attr_(other.attr_),
-                val_(other_or_address(other.val_, value)),
-                locals_(other_or_address(other.locals_, locals)),
-                params_(other_or_address(other.params_, params))
-            {}
+                attr_(other.attr_)
+            {
+                if constexpr (
+                    std::is_same_v<OldRuleTag, NewRuleTag> &&
+                    !std::is_same_v<OldRuleTag, void>) {
+                    val_ = other.val_;
+                    locals_ = other.locals_;
+                    params_ = other.params_;
+                } else {
+                    val_ = other_or_address(other.val_, value);
+                    locals_ = other_or_address(other.locals_, locals);
+                    params_ = other_or_address(other.params_, params);
+                }
+            }
 
             // For making action contexts.
             template<typename OldAttr, typename OldWhere>
@@ -515,6 +531,7 @@ namespace boost { namespace parser {
                     Callbacks,
                     OldAttr,
                     Val,
+                    RuleTag,
                     RuleLocals,
                     RuleParams,
                     OldWhere> const & other,
@@ -543,6 +560,7 @@ namespace boost { namespace parser {
             typename GlobalState,
             typename Callbacks,
             typename Val,
+            typename RuleTag,
             typename RuleLocals,
             typename RuleParams,
             typename Attr,
@@ -557,6 +575,7 @@ namespace boost { namespace parser {
                 Callbacks,
                 OldAttr,
                 Val,
+                RuleTag,
                 RuleLocals,
                 RuleParams> const & context,
             Attr & attr,
@@ -570,6 +589,7 @@ namespace boost { namespace parser {
                 Callbacks,
                 Attr,
                 Val,
+                RuleTag,
                 RuleLocals,
                 RuleParams,
                 Where>;
@@ -584,9 +604,11 @@ namespace boost { namespace parser {
             typename Callbacks,
             typename Attr,
             typename Val,
+            typename RuleTag,
             typename RuleLocals,
             typename RuleParams,
             typename NewVal,
+            typename NewRuleTag,
             typename NewRuleLocals,
             typename NewRuleParams>
         auto make_rule_context(
@@ -598,8 +620,10 @@ namespace boost { namespace parser {
                 Callbacks,
                 Attr,
                 Val,
+                RuleTag,
                 RuleLocals,
                 RuleParams> const & context,
+            NewRuleTag * tag_ptr,
             NewVal & value,
             NewRuleLocals & locals,
             NewRuleParams const & params)
@@ -612,6 +636,7 @@ namespace boost { namespace parser {
                 Callbacks,
                 Attr,
                 std::conditional_t<std::is_same_v<NewVal, nope>, Val, NewVal>,
+                NewRuleTag,
                 std::conditional_t<
                     std::is_same_v<NewRuleLocals, nope>,
                     RuleLocals,
@@ -620,7 +645,7 @@ namespace boost { namespace parser {
                     std::is_same_v<NewRuleParams, nope>,
                     RuleParams,
                     NewRuleParams>>;
-            return result_type(context, value, locals, params);
+            return result_type(context, tag_ptr, value, locals, params);
         }
 
         template<typename Iter, typename Sentinel, typename ErrorHandler>
@@ -2903,26 +2928,18 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
-                    std::is_same<result_back_type, x_type>{} ||
-                    std::is_same<
-                        result_back_type,
-                        unwrapped_optional_x_type>{}) {
-                    if constexpr (container<result_back_type>) {
-                        // C<T> >> C<T> -> C<T>
-                        return detail::hl::make_pair(
-                            result,
-                            detail::hl::append(
-                                indices, detail::hl::size_minus_one(result)));
-                    } else {
-                        // T >> T -> vector<T>
-                        return detail::hl::make_pair(
-                            detail::hl::append(
-                                detail::hl::drop_back(result),
-                                detail::wrapper<
-                                    std::vector<result_back_type>>{}),
-                            detail::hl::append(
-                                indices, detail::hl::size_minus_one(result)));
-                    }
+                    (std::is_same<result_back_type, x_type>{} ||
+                     std::is_same<
+                         result_back_type,
+                         unwrapped_optional_x_type>{}) &&
+                    !container<result_back_type>) {
+                    // T >> T -> vector<T>
+                    return detail::hl::make_pair(
+                        detail::hl::append(
+                            detail::hl::drop_back(result),
+                            detail::wrapper<std::vector<result_back_type>>{}),
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
                     detail::
                         container_and_value_type<result_back_type, x_type> ||
@@ -3902,7 +3919,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        attr_type call(
+        auto call(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3911,14 +3928,21 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
+            constexpr bool recursive_rule =
+                std::is_same_v<typename Context::rule_tag, tag_type> &&
+                !std::is_same_v<typename Context::rule_tag, void>;
+
+            if constexpr (recursive_rule)
+                flags = detail::disable_attrs(flags);
+
             attr_type retval{};
             locals_type locals = detail::make_locals<locals_type>(context);
             auto params = detail::resolve_rule_params(context, params_);
-            auto const rule_context =
-                detail::make_rule_context(context, retval, locals, params);
+            tag_type * const tag_ptr = nullptr;
+            auto const rule_context = detail::make_rule_context(
+                context, tag_ptr, retval, locals, params);
             auto _ = detail::scoped_trace(
                 *this, first, last, rule_context, flags, retval);
-            tag_type * const tag_ptr = nullptr;
 
             parse_rule(
                 tag_ptr,
@@ -3931,9 +3955,9 @@ namespace boost { namespace parser {
                 success,
                 retval);
 
-            if constexpr (CanUseCallbacks && UseCallbacks) {
+            if constexpr (CanUseCallbacks && UseCallbacks && !recursive_rule) {
                 if (!success)
-                    return {};
+                    return attr_type{};
 
                 auto const & callbacks = _callbacks(context);
 
@@ -3957,11 +3981,14 @@ namespace boost { namespace parser {
                     callbacks(tag_type{}, std::move(retval));
                 }
 
-                return {};
+                return attr_type{};
             } else {
-                if (!success)
+                if (!success && !recursive_rule)
                     detail::assign(retval, attr_type());
-                return retval;
+                if constexpr (recursive_rule)
+                    return detail::nope{};
+                else
+                    return retval;
             }
         }
 
@@ -3985,7 +4012,7 @@ namespace boost { namespace parser {
             if constexpr (CanUseCallbacks && UseCallbacks) {
                 call(use_cbs, first, last, context, skip, flags, success);
             } else {
-                attr_type attr =
+                auto attr =
                     call(use_cbs, first, last, context, skip, flags, success);
                 if (success)
                     detail::assign(retval, attr);
@@ -4443,6 +4470,10 @@ namespace boost { namespace parser {
         : parser_interface<
               rule_parser<false, TagType, Attribute, LocalState, ParamsTuple>>
     {
+        static_assert(
+            !std::is_same_v<TagType, void>,
+            "void is not a valid tag type for a rule.");
+
         constexpr rule(char const * name) { this->parser_.name_ = name; }
 
         template<typename T, typename... Ts>

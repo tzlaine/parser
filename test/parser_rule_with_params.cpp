@@ -66,7 +66,12 @@ BOOST_PARSER_DEFINE_RULE(flat_string_rule);
 
 constexpr rule<struct recursive_string_rule_tag, std::string>
     recursive_string_rule = "recursive_string_rule";
-constexpr auto recursive_string_rule_def = string("abc") >>
+auto append_string = [](auto & ctx) {
+    auto & val = _val(ctx);
+    auto & attr = _attr(ctx);
+    val.insert(val.end(), attr.begin(), attr.end());
+};
+constexpr auto recursive_string_rule_def = string("abc")[append_string] >>
                                            -('a' >> recursive_string_rule);
 BOOST_PARSER_DEFINE_RULE(recursive_string_rule);
 
@@ -94,7 +99,7 @@ TEST(param_parser, string_attribute_rules)
     {
         std::string const str = "abcaabc";
         EXPECT_FALSE(parse(str, flat_string_rule.with(15.0, make_13)));
-        EXPECT_FALSE(parse(str, recursive_string_rule.with(15.0, make_13)));
+        EXPECT_TRUE(parse(str, recursive_string_rule.with(15.0, make_13)));
     }
     {
         std::string const str = "abcaabc";
