@@ -32,7 +32,7 @@ int main()
     //]
 
     //[ self_filling_symbol_table_parse
-    auto const result = parse("X 9 X", parser, bp::ascii::space);
+    auto const result = parse("X 9 X", parser, bp::ws);
     assert(result && *result == 9);
     //]
 

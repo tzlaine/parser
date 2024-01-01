@@ -134,42 +134,62 @@ void compile_seq_attribute()
     {
         constexpr auto parser = *char_ >> *char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(
+            std::is_same_v<
+                attr_t,
+                std::optional<tuple<std::vector<char>, std::vector<char>>>>);
     }
     {
         constexpr auto parser = eps >> *char_ >> *char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(
+            std::is_same_v<
+                attr_t,
+                std::optional<tuple<std::vector<char>, std::vector<char>>>>);
     }
     {
         constexpr auto parser = *char_ >> eps >> *char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(
+            std::is_same_v<
+                attr_t,
+                std::optional<tuple<std::vector<char>, std::vector<char>>>>);
     }
     {
         constexpr auto parser = *char_ >> *char_ >> eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(
+            std::is_same_v<
+                attr_t,
+                std::optional<tuple<std::vector<char>, std::vector<char>>>>);
     }
     {
         constexpr auto parser = *string("str") >> *string("str");
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+        static_assert(std::is_same_v<
+                      attr_t,
+                      std::optional<tuple<std::string, std::string>>>);
     }
     {
         constexpr auto parser = eps >> *string("str") >> *string("str");
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+        static_assert(std::is_same_v<
+                      attr_t,
+                      std::optional<tuple<std::string, std::string>>>);
     }
     {
         constexpr auto parser = *string("str") >> eps >> *string("str");
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+        static_assert(std::is_same_v<
+                      attr_t,
+                      std::optional<tuple<std::string, std::string>>>);
     }
     {
         constexpr auto parser = *string("str") >> *string("str") >> eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+        static_assert(std::is_same_v<
+                      attr_t,
+                      std::optional<tuple<std::string, std::string>>>);
     }
 
     // seq<T> >> seq<U>

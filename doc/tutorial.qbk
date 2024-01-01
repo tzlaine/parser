@@ -257,18 +257,25 @@ Now would be a good time to describe the parse context in some detail.  Any
 semantic action that you write will need to use state in the parse context, so
 you need to know what's available.
 
-The parse context is a class template that maps tag types to values.
-Key/value pairs are "added" to or "removed" from it at different times during
-the parse, by changing the template's parameters, and/or assigning over the
-existing data members.  For instance, when a parser `p` with a semantic action
-`a` succeeds, the context adds the attribute `p` produces to the parse
-context, then calls `a`.  This is efficient to do, because the parse context
-has only about a dozen data members, and each data member is less than or
-equal to the size of a pointer.  Copying the entire map when mutating the
-context is therefore fast.  The map itself is based on a `boost::hana` map; it
-involves no memory allocation.
+The parse context is an object that stores the current state of the parse
+_emdash_ the current- and end-iterators, the error handler, etc.  Data may
+seem to be "added" to or "removed" from it at different times during the
+parse.  For instance, when a parser `p` with a semantic action `a` succeeds,
+the context adds the attribute that `p` produces to the parse context, then
+calls `a`, passing it the context.
 
-[note All these functions that take the parse context as their first parameter
+Though the context object appears to have things added to or removed from it,
+it does not.  In reality, there is no one context object.  Contexts are formed
+at various times during the parse, usually when starting a subparser.  Each
+context is formed by taking the previous context and adding or changing
+members as needed to form a new context object.  When the function containing
+the new context object returns, its context object (if any) is destructed.
+This is efficient to do, because the parse context has only about a dozen data
+members, and each data member is less than or equal to the size of a pointer.
+Copying the entire context when mutating the context is therefore fast.  The
+context does no memory allocation.
+
+[tip All these functions that take the parse context as their first parameter
 will find by found by Argument-Dependent Lookup.  You will probably never need
 to qualify them with `boost::parser::`.]
 
@@ -285,8 +292,8 @@ the current parse.  This can be used to force the current parse to pass or
 fail:
 
     [](auto & ctx) {
-        // If the attribute meets this predicate, fail the parse.
-        if (some_condition(_attr(ctx)))
+        // If the attribute fails to meet this predicate, fail the parse.
+        if (!necessary_condition(_attr(ctx)))
             _pass(ctx) = false;
     }
 
@@ -417,12 +424,13 @@ for now, here's how you might use it:
 
 _locals_ returns a reference to one or more values that are local to the
 current rule being parsed, if any.  If there are two or more local values,
-_locals_ returns a reference to a `hana::tuple`.  Rules with locals are
-something we haven't gotten to yet, but here is how you use _locals_:
+_locals_ returns a reference to a _bp_tup_.  Rules with locals are something
+we haven't gotten to yet, but here is how you use _locals_:
 
     [](auto & ctx) {
         auto & local = _locals(ctx);
-        // Use local here.  If it is a hana::tuple, access its members like this:
+        // Use local here.  If boost::parser::tuple aliases to hana::tuple, access
+        // its members like this:
         using namespace hana::literals;
         auto & first_element = local[0_c];
         auto & second_element = local[1_c];
@@ -435,8 +443,8 @@ returned.
 
 _params_, like _locals_, applies to the current rule being used to parse, if
 any.  It also returns a reference to a single value, if the current rule has
-only one parameter, or a `hana::tuple` to multiple values if the current rule
-has multiple parameters.
+only one parameter, or a _bp_tup_ of multiple values if the current rule has
+multiple parameters.
 
 If there is no current rule, or the current rule has no parameters, a _n_ is
 returned.
@@ -608,15 +616,16 @@ string in the symbol table.  Now, here's our parser:
 Here, we've attached the semantic action not to a simple parser like _d_, but
 to the sequence parser `(bp::char_ >> bp::int_)`.  This sequence parser
 contains two parsers, each with its own attribute, so it produces two
-attributes as a `hana::tuple`.
+attributes as a tuple.
 
 [self_filling_symbol_table_action]
 
 Inside the semantic action, we can get the first element of the attribute
-tuple using _udls_ provided by Boost.Hana, and `hana::tuple::operator[]()`.
-The first attribute, from the _ch_, is `_attr(ctx)[0_c]`, and the second, from
-the _i_, is `_attr(ctx)[1_c]`.  To add the symbol to the symbol table, we call
-`insert()`.
+tuple using _udls_ provided by Boost.Hana, and
+`boost::hana::tuple::operator[]()`.  The first attribute, from the _ch_, is
+`_attr(ctx)[0_c]`, and the second, from the _i_, is `_attr(ctx)[1_c]` (if
+_bp_tup_ aliases to _std_tup_, you'd use `std::get` or _bp_get_ instead).  To
+add the symbol to the symbol table, we call `insert()`.
 
 [self_filling_symbol_table_parser]
 
@@ -1259,10 +1268,10 @@ consume the input they match unless otherwise stated in the table below.]
     [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to unconditional _e_ only). ]]
     [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to unconditional _e_ only). ]]
     [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
-    [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 > p2`] [ Matches iff `p1` matches and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 > p2`] [ Matches iff `p1` matches and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p)`] []]
     [[`p1 | p2`] [ Matches iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
@@ -1303,7 +1312,7 @@ code. ]
 [section Attribute Generation]
 
 So far, we've seen several different types of attributes that come from
-different parsers, `int` for _i_, `hana::tuple<char, int>` for
+different parsers, `int` for _i_, `_bp_tup_<char, int>` for
 `boost::parser::char_ >> boost::parser::int_`, etc.  Let's get into how this
 works with more rigor.
 
@@ -1416,12 +1425,12 @@ tables below:
     [[`*+p`]                            [`std::vector<_ATTR_np_(p)>`]]
     [[`-p`]                             [`std::optional<_ATTR_np_(p)>`]]
 
-    [[`p1 >> p2`]                       [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p1 > p2`]                        [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p1 >> p2 >> p3`]                 [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 > p2 >> p3`]                  [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 >> p2 > p3`]                  [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 > p2 > p3`]                   [`hana::tuple<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
+    [[`p1 >> p2`]                       [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
+    [[`p1 > p2`]                        [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
+    [[`p1 >> p2 >> p3`]                 [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
+    [[`p1 > p2 >> p3`]                  [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
+    [[`p1 >> p2 > p3`]                  [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
+    [[`p1 > p2 > p3`]                   [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
 
     [[`p1 | p2`]                        [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
     [[`p1 | p2 | p3`]                   [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
@@ -1462,40 +1471,43 @@ simple:
   individual elements are next to containers of their type, the two adjacent
   attributes collapse into one attribute; and
 
-* if the result of all that is a degenerate tuple `hana::tuple<T>` (even if
-  `T` is a type that means "no attribute"), the attribute becomes `T`.
+* if the result of all that is a degenerate tuple `_bp_tup_<T>` (even if `T`
+  is a type that means "no attribute"), the attribute becomes `T`.
 
 More formally, the attribute generation algorithm works like this.  For a
 sequence parser `p`, let the list of attribute types for the subparsers of `p`
 be `a0, a1, a2, ..., an`.
 
 We get the attribute of `p` by evaluating a compile-time left fold operation,
-`left-fold({a1, a2, ..., an}, a0, OP)`.  `OP` is the combining operation that
-takes the current attribute type (initially `a0`) and the next attribute type,
-and returns the new current attribute type.  The current attribute type at the
-end is the attribute type for `p`.
+`left-fold({a1, a2, ..., an}, tuple<a0>, OP)`.  `OP` is the combining
+operation that takes the current attribute type (initially `_bp_tup_<a0>`) and
+the next attribute type, and returns the new current attribute type.  The
+current attribute type at the end of the fold operation is the attribute type
+for `p`.
 
 `OP` attempts to apply a series of rules, one at a time.  The rules are noted
-as `X >> Y -> Z`, where `X` is the type of the current attribute type, `Y` is
-the type of the next attribute type, and `Z` is the new current attribute
-type.  In these rules, `C<T>` is a container of `T`; `none` is a special type
-that indicates that there is no attribute; `T` is a type; and `Ts...` is a
+as `X >> Y -> Z`, where `X` is the type of the current attribute, `Y` is the
+type of the next attribute, and `Z` is the new current attribute type.  In
+these rules, `C<T>` is a container of `T`; `none` is a special type that
+indicates that there is no attribute; `T` is a type; and `Ts...` is a
 parameter pack of one or more types.  Note that `T` may be the special type
 `none`.
 
+[note The current attribute is always a tuple (call it `Tup`), so the "current
+attribute `X`" refers to the last element of `Tup`, not `Tup` itself, except
+for those rules that explicitly mention `_bp_tup_<>` as part of `X`'s type.]
+
 * `none >> T -> T`
 * `T >> none -> T`
-* `C<T> >> C<T> -> C<T>`
 * `T >> T -> vector<T>`
 * `C<T> >> T -> C<T>`
 * `T >> C<T> -> C<T>`
 * `C<T> >> optional<T> -> C<T>`
 * `optional<T> >> C<T> -> C<T>`
-* `hana::tuple<none> >> T -> hana::tuple<T>`
-* `T >> hana::tuple<none> -> hana::tuple<T>`
-* `hana::tuple<Ts...> >> T -> hana::tuple<Ts..., T>`
+* `_bp_tup_<none> >> T -> _bp_tup_<T>`
+* `_bp_tup_<Ts...> >> T -> _bp_tup_<Ts..., T>`
 
-Again, if the result is that the attribute is `hana::tuple<T>`, the attribute
+Again, if the result is that the attribute is `_bp_tup_<T>`, the attribute
 becomes `T`.
 
 [note What constitutes a container in the rules above is determined by the
@@ -1535,7 +1547,7 @@ of `char_ >> string("str")` is odd.  In the non-Unicode code path, `char_`'s
 attribute type is guaranteed to be `char`, so `_ATTR_np_(char_ >>
 string("str"))` is _std_str_.  If you are parsing UTF-8 in the Unicode code
 path, `char_`'s attribute type is `char32_t`, and `_ATTR_np_(char_ >>
-string("str"))` is therefor `hana::tuple<char32_t, std::string>`.
+string("str"))` is therefor `_bp_tup_<char32_t, std::string>`.
 
 Again, there are no special rules for combining values and containers.  Every
 combination results from an exact match.
@@ -1555,8 +1567,8 @@ same attribute generation rules.
 
     [[`_cu_ >> _str_np_("str")`]     [_std_str_]]
     [[`_str_np_("str") >> _cu_`]     [_std_str_]]
-    [[`*_cu_ >> _str_np_("str")`]    [`hana::tuple<std::vector<char>, std::string>`]]
-    [[`_str_np_("str") >> *_cu_`]    [`hana::tuple<std::string, std::vector<char>>`]]
+    [[`*_cu_ >> _str_np_("str")`]    [`_bp_tup_<std::vector<char>, std::string>`]]
+    [[`_str_np_("str") >> *_cu_`]    [`_bp_tup_<std::string, std::vector<char>>`]]
 
     [[`p >> p`]                      [`std::vector<_ATTR_np_(p)>`]]
     [[`*p >> p`]                     [`std::vector<_ATTR_np_(p)>`]]
@@ -1832,56 +1844,6 @@ parse using a _ui_, and writing its attribute into a `double`.  In general,
 you can swap any type `T` out of the attribute, as long as the swap would not
 result in some ill-formed assignment within the parse. ]
 
-[heading An Odd Case]
-
-When parsing using parser `P` into an attribute out-param `O`, you can pass
-many types of things for `O` that are not `_ATTR_np_(P)`, as shown above.
-This works because each step of attribute generation attempts to assign/append
-to the associated out-param attribute, if there is one, and tries several
-strategies to get that assignment/append operation to work.
-
-In the previous section on attribute generation, I also described how
-sequential parses of sequences will combine.  For instance, consider: `P1 >>
-P2 >> P3`.  If the types `_ATTR_np_(P1)`, `_ATTR_np_(P2)`, and `_ATTR_np_(P3)`
-are the same, and if that type is a container, `_ATTR_np_(P1 >> P2 >> P3)` is
-`_ATTR_np_(P1)`.
-
-However, since you can pass just about any old thing as `O`, and since there
-are three assign/append steps involved in parsing `P1 >> P2 >> P3` (one for
-each subparser in the sequence), you can get unexpected results if you pass a
-scalar value for `O`.  For example:
-
-    using namespace boost::parser;
-    constexpr auto parser = string("a") >> string("b") >> string("c") |
-                            string("x") >> string("y") >> string("z");
-    std::string str = "abc";
-    std::any chars;
-    assert(parse(str, parser, chars));
-    assert(std::any_cast<std::string>(chars) == "c");
-
-Note that `chars` contains the last string `"c"`, and not the accumulation of
-all three, `"abc"`.  This happens because each step of the first alternative
-`string("a") >> string("b") >> string("c")` succeeds, and after each
-subparser, the result of that parse is assigned/appended to the attribute
-out-param.  Since appending would not work (you cannot append to a sequence
-inside a `std::any`, because you cannot see that there is a sequence in
-there), assignment is done instead.  This assignment is done for each of the
-three subparsers, but of course it replaces what was in the `std::any` previously.
-
-If we had passed a `std::string` for `O` instead, the result would have been
-much less surprising.
-
-    using namespace boost::parser;
-    constexpr auto parser = string("a") >> string("b") >> string("c") |
-                            string("x") >> string("y") >> string("z");
-    char const * str = "xyz";
-    std::string chars;
-    assert(parse(str, parser, chars));
-    assert(chars, "xyz");
-
-The result has the accumulation of `"abc"` because the out-param type
-`std::string` is a container.
-
 [heading Unicode versus non-Unicode parsing]
 
 A call to _p_ either considers the entire input to be in a UTF format (UTF-8,
@@ -2054,7 +2016,7 @@ use each other without introducing cycles:
     // array, string, or int, called `value_type`.
 
     bp::rule<class string, std::string> const string = "string";
-    bp::rule<class object_element, hana::tuple<std::string, value_type>> const object_element = "object-element";
+    bp::rule<class object_element, bp::tuple<std::string, value_type>> const object_element = "object-element";
     bp::rule<class object, value_type> const object = "object";
     bp::rule<class array, value_type> const array = "array";
     bp::rule<class value_tag, value_type> const value = "value";
@@ -2141,8 +2103,8 @@ transliterate these YAML parsing rules to something that uses unparameterized
 _Parser_ _rs_, but it is quite painful to do so.
 
 You give parameters to a _r_ by calling its `with()` member.  The values you
-pass to `with()` are used to create a `hana::tuple` that is available in
-semantic actions attached to the rule, using `_params_np_(ctx)`.
+pass to `with()` are used to create a _bp_tup_ that is available in semantic
+actions attached to the rule, using `_params_np_(ctx)`.
 
     namespace bp = boost::parser;
 

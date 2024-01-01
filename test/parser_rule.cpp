@@ -55,9 +55,14 @@ constexpr rule<struct flat_string_rule_tag, std::string> flat_string_rule =
 constexpr auto flat_string_rule_def = string("abc") | string("def");
 BOOST_PARSER_DEFINE_RULE(flat_string_rule);
 
-constexpr rule<struct recursive_string_rule_tag, std::string>
+constexpr callback_rule<struct recursive_string_rule_tag, std::string>
     recursive_string_rule = "recursive_string_rule";
-constexpr auto recursive_string_rule_def = string("abc") >>
+auto append_string = [](auto & ctx) {
+    auto & val = _val(ctx);
+    auto & attr = _attr(ctx);
+    val.insert(val.end(), attr.begin(), attr.end());
+};
+constexpr auto recursive_string_rule_def = string("abc")[append_string] >>
                                            -('a' >> recursive_string_rule);
 BOOST_PARSER_DEFINE_RULE(recursive_string_rule);
 
@@ -83,17 +88,23 @@ TEST(parser, string_attribute_rules)
     {
         std::string const str = "abcaabc";
         EXPECT_FALSE(parse(str, flat_string_rule));
-        EXPECT_FALSE(parse(str, recursive_string_rule));
+        EXPECT_TRUE(parse(str, recursive_string_rule));
     }
     {
         std::string const str = "abcaabc";
         auto first = str.c_str();
         EXPECT_EQ(
-            *prefix_parse(first, boost::parser::detail::text::null_sentinel, flat_string_rule),
+            *prefix_parse(
+                first,
+                boost::parser::detail::text::null_sentinel,
+                flat_string_rule),
             "abc");
         first = str.c_str();
         EXPECT_EQ(
-            *prefix_parse(first, boost::parser::detail::text::null_sentinel, recursive_string_rule),
+            *prefix_parse(
+                first,
+                boost::parser::detail::text::null_sentinel,
+                recursive_string_rule),
             "abcabc");
     }
 }
@@ -329,5 +340,138 @@ TEST(parser, callback_rules_normal_parse)
     {
         std::string const str = "def";
         EXPECT_TRUE(parse(str, callback_vector_rule));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// More recursive rules
+
+struct recursive_strings_rule_tag
+{};
+constexpr callback_rule<recursive_strings_rule_tag, std::vector<std::string>>
+    recursive_strings_rule = "recursive_strings_rule";
+auto push_back = [](auto & ctx) { _val(ctx).push_back(std::move(_attr(ctx))); };
+constexpr auto recursive_strings_rule_def = string("abc")[push_back] >>
+                                            -('a' >> recursive_strings_rule);
+BOOST_PARSER_DEFINE_RULE(recursive_strings_rule);
+
+TEST(param_parser, container_populating_recursive_rule)
+{
+    {
+        std::string const str = "xyz";
+        EXPECT_FALSE(parse(str, recursive_strings_rule));
+    }
+    {
+        std::string const str = "abc";
+        EXPECT_EQ(
+            *parse(str, recursive_strings_rule),
+            std::vector<std::string>({"abc"}));
+    }
+    {
+        std::string const str = "abcaabc";
+        EXPECT_TRUE(parse(str, recursive_strings_rule));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        EXPECT_EQ(
+            *prefix_parse(
+                first,
+                boost::parser::detail::text::null_sentinel,
+                recursive_strings_rule),
+            std::vector<std::string>({"abc", "abc"}));
+    }
+}
+
+template<typename Tag, typename Attribute>
+struct recursive_rule_callbacks_t
+{
+    void operator()(Tag, Attribute && vec) const
+    {
+        all_results.push_back(std::move(vec));
+    }
+
+    mutable std::vector<Attribute> all_results;
+};
+
+TEST(param_parser, container_populating_recursive_cb_rule)
+{
+    using callbacks_type = recursive_rule_callbacks_t<
+        recursive_strings_rule_tag,
+        std::vector<std::string>>;
+
+    {
+        std::string const str = "xyz";
+        callbacks_type callbacks;
+        EXPECT_FALSE(callback_parse(str, recursive_strings_rule, callbacks));
+    }
+    {
+        std::string const str = "abc";
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_parse(str, recursive_strings_rule, callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(callbacks.all_results[0], std::vector<std::string>({"abc"}));
+    }
+    {
+        std::string const str = "abcaabc";
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_parse(str, recursive_strings_rule, callbacks));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_prefix_parse(
+            first,
+            boost::parser::detail::text::null_sentinel,
+            recursive_strings_rule,
+            callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(
+            callbacks.all_results[0], std::vector<std::string>({"abc", "abc"}));
+    }
+}
+
+struct recursive_string_rule_tag
+{};
+
+TEST(param_parser, string_recursive_cb_rule)
+{
+    using callbacks_type =
+        recursive_rule_callbacks_t<recursive_string_rule_tag, std::string>;
+
+    {
+        std::string const str = "xyz";
+        callbacks_type callbacks;
+        EXPECT_FALSE(callback_parse(str, recursive_string_rule, callbacks));
+    }
+    {
+        std::string const str = "def";
+        callbacks_type callbacks;
+        EXPECT_FALSE(callback_parse(str, recursive_string_rule, callbacks));
+    }
+    {
+        std::string const str = "abc";
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_parse(str, recursive_string_rule, callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(callbacks.all_results[0], "abc");
+    }
+    {
+        std::string const str = "abcaabc";
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_parse(str, recursive_string_rule, callbacks));
+    }
+    {
+        std::string const str = "abcaabc";
+        auto first = str.c_str();
+        callbacks_type callbacks;
+        EXPECT_TRUE(callback_prefix_parse(
+            first,
+            boost::parser::detail::text::null_sentinel,
+            recursive_string_rule,
+            callbacks));
+        EXPECT_EQ(callbacks.all_results.size(), 1u);
+        EXPECT_EQ(callbacks.all_results[0], "abcabc");
     }
 }
