@@ -1844,56 +1844,6 @@ parse using a _ui_, and writing its attribute into a `double`.  In general,
 you can swap any type `T` out of the attribute, as long as the swap would not
 result in some ill-formed assignment within the parse. ]
 
-[heading An Odd Case]
-
-When parsing using parser `P` into an attribute out-param `O`, you can pass
-many types of things for `O` that are not `_ATTR_np_(P)`, as shown above.
-This works because each step of attribute generation attempts to assign/append
-to the associated out-param attribute, if there is one, and tries several
-strategies to get that assignment/append operation to work.
-
-In the previous section on attribute generation, I also described how
-sequential parses of sequences will combine.  For instance, consider: `P1 >>
-P2 >> P3`.  If the types `_ATTR_np_(P1)`, `_ATTR_np_(P2)`, and `_ATTR_np_(P3)`
-are the same, and if that type is a container, `_ATTR_np_(P1 >> P2 >> P3)` is
-`_ATTR_np_(P1)`.
-
-However, since you can pass just about any old thing as `O`, and since there
-are three assign/append steps involved in parsing `P1 >> P2 >> P3` (one for
-each subparser in the sequence), you can get unexpected results if you pass a
-scalar value for `O`.  For example:
-
-    using namespace boost::parser;
-    constexpr auto parser = string("a") >> string("b") >> string("c") |
-                            string("x") >> string("y") >> string("z");
-    std::string str = "abc";
-    std::any chars;
-    assert(parse(str, parser, chars));
-    assert(std::any_cast<std::string>(chars) == "c");
-
-Note that `chars` contains the last string `"c"`, and not the accumulation of
-all three, `"abc"`.  This happens because each step of the first alternative
-`string("a") >> string("b") >> string("c")` succeeds, and after each
-subparser, the result of that parse is assigned/appended to the attribute
-out-param.  Since appending would not work (you cannot append to a sequence
-inside a `std::any`, because you cannot see that there is a sequence in
-there), assignment is done instead.  This assignment is done for each of the
-three subparsers, but of course it replaces what was in the `std::any` previously.
-
-If we had passed a `std::string` for `O` instead, the result would have been
-much less surprising.
-
-    using namespace boost::parser;
-    constexpr auto parser = string("a") >> string("b") >> string("c") |
-                            string("x") >> string("y") >> string("z");
-    char const * str = "xyz";
-    std::string chars;
-    assert(parse(str, parser, chars));
-    assert(chars, "xyz");
-
-The result has the accumulation of `"abc"` because the out-param type
-`std::string` is a container.
-
 [heading Unicode versus non-Unicode parsing]
 
 A call to _p_ either considers the entire input to be in a UTF format (UTF-8,

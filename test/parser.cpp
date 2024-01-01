@@ -1454,26 +1454,6 @@ TEST(parser, combined_seq_and_or)
         }
     }
 
-#if 0 // TODO
-    {
-        constexpr auto parser = string("a") >> string("b") >> string("c") |
-                                string("x") >> string("y") >> string("z");
-        {
-            std::string str = "abc";
-            std::any chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(std::any_cast<std::string>(chars), "c");
-        }
-
-        {
-            std::string str = "xyz";
-            std::string chars;
-            EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "xyz");
-        }
-    }
-#endif
-
     {
         constexpr auto parser = !char_('a');
         std::string str = "a";
