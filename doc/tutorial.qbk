@@ -257,18 +257,25 @@ Now would be a good time to describe the parse context in some detail.  Any
 semantic action that you write will need to use state in the parse context, so
 you need to know what's available.
 
-The parse context is a class template that maps tag types to values.
-Key/value pairs are "added" to or "removed" from it at different times during
-the parse, by changing the template's parameters, and/or assigning over the
-existing data members.  For instance, when a parser `p` with a semantic action
-`a` succeeds, the context adds the attribute `p` produces to the parse
-context, then calls `a`.  This is efficient to do, because the parse context
-has only about a dozen data members, and each data member is less than or
-equal to the size of a pointer.  Copying the entire map when mutating the
-context is therefore fast.  The map itself is based on a `boost::hana` map; it
-involves no memory allocation.
+The parse context is an object that stores the current state of the parse
+_emdash_ the current- and end-iterators, the error handler, etc.  Data may
+seem to be "added" to or "removed" from it at different times during the
+parse.  For instance, when a parser `p` with a semantic action `a` succeeds,
+the context adds the attribute that `p` produces to the parse context, then
+calls `a`, passing it the context.
 
-[note All these functions that take the parse context as their first parameter
+Though the context object appears to have things added to or removed from it,
+it does not.  In reality, there is no one context object.  Contexts are formed
+at various times during the parse, usually when starting a subparser.  Each
+context is formed by taking the previous context and adding or changing
+members as needed to form a new context object.  When the function containing
+the new context object returns, its context object (if any) is destructed.
+This is efficient to do, because the parse context has only about a dozen data
+members, and each data member is less than or equal to the size of a pointer.
+Copying the entire context when mutating the context is therefore fast.  The
+context does no memory allocation.
+
+[tip All these functions that take the parse context as their first parameter
 will find by found by Argument-Dependent Lookup.  You will probably never need
 to qualify them with `boost::parser::`.]
 
@@ -285,8 +292,8 @@ the current parse.  This can be used to force the current parse to pass or
 fail:
 
     [](auto & ctx) {
-        // If the attribute meets this predicate, fail the parse.
-        if (some_condition(_attr(ctx)))
+        // If the attribute fails to meet this predicate, fail the parse.
+        if (!necessary_condition(_attr(ctx)))
             _pass(ctx) = false;
     }
 
