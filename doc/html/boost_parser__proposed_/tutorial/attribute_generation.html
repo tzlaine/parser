@@ -22,8 +22,11 @@
 <p>
         So far, we've seen several different types of attributes that come from different
         parsers, <code class="computeroutput"><span class="keyword">int</span></code> for <code class="computeroutput"><a class="link" href="../../boost/parser/int_.html" title="Global int_">int_</a></code>,
-        <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">int</span><span class="special">&gt;</span></code> for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">int_</span></code>,
-        etc. Let's get into how this works with more rigor.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span>
+        <span class="keyword">int</span><span class="special">&gt;</span></code>
+        for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span>
+        <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">int_</span></code>, etc. Let's get into how this works
+        with more rigor.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -42,7 +45,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20041.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -199,7 +202,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19853.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm19744.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -622,7 +625,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -635,7 +638,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -649,7 +652,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -663,7 +666,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -677,7 +680,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -691,7 +694,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p3</span><span class="special">)&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -750,7 +753,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19802.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19693.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -762,7 +765,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19802.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm19693.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -841,9 +844,9 @@
             collapse into one attribute; and
           </li>
 <li class="listitem">
-            if the result of all that is a degenerate tuple <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code> (even if <code class="computeroutput"><span class="identifier">T</span></code>
-            is a type that means "no attribute"), the attribute becomes
-            <code class="computeroutput"><span class="identifier">T</span></code>.
+            if the result of all that is a degenerate tuple <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+            (even if <code class="computeroutput"><span class="identifier">T</span></code> is a type
+            that means "no attribute"), the attribute becomes <code class="computeroutput"><span class="identifier">T</span></code>.
           </li>
 </ul></div>
 <p>
@@ -856,12 +859,11 @@
       </p>
 <p>
         We get the attribute of <code class="computeroutput"><span class="identifier">p</span></code>
-        by evaluating a compile-time left fold operation, <code class="computeroutput"><span class="identifier">left</span><span class="special">-</span><span class="identifier">fold</span><span class="special">({</span><span class="identifier">a1</span><span class="special">,</span> <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span> <span class="identifier">an</span><span class="special">},</span> <span class="identifier">a0</span><span class="special">,</span>
-        <span class="identifier">OP</span><span class="special">)</span></code>.
-        <code class="computeroutput"><span class="identifier">OP</span></code> is the combining operation
-        that takes the current attribute type (initially <code class="computeroutput"><span class="identifier">a0</span></code>)
-        and the next attribute type, and returns the new current attribute type.
-        The current attribute type at the end is the attribute type for <code class="computeroutput"><span class="identifier">p</span></code>.
+        by evaluating a compile-time left fold operation, <code class="computeroutput"><span class="identifier">left</span><span class="special">-</span><span class="identifier">fold</span><span class="special">({</span><span class="identifier">a1</span><span class="special">,</span> <span class="identifier">a2</span><span class="special">,</span> <span class="special">...,</span> <span class="identifier">an</span><span class="special">},</span> <span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">a0</span><span class="special">&gt;,</span> <span class="identifier">OP</span><span class="special">)</span></code>. <code class="computeroutput"><span class="identifier">OP</span></code>
+        is the combining operation that takes the current attribute type (initially
+        <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">a0</span><span class="special">&gt;</span></code>) and the next attribute type, and returns
+        the new current attribute type. The current attribute type at the end of
+        the fold operation is the attribute type for <code class="computeroutput"><span class="identifier">p</span></code>.
       </p>
 <p>
         <code class="computeroutput"><span class="identifier">OP</span></code> attempts to apply a series
@@ -869,8 +871,8 @@
         <span class="special">&gt;&gt;</span> <span class="identifier">Y</span>
         <span class="special">-&gt;</span> <span class="identifier">Z</span></code>,
         where <code class="computeroutput"><span class="identifier">X</span></code> is the type of the
-        current attribute type, <code class="computeroutput"><span class="identifier">Y</span></code>
-        is the type of the next attribute type, and <code class="computeroutput"><span class="identifier">Z</span></code>
+        current attribute, <code class="computeroutput"><span class="identifier">Y</span></code> is the
+        type of the next attribute, and <code class="computeroutput"><span class="identifier">Z</span></code>
         is the new current attribute type. In these rules, <code class="computeroutput"><span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
         is a container of <code class="computeroutput"><span class="identifier">T</span></code>; <code class="computeroutput"><span class="identifier">none</span></code> is a special type that indicates that
         there is no attribute; <code class="computeroutput"><span class="identifier">T</span></code>
@@ -878,6 +880,20 @@
         is a parameter pack of one or more types. Note that <code class="computeroutput"><span class="identifier">T</span></code>
         may be the special type <code class="computeroutput"><span class="identifier">none</span></code>.
       </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          The current attribute is always a tuple (call it <code class="computeroutput"><span class="identifier">Tup</span></code>),
+          so the "current attribute <code class="computeroutput"><span class="identifier">X</span></code>"
+          refers to the last element of <code class="computeroutput"><span class="identifier">Tup</span></code>,
+          not <code class="computeroutput"><span class="identifier">Tup</span></code> itself, except
+          for those rules that explicitly mention <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;&gt;</span></code>
+          as part of <code class="computeroutput"><span class="identifier">X</span></code>'s type.
+        </p></td></tr>
+</table></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">none</span> <span class="special">&gt;&gt;</span>
@@ -888,9 +904,6 @@
             <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
             <span class="identifier">none</span> <span class="special">-&gt;</span>
             <span class="identifier">T</span></code>
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
@@ -912,23 +925,18 @@
             <code class="computeroutput"><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">-&gt;</span> <span class="identifier">C</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">none</span><span class="special">&gt;</span>
-            <span class="special">&gt;&gt;</span> <span class="identifier">T</span>
-            <span class="special">-&gt;</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
+            <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">none</span><span class="special">&gt;</span> <span class="special">&gt;&gt;</span>
+            <span class="identifier">T</span> <span class="special">-&gt;</span>
+            <a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 <li class="listitem">
-            <code class="computeroutput"><span class="identifier">T</span> <span class="special">&gt;&gt;</span>
-            <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">none</span><span class="special">&gt;</span>
-            <span class="special">-&gt;</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>
-          </li>
-<li class="listitem">
-            <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">...&gt;</span>
-            <span class="special">&gt;&gt;</span> <span class="identifier">T</span>
-            <span class="special">-&gt;</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">...,</span> <span class="identifier">T</span><span class="special">&gt;</span></code>
+            <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">...&gt;</span> <span class="special">&gt;&gt;</span>
+            <span class="identifier">T</span> <span class="special">-&gt;</span>
+            <a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">...,</span> <span class="identifier">T</span><span class="special">&gt;</span></code>
           </li>
 </ul></div>
 <p>
-        Again, if the result is that the attribute is <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
+        Again, if the result is that the attribute is <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span></code>,
         the attribute becomes <code class="computeroutput"><span class="identifier">T</span></code>.
       </p>
 <div class="note"><table border="0" summary="Note">
@@ -1007,7 +1015,7 @@
         attribute type is <code class="computeroutput"><span class="keyword">char32_t</span></code>,
         and <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span>
         <span class="identifier">string</span><span class="special">(</span><span class="string">"str"</span><span class="special">))</span></code>
-        is therefor <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">char32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
+        is therefor <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="keyword">char32_t</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
       </p>
 <p>
         Again, there are no special rules for combining values and containers. Every
@@ -1119,8 +1127,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;,</span>
-                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>
                 </p>
               </td>
 </tr>
@@ -1133,8 +1140,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span>
-                  <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;&gt;</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">&gt;&gt;</span></code>
                 </p>
               </td>
 </tr>

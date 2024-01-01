@@ -82,10 +82,10 @@
       </p>
 <p>
         The first example filled in an out-parameter to deliver the result of the
-        parse. This call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code>
+        parse. This call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20041.html" title="Function template parse">parse()</a></code>
         returns a result instead. As you can see, the result is contextually convertible
         to <code class="computeroutput"><span class="keyword">bool</span></code>, and <code class="computeroutput"><span class="special">*</span><span class="identifier">result</span></code> is some sort of range. In fact,
-        the return type of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20150.html" title="Function template parse">parse()</a></code>
+        the return type of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20041.html" title="Function template parse">parse()</a></code>
         is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>. Naturally, if the parse fails,
         <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">nullopt</span></code> is returned. We'll look at how
         Boost.Parser maps the type of the parser to the return type, or the filled

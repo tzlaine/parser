@@ -29,9 +29,28 @@
       Boost.Parser. The Boost.Hana tuple is much nicer, because it has an <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>;
       you will see this operator used throughout the tutorial and examples.
     </p>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        Boost.Parser defines a template alias <code class="computeroutput"><a class="link" href="../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code> that aliases to <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span></code> by default, and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>
+        when <code class="computeroutput"><span class="identifier">BOOST_PARSER_DISABLE_HANA_TUPLE</span></code>
+        is defined. You can future-proof your code slightly by using <code class="computeroutput"><a class="link" href="../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code>, so that the code is
+        well-formed, whether or not <code class="computeroutput"><span class="identifier">BOOST_PARSER_DISABLE_HANA_TUPLE</span></code>
+        is defined. For the same reason, Boost.Parser also provides a generic <code class="computeroutput"><a class="link" href="../boost/parser/get_idm20646.html" title="Function template get">boost::parser::get</a></code>
+        that works with both kinds of tuple (since <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>
+        has no <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>
+        and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span></code> does not work with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span></code>).
+      </p></td></tr>
+</table></div>
 <p>
       The presence of Boost headers is detected using <code class="computeroutput"><span class="identifier">__has_include</span><span class="special">()</span></code>. When it is present, all the typical Boost
-      conventions are used (e.g. <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span><span class="special">()</span></code> instead of <code class="computeroutput"><span class="identifier">assert</span><span class="special">()</span></code>); otherwise, non-Boost alternatives are used.
+      conventions are used; otherwise, non-Boost alternatives are used. This applies
+      to the use of <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span></code>
+      versus <code class="computeroutput"><span class="identifier">assert</span></code>, and printing
+      typenames with Boost.TypeIndex versus with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">typeinfo</span></code>.
     </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>

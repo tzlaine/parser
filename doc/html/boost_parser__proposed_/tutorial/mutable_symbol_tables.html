@@ -46,7 +46,7 @@
         Here, we've attached the semantic action not to a simple parser like <code class="computeroutput"><a class="link" href="../../boost/parser/double_.html" title="Global double_">double_</a></code>,
         but to the sequence parser <code class="computeroutput"><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span>
         <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">)</span></code>. This sequence parser contains two parsers,
-        each with its own attribute, so it produces two attributes as a <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span></code>.
+        each with its own attribute, so it produces two attributes as a tuple.
       </p>
 <p>
 </p>
@@ -62,10 +62,13 @@
 <p>
         Inside the semantic action, we can get the first element of the attribute
         tuple using <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDLs</a>
-        provided by Boost.Hana, and <code class="computeroutput"><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">::</span><span class="keyword">operator</span><span class="special">[]()</span></code>. The first attribute, from the <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>,
+        provided by Boost.Hana, and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">::</span><span class="keyword">operator</span><span class="special">[]()</span></code>. The first attribute, from the <code class="computeroutput"><a class="link" href="../../boost/parser/char_.html" title="Global char_">char_</a></code>,
         is <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)[</span><span class="number">0</span><span class="identifier">_c</span><span class="special">]</span></code>, and
-        the second, from the <code class="computeroutput"><a class="link" href="../../boost/parser/int_.html" title="Global int_">int_</a></code>, is <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)[</span><span class="number">1</span><span class="identifier">_c</span><span class="special">]</span></code>.
-        To add the symbol to the symbol table, we call <code class="computeroutput"><span class="identifier">insert</span><span class="special">()</span></code>.
+        the second, from the <code class="computeroutput"><a class="link" href="../../boost/parser/int_.html" title="Global int_">int_</a></code>, is <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)[</span><span class="number">1</span><span class="identifier">_c</span><span class="special">]</span></code>
+        (if <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code>
+        aliases to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>, you'd use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span></code> or
+        <code class="computeroutput"><a class="link" href="../../boost/parser/get_idm20646.html" title="Function template get">boost::parser::get</a></code>
+        instead). To add the symbol to the symbol table, we call <code class="computeroutput"><span class="identifier">insert</span><span class="special">()</span></code>.
       </p>
 <p>
 </p>
@@ -117,7 +120,7 @@
     <span class="special">};</span>
     <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">parser</span> <span class="special">=</span> <span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">)[</span><span class="identifier">add_symbol</span><span class="special">]</span> <span class="special">&gt;&gt;</span> <span class="identifier">symbols</span><span class="special">;</span>
 
-    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"X 9 X"</span><span class="special">,</span> <span class="identifier">parser</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ascii</span><span class="special">::</span><span class="identifier">space</span><span class="special">);</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"X 9 X"</span><span class="special">,</span> <span class="identifier">parser</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
     <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="special">*</span><span class="identifier">result</span> <span class="special">==</span> <span class="number">9</span><span class="special">);</span>
 
     <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"X"</span><span class="special">,</span> <span class="identifier">symbols</span><span class="special">));</span>
