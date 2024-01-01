@@ -8,9 +8,8 @@
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
+#include <boost/parser/detail/pp_for_each.hpp>
 #include <boost/parser/detail/printing.hpp>
-
-#include <boost/parser/detail/pp_for_each.hpp> // TODO: Renaming
 
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie.hpp>
