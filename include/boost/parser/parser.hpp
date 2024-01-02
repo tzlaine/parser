@@ -1690,7 +1690,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                detail::assign(retval, attr);
+                detail::assign(retval, std::move(attr));
         }
 
         template<
@@ -1715,7 +1715,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                detail::assign(retval, attr);
+                detail::assign(retval, std::move(attr));
         }
 
         template<
@@ -2435,7 +2435,8 @@ namespace boost { namespace parser {
                         detail::assign(retval, Attribute());
                         return;
                     }
-                    detail::move_back(retval, attr, detail::gen_attrs(flags));
+                    detail::move_back(
+                        retval, std::move(attr), detail::gen_attrs(flags));
                 }
 
                 int64_t const end = detail::resolve(context, max_);
@@ -2482,7 +2483,8 @@ namespace boost { namespace parser {
                         first = prev_first;
                         break;
                     }
-                    detail::move_back(retval, attr, detail::gen_attrs(flags));
+                    detail::move_back(
+                        retval, std::move(attr), detail::gen_attrs(flags));
                 }
             }
         }
@@ -3076,7 +3078,7 @@ namespace boost { namespace parser {
                 call(
                     use_cbs, first_, last, context, skip, flags, success, attr);
                 if (success)
-                    detail::assign(retval, attr);
+                    detail::assign(retval, std::move(attr));
             } else if constexpr (detail::is_tuple<Attribute>{}) {
                 call_impl(
                     use_cbs,
@@ -3105,8 +3107,10 @@ namespace boost { namespace parser {
                     temp_retval,
                     indices);
 
-                if (success && detail::gen_attrs(flags))
-                    detail::assign(retval, detail::hl::front(temp_retval));
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval, std::move(detail::hl::front(temp_retval)));
+                }
             }
 
             if (success)
@@ -3208,10 +3212,12 @@ namespace boost { namespace parser {
                         }
                         return;
                     }
-                    if constexpr (out_container)
-                        detail::move_back(out, x, detail::gen_attrs(flags));
-                    else
-                        detail::assign(out, x);
+                    if constexpr (out_container) {
+                        detail::move_back(
+                            out, std::move(x), detail::gen_attrs(flags));
+                    } else {
+                        detail::assign(out, std::move(x));
+                    }
                 }
             };
 
@@ -3955,7 +3961,7 @@ namespace boost { namespace parser {
                 auto attr =
                     call(use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    detail::assign(retval, attr);
+                    detail::assign(retval, std::move(attr));
             }
         }
 
