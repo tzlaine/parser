@@ -841,9 +841,9 @@ TEST(parser, star_as_string_or_vector)
 
         {
             char const * str = "";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -855,18 +855,18 @@ TEST(parser, star_as_string_or_vector)
         {
             std::string str = "z";
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, chars));
             }
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(prefix_parse(
                     first,
                     boost::parser::detail::text::null_sentinel,
                     parser,
                     chars));
-                EXPECT_EQ(chars, "");
+                EXPECT_EQ(chars, std::vector<std::string>{});
             }
 
             {
@@ -887,9 +887,9 @@ TEST(parser, star_as_string_or_vector)
         }
         {
             char const * str = "zs";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "zs");
+            EXPECT_EQ(chars, std::vector<std::string>({"zs"}));
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -900,9 +900,9 @@ TEST(parser, star_as_string_or_vector)
         }
         {
             char const * str = "zszs";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "zszs");
+            EXPECT_EQ(chars, std::vector<std::string>({"zs", "zs"}));
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1018,9 +1018,9 @@ TEST(parser, repeat)
 
         {
             char const * str = "";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1030,9 +1030,9 @@ TEST(parser, repeat)
         }
         {
             char const * str = "z";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1042,9 +1042,9 @@ TEST(parser, repeat)
         }
         {
             char const * str = "zs";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1054,9 +1054,9 @@ TEST(parser, repeat)
         }
         {
             char const * str = "zszs";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "zszs");
+            EXPECT_EQ(chars, std::vector<std::string>({"zs", "zs"}));
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1153,9 +1153,9 @@ TEST(parser, delimited)
 
         {
             char const * str = "";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1165,9 +1165,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "z";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1177,9 +1177,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = ",";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1189,9 +1189,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = ",yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1201,9 +1201,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1215,18 +1215,18 @@ TEST(parser, delimited)
         {
             std::string str = "yayyay";
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, chars));
             }
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(prefix_parse(
                     first,
                     boost::parser::detail::text::null_sentinel,
                     parser,
                     chars));
-                EXPECT_EQ(chars, "yay");
+                EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
             }
 
             {
@@ -1248,18 +1248,18 @@ TEST(parser, delimited)
         {
             std::string str = "yay,";
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, chars));
             }
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(prefix_parse(
                     first,
                     boost::parser::detail::text::null_sentinel,
                     parser,
                     chars));
-                EXPECT_EQ(chars, "yay");
+                EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
             }
 
             {
@@ -1280,9 +1280,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,yay,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
 
             {
                 std::optional<std::vector<std::string>> const chars =
@@ -1298,9 +1298,9 @@ TEST(parser, delimited)
         constexpr auto parser = string("yay") % ',';
         {
             char const * str = "";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
 
         {
@@ -1311,9 +1311,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "z";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = "z";
@@ -1323,9 +1323,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = ",";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = ",";
@@ -1335,9 +1335,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = " ,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = " ,yay";
@@ -1347,9 +1347,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = ", yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = ", yay";
@@ -1359,9 +1359,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = ",yay ";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = ",yay ";
@@ -1372,9 +1372,9 @@ TEST(parser, delimited)
 
         {
             char const * str = " , yay ";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "");
+            EXPECT_EQ(chars, std::vector<std::string>{});
         }
         {
             char const * str = " , yay ";
@@ -1384,9 +1384,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
         }
         {
             char const * str = "yay";
@@ -1397,12 +1397,12 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yayyay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
         }
         {
             std::string str = "yayyay";
-            std::string chars;
+            std::vector<std::string> chars;
             auto first = str.c_str();
             EXPECT_TRUE(prefix_parse(
                 first,
@@ -1410,7 +1410,7 @@ TEST(parser, delimited)
                 parser,
                 char_(' '),
                 chars));
-            EXPECT_EQ(chars, "yay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
         }
         {
             char const * str = "yayyay";
@@ -1431,12 +1431,12 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_FALSE(parse(str, parser, char_(' '), chars));
         }
         {
             std::string str = "yay,";
-            std::string chars;
+            std::vector<std::string> chars;
             auto first = str.c_str();
             EXPECT_TRUE(prefix_parse(
                 first,
@@ -1444,7 +1444,7 @@ TEST(parser, delimited)
                 parser,
                 char_(' '),
                 chars));
-            EXPECT_EQ(chars, "yay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
         }
         {
             char const * str = "yay,";
@@ -1465,9 +1465,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,yay,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
         {
             char const * str = "yay,yay,yay";
@@ -1478,9 +1478,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = " yay,yay,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
         {
             char const * str = " yay,yay,yay";
@@ -1491,9 +1491,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay ,yay,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1505,9 +1505,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay, yay,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
         {
             char const * str = "yay, yay,yay";
@@ -1518,9 +1518,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,yay ,yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1532,9 +1532,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1546,9 +1546,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay,yay,yay ";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1560,9 +1560,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = " yay , yay , yay ";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1574,9 +1574,9 @@ TEST(parser, delimited)
         }
         {
             char const * str = "yay, yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
 
         {
@@ -1597,11 +1597,11 @@ TEST(parser, lexeme)
         {
             std::string str = "yay, yay, yay";
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             }
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(prefix_parse(
                     first,
@@ -1609,7 +1609,7 @@ TEST(parser, lexeme)
                     parser,
                     char_(' '),
                     chars));
-                EXPECT_EQ(chars, "yay");
+                EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
             }
 
             {
@@ -1634,11 +1634,11 @@ TEST(parser, lexeme)
         {
             std::string str = " yay, yay, yay";
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, char_(' '), chars));
             }
             {
-                std::string chars;
+                std::vector<std::string> chars;
                 auto first = str.c_str();
                 EXPECT_TRUE(prefix_parse(
                     first,
@@ -1646,7 +1646,7 @@ TEST(parser, lexeme)
                     parser,
                     char_(' '),
                     chars));
-                EXPECT_EQ(chars, "yay");
+                EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
             }
 
             {
@@ -1675,9 +1675,9 @@ TEST(parser, lexeme)
 
         {
             char const * str = "yay, yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
 
             {
                 char const * str = "yay, yay, yay";
@@ -1690,9 +1690,9 @@ TEST(parser, lexeme)
         }
         {
             char const * str = " yay, yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, char_(' '), chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
 
             {
                 char const * str = " yay, yay, yay";
@@ -1713,9 +1713,9 @@ TEST(parser, skip)
 
         {
             char const * str = "yay, yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
         {
             char const * str = "yay, yay, yay";
@@ -1726,9 +1726,9 @@ TEST(parser, skip)
         }
         {
             char const * str = " yay, yay, yay";
-            std::string chars;
+            std::vector<std::string> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "yayyayyay");
+            EXPECT_EQ(chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
         {
             char const * str = " yay, yay, yay";
@@ -1974,13 +1974,12 @@ TEST(parser, attr_out_param_compat)
 
         // TODO: Update associated example code in docs.
 
-        tuple<std::string, std::string> result;
-        bool const success =
-            bp::parse(boost::parser::as_utf8(u8"rôle foofoo"), p, result);
+        tuple<std::string, std::vector<std::string>> result;
+        bool const success = bp::parse(bp::as_utf8(u8"rôle foofoo"), p, result);
         using namespace bp::literals;
         assert(
             success && get(result, 0_c) == (char const *)u8"rôle" &&
-            get(result, 1_c) == "foofoo");
+            get(result, 1_c) == std::vector<std::string>({"foo", "foo"}));
     }
     {
         namespace bp = boost::parser;
