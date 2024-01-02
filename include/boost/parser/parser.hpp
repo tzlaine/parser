@@ -1110,28 +1110,22 @@ namespace boost { namespace parser {
         template<typename T>
         using to_hana_tuple_or_type_t = typename to_hana_tuple_or_type<T>::type;
 
-        template<typename T, bool Container = container<T>>
+        template<typename T>
         struct sequence_of_impl
         {
             using type = std::vector<T>;
         };
 
         template<>
-        struct sequence_of_impl<nope, true>
+        struct sequence_of_impl<char>
         {
-            using type = nope;
+            using type = std::string;
         };
 
         template<>
-        struct sequence_of_impl<nope, false>
+        struct sequence_of_impl<nope>
         {
             using type = nope;
-        };
-
-        template<typename T>
-        struct sequence_of_impl<T, true>
-        {
-            using type = T;
         };
 
         template<typename T>
@@ -1203,13 +1197,13 @@ namespace boost { namespace parser {
 
         template<typename Container, typename T>
         constexpr bool needs_transcoding_to_utf8 =
-            (std::is_same_v<range_value_t<Container>, char>
+            (std::is_same_v<range_value_t<remove_cv_ref_t<Container>>, char>
 #if defined(__cpp_char8_t)
-             || std::is_same_v<range_value_t<Container>, char8_t>
+             || std::is_same_v<range_value_t<remove_cv_ref_t<Container>>, char8_t>
 #endif
-             ) && (std::is_same_v<T, char32_t>
+                ) && (std::is_same_v<remove_cv_ref_t<T>, char32_t>
 #if !defined(_MSC_VER)
-             || std::is_same_v<T, wchar_t>
+             || std::is_same_v<remove_cv_ref_t<T>, wchar_t>
 #endif
              );
 
@@ -1543,40 +1537,71 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, T && x)
+        constexpr void move_back(Container & c, T && x, bool gen_attrs)
         {
-            c.insert(c.end(), std::move(x));
+            if (!gen_attrs)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+           } else {
+                c.insert(c.end(), std::move(x));
+            }
         }
 
         template<typename Container>
-        constexpr void move_back(Container & c, Container & x)
+        constexpr void
+        move_back(Container & c, Container & x, bool gen_attrs)
         {
+            if (!gen_attrs)
+                return;
             c.insert(c.end(), x.begin(), x.end());
         }
 
         template<typename Container>
-        constexpr void move_back(Container & c, std::optional<Container> & x)
+        constexpr void move_back(
+            Container & c, std::optional<Container> & x, bool gen_attrs)
         {
-            if (x)
-                c.insert(c.end(), x->begin(), x->end());
+            if (!gen_attrs || !x)
+                return;
+            c.insert(c.end(), x->begin(), x->end());
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, std::optional<T> & x)
+        constexpr void
+        move_back(Container & c, std::optional<T> & x, bool gen_attrs)
         {
-            if (x)
+            if (!gen_attrs || !x)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)*x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+            } else {
                 c.insert(c.end(), std::move(*x));
+            }
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, std::optional<T> && x)
+        constexpr void
+        move_back(Container & c, std::optional<T> && x, bool gen_attrs)
         {
-            if (x)
+            if (!gen_attrs || !x)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)*x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+            } else {
                 c.insert(c.end(), std::move(*x));
+            }
         }
+
+        constexpr void move_back(nope, nope, bool gen_attrs) {}
 
         template<typename Container>
-        constexpr void move_back(Container &, nope)
+        constexpr void move_back(Container & c, nope, bool gen_attrs)
         {}
 
         template<typename T, typename U>
@@ -1639,7 +1664,7 @@ namespace boost { namespace parser {
                 auto attr = parser.call(
                     use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    assign(retval, std::variant<T...>(std::move(attr)));
+                    detail::assign(retval, std::variant<T...>(std::move(attr)));
             }
         }
 
@@ -1665,7 +1690,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                assign(retval, attr);
+                detail::assign(retval, attr);
         }
 
         template<
@@ -1690,7 +1715,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                assign(retval, attr);
+                detail::assign(retval, attr);
         }
 
         template<
@@ -2379,9 +2404,7 @@ namespace boost { namespace parser {
 
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            if constexpr (
-                detail::is_variant<Attribute>{} ||
-                detail::is_optional<Attribute>{}) {
+            if constexpr (detail::is_optional<Attribute>{}) {
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -2392,12 +2415,13 @@ namespace boost { namespace parser {
                     detail::set_in_apply_parser(flags),
                     success,
                     retval);
-            } else if constexpr (container<attr_t>) {
+            } else { // Otherwise, Attribute must be a container or a nope.
                 int64_t count = 0;
 
                 for (int64_t end = detail::resolve(context, min_); count != end;
                      ++count) {
                     detail::skip(first, last, skip, flags);
+                    attr_t attr;
                     parser_.call(
                         use_cbs,
                         first,
@@ -2406,11 +2430,12 @@ namespace boost { namespace parser {
                         skip,
                         flags,
                         success,
-                        retval);
+                        attr);
                     if (!success) {
                         detail::assign(retval, Attribute());
                         return;
                     }
+                    detail::move_back(retval, attr, detail::gen_attrs(flags));
                 }
 
                 int64_t const end = detail::resolve(context, max_);
@@ -2442,6 +2467,7 @@ namespace boost { namespace parser {
                     }
 
                     detail::skip(first, last, skip, flags);
+                    attr_t attr;
                     parser_.call(
                         use_cbs,
                         first,
@@ -2450,99 +2476,13 @@ namespace boost { namespace parser {
                         skip,
                         flags,
                         success,
-                        retval);
+                        attr);
                     if (!success) {
                         success = true;
                         first = prev_first;
                         break;
                     }
-                }
-            } else {
-                attr_t attr{};
-                int64_t count = 0;
-
-                for (int64_t end = detail::resolve(context, min_); count != end;
-                     ++count) {
-                    detail::skip(first, last, skip, flags);
-                    if (detail::gen_attrs(flags)) {
-                        attr = parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    } else {
-                        parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    }
-                    if (!success) {
-                        detail::assign(retval, Attribute());
-                        return;
-                    }
-                    detail::append(
-                        retval, std::move(attr), detail::gen_attrs(flags));
-                }
-
-                int64_t const end = detail::resolve(context, max_);
-
-                // It looks like you've created a repeated epsilon parser, by
-                // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_PARSER_DEBUG_ASSERT(
-                    !detail::is_unconditional_eps<Parser>{} || end < Inf);
-
-                for (; count != end; ++count) {
-                    auto const prev_first = first;
-                    if constexpr (!detail::is_nope_v<DelimiterParser>) {
-                        detail::skip(first, last, skip, flags);
-                        delimiter_parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            detail::disable_attrs(flags),
-                            success);
-                        if (!success) {
-                            success = true;
-                            break;
-                        }
-                    }
-
-                    detail::skip(first, last, skip, flags);
-                    if (detail::gen_attrs(flags)) {
-                        attr = parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    } else {
-                        parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    }
-                    if (!success) {
-                        success = true;
-                        first = prev_first;
-                        break;
-                    }
-                    detail::append(
-                        retval, std::move(attr), detail::gen_attrs(flags));
+                    detail::move_back(retval, attr, detail::gen_attrs(flags));
                 }
             }
         }
@@ -3269,7 +3209,7 @@ namespace boost { namespace parser {
                         return;
                     }
                     if constexpr (out_container)
-                        detail::move_back(out, x);
+                        detail::move_back(out, x, detail::gen_attrs(flags));
                     else
                         detail::assign(out, x);
                 }

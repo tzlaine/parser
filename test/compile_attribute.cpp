@@ -22,8 +22,7 @@ void compile_attribute_non_unicode()
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(r, parser));
-            static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+            static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -54,8 +53,7 @@ void compile_attribute_non_unicode()
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(parse(r, parser));
-            static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+            static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -87,8 +85,7 @@ void compile_attribute_non_unicode()
         {
             constexpr auto parser = *char_;
             using attr_t = decltype(prefix_parse(first, last, parser));
-            static_assert(
-                std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+            static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
         }
         {
             constexpr auto parser = string("foo");
@@ -327,7 +324,8 @@ void compile_attribute_unicode_utf32()
     }
 }
 
-[[maybe_unused]] rule<class test_rule, std::string> const test_rule = "test_rule";
+[[maybe_unused]] rule<class test_rule, std::string> const test_rule =
+    "test_rule";
 auto const test_rule_def = +char_;
 BOOST_PARSER_DEFINE_RULE(test_rule);
 
@@ -585,7 +583,7 @@ void compile_attribute_sentinel()
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<tuple<std::vector<char>, std::string>>>);
+                      std::optional<tuple<std::string, std::string>>>);
     }
     {
         constexpr auto parser = cu >> string("str");
@@ -868,7 +866,7 @@ void compile_attribute()
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<tuple<std::vector<char>, std::string>>>);
+                      std::optional<tuple<std::string, std::string>>>);
     }
     {
         constexpr auto parser = cu >> string("str");
