@@ -1972,14 +1972,14 @@ TEST(parser, attr_out_param_compat)
                 std::optional<
                     tuple<std::vector<char32_t>, std::vector<std::string>>>>);
 
-        // TODO: Update associated example code in docs.
-
         tuple<std::string, std::vector<std::string>> result;
         bool const success = bp::parse(bp::as_utf8(u8"rôle foofoo"), p, result);
         using namespace bp::literals;
-        assert(
-            success && get(result, 0_c) == (char const *)u8"rôle" &&
-            get(result, 1_c) == std::vector<std::string>({"foo", "foo"}));
+
+        assert(success);                              // p matches.
+        assert(bp::get(result, 0_c).size() == 5u);    // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
+        assert(bp::get(result, 0_c) == (char const *)u8"rôle");
+        assert(bp::get(result, 1_c) == std::vector<std::string>({"foo", "foo"}));
     }
     {
         namespace bp = boost::parser;

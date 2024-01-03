@@ -1096,12 +1096,12 @@ the input they match unless otherwise stated in the table below.]
 
     [[ `_rpt_np_(arg0)[p]` ]
      [ Matches iff `p` matches exactly `_RES_np_(arg0)` times. ]
-     [ `std::vector<_ATTR_np_(p)>` ]
+     [ `std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>` ]
      [ The special value _inf_ may be used; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(_inf_)[_e_]` (this applies to unconditional _e_ only). ]]
 
     [[ `_rpt_np_(arg0, arg1)[p]` ]
      [ Matches iff `p` matches between `_RES_np_(arg0)` and `_RES_np_(arg1)` times, inclusively. ]
-     [ `std::vector<_ATTR_np_(p)>` ]
+     [ `std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>` ]
      [ The special value _inf_ may be used for the upper bound; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` and `decltype(_RES_np_(arg1))` each must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(n, _inf_)[_e_]` (this applies to unconditional _e_ only). ]]
 
     [[ `_if_np_(pred)[p]` ]
@@ -1265,8 +1265,8 @@ consume the input they match unless otherwise stated in the table below.]
 
     [[`!p`] [ Matches iff `p` does not match; consumes no input. ] [None.] []]
     [[`&p`] [ Matches iff `p` matches; consumes no input. ] [None.] []]
-    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to unconditional _e_ only). ]]
-    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to unconditional _e_ only). ]]
+    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to unconditional _e_ only). ]]
+    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to unconditional _e_ only). ]]
     [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
     [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p)`] []]
@@ -1280,9 +1280,9 @@ consume the input they match unless otherwise stated in the table below.]
     [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
     [[`p - c`] [ Equivalent to `p - lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p - r`] [ Equivalent to `p - lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 % p2`] [ Equivalent to `p1 >> *(p2 >> p1)`. ] [`std::vector<_ATTR_np_(p1)>`] []]
-    [[`p % c`] [ Equivalent to `p % lit(c)`. ] [`std::vector<_ATTR_np_(p)>`] []]
-    [[`p % r`] [ Equivalent to `p % lit(r)`. ] [`std::vector<_ATTR_np_(p)>`] []]
+    [[`p1 % p2`] [ Equivalent to `p1 >> *(p2 >> p1)`. ] [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p1)>`] []]
+    [[`p % c`] [ Equivalent to `p % lit(c)`. ] [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`] []]
+    [[`p % r`] [ Equivalent to `p % lit(r)`. ] [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`] []]
     [[`p[a]`] [ Matches iff `p` matches.  If `p` matches, the semantic action `a` is executed. ] [None.] []]
 ]
 
@@ -1419,10 +1419,10 @@ tables below:
     [[`!p`]                             [None.]]
     [[`&p`]                             [None.]]
 
-    [[`*p`]                             [`std::vector<_ATTR_np_(p)>`]]
-    [[`+p`]                             [`std::vector<_ATTR_np_(p)>`]]
-    [[`+*p`]                            [`std::vector<_ATTR_np_(p)>`]]
-    [[`*+p`]                            [`std::vector<_ATTR_np_(p)>`]]
+    [[`*p`]                             [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`+p`]                             [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`+*p`]                            [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`*+p`]                            [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
     [[`-p`]                             [`std::optional<_ATTR_np_(p)>`]]
 
     [[`p1 >> p2`]                       [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
@@ -1435,12 +1435,12 @@ tables below:
     [[`p1 | p2`]                        [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
     [[`p1 | p2 | p3`]                   [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
 
-    [[`p1 % p2`]                        [`std::vector<_ATTR_np_(p1)>`]]
+    [[`p1 % p2`]                        [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p1)>`]]
 
     [[`p[a]`]                           [None.]]
 
-    [[`_rpt_np_(arg0)[p]`]              [`std::vector<_ATTR_np_(p)>`]]
-    [[`_rpt_np_(arg0, arg1)[p]`]        [`std::vector<_ATTR_np_(p)>`]]
+    [[`_rpt_np_(arg0)[p]`]              [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`_rpt_np_(arg0, arg1)[p]`]        [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
     [[`_if_np_(pred)[p]`]               [`std::optional<_ATTR_np_(p)>`]]
     [[`_sw_np_(arg0)(arg1, p1)(arg2, p2)...`]
      [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>`]]
@@ -1571,10 +1571,10 @@ same attribute generation rules.
     [[`_str_np_("str") >> *_cu_`]    [`_bp_tup_<std::string, std::vector<char>>`]]
 
     [[`p >> p`]                      [`std::vector<_ATTR_np_(p)>`]]
-    [[`*p >> p`]                     [`std::vector<_ATTR_np_(p)>`]]
-    [[`p >> *p`]                     [`std::vector<_ATTR_np_(p)>`]]
-    [[`*p >> -p`]                    [`std::vector<_ATTR_np_(p)>`]]
-    [[`-p >> *p`]                    [`std::vector<_ATTR_np_(p)>`]]
+    [[`*p >> p`]                     [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`p >> *p`]                     [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`*p >> -p`]                    [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
+    [[`-p >> *p`]                    [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
 
     [[`_str_np_("str") >> -_cu_`]    [_std_str_]]
     [[`-_cu_ >> _str_np_("str")`]    [_std_str_]]
@@ -1781,7 +1781,7 @@ at the top level.  It is an element of the result tuple:
         std::is_same_v<
             attr_type,
             std::optional<
-                boost::hana::tuple<std::vector<char32_t>, std::string>>>);
+                tuple<std::vector<char32_t>, std::vector<std::string>>>>);
 
     // This is similar to attr_type, with the std::vector<char32_t> changed to a std::string.
     boost::hana::tuple<std::string, std::string> result;
@@ -1791,7 +1791,7 @@ at the top level.  It is an element of the result tuple:
     assert(success);                              // p matches.
     assert(result[0_c].size() == 5u);             // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
     assert(result[0_c] == (char const *)u8"rôle");
-    assert(result[1_c] == "foofoo");
+    assert(result[1_c] == std::vector<std::string>({"foo", "foo"}));
 
 As indicated in the inline comments, there are a couple of things to take away
 from this example:
