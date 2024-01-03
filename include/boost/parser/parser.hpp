@@ -2873,19 +2873,6 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
-                    (std::is_same<result_back_type, x_type>{} ||
-                     std::is_same<
-                         result_back_type,
-                         unwrapped_optional_x_type>{}) &&
-                    !container<result_back_type>) {
-                    // T >> T -> vector<T>
-                    return detail::hl::make_tuple(
-                        detail::hl::append(
-                            detail::hl::drop_back(result),
-                            detail::wrapper<std::vector<result_back_type>>{}),
-                        detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
-                } else if constexpr (
                     detail::
                         container_and_value_type<result_back_type, x_type> ||
                     detail::container_and_value_type<

@@ -79,11 +79,11 @@ TEST(parser, basic)
     }
     {
         std::string str = "ab";
-        std::vector<char> result;
+        tuple<char, char> result;
         EXPECT_TRUE(parse(str, parser_1, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(result[0_c], 'a');
-        EXPECT_EQ(result[1_c], 'b');
+        EXPECT_EQ(get(result, 0_c), 'a');
+        EXPECT_EQ(get(result, 1_c), 'b');
     }
     {
         std::string str = "abc";
@@ -97,12 +97,12 @@ TEST(parser, basic)
     }
     {
         std::string str = "abc";
-        std::vector<char> result;
+        tuple<char, char, char> result;
         EXPECT_TRUE(parse(str, parser_2, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(result[0_c], 'a');
-        EXPECT_EQ(result[1_c], 'b');
-        EXPECT_EQ(result[2_c], 'c');
+        EXPECT_EQ(get(result, 0_c), 'a');
+        EXPECT_EQ(get(result, 1_c), 'b');
+        EXPECT_EQ(get(result, 2_c), 'c');
     }
     {
         std::string str = "a";
@@ -1453,25 +1453,28 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = char_('a') >> char_('b') >> char_('c') |
                                 char_('x') >> char_('y') >> char_('z');
+        using tup = tuple<char, char, char>;
+
         {
             std::string str = "abc";
-            std::string chars;
+            tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "abc");
+            EXPECT_EQ(chars, tup('a', 'b', 'c'));
         }
 
         {
             std::string str = "abc";
-            std::optional<std::vector<char>> const chars = parse(str, parser);
+            std::optional<tuple<char, char, char>> const chars =
+                parse(str, parser);
             EXPECT_TRUE(chars);
-            EXPECT_EQ(*chars, std::vector<char>({'a', 'b', 'c'}));
+            EXPECT_EQ(*chars, tup('a', 'b', 'c'));
         }
 
         {
             std::string str = "xyz";
-            std::string chars;
+            tup chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "xyz");
+            EXPECT_EQ(chars, tup('x', 'y', 'z'));
         }
     }
 
@@ -1503,17 +1506,23 @@ TEST(parser, combined_seq_and_or)
     {
         constexpr auto parser = char_('a') >> char_('b') >> char_('c') |
                                 char_('x') >> char_('y') >> char_('z');
+        using tup = tuple<char, char, char>;
+
         {
             std::string str = "abc";
-            boost::parser::detail::any_copyable chars;
+            tuple<
+                boost::parser::detail::any_copyable,
+                boost::parser::detail::any_copyable,
+                boost::parser::detail::any_copyable>
+                chars;
             EXPECT_TRUE(parse(str, parser, chars));
         }
 
         {
             std::string str = "xyz";
-            std::string chars;
+            tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, "xyz");
+            EXPECT_EQ(chars, tup('x', 'y', 'z'));
         }
     }
 

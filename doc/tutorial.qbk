@@ -1499,7 +1499,6 @@ for those rules that explicitly mention `_bp_tup_<>` as part of `X`'s type.]
 
 * `none >> T -> T`
 * `T >> none -> T`
-* `T >> T -> vector<T>`
 * `C<T> >> T -> C<T>`
 * `T >> C<T> -> C<T>`
 * `C<T> >> optional<T> -> C<T>`
@@ -1507,8 +1506,8 @@ for those rules that explicitly mention `_bp_tup_<>` as part of `X`'s type.]
 * `_bp_tup_<none> >> T -> _bp_tup_<T>`
 * `_bp_tup_<Ts...> >> T -> _bp_tup_<Ts..., T>`
 
-Again, if the result is that the attribute is `_bp_tup_<T>`, the attribute
-becomes `T`.
+Again, if the final result is that the attribute is `_bp_tup_<T>`, the
+attribute becomes `T`.
 
 [note What constitutes a container in the rules above is determined by the
 `container` concept:
@@ -1570,7 +1569,7 @@ same attribute generation rules.
     [[`*_cu_ >> _str_np_("str")`]    [`_bp_tup_<std::vector<char>, std::string>`]]
     [[`_str_np_("str") >> *_cu_`]    [`_bp_tup_<std::string, std::vector<char>>`]]
 
-    [[`p >> p`]                      [`std::vector<_ATTR_np_(p)>`]]
+    [[`p >> p`]                      [`_bp_tup_<_ATTR_np_(p), _ATTR_np_(p)>`]]
     [[`*p >> p`]                     [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
     [[`p >> *p`]                     [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]
     [[`*p >> -p`]                    [`std::string` if `_ATTR_np_(p)` is `char`, otherwise `std::vector<_ATTR_np_(p)>`]]

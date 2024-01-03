@@ -30,22 +30,22 @@ void compile_seq_attribute()
     {
         constexpr auto parser = char_ >> char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(std::is_same_v<attr_t, std::optional<tuple<char, char>>>);
     }
     {
         constexpr auto parser = eps >> char_ >> char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(std::is_same_v<attr_t, std::optional<tuple<char, char>>>);
     }
     {
         constexpr auto parser = char_ >> eps >> char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(std::is_same_v<attr_t, std::optional<tuple<char, char>>>);
     }
     {
         constexpr auto parser = char_ >> char_ >> eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
-        static_assert(std::is_same_v<attr_t, std::optional<std::vector<char>>>);
+        static_assert(std::is_same_v<attr_t, std::optional<tuple<char, char>>>);
     }
     {
         constexpr auto parser = int_ >> char_;
@@ -74,28 +74,32 @@ void compile_seq_attribute()
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<std::vector<std::optional<char>>>>);
+                      std::optional<
+                          tuple<std::optional<char>, std::optional<char>>>>);
     }
     {
         constexpr auto parser = eps >> -char_ >> -char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<std::vector<std::optional<char>>>>);
+                      std::optional<
+                          tuple<std::optional<char>, std::optional<char>>>>);
     }
     {
         constexpr auto parser = -char_ >> eps >> -char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<std::vector<std::optional<char>>>>);
+                      std::optional<
+                          tuple<std::optional<char>, std::optional<char>>>>);
     }
     {
         constexpr auto parser = -char_ >> -char_ >> eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<
                       attr_t,
-                      std::optional<std::vector<std::optional<char>>>>);
+                      std::optional<
+                          tuple<std::optional<char>, std::optional<char>>>>);
     }
     {
         constexpr auto parser = -int_ >> -char_;
