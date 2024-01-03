@@ -176,18 +176,14 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
     }
 }
 
-TEST(aggr_tuple_assignment, aggregate_to_tuple)
+TEST(aggr_tuple_assignment, tie_aggregate)
 {
     employee assigner = {32, "Last", "First", 50000.0};
 
-    auto tup = bp::detail::aggregate_to_tuple(std::move(assigner));
+    auto tup = bp::detail::tie_aggregate(assigner);
 
     EXPECT_EQ(bp::get(tup, bp::llong<0>{}), 32);
     EXPECT_EQ(bp::get(tup, bp::llong<1>{}), "Last");
     EXPECT_EQ(bp::get(tup, bp::llong<2>{}), "First");
     EXPECT_EQ(bp::get(tup, bp::llong<3>{}), 50000.0);
-
-    // Verify move.
-    EXPECT_TRUE(assigner.surname.empty());
-    EXPECT_TRUE(assigner.forename.empty());
 }

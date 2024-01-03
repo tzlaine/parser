@@ -41,17 +41,17 @@ def destructuring_str():
 
 def typenames_str():
     return f'''<
-{bindings_str(lambda x: f'decltype({x})', 5)}>'''
+{bindings_str(lambda x: f'decltype({x}) &', 5)}>'''
 
 def initializers_str():
     return f'''return parser::tuple{typenames_str()}(
-{bindings_str(lambda x: f'std::move({x})', 5)});'''
+{bindings_str(lambda x: f'{x}', 15)});'''
 
 for i in range(1, specializations + 1):
     bindings.append('_{:02x}'.format(i))
 
-    print(f'''template<> struct aggregate_to_tuple_impl<{i}> {{
-template<typename T> static constexpr auto call(T x) {{''')
+    print(f'''template<> struct tie_aggregate_impl<{i}> {{
+template<typename T> static constexpr auto call(T & x) {{''')
     print(destructuring_str())
     print(initializers_str())
     print('''}

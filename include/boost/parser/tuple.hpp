@@ -238,10 +238,10 @@ namespace boost { namespace parser {
                 : false;
 
         template<int N>
-        struct aggregate_to_tuple_impl
+        struct tie_aggregate_impl
         {
             template<typename T>
-            static constexpr auto call(T x)
+            static constexpr auto call(T & x)
             {
                 static_assert(
                     sizeof(T) && false,
@@ -251,11 +251,10 @@ namespace boost { namespace parser {
         };
 
         template<typename T>
-        constexpr auto aggregate_to_tuple(T x)
+        constexpr auto tie_aggregate(T & x)
         {
             static_assert(!std::is_union_v<T>);
-            return aggregate_to_tuple_impl<struct_arity_v<T>>::call(
-                std::move(x));
+            return tie_aggregate_impl<struct_arity_v<T>>::call(x);
         }
     }
 
