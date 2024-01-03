@@ -1110,28 +1110,22 @@ namespace boost { namespace parser {
         template<typename T>
         using to_hana_tuple_or_type_t = typename to_hana_tuple_or_type<T>::type;
 
-        template<typename T, bool Container = container<T>>
+        template<typename T>
         struct sequence_of_impl
         {
             using type = std::vector<T>;
         };
 
         template<>
-        struct sequence_of_impl<nope, true>
+        struct sequence_of_impl<char>
         {
-            using type = nope;
+            using type = std::string;
         };
 
         template<>
-        struct sequence_of_impl<nope, false>
+        struct sequence_of_impl<nope>
         {
             using type = nope;
-        };
-
-        template<typename T>
-        struct sequence_of_impl<T, true>
-        {
-            using type = T;
         };
 
         template<typename T>
@@ -1203,13 +1197,13 @@ namespace boost { namespace parser {
 
         template<typename Container, typename T>
         constexpr bool needs_transcoding_to_utf8 =
-            (std::is_same_v<range_value_t<Container>, char>
+            (std::is_same_v<range_value_t<remove_cv_ref_t<Container>>, char>
 #if defined(__cpp_char8_t)
-             || std::is_same_v<range_value_t<Container>, char8_t>
+             || std::is_same_v<range_value_t<remove_cv_ref_t<Container>>, char8_t>
 #endif
-             ) && (std::is_same_v<T, char32_t>
+                ) && (std::is_same_v<remove_cv_ref_t<T>, char32_t>
 #if !defined(_MSC_VER)
-             || std::is_same_v<T, wchar_t>
+             || std::is_same_v<remove_cv_ref_t<T>, wchar_t>
 #endif
              );
 
@@ -1543,40 +1537,71 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, T && x)
+        constexpr void move_back(Container & c, T && x, bool gen_attrs)
         {
-            c.insert(c.end(), std::move(x));
+            if (!gen_attrs)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+           } else {
+                c.insert(c.end(), std::move(x));
+            }
         }
 
         template<typename Container>
-        constexpr void move_back(Container & c, Container & x)
+        constexpr void
+        move_back(Container & c, Container & x, bool gen_attrs)
         {
+            if (!gen_attrs)
+                return;
             c.insert(c.end(), x.begin(), x.end());
         }
 
         template<typename Container>
-        constexpr void move_back(Container & c, std::optional<Container> & x)
+        constexpr void move_back(
+            Container & c, std::optional<Container> & x, bool gen_attrs)
         {
-            if (x)
-                c.insert(c.end(), x->begin(), x->end());
+            if (!gen_attrs || !x)
+                return;
+            c.insert(c.end(), x->begin(), x->end());
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, std::optional<T> & x)
+        constexpr void
+        move_back(Container & c, std::optional<T> & x, bool gen_attrs)
         {
-            if (x)
+            if (!gen_attrs || !x)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)*x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+            } else {
                 c.insert(c.end(), std::move(*x));
+            }
         }
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, std::optional<T> && x)
+        constexpr void
+        move_back(Container & c, std::optional<T> && x, bool gen_attrs)
         {
-            if (x)
+            if (!gen_attrs || !x)
+                return;
+            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+                char32_t cps[1] = {(char32_t)*x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+            } else {
                 c.insert(c.end(), std::move(*x));
+            }
         }
+
+        constexpr void move_back(nope, nope, bool gen_attrs) {}
 
         template<typename Container>
-        constexpr void move_back(Container &, nope)
+        constexpr void move_back(Container & c, nope, bool gen_attrs)
         {}
 
         template<typename T, typename U>
@@ -1639,7 +1664,7 @@ namespace boost { namespace parser {
                 auto attr = parser.call(
                     use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    assign(retval, std::variant<T...>(std::move(attr)));
+                    detail::assign(retval, std::variant<T...>(std::move(attr)));
             }
         }
 
@@ -1665,7 +1690,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                assign(retval, attr);
+                detail::assign(retval, std::move(attr));
         }
 
         template<
@@ -1690,7 +1715,7 @@ namespace boost { namespace parser {
             auto attr = parser.call(
                 use_cbs, first, last, context, skip, flags, success);
             if (success)
-                assign(retval, attr);
+                detail::assign(retval, std::move(attr));
         }
 
         template<
@@ -2379,9 +2404,7 @@ namespace boost { namespace parser {
 
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            if constexpr (
-                detail::is_variant<Attribute>{} ||
-                detail::is_optional<Attribute>{}) {
+            if constexpr (detail::is_optional<Attribute>{}) {
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -2392,12 +2415,13 @@ namespace boost { namespace parser {
                     detail::set_in_apply_parser(flags),
                     success,
                     retval);
-            } else if constexpr (container<attr_t>) {
+            } else { // Otherwise, Attribute must be a container or a nope.
                 int64_t count = 0;
 
                 for (int64_t end = detail::resolve(context, min_); count != end;
                      ++count) {
                     detail::skip(first, last, skip, flags);
+                    attr_t attr;
                     parser_.call(
                         use_cbs,
                         first,
@@ -2406,11 +2430,13 @@ namespace boost { namespace parser {
                         skip,
                         flags,
                         success,
-                        retval);
+                        attr);
                     if (!success) {
                         detail::assign(retval, Attribute());
                         return;
                     }
+                    detail::move_back(
+                        retval, std::move(attr), detail::gen_attrs(flags));
                 }
 
                 int64_t const end = detail::resolve(context, max_);
@@ -2442,6 +2468,7 @@ namespace boost { namespace parser {
                     }
 
                     detail::skip(first, last, skip, flags);
+                    attr_t attr;
                     parser_.call(
                         use_cbs,
                         first,
@@ -2450,98 +2477,13 @@ namespace boost { namespace parser {
                         skip,
                         flags,
                         success,
-                        retval);
+                        attr);
                     if (!success) {
                         success = true;
                         first = prev_first;
                         break;
                     }
-                }
-            } else {
-                attr_t attr{};
-                int64_t count = 0;
-
-                for (int64_t end = detail::resolve(context, min_); count != end;
-                     ++count) {
-                    detail::skip(first, last, skip, flags);
-                    if (detail::gen_attrs(flags)) {
-                        attr = parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    } else {
-                        parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    }
-                    if (!success) {
-                        detail::assign(retval, Attribute());
-                        return;
-                    }
-                    detail::append(
-                        retval, std::move(attr), detail::gen_attrs(flags));
-                }
-
-                int64_t const end = detail::resolve(context, max_);
-
-                // It looks like you've created a repeated epsilon parser, by
-                // writing "*eps", "+eps", "repeat(2, Inf)[eps]", or similar.
-                BOOST_PARSER_DEBUG_ASSERT(
-                    !detail::is_unconditional_eps<Parser>{} || end < Inf);
-
-                for (; count != end; ++count) {
-                    auto const prev_first = first;
-                    if constexpr (!detail::is_nope_v<DelimiterParser>) {
-                        detail::skip(first, last, skip, flags);
-                        delimiter_parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            detail::disable_attrs(flags),
-                            success);
-                        if (!success) {
-                            success = true;
-                            break;
-                        }
-                    }
-
-                    detail::skip(first, last, skip, flags);
-                    if (detail::gen_attrs(flags)) {
-                        attr = parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    } else {
-                        parser_.call(
-                            use_cbs,
-                            first,
-                            last,
-                            context,
-                            skip,
-                            flags,
-                            success);
-                    }
-                    if (!success) {
-                        success = true;
-                        first = prev_first;
-                        break;
-                    }
-                    detail::append(
+                    detail::move_back(
                         retval, std::move(attr), detail::gen_attrs(flags));
                 }
             }
@@ -2862,6 +2804,9 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
+        static constexpr auto true_ = std::true_type{};
+        static constexpr auto false_ = std::false_type{};
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2909,13 +2854,13 @@ namespace boost { namespace parser {
             template<typename T, typename U>
             auto operator()(T result_and_indices, U x) const
             {
-                auto result = detail::hl::first(result_and_indices);
+                auto result = parser::get(result_and_indices, llong<0>{});
                 using result_back_type = typename std::decay_t<decltype(
                     detail::hl::back(result))>::type;
                 using unwrapped_optional_result_back_type =
                     detail::unwrapped_optional_t<result_back_type>;
 
-                auto indices = detail::hl::second(result_and_indices);
+                auto indices = parser::get(result_and_indices, llong<1>{});
 
                 using x_type = typename decltype(x)::type;
                 using unwrapped_optional_x_type =
@@ -2923,21 +2868,8 @@ namespace boost { namespace parser {
 
                 if constexpr (detail::is_nope_v<x_type>) {
                     // T >> nope -> T
-                    return detail::hl::make_pair(
+                    return detail::hl::make_tuple(
                         result,
-                        detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
-                } else if constexpr (
-                    (std::is_same<result_back_type, x_type>{} ||
-                     std::is_same<
-                         result_back_type,
-                         unwrapped_optional_x_type>{}) &&
-                    !container<result_back_type>) {
-                    // T >> T -> vector<T>
-                    return detail::hl::make_pair(
-                        detail::hl::append(
-                            detail::hl::drop_back(result),
-                            detail::wrapper<std::vector<result_back_type>>{}),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
@@ -2948,7 +2880,7 @@ namespace boost { namespace parser {
                         unwrapped_optional_x_type>) {
                     // C<T> >> T -> C<T>
                     // C<T> >> optional<T> -> C<T>
-                    return detail::hl::make_pair(
+                    return detail::hl::make_tuple(
                         result,
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
@@ -2960,21 +2892,49 @@ namespace boost { namespace parser {
                         unwrapped_optional_result_back_type>) {
                     // T >> C<T> -> C<T>
                     // optional<T> >> C<T> -> C<T>
-                    return detail::hl::make_pair(
+                    return detail::hl::make_tuple(
                         detail::hl::append(detail::hl::drop_back(result), x),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
                     // tuple<nope> >> T -> tuple<T>
-                    return detail::hl::make_pair(
+                    return detail::hl::make_tuple(
                         detail::hl::append(detail::hl::drop_back(result), x),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else {
                     // tuple<Ts...> >> T -> tuple<Ts..., T>
-                    return detail::hl::make_pair(
+                    return detail::hl::make_tuple(
                         detail::hl::append(result, x),
                         detail::hl::append(indices, detail::hl::size(result)));
+                }
+            }
+        };
+
+        struct find_merged
+        {
+            template<typename T, typename U>
+            auto operator()(T final_types_and_result, U x_and_index) const
+            {
+                auto final_types =
+                    parser::get(final_types_and_result, llong<0>{});
+                auto result = parser::get(final_types_and_result, llong<1>{});
+
+                auto index = parser::get(x_and_index, llong<1>{});
+                auto x_type_wrapper = parser::get(x_and_index, llong<0>{});
+                auto type_at_index_wrapper = parser::get(final_types, index);
+                using x_type = typename decltype(x_type_wrapper)::type;
+                using type_at_index =
+                    typename decltype(type_at_index_wrapper)::type;
+
+                if constexpr (
+                    !std::is_same_v<x_type, type_at_index> &&
+                    container<type_at_index>) {
+                    return detail::hl::make_tuple(
+                        final_types, detail::hl::append(result, true_));
+                } else {
+                    return detail::hl::make_tuple(
+                        final_types, detail::hl::append(result, false_));
                 }
             }
         };
@@ -3013,9 +2973,10 @@ namespace boost { namespace parser {
             using all_types_wrapped =
                 decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
-            // Generate a tuple of outputs, and the index that each parser
-            // should use to write into its output.
-            constexpr auto combine_start = detail::hl::make_pair(
+            // Generate a tuple of outputs; the index that each parser should
+            // use to write into its output; and whether the attribute for
+            // each parser was merged into an adjacent container-attribute.
+            constexpr auto combine_start = detail::hl::make_tuple(
                 detail::hl::make_tuple(detail::hl::front(all_types_wrapped{})),
                 tuple<llong<0>>{});
             using combined_types = decltype(detail::hl::fold_left(
@@ -3024,11 +2985,22 @@ namespace boost { namespace parser {
                 combine{}));
 
             // Unwrap the result tuple's types.
+            constexpr auto result_type_wrapped =
+                parser::get(combined_types{}, llong<0>{});
             using result_type = decltype(detail::hl::transform(
-                detail::hl::first(combined_types{}), detail::unwrap{}));
+                result_type_wrapped, detail::unwrap{}));
 
-            return detail::hl::make_pair(
-                result_type(), detail::hl::second(combined_types{}));
+            using indices = decltype(parser::get(combined_types{}, llong<1>{}));
+
+            constexpr auto find_merged_start =
+                detail::hl::make_tuple(result_type_wrapped, tuple<>{});
+            using merged = decltype(detail::hl::fold_left(
+                detail::hl::zip(all_types_wrapped{}, indices{}),
+                find_merged_start,
+                find_merged{}));
+
+            return detail::hl::make_tuple(
+                result_type{}, indices{}, parser::get(merged{}, llong<1>{}));
         }
 
 #endif
@@ -3050,9 +3022,10 @@ namespace boost { namespace parser {
         {
             Iter first = first_;
 
-            std::decay_t<decltype(detail::hl::first(make_temp_result(
-                use_cbs, first, last, context, skip, flags, success)))>
-                retval;
+            auto temp_result = make_temp_result(
+                use_cbs, first, last, context, skip, flags, success);
+
+            std::decay_t<decltype(parser::get(temp_result, llong<0>{}))> retval;
 
             auto _ = detail::scoped_trace(
                 *this,
@@ -3063,9 +3036,10 @@ namespace boost { namespace parser {
                                                : flags,
                 retval);
 
-            std::decay_t<decltype(detail::hl::second(make_temp_result(
-                use_cbs, first, last, context, skip, flags, success)))>
+            std::decay_t<decltype(parser::get(temp_result, llong<1>{}))>
                 indices;
+            std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
+                merged;
             call_impl(
                 use_cbs,
                 first,
@@ -3075,7 +3049,8 @@ namespace boost { namespace parser {
                 flags,
                 success,
                 retval,
-                indices);
+                indices,
+                merged);
 
             if (success)
                 first_ = first;
@@ -3117,9 +3092,12 @@ namespace boost { namespace parser {
 
             Iter first = first_;
 
-            std::decay_t<decltype(detail::hl::second(make_temp_result(
-                use_cbs, first, last, context, skip, flags, success)))>
+            auto temp_result = make_temp_result(
+                use_cbs, first, last, context, skip, flags, success);
+            std::decay_t<decltype(parser::get(temp_result, llong<1>{}))>
                 indices;
+            std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
+                merged;
             if constexpr (detail::is_variant<Attribute>{}) {
                 detail::apply_parser(
                     *this,
@@ -3136,7 +3114,7 @@ namespace boost { namespace parser {
                 call(
                     use_cbs, first_, last, context, skip, flags, success, attr);
                 if (success)
-                    detail::assign(retval, attr);
+                    detail::assign(retval, std::move(attr));
             } else if constexpr (detail::is_tuple<Attribute>{}) {
                 call_impl(
                     use_cbs,
@@ -3147,7 +3125,8 @@ namespace boost { namespace parser {
                     flags,
                     success,
                     retval,
-                    indices);
+                    indices,
+                    merged);
 
                 if (!success || !detail::gen_attrs(flags))
                     detail::assign(retval, Attribute());
@@ -3163,10 +3142,13 @@ namespace boost { namespace parser {
                     flags,
                     success,
                     temp_retval,
-                    indices);
+                    indices,
+                    merged);
 
-                if (success && detail::gen_attrs(flags))
-                    detail::assign(retval, detail::hl::front(temp_retval));
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval, std::move(detail::hl::front(temp_retval)));
+                }
             }
 
             if (success)
@@ -3185,7 +3167,8 @@ namespace boost { namespace parser {
             typename Context,
             typename SkipParser,
             typename Attribute,
-            typename Indices>
+            typename Indices,
+            typename Merged>
         void call_impl(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
@@ -3195,7 +3178,8 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success,
             Attribute & retval,
-            Indices const & indices) const
+            Indices const & indices,
+            Merged const & merged) const
         {
             static_assert(detail::is_tuple<Attribute>{}, "");
 
@@ -3206,17 +3190,21 @@ namespace boost { namespace parser {
                                &skip,
                                flags,
                                &success,
-                               &retval](
-                                  auto const & parser_index_and_backtrack) {
+                               &retval](auto const &
+                                            parser_index_merged_and_backtrack) {
                 using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...
                     return;
 
                 auto const & parser =
-                    parser::get(parser_index_and_backtrack, 0_c);
+                    parser::get(parser_index_merged_and_backtrack, 0_c);
+                auto was_merged =
+                    parser::get(parser_index_merged_and_backtrack, 2_c);
+                constexpr auto was_merged_into_adjacent_container =
+                    std::is_same_v<decltype(was_merged), std::true_type>;
                 bool const can_backtrack =
-                    parser::get(parser_index_and_backtrack, 2_c);
+                    parser::get(parser_index_merged_and_backtrack, 3_c);
 
                 if (!detail::gen_attrs(flags)) {
                     parser.call(
@@ -3230,7 +3218,7 @@ namespace boost { namespace parser {
                 }
 
                 auto & out = parser::get(
-                    retval, parser::get(parser_index_and_backtrack, 1_c));
+                    retval, parser::get(parser_index_merged_and_backtrack, 1_c));
 
                 using attr_t = decltype(parser.call(
                     use_cbs, first, last, context, skip, flags, success));
@@ -3238,7 +3226,9 @@ namespace boost { namespace parser {
                     container<std::decay_t<decltype(out)>>;
                 constexpr bool attr_container = container<attr_t>;
 
-                if constexpr (out_container == attr_container) {
+                if constexpr (
+                    out_container == attr_container &&
+                    !was_merged_into_adjacent_container) {
                     parser.call(
                         use_cbs,
                         first,
@@ -3268,15 +3258,17 @@ namespace boost { namespace parser {
                         }
                         return;
                     }
-                    if constexpr (out_container)
-                        detail::move_back(out, x);
-                    else
-                        detail::assign(out, x);
+                    if constexpr (out_container) {
+                        detail::move_back(
+                            out, std::move(x), detail::gen_attrs(flags));
+                    } else {
+                        detail::assign(out, std::move(x));
+                    }
                 }
             };
 
             auto const parsers_and_indices =
-                detail::hl::zip(parsers_, indices, backtracking{});
+                detail::hl::zip(parsers_, indices, merged, backtracking{});
             detail::hl::for_each(parsers_and_indices, use_parser);
         }
 
@@ -4015,7 +4007,7 @@ namespace boost { namespace parser {
                 auto attr =
                     call(use_cbs, first, last, context, skip, flags, success);
                 if (success)
-                    detail::assign(retval, attr);
+                    detail::assign(retval, std::move(attr));
             }
         }
 
