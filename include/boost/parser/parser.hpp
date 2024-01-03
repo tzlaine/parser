@@ -2998,7 +2998,7 @@ namespace boost { namespace parser {
                 combine{}));
 
             // Unwrap the result tuple's types.
-            auto result_type_wrapped =
+            constexpr auto result_type_wrapped =
                 parser::get(combined_types{}, llong<0>{});
             using result_type = decltype(detail::hl::transform(
                 result_type_wrapped, detail::unwrap{}));
