@@ -8,6 +8,7 @@
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
+#include <boost/parser/detail/case_fold.hpp>
 #include <boost/parser/detail/pp_for_each.hpp>
 #include <boost/parser/detail/printing.hpp>
 
