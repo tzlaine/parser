@@ -23,6 +23,8 @@ add_sample(trivial)
 add_sample(trivial_skipper)
 add_sample(semantic_actions)
 add_sample(rule_intro)
+add_sample(struct_rule)
+add_sample(parsing_into_a_struct)
 add_sample(roman_numerals)
 
 if (Boost_FOUND)

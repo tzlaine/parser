@@ -132,6 +132,52 @@ TEST(aggr_tuple_assignment, is_struct_assignable)
                   bp::tuple<char const *, short, float>>);
 }
 
+TEST(aggr_tuple_assignment, is_tuple_assignable)
+{
+    using bp::detail::is_tuple_assignable_v;
+
+    static_assert(!is_tuple_assignable_v<void, void>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, int>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, void>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, empty>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, int_>);
+    static_assert(
+        !is_tuple_assignable_v<bp::tuple<int, std::string>, string_int>);
+    static_assert(
+        !is_tuple_assignable_v<bp::tuple<std::string, int>, string_int_double>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double_priv>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double_no_copy_move>);
+
+    static_assert(
+        std::is_aggregate_v<int_string> &&
+        bp::detail::struct_arity_v<int_string> ==
+            bp::detail::tuple_size_<bp::tuple<int, std::string>>);
+
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<int, std::string>, int_string>);
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<short, std::string>, int_string>);
+
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<std::string, int>, string_int>);
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<std::string, short>, string_int>);
+
+    static_assert(is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double>);
+    static_assert(is_tuple_assignable_v<
+                  bp::tuple<std::string, short, float>,
+                  string_int_double>);
+}
+
 TEST(aggr_tuple_assignment, tuple_to_aggregate)
 {
     {
@@ -176,18 +222,14 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
     }
 }
 
-TEST(aggr_tuple_assignment, aggregate_to_tuple)
+TEST(aggr_tuple_assignment, tie_aggregate)
 {
     employee assigner = {32, "Last", "First", 50000.0};
 
-    auto tup = bp::detail::aggregate_to_tuple(std::move(assigner));
+    auto tup = bp::detail::tie_aggregate(assigner);
 
     EXPECT_EQ(bp::get(tup, bp::llong<0>{}), 32);
     EXPECT_EQ(bp::get(tup, bp::llong<1>{}), "Last");
     EXPECT_EQ(bp::get(tup, bp::llong<2>{}), "First");
     EXPECT_EQ(bp::get(tup, bp::llong<3>{}), 50000.0);
-
-    // Verify move.
-    EXPECT_TRUE(assigner.surname.empty());
-    EXPECT_TRUE(assigner.forename.empty());
 }

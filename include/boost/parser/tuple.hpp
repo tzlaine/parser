@@ -179,7 +179,14 @@ namespace boost { namespace parser {
             template<typename T>
             operator T() const && noexcept
             {
+#if defined(__GNUC__) && __GNUC__ < 12
+                // Yuck.
+                std::remove_reference_t<T> * ptr = nullptr;
+                ptr += 1; // warning mitigation
+                return *ptr;
+#else
                 return std::declval<T>();
+#endif
             }
         };
 
@@ -238,10 +245,10 @@ namespace boost { namespace parser {
                 : false;
 
         template<int N>
-        struct aggregate_to_tuple_impl
+        struct tie_aggregate_impl
         {
             template<typename T>
-            static constexpr auto call(T x)
+            static constexpr auto call(T & x)
             {
                 static_assert(
                     sizeof(T) && false,
@@ -251,12 +258,68 @@ namespace boost { namespace parser {
         };
 
         template<typename T>
-        constexpr auto aggregate_to_tuple(T x)
+        constexpr auto tie_aggregate(T & x)
         {
             static_assert(!std::is_union_v<T>);
-            return aggregate_to_tuple_impl<struct_arity_v<T>>::call(
-                std::move(x));
+            return tie_aggregate_impl<struct_arity_v<T>>::call(x);
         }
+
+        template<typename Tuple, typename Tie, int... Is>
+        auto aggregate_to_tuple(
+            Tuple & tup, Tie tie, std::integer_sequence<int, Is...>)
+            -> decltype((
+                (parser::get(tup, llong<Is>{}) =
+                     std::move(parser::get(tie, llong<Is>{}))),
+                ...,
+                (void)0))
+        {
+            return (
+                (parser::get(tup, llong<Is>{}) =
+                     std::move(parser::get(tie, llong<Is>{}))),
+                ...,
+                (void)0);
+        }
+
+        template<typename Tuple, typename T>
+        using aggregate_to_tuple_expr = decltype(detail::aggregate_to_tuple(
+            std::declval<Tuple &>(),
+            detail::tie_aggregate(std::declval<T &>()),
+            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+
+        template<typename Tuple, typename Struct>
+        constexpr bool is_tuple_assignable_impl()
+        {
+            if constexpr (
+                std::is_aggregate_v<Struct> &&
+                struct_arity_v<Struct> == tuple_size_<Tuple>) {
+                return is_detected_v<aggregate_to_tuple_expr, Tuple, Struct>;
+            } else {
+                return false;
+            }
+        }
+
+        template<typename Tuple, typename Struct>
+        constexpr bool
+            is_tuple_assignable_v = is_tuple_assignable_impl<Tuple, Struct>();
+    }
+
+
+    /** An aggregate struct accessor that returns a reference to the `I`-th
+        data member. */
+#if BOOST_PARSER_USE_CONCEPTS
+    template<typename T, typename U, U I>
+    requires std::is_aggregate_v<T>
+#else
+    template<
+        typename T,
+        typename U,
+        U I,
+        typename Enable = std::enable_if_t<std::is_aggregate_v<T>>>
+#endif
+    constexpr decltype(auto) get(T & x, integral_constant<U, I> i)
+    {
+        auto tup = detail::tie_aggregate(x);
+        return parser::get(tup, i);
     }
 
 }}
