@@ -524,6 +524,58 @@ instead.]
 
 [endsect]
 
+[section Parsing `struct`s]
+
+So far, we've seen only simple parsers that parse the same value repeatedly
+(with or without commas and spaces).  It's also very common to parse a few
+values in a specific sequence.  Let's say you want to parse an employee record.
+Here's a parser you might write:
+
+    namespace bp = boost::parser;
+    auto employee_parser = bp::lit("employee")
+        >> '{'
+        >> bp::int_ >> ','
+        >> quoted_string >> ','
+        >> quoted_string >> ','
+        >> bp::double_
+        >> '}';
+
+The attribute type for `employee_parser` is `_bp_tup_<int, std::string,
+std::string, double>`.  That's great, in that you got all the parts of the
+record without having to write any semantic actions.  It's not so great that
+you now have to get all the individual elements out by their indices, using
+`get()`.  It would be much nicer to parse into a `struct` that has data
+members _emdash_ with names _emdash_ of the types listed in the _bp_tuple_.
+
+Fortunately, this just works in _Parser_.  The main requirement is that the
+`struct` you provide be an aggregate type.
+
+[parsing_into_a_struct_example]
+
+Unfortunately, this is taking advantage of the loosey-goosey attribute
+assignment logic; the `employee_parser` parser still has a _bp_tup_ attribute.
+See _p_api_ for a description of attribute out-param compatibility.
+
+For this reason, it's even more common to want to make a rule that returns a
+specific type like `employee`.  Just by giving the rule a type, we make sure
+that this parser always generates an `employee` struct as its attribute, no
+matter where it is in the parse.  If we made a simple parser `P` that uses the
+`employee_p` rule, like `bp::int >> employee_p`, `P`'s attribute type would be
+`_bp_tup_<int, employee>`.
+
+[struct_rule_example]
+
+[note Just as you can pass a `struct` as an out-arg to `parse()`, even though
+the parser's attribute type is a tuple, you can also pass a tuple as an
+out-arg to `parse()` when the parser's attribute type is a struct:
+
+    // Using the employee_p rule from above, with attribute type employee...
+    _bp_tup_<int, std::string, std::string, double> tup;
+    auto const result = bp::parse(input, employee_p, bp::ws, tup); // Ok!
+]
+
+[endsect]
+
 [section Symbol Tables]
 
 When writing a parser, it often comes up that there is a set of strings that,

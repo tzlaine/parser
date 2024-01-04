@@ -132,6 +132,52 @@ TEST(aggr_tuple_assignment, is_struct_assignable)
                   bp::tuple<char const *, short, float>>);
 }
 
+TEST(aggr_tuple_assignment, is_tuple_assignable)
+{
+    using bp::detail::is_tuple_assignable_v;
+
+    static_assert(!is_tuple_assignable_v<void, void>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, int>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, void>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, empty>);
+    static_assert(!is_tuple_assignable_v<bp::tuple<int, std::string>, int_>);
+    static_assert(
+        !is_tuple_assignable_v<bp::tuple<int, std::string>, string_int>);
+    static_assert(
+        !is_tuple_assignable_v<bp::tuple<std::string, int>, string_int_double>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double_priv>);
+    static_assert(!is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double_no_copy_move>);
+
+    static_assert(
+        std::is_aggregate_v<int_string> &&
+        bp::detail::struct_arity_v<int_string> ==
+            bp::detail::tuple_size_<bp::tuple<int, std::string>>);
+
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<int, std::string>, int_string>);
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<short, std::string>, int_string>);
+
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<std::string, int>, string_int>);
+    static_assert(
+        is_tuple_assignable_v<bp::tuple<std::string, short>, string_int>);
+
+    static_assert(is_tuple_assignable_v<
+                  bp::tuple<std::string, int, double>,
+                  string_int_double>);
+    static_assert(is_tuple_assignable_v<
+                  bp::tuple<std::string, short, float>,
+                  string_int_double>);
+}
+
 TEST(aggr_tuple_assignment, tuple_to_aggregate)
 {
     {

@@ -1607,7 +1607,21 @@ namespace boost { namespace parser {
         template<typename T, typename U>
         constexpr void assign(T & t, U && u)
         {
-            t = std::move(u);
+            using just_t = remove_cv_ref_t<T>;
+            using just_u = remove_cv_ref_t<U>;
+            if constexpr (
+                is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_u> &&
+                !std::is_convertible_v<just_t, just_u &&> &&
+                is_tuple_assignable_v<just_t, just_u>) {
+                auto tie = detail::tie_aggregate(u);
+                detail::aggregate_to_tuple(
+                    t,
+                    tie,
+                    std::make_integer_sequence<int, tuple_size_<just_t>>());
+            } else {
+                t = std::move(u);
+            }
         }
 
         template<typename T>
@@ -3094,6 +3108,8 @@ namespace boost { namespace parser {
 
             auto temp_result = make_temp_result(
                 use_cbs, first, last, context, skip, flags, success);
+            using temp_result_attr_t =
+                std::decay_t<decltype(parser::get(temp_result, llong<0>{}))>;
             std::decay_t<decltype(parser::get(temp_result, llong<1>{}))>
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
@@ -3115,7 +3131,11 @@ namespace boost { namespace parser {
                     use_cbs, first_, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, std::move(attr));
-            } else if constexpr (detail::is_tuple<Attribute>{}) {
+            } else if constexpr (
+                detail::is_tuple<Attribute>{} ||
+                (std::is_aggregate_v<Attribute> &&
+                 detail::
+                     is_struct_assignable_v<Attribute, temp_result_attr_t>)) {
                 call_impl(
                     use_cbs,
                     first,
@@ -3181,7 +3201,9 @@ namespace boost { namespace parser {
             Indices const & indices,
             Merged const & merged) const
         {
-            static_assert(detail::is_tuple<Attribute>{}, "");
+            static_assert(
+                detail::is_tuple<Attribute>{} || std::is_aggregate_v<Attribute>,
+                "");
 
             auto use_parser = [use_cbs,
                                &first,

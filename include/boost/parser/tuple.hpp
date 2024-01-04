@@ -256,6 +256,63 @@ namespace boost { namespace parser {
             static_assert(!std::is_union_v<T>);
             return tie_aggregate_impl<struct_arity_v<T>>::call(x);
         }
+
+        template<typename Tuple, typename Tie, int... Is>
+        auto aggregate_to_tuple(
+            Tuple & tup, Tie tie, std::integer_sequence<int, Is...>)
+            -> decltype((
+                (parser::get(tup, llong<Is>{}) =
+                     std::move(parser::get(tie, llong<Is>{}))),
+                ...,
+                (void)0))
+        {
+            return (
+                (parser::get(tup, llong<Is>{}) =
+                     std::move(parser::get(tie, llong<Is>{}))),
+                ...,
+                (void)0);
+        }
+
+        template<typename Tuple, typename T>
+        using aggregate_to_tuple_expr = decltype(detail::aggregate_to_tuple(
+            std::declval<Tuple &>(),
+            detail::tie_aggregate(std::declval<T &>()),
+            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+
+        template<typename Tuple, typename Struct>
+        constexpr bool is_tuple_assignable_impl()
+        {
+            if constexpr (
+                std::is_aggregate_v<Struct> &&
+                struct_arity_v<Struct> == tuple_size_<Tuple>) {
+                return is_detected_v<aggregate_to_tuple_expr, Tuple, Struct>;
+            } else {
+                return false;
+            }
+        }
+
+        template<typename Tuple, typename Struct>
+        constexpr bool
+            is_tuple_assignable_v = is_tuple_assignable_impl<Tuple, Struct>();
+    }
+
+
+    /** An aggregate struct accessor that returns a reference to the `I`-th
+        data member. */
+#if BOOST_PARSER_USE_CONCEPTS
+    template<typename T, typename U, U I>
+    requires std::is_aggregate_v<T>
+#else
+    template<
+        typename T,
+        typename U,
+        U I,
+        typename Enable = std::enable_if_t<std::is_aggregate_v<T>>>
+#endif
+    constexpr decltype(auto) get(T & x, integral_constant<U, I> i)
+    {
+        auto tup = detail::tie_aggregate(x);
+        return parser::get(tup, i);
     }
 
 }}
