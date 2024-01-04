@@ -1538,10 +1538,8 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
-        constexpr void move_back(Container & c, T && x, bool gen_attrs)
+        constexpr void move_back_impl(Container & c, T && x)
         {
-            if (!gen_attrs)
-                return;
             if constexpr (needs_transcoding_to_utf8<Container, T>) {
                 char32_t cps[1] = {(char32_t)x};
                 auto const r = cps | text::as_utf8;
@@ -1549,6 +1547,14 @@ namespace boost { namespace parser {
            } else {
                 c.insert(c.end(), std::move(x));
             }
+        }
+
+        template<typename Container, typename T>
+        constexpr void move_back(Container & c, T && x, bool gen_attrs)
+        {
+            if (!gen_attrs)
+                return;
+            detail::move_back_impl(c, std::move(x));
         }
 
         template<typename Container>
@@ -1575,13 +1581,7 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs || !x)
                 return;
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
-                char32_t cps[1] = {(char32_t)*x};
-                auto const r = cps | text::as_utf8;
-                c.insert(c.end(), r.begin(), r.end());
-            } else {
-                c.insert(c.end(), std::move(*x));
-            }
+            detail::move_back_impl(c, std::move(*x));
         }
 
         template<typename Container, typename T>
@@ -1590,13 +1590,7 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs || !x)
                 return;
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
-                char32_t cps[1] = {(char32_t)*x};
-                auto const r = cps | text::as_utf8;
-                c.insert(c.end(), r.begin(), r.end());
-            } else {
-                c.insert(c.end(), std::move(*x));
-            }
+            detail::move_back_impl(c, std::move(*x));
         }
 
         constexpr void move_back(nope, nope, bool gen_attrs) {}
