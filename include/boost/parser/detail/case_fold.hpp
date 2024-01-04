@@ -2,6 +2,7 @@
 #define BOOST_PARSER_DETAIL_CASE_FOLD_HPP
 
 #include <boost/parser/config.hpp>
+#include <boost/parser/detail/text/transcode_iterator.hpp>
 #include <boost/parser/detail/case_fold_data_generated.hpp>
 
 #include <algorithm>
@@ -9,11 +10,12 @@
 
 namespace boost::parser::detail {
 
-    inline std::optional<char32_t *> do_short_mapping(
+    template<typename Char>
+    std::optional<Char *> do_short_mapping(
         short_mapping_range const * first,
         short_mapping_range const * last,
         char32_t cp,
-        char32_t * out)
+        Char * out)
     {
         auto it = std::lower_bound(
             first,
@@ -39,7 +41,8 @@ namespace boost::parser::detail {
         return std::nullopt;
     }
 
-    inline char32_t * case_fold(char32_t cp, char32_t * out)
+    template<typename Char>
+    Char * case_fold(char32_t cp, Char * out)
     {
         // One-byte fast path.
         if (cp < 0x100) {
@@ -84,7 +87,8 @@ namespace boost::parser::detail {
                 });
             if (it != last && it->cp_ == cp) {
 #if BOOST_PARSER_USE_CONCEPTS
-                return std::ranges::copy(it->mapping_, null_sentinel, out);
+                return std::ranges::copy(it->mapping_, text::null_sentinel, out)
+                    .out;
 #else
                 return std::copy(
                     it->mapping_,

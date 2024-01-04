@@ -53,7 +53,7 @@ def print_cps():
     print(f'char32_t const max_test_cp = 0x{lines[-1][0]} + 100;\n')
 
 
-array_t = f'std::array<char32_t, {max_mapping_len} + 1>'
+array_t = f'std::array<uint32_t, {max_mapping_len} + 1>'
 
 def print_test(line):
     num_mapping_cps = len(line[2].strip().split(' '))
@@ -64,7 +64,7 @@ def print_test(line):
         {array_t} const expected = {{ {mapping}{trailing} }};
         {array_t} result = {{ 0{zeros} }};
         boost::parser::detail::case_fold(0x{line[0]}, result.begin());
-        EXPECT_EQ(result, expected) << 0x{line[0]} << " 0x{line[0]}";
+        EXPECT_EQ(result, expected);
     }}''')
 
 def print_tests():
@@ -106,7 +106,7 @@ print(f'''TEST(case_folding, misses) {{
             auto const first = result.data();
             auto const last = boost::parser::detail::case_fold(cp, first);
             EXPECT_TRUE(std::equal(first, last, expected.begin()));
-            EXPECT_EQ(result, expected) << cp;
+            EXPECT_EQ(result, expected);
         }}
         next_cp = *it + 1;
     }}
