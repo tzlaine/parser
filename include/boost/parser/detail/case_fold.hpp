@@ -10,12 +10,12 @@
 
 namespace boost::parser::detail {
 
-    template<typename Char>
-    std::optional<Char *> do_short_mapping(
+    template<typename I>
+    std::optional<I> do_short_mapping(
         short_mapping_range const * first,
         short_mapping_range const * last,
         char32_t cp,
-        Char * out)
+        I out)
     {
         auto it = std::lower_bound(
             first,
@@ -41,8 +41,8 @@ namespace boost::parser::detail {
         return std::nullopt;
     }
 
-    template<typename Char>
-    Char * case_fold(char32_t cp, Char * out)
+    template<typename I>
+    I case_fold(char32_t cp, I out)
     {
         // One-byte fast path.
         if (cp < 0x100) {
