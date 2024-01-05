@@ -215,7 +215,7 @@ namespace boost { namespace parser {
         template<typename T>
         constexpr int
             struct_arity_v = detail::struct_arity_impl<T>(
-                                 std::make_integer_sequence<int, 100>()) -
+                                 std::make_integer_sequence<int, 50>()) -
                              1;
 
         template<typename T>
