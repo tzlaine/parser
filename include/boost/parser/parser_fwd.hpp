@@ -212,6 +212,13 @@ namespace boost { namespace parser {
     template<typename Parser>
     struct lexeme_parser;
 
+    /** Applies the given parser `p` of type `Parser`, enabling
+        case-insensitive matching, based on Unicode case folding.  The parse
+        succeeds iff `p` succeeds.  The attribute produced is the type of
+        attribute produced by `Parser`. */
+    template<typename Parser>
+    struct no_case_parser;
+
     /** Applies the given parser `p` of type `Parser`, using a parser of type
         `SkipParser` as the skipper.  The parse succeeds iff `p` succeeds.
         The attribute produced is the type of attribute produced by

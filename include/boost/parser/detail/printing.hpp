@@ -114,6 +114,13 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        no_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<typename Context, typename Parser, typename SkipParser>
     void print_parser(
         Context const & context,

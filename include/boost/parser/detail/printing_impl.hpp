@@ -283,6 +283,17 @@ namespace boost { namespace parser { namespace detail {
             context, "lexeme", parser.parser_, os, components);
     }
 
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        no_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "no_case", parser.parser_, os, components);
+    }
+
     template<typename Context, typename Parser, typename SkipParser>
     void print_parser(
         Context const & context,
