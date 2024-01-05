@@ -573,6 +573,11 @@ attribute type is a tuple, you can also pass a tuple as an out-param to
     _bp_tup_<int, std::string, std::string, double> tup;
     auto const result = bp::parse(input, employee_p, bp::ws, tup); // Ok!
 
+[important This automatic use of `struct`s as if they were tuples depends on a
+bit of metaprogramming.  Due to compiler limits, the metaprogram that detects
+the number of data members of a `struct` is limited to a maximum number of
+members.  Fortunately, that limit is pretty high _emdash_ 50 members.]
+
 [endsect]
 
 [section Symbol Tables]
