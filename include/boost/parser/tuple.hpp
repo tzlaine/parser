@@ -225,18 +225,23 @@ namespace boost { namespace parser {
         constexpr int tuple_size_<tuple<Elems...>> = sizeof...(Elems);
 
         template<typename T, typename Tuple, int... Is>
-        auto
-        tuple_to_aggregate(T & x, Tuple tup, std::integer_sequence<int, Is...>)
-            -> decltype(x = T{parser::get(std::move(tup), llong<Is>{})...})
+        auto assign_tuple_to_aggregate(
+            T & x, Tuple tup, std::integer_sequence<int, Is...>)
+            -> decltype(x = T{parser::get(std::move(tup), llong<Is>{})...});
+
+        template<typename T, typename Tuple, int... Is>
+        auto tuple_to_aggregate(Tuple && tup, std::integer_sequence<int, Is...>)
+            -> decltype(T{std::move(parser::get(tup, llong<Is>{}))...})
         {
-            return x = T{parser::get(std::move(tup), llong<Is>{})...};
+            return T{std::move(parser::get(tup, llong<Is>{}))...};
         }
 
         template<typename T, typename Tuple>
-        using tuple_to_aggregate_expr = decltype(detail::tuple_to_aggregate(
-            std::declval<T &>(),
-            std::declval<Tuple>(),
-            std::make_integer_sequence<int, tuple_size_<Tuple>>()));
+        using tuple_to_aggregate_expr =
+            decltype(detail::assign_tuple_to_aggregate(
+                std::declval<T &>(),
+                std::declval<Tuple>(),
+                std::make_integer_sequence<int, tuple_size_<Tuple>>()));
 
         template<typename Struct, typename Tuple>
         constexpr bool is_struct_assignable_v =

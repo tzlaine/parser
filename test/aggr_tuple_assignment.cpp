@@ -185,9 +185,7 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
         bp::tuple<int, std::string, std::string, double> tup(
             32, "Last", "First", 50000.0);
 
-        employee assignee;
-        bp::detail::tuple_to_aggregate(
-            assignee,
+        employee assignee = bp::detail::tuple_to_aggregate<employee>(
             std::move(tup),
             std::make_integer_sequence<
                 int,
@@ -207,9 +205,7 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
         bp::tuple<int, char const *, char const *, double> tup(
             32, "Last", "First", 50000.0);
 
-        employee assignee;
-        bp::detail::tuple_to_aggregate(
-            assignee,
+        employee assignee = bp::detail::tuple_to_aggregate<employee>(
             std::move(tup),
             std::make_integer_sequence<
                 int,

@@ -1538,14 +1538,45 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
-        constexpr void move_back_impl(Container & c, T && x)
+        using insertable = decltype(std::declval<Container &>().insert(
+            std::declval<Container &>().end(), std::declval<T>()));
+
+        template<typename Container, typename U>
+        constexpr void move_back_impl(Container & c, U && x)
         {
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
+            if constexpr (needs_transcoding_to_utf8<Container, U>) {
                 char32_t cps[1] = {(char32_t)x};
                 auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
-           } else {
-                c.insert(c.end(), std::move(x));
+            } else {
+                using just_t = range_value_t<Container>;
+                using just_u = remove_cv_ref_t<U>;
+                if constexpr (
+                    !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                    std::is_aggregate_v<just_t> &&
+                    !is_detected_v<insertable, Container, just_u &&> &&
+                    is_struct_assignable_v<just_t, just_u>) {
+                    auto int_seq =
+                        std::make_integer_sequence<int, tuple_size_<just_u>>();
+                    c.insert(
+                        c.end(),
+                        detail::tuple_to_aggregate<just_t>(
+                            std::move(x), int_seq));
+                } else if constexpr (
+                    is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                    std::is_aggregate_v<just_u> &&
+                    !is_detected_v<insertable, Container, just_u &&> &&
+                    is_tuple_assignable_v<just_t, just_u>) {
+                    just_t t;
+                    auto tie = detail::tie_aggregate(x);
+                    detail::aggregate_to_tuple(
+                        t,
+                        tie,
+                        std::make_integer_sequence<int, tuple_size_<just_t>>());
+                    c.insert(c.end(), std::move(t));
+                } else {
+                    c.insert(c.end(), std::move(x));
+                }
             }
         }
 
