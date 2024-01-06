@@ -8,6 +8,7 @@
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
+#include <boost/parser/detail/case_fold.hpp>
 #include <boost/parser/detail/pp_for_each.hpp>
 #include <boost/parser/detail/printing.hpp>
 
@@ -321,26 +322,6 @@ namespace boost { namespace parser {
     namespace detail {
         // Utility types.
 
-        struct common_type_equal
-        {
-            template<typename T, typename U>
-            bool operator()(T x, U y)
-            {
-                using common_t = std::common_type_t<decltype(x), decltype(y)>;
-                return (common_t)x == (common_t)y;
-            }
-        };
-
-        struct common_type_less
-        {
-            template<typename T, typename U>
-            bool operator()(T x, U y)
-            {
-                using common_t = std::common_type_t<decltype(x), decltype(y)>;
-                return (common_t)x < (common_t)y;
-            }
-        };
-
         struct nope
         {
             template<typename T>
@@ -415,6 +396,7 @@ namespace boost { namespace parser {
             nope_or_pointer_t<RuleLocals> locals_{};
             nope_or_pointer_t<RuleParams, true> params_{};
             nope_or_pointer_t<Where, true> where_{};
+            int no_case_depth_ = 0;
 
             template<typename T>
             static auto nope_or_address(T & x)
@@ -505,7 +487,8 @@ namespace boost { namespace parser {
                 error_handler_(other.error_handler_),
                 globals_(other.globals_),
                 callbacks_(other.callbacks_),
-                attr_(other.attr_)
+                attr_(other.attr_),
+                no_case_depth_(other.no_case_depth_)
             {
                 if constexpr (
                     std::is_same_v<OldRuleTag, NewRuleTag> &&
@@ -549,7 +532,8 @@ namespace boost { namespace parser {
                 val_(other.val_),
                 locals_(other.locals_),
                 params_(other.params_),
-                where_(nope_or_address(where))
+                where_(nope_or_address(where)),
+                no_case_depth_(other.no_case_depth_)
             {}
         };
 
@@ -953,6 +937,15 @@ namespace boost { namespace parser {
         template<typename F, typename... Args>
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
+        template<typename T>
+        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        template<typename T>
+        using has_end = decltype(std::end(std::declval<T &>()));
+
+        template<typename T>
+        constexpr bool is_range =
+            is_detected_v<has_begin, T> && is_detected_v<has_end, T>;
+
 #if BOOST_PARSER_USE_CONCEPTS
 
         template<typename T>
@@ -981,11 +974,6 @@ namespace boost { namespace parser {
         using iter_reference_t = decltype(*std::declval<T &>());
         template<typename T>
         using range_value_t = iter_value_t<iterator_t<T>>;
-
-        template<typename T>
-        using has_begin = decltype(*std::begin(std::declval<T &>()));
-        template<typename T>
-        using has_end = decltype(std::end(std::declval<T &>()));
 
         template<typename T>
         using has_insert = decltype(std::declval<T>().insert(
@@ -1392,24 +1380,109 @@ namespace boost { namespace parser {
             HiType hi_;
         };
 
+        using case_fold_array_t = std::array<char32_t, detail::longest_mapping>;
+
+        template<typename I, typename S>
+        struct no_case_iter : stl_interfaces::iterator_interface<
+                                  no_case_iter<I, S>,
+                                  std::forward_iterator_tag,
+                                  char32_t,
+                                  char32_t>
+        {
+            no_case_iter() : it_(), last_(), idx_(0), last_idx_() {}
+            no_case_iter(I it, S last) :
+                it_(it), last_(last), idx_(0), last_idx_(0)
+            {
+                fold();
+            }
+
+            char32_t operator*() const { return folded_[idx_]; }
+            no_case_iter & operator++()
+            {
+                if (last_idx_ <= ++idx_) {
+                    ++it_;
+                    fold();
+                }
+                return *this;
+            }
+            I base() const { return it_; }
+            friend bool operator==(no_case_iter lhs, S rhs) noexcept
+            {
+                return lhs.it_ == rhs;
+            }
+            friend bool operator==(no_case_iter lhs, no_case_iter rhs) noexcept
+            {
+                return lhs.it_ == rhs.it_ && lhs.idx_ == rhs.idx_;
+            }
+
+            using base_type = stl_interfaces::iterator_interface<
+                no_case_iter<I, S>,
+                std::forward_iterator_tag,
+                char32_t,
+                char32_t>;
+            using base_type::operator++;
+
+        private:
+            void fold()
+            {
+                idx_ = 0;
+                if (it_ == last_) {
+                    folded_[0] = 0;
+                    return;
+                }
+                auto const folded_last =
+                    detail::case_fold(*it_, folded_.begin());
+                last_idx_ = folded_last - folded_.begin();
+            }
+
+            case_fold_array_t folded_;
+            I it_;
+            [[no_unique_address]] S last_;
+            int idx_;
+            int last_idx_;
+        };
+
         template<typename Iter, typename Sentinel>
         struct char_range
         {
-            template<typename T>
-            friend bool
-            operator!=(T c_, char_range<Iter, Sentinel> const & chars)
+            template<typename T, typename Context>
+            bool contains(T c_, Context const & context) const
             {
-                if (sizeof(c_) == 4) {
-                    auto const cps = chars.chars_ | text::as_utf32;
-                    using element_type = decltype(*cps.begin());
-                    element_type const c = c_;
-                    return text::find(cps.begin(), cps.end(), c) == cps.end();
+                if (context.no_case_depth_) {
+                    case_fold_array_t folded;
+                    auto folded_last = detail::case_fold(c_, folded.begin());
+                    if constexpr (std::is_same_v<T, char32_t>) {
+                        auto const cps = chars_ | text::as_utf32;
+                        auto chars_first = no_case_iter(cps.begin(), cps.end());
+                        auto chars_last = cps.end();
+                        auto result = text::search(
+                            chars_first,
+                            chars_last,
+                            folded.begin(),
+                            folded_last);
+                        return !result.empty();
+                    } else {
+                        auto chars_first =
+                            no_case_iter(chars_.begin(), chars_.end());
+                        auto chars_last = chars_.end();
+                        auto result = text::search(
+                            chars_first,
+                            chars_last,
+                            folded.begin(),
+                            folded_last);
+                        return !result.empty();
+                    }
                 } else {
-                    using element_type = decltype(*chars.chars_.begin());
-                    element_type const c = c_;
-                    return text::find(
-                               chars.chars_.begin(), chars.chars_.end(), c) ==
-                           chars.chars_.end();
+                    if constexpr (std::is_same_v<T, char32_t>) {
+                        auto const cps = chars_ | text::as_utf32;
+                        return text::find(cps.begin(), cps.end(), c_) !=
+                               cps.end();
+                    } else {
+                        using element_type = decltype(*chars_.begin());
+                        element_type const c = c_;
+                        return text::find(chars_.begin(), chars_.end(), c) !=
+                               chars_.end();
+                    }
                 }
             }
 
@@ -1417,7 +1490,7 @@ namespace boost { namespace parser {
         };
 
         template<typename Iter, typename Sentinel>
-        auto make_char_range(Iter first, Sentinel last)
+        constexpr auto make_char_range(Iter first, Sentinel last)
         {
             return char_range<Iter, Sentinel>{
                 subrange<Iter, Sentinel>{first, last}};
@@ -1433,9 +1506,29 @@ namespace boost { namespace parser {
             }
         }
 
+        template<bool Equal, typename Context>
+        auto no_case_aware_compare(Context const & context)
+        {
+            return [no_case = context.no_case_depth_](char32_t a, char32_t b) {
+                if (no_case) {
+                    case_fold_array_t folded_a = {0, 0, 0};
+                    detail::case_fold(a, folded_a.begin());
+                    case_fold_array_t folded_b = {0, 0, 0};
+                    detail::case_fold(b, folded_b.begin());
+                    return Equal ? folded_a == folded_b : folded_a < folded_b;
+                } else {
+                    return Equal ? a == b : a < b;
+                }
+            };
+        }
+
         template<typename T, typename U>
         constexpr bool both_character_types =
             is_parsable_code_unit_v<T> && is_parsable_code_unit_v<U>;
+
+        template<typename T, typename U>
+        using eq_comparable =
+            decltype(std::declval<T &>() == std::declval<U &>());
 
         template<
             typename Context,
@@ -1447,16 +1540,29 @@ namespace boost { namespace parser {
             static bool
             call(Context const & context, CharType c, Expected const & expected)
             {
-                return c != detail::resolve(context, expected);
+                auto const compare =
+                    detail::no_case_aware_compare<true>(context);
+                auto resolved = detail::resolve(context, expected);
+                if constexpr (is_detected_v<
+                                  eq_comparable,
+                                  CharType,
+                                  decltype(resolved)>) {
+                    return !compare(c, resolved);
+                } else {
+                    return !resolved.contains(c, context);
+                }
             }
         };
 
         template<typename Context, typename CharType, typename Expected>
         struct unequal_impl<Context, CharType, Expected, true>
         {
-            static bool call(Context const &, CharType c, Expected expected)
+            static bool
+            call(Context const & context, CharType c, Expected expected)
             {
-                return !common_type_equal{}(c, expected);
+
+                return !detail::no_case_aware_compare<true>(context)(
+                    c, expected);
             }
         };
 
@@ -1477,7 +1583,9 @@ namespace boost { namespace parser {
             CharType c,
             char_pair<LoType, HiType> const & expected)
         {
-            common_type_less less;
+            // TODO: Document that this logic fails inside no_case[] when c or
+            // any value in expected has a multi-cp case fold expansion.
+            auto const less = detail::no_case_aware_compare<false>(context);
             {
                 auto lo = detail::resolve(context, expected.lo_);
                 if (less(c, lo))
@@ -1515,39 +1623,76 @@ namespace boost { namespace parser {
         template<ascii_char_class_t CharClass>
         struct ascii_char_class
         {
-            template<typename T>
-            friend bool operator!=(T c, ascii_char_class<CharClass> const &)
+            template<typename T, typename Context>
+            bool contains(T c, Context const &) const
             {
                 switch (CharClass) {
-                case ascii_char_class_t::alnum: return !std::isalnum(c);
-                case ascii_char_class_t::alpha: return !std::isalpha(c);
-                case ascii_char_class_t::blank: return !std::isblank(c);
-                case ascii_char_class_t::cntrl: return !std::iscntrl(c);
-                case ascii_char_class_t::digit: return !std::isdigit(c);
-                case ascii_char_class_t::graph: return !std::isgraph(c);
-                case ascii_char_class_t::print: return !std::isprint(c);
-                case ascii_char_class_t::punct: return !std::ispunct(c);
-                case ascii_char_class_t::space: return !std::isspace(c);
-                case ascii_char_class_t::xdigit: return !std::isxdigit(c);
-                case ascii_char_class_t::lower: return !std::islower(c);
-                case ascii_char_class_t::upper: return !std::isupper(c);
+                case ascii_char_class_t::alnum: return std::isalnum(c);
+                case ascii_char_class_t::alpha: return std::isalpha(c);
+                case ascii_char_class_t::blank: return std::isblank(c);
+                case ascii_char_class_t::cntrl: return std::iscntrl(c);
+                case ascii_char_class_t::digit: return std::isdigit(c);
+                case ascii_char_class_t::graph: return std::isgraph(c);
+                case ascii_char_class_t::print: return std::isprint(c);
+                case ascii_char_class_t::punct: return std::ispunct(c);
+                case ascii_char_class_t::space: return std::isspace(c);
+                case ascii_char_class_t::xdigit: return std::isxdigit(c);
+                case ascii_char_class_t::lower: return std::islower(c);
+                case ascii_char_class_t::upper: return std::isupper(c);
                 }
-                return true;
+                return false;
             }
         };
+
+        template<typename Container, typename T>
+        using insertable = decltype(std::declval<Container &>().insert(
+            std::declval<Container &>().end(), std::declval<T>()));
+
+        template<typename Container, typename U>
+        constexpr void move_back_impl(Container & c, U && x)
+        {
+            if constexpr (needs_transcoding_to_utf8<Container, U>) {
+                char32_t cps[1] = {(char32_t)x};
+                auto const r = cps | text::as_utf8;
+                c.insert(c.end(), r.begin(), r.end());
+            } else {
+                using just_t = range_value_t<Container>;
+                using just_u = remove_cv_ref_t<U>;
+                if constexpr (
+                    !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                    std::is_aggregate_v<just_t> &&
+                    !is_detected_v<insertable, Container, just_u &&> &&
+                    is_struct_assignable_v<just_t, just_u>) {
+                    auto int_seq =
+                        std::make_integer_sequence<int, tuple_size_<just_u>>();
+                    c.insert(
+                        c.end(),
+                        detail::tuple_to_aggregate<just_t>(
+                            std::move(x), int_seq));
+                } else if constexpr (
+                    is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                    std::is_aggregate_v<just_u> &&
+                    !is_detected_v<insertable, Container, just_u &&> &&
+                    is_tuple_assignable_v<just_t, just_u>) {
+                    just_t t;
+                    auto tie = detail::tie_aggregate(x);
+                    detail::aggregate_to_tuple(
+                        t,
+                        tie,
+                        std::make_integer_sequence<int, tuple_size_<just_t>>());
+                    c.insert(c.end(), std::move(t));
+                } else {
+                    c.insert(c.end(), std::move(x));
+                }
+            }
+        }
 
         template<typename Container, typename T>
         constexpr void move_back(Container & c, T && x, bool gen_attrs)
         {
             if (!gen_attrs)
                 return;
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
-                char32_t cps[1] = {(char32_t)x};
-                auto const r = cps | text::as_utf8;
-                c.insert(c.end(), r.begin(), r.end());
-           } else {
-                c.insert(c.end(), std::move(x));
-            }
+            detail::move_back_impl(c, std::move(x));
         }
 
         template<typename Container>
@@ -1574,13 +1719,7 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs || !x)
                 return;
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
-                char32_t cps[1] = {(char32_t)*x};
-                auto const r = cps | text::as_utf8;
-                c.insert(c.end(), r.begin(), r.end());
-            } else {
-                c.insert(c.end(), std::move(*x));
-            }
+            detail::move_back_impl(c, std::move(*x));
         }
 
         template<typename Container, typename T>
@@ -1589,13 +1728,7 @@ namespace boost { namespace parser {
         {
             if (!gen_attrs || !x)
                 return;
-            if constexpr (needs_transcoding_to_utf8<Container, T>) {
-                char32_t cps[1] = {(char32_t)*x};
-                auto const r = cps | text::as_utf8;
-                c.insert(c.end(), r.begin(), r.end());
-            } else {
-                c.insert(c.end(), std::move(*x));
-            }
+            detail::move_back_impl(c, std::move(*x));
         }
 
         constexpr void move_back(nope, nope, bool gen_attrs) {}
@@ -2200,11 +2333,24 @@ namespace boost { namespace parser {
             typename Sentinel1,
             typename Iter2,
             typename Sentinel2>
-        std::pair<Iter1, Iter2>
-        mismatch(Iter1 first1, Sentinel1 last1, Iter2 first2, Sentinel2 last2)
+        std::pair<Iter1, Iter2> no_case_aware_string_mismatch(
+            Iter1 first1,
+            Sentinel1 last1,
+            Iter2 first2,
+            Sentinel2 last2,
+            bool no_case)
         {
-            return detail::mismatch(
-                first1, last1, first2, last2, common_type_equal{});
+            if (no_case) {
+                auto it1 = no_case_iter(first1, last1);
+                auto it2 = no_case_iter(first2, last2);
+                auto const mismatch = detail::mismatch(
+                    it1, last1, it2, last2, std::equal_to<char32_t>{});
+                return std::pair<Iter1, Iter2>{
+                    mismatch.first.base(), mismatch.second.base()};
+            } else {
+                return detail::mismatch(
+                    first1, last1, first2, last2, std::equal_to<char32_t>{});
+            }
         }
 
         template<typename I, typename S, typename T>
@@ -2292,6 +2438,12 @@ namespace boost { namespace parser {
             return none{};
         else
             return *context.globals_;
+    }
+
+    template<typename Context>
+    decltype(auto) _no_case(Context const & context) // TODO: Document.
+    {
+        return context.no_case_depth_;
     }
 
     template<typename Context>
@@ -3658,6 +3810,64 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
+    template<typename Parser>
+    struct no_case_parser
+    {
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context_,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            auto context = context_;
+            ++context.no_case_depth_;
+
+            using attr_t = decltype(parser_.call(
+                use_cbs, first, last, context, skip, flags, success));
+            attr_t retval{};
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context_,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto context = context_;
+            ++context.no_case_depth_;
+
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            parser_.call(
+                use_cbs, first, last, context, skip, flags, success, retval);
+        }
+
+        Parser parser_;
+    };
+
     template<typename Parser, typename SkipParser>
     struct skip_parser
     {
@@ -4748,6 +4958,11 @@ namespace boost { namespace parser {
         `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;
 
+    /** The `no_case` directive, whose `operator[]` returns an
+        `parser_interface<no_case_parser<P>>` from a given parser of type
+        `parser_interface<P>`. */
+    inline constexpr directive<no_case_parser> no_case;
+
     /** Represents a `repeat_parser` as a directive
         (e.g. `repeat[other_parser]`). */
     template<typename MinType, typename MaxType>
@@ -5132,8 +5347,14 @@ namespace boost { namespace parser {
             typename Enable =
                 std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
-        constexpr auto operator()(R const & r) const noexcept
+        constexpr auto operator()(R && r) const noexcept
         {
+            BOOST_PARSER_ASSERT(
+                ((!std::is_rvalue_reference_v<R &&> ||
+                  !detail::is_range<detail::remove_cv_ref_t<R>>) &&
+                     "It looks like you tried to pass an rvalue range to "
+                     "char_().  Don't do that, or you'll end up with dangling "
+                     "references."));
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
@@ -5245,12 +5466,19 @@ namespace boost { namespace parser {
                 return;
             }
 
-            if constexpr (sizeof(*first) == 4) {
+            if constexpr (std::is_same_v<
+                              detail::remove_cv_ref_t<decltype(*first)>,
+                              char32_t>) {
                 auto const cps = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(
                                      expected_first_, expected_last_) |
                                  detail::text::as_utf32;
-                auto const mismatch =
-                    detail::mismatch(first, last, cps.begin(), cps.end());
+
+                auto const mismatch = detail::no_case_aware_string_mismatch(
+                    first,
+                    last,
+                    cps.begin(),
+                    cps.end(),
+                    context.no_case_depth_);
                 if (mismatch.second != cps.end()) {
                     success = false;
                     return;
@@ -5261,8 +5489,12 @@ namespace boost { namespace parser {
 
                 first = mismatch.first;
             } else {
-                auto const mismatch = detail::mismatch(
-                    first, last, expected_first_, expected_last_);
+                auto const mismatch = detail::no_case_aware_string_mismatch(
+                    first,
+                    last,
+                    expected_first_,
+                    expected_last_,
+                    context.no_case_depth_);
                 if (mismatch.second != expected_last_) {
                     success = false;
                     return;
@@ -5520,28 +5752,25 @@ namespace boost { namespace parser {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
+            auto compare =
+                [no_case = context.no_case_depth_](char32_t a, char32_t b) {
+                    if (no_case && 0x41 <= b && b < 0x5b)
+                        b += 0x20;
+                    return a == b;
+                };
+
             // The lambda quiets a signed/unsigned mismatch warning when
             // comparing the chars here to code points.
             char const t[] = "true";
-            if (detail::mismatch(
-                    t,
-                    t + 4,
-                    first,
-                    last,
-                    [](char32_t a, char32_t b) { return a == b; })
-                    .first == t + 4) {
+            if (detail::mismatch(t, t + 4, first, last, compare).first ==
+                t + 4) {
                 std::advance(first, 4);
                 detail::assign(retval, true);
                 return;
             }
             char const f[] = "false";
-            if (detail::mismatch(
-                    f,
-                    f + 5,
-                    first,
-                    last,
-                    [](char32_t a, char32_t b) { return a == b; })
-                    .first == f + 5) {
+            if (detail::mismatch(f, f + 5, first, last, compare).first ==
+                f + 5) {
                 std::advance(first, 5);
                 detail::assign(retval, false);
                 return;

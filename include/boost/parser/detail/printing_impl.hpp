@@ -283,6 +283,17 @@ namespace boost { namespace parser { namespace detail {
             context, "lexeme", parser.parser_, os, components);
     }
 
+    template<typename Context, typename Parser>
+    void print_parser(
+        Context const & context,
+        no_case_parser<Parser> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "no_case", parser.parser_, os, components);
+    }
+
     template<typename Context, typename Parser, typename SkipParser>
     void print_parser(
         Context const & context,
@@ -427,7 +438,7 @@ namespace boost { namespace parser { namespace detail {
         call(Context const & context, std::ostream & os, Expected expected)
         {
             std::array<char32_t, 1> cps = {{(char32_t)expected}};
-            auto const r = text::as_utf8(cps);
+            auto const r = cps | text::as_utf8;
             os << "'";
             for (auto c : r) {
                 detail::print_char(os, c);
@@ -477,7 +488,7 @@ namespace boost { namespace parser { namespace detail {
             char_range<Iter, Sentinel> expected)
         {
             os << "\"";
-            auto const r = text::as_utf8(expected.chars_);
+            auto const r = expected.chars_ | text::as_utf8;
             for (auto c : r) {
                 detail::print_char(os, c);
             }

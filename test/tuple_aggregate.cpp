@@ -308,6 +308,312 @@ TEST(struct_tuple, seq_parser_struct_rule)
     }
 }
 
+TEST(struct_tuple, repeated_seq_parser_struct_rule)
+{
+    ////////////////////////////////////////////////////////////////////////////
+    // Parse-generated attribute.
+
+    {
+        std::optional<std::vector<s0>> result =
+            parse("s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws);
+        EXPECT_TRUE(result);
+        std::vector<s0> & structs_ = *result;
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s1>> const result =
+            parse("s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws);
+        EXPECT_TRUE(result);
+        std::vector<s1> const & structs_ = *result;
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s1>> const result =
+            parse("s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws);
+        EXPECT_TRUE(result);
+        std::vector<s1> const & structs_ = *result;
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s2>> const result =
+            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws);
+        EXPECT_TRUE(result);
+        std::vector<s2> const & structs_ = *result;
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s2>> const result =
+            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws);
+        EXPECT_TRUE(result);
+        std::vector<s2> const & structs_ = *result;
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+
+    // Use the rule as part of a larger parse.
+    {
+        std::optional<tuple<int, std::vector<s0>>> const result =
+            parse("99 s0 42 text 1 2 3 s0 41 texty 1 3 2", int_ >> *s0_rule, ws);
+        auto i_ = get(*result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(*result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s1>>> const result =
+            parse("99 s1 42 text 1 2 3 s1 41 texty 1 3 2", int_ >> *s1_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(*result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s1>>> const result =
+            parse("99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", int_ >> *s1_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(*result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s2>>> const result =
+            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(*result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s2>>> const result =
+            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(*result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Pass attribute to parse.
+
+    {
+        std::vector<s0> structs_;
+
+        EXPECT_TRUE(parse(
+            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2> structs_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2> structs_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+
+    // Use the rule as part of a larger parse.
+    {
+        tuple<int, std::vector<s0>> result;
+
+        EXPECT_TRUE(parse(
+            "99 s0 42 text 1 2 3 s0 41 texty 1 3 2",
+            int_ >> *s0_rule,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1>> result;
+
+        EXPECT_TRUE(parse(
+            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            int_ >> *s1_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1>> result;
+
+        EXPECT_TRUE(parse(
+            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            int_ >> *s1_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s2>> result;
+
+        EXPECT_TRUE(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s2>> result;
+
+        EXPECT_TRUE(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        EXPECT_EQ(i_, 99);
+        auto structs_ = get(result, llong<1>{});
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+}
+
 struct callbacks_t
 {
     void operator()(s0_rule_tag, s0 s) const { s0s.push_back(std::move(s)); }
@@ -525,6 +831,153 @@ TEST(struct_tuple, parse_into_struct)
     }
 }
 
+TEST(struct_tuple, repeated_parse_into_struct)
+{
+    // tuples
+    {
+        std::vector<s0_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_parser_a, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(tuples_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(tuples_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_parser_b, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(tuples_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(tuples_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_a, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_b, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+
+    // structs
+    {
+        std::vector<s0> structs_;
+
+        EXPECT_TRUE(parse(
+            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s0_like> structs_;
+
+        EXPECT_TRUE(parse(
+            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_parser_a, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_parser_b, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2> structs_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_a, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2> structs_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_b, ws, structs_));
+        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+}
+
 TEST(struct_tuple, parse_into_tuple)
 {
     {
@@ -568,5 +1021,73 @@ TEST(struct_tuple, parse_into_tuple)
         EXPECT_EQ(get(tuple_, llong<0>{}), 42);
         EXPECT_EQ(get(tuple_, llong<1>{}), "text");
         EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+    }
+}
+
+TEST(struct_tuple, repeated_parse_into_tuple)
+{
+    {
+        std::vector<s0_tuple> tuples_;
+
+        EXPECT_TRUE(
+            parse("s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(tuples_[0], llong<1>{})), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 0u);
+        EXPECT_EQ(std::get<0>(get(tuples_[1], llong<1>{})), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(tuples_[0], llong<1>{})), 13.0);
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 1u);
+        EXPECT_EQ(std::get<1>(get(tuples_[1], llong<1>{})), 12.0);
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2_tuple> tuples_;
+
+        EXPECT_TRUE(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws, tuples_));
+        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
+        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
+        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
+        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
+        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
+        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
     }
 }

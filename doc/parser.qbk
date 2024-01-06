@@ -98,6 +98,7 @@
 [def _globals_             [funcref boost::parser::_globals `_globals()`]]
 [def _locals_              [funcref boost::parser::_locals `_locals()`]]
 [def _params_              [funcref boost::parser::_params `_params()`]]
+[def _no_case_func_        [funcref boost::parser::_no_case `_no_case()`]]
 [def _error_handler_       [funcref boost::parser::_error_handler `_error_handler()`]]
 [def _report_error_        [funcref boost::parser::_report_error `_report_error()`]]
 [def _report_warning_      [funcref boost::parser::_report_warning `_report_warning()`]]
@@ -155,12 +156,14 @@
 [def _omit_                [globalref boost::parser::omit `omit[]`]]
 [def _raw_                 [globalref boost::parser::raw `raw[]`]]
 [def _lexeme_              [globalref boost::parser::lexeme `lexeme[]`]]
+[def _no_case_             [globalref boost::parser::no_case `no_case[]`]]
 [def _string_view_         [globalref boost::parser::string_view `string_view[]`]]
 [def _skip_                [globalref boost::parser::skip `skip[]`]]
 
 [def _omit_np_             [globalref boost::parser::omit `omit`]]
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
 [def _lexeme_np_           [globalref boost::parser::lexeme `lexeme`]]
+[def _no_case_np_          [globalref boost::parser::no_case `no_case`]]
 [def _string_view_np_      [globalref boost::parser::string_view `string_view`]]
 [def _skip_np_             [globalref boost::parser::skip `skip`]]
 
@@ -214,7 +217,7 @@ _Parser_ requires C++17 or later.  It is known to work with these compilers:
 
 * GCC 9 and later
 * Clang 10 and later (equivalent to XCode 10.3 and later)
-* Visual Studio 2017 and later
+* Visual Studio 2019 and later
 
 [heading C++20 Support]
 
