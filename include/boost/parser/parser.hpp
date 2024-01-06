@@ -937,6 +937,15 @@ namespace boost { namespace parser {
         template<typename F, typename... Args>
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
+        template<typename T>
+        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        template<typename T>
+        using has_end = decltype(std::end(std::declval<T &>()));
+
+        template<typename T>
+        constexpr bool is_range =
+            is_detected_v<has_begin, T> && is_detected_v<has_end, T>;
+
 #if BOOST_PARSER_USE_CONCEPTS
 
         template<typename T>
@@ -965,11 +974,6 @@ namespace boost { namespace parser {
         using iter_reference_t = decltype(*std::declval<T &>());
         template<typename T>
         using range_value_t = iter_value_t<iterator_t<T>>;
-
-        template<typename T>
-        using has_begin = decltype(*std::begin(std::declval<T &>()));
-        template<typename T>
-        using has_end = decltype(std::end(std::declval<T &>()));
 
         template<typename T>
         using has_insert = decltype(std::declval<T>().insert(
@@ -5415,8 +5419,14 @@ namespace boost { namespace parser {
             typename Enable =
                 std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
-        constexpr auto operator()(R const & r) const noexcept
+        constexpr auto operator()(R && r) const noexcept
         {
+            BOOST_PARSER_ASSERT(
+                ((!std::is_rvalue_reference_v<R &&> ||
+                  !detail::is_range<detail::remove_cv_ref_t<R>>) &&
+                     "It looks like you tried to pass an rvalue range to "
+                     "char_().  Don't do that, or you'll end up with dangling "
+                     "references."));
             BOOST_PARSER_ASSERT(
                 (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
