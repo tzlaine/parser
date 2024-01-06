@@ -5528,8 +5528,9 @@ namespace boost { namespace parser {
                 return;
             }
 
-            // TODO: Remove use of sizeof() here and elsewhere.
-            if constexpr (sizeof(*first) == 4) {
+            if constexpr (std::is_same_v<
+                              detail::remove_cv_ref_t<decltype(*first)>,
+                              char32_t>) {
                 auto const cps = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(
                                      expected_first_, expected_last_) |
                                  detail::text::as_utf32;
