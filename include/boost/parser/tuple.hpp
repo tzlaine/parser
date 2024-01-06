@@ -213,10 +213,11 @@ namespace boost { namespace parser {
         // Fortunately, we don't care -- we never assign from tuples of size
         // 1.
         template<typename T>
-        constexpr int
-            struct_arity_v = detail::struct_arity_impl<T>(
-                                 std::make_integer_sequence<int, 50>()) -
-                             1;
+        constexpr int struct_arity_v =
+            detail::struct_arity_impl<T>(std::make_integer_sequence<
+                                         int,
+                                         BOOST_PARSER_MAX_AGGREGATE_SIZE>()) -
+            1;
 
         template<typename T>
         constexpr int tuple_size_ = -1;

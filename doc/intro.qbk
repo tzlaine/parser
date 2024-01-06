@@ -91,6 +91,15 @@ alternatives are used.  This applies to the use of `BOOST_ASSERT` versus
 `assert`, and printing typenames with Boost.TypeIndex versus with
 `std::typeinfo`.
 
+_Parser_ automatically treats aggregate `struct`s as if they were tuples in
+many cases.  There is some metaprogramming logic that makes this work, and
+this logic has a hard limit on the size of a `struct` that it can operate on.
+There is a configuration macro _AGGR_SIZE_ that you can adjust if the default
+value is too small.  Note that turning this value up significantly can
+significantly increase compile times.  Also, MSVC seems to have a hard time
+with large values; I successfully set this value to `50` on MSVC, but `100`
+broke the MSVC build entirely.
+
 [endsect]
 
 [section This Library's Relationship to Boost.Spirit]
