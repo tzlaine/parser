@@ -178,6 +178,18 @@
 <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code><span class="special">&lt;</span><span class="keyword">int</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">tup</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">input</span><span class="special">,</span> <span class="identifier">employee_p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">,</span> <span class="identifier">tup</span><span class="special">);</span> <span class="comment">// Ok!</span>
 </pre>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          This automatic use of <code class="computeroutput"><span class="keyword">struct</span></code>s
+          as if they were tuples depends on a bit of metaprogramming. Due to compiler
+          limits, the metaprogram that detects the number of data members of a <code class="computeroutput"><span class="keyword">struct</span></code> is limited to a maximum number of
+          members. Fortunately, that limit is pretty high — 50 members.
+        </p></td></tr>
+</table></div>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

@@ -27,7 +27,7 @@
         cases, you may want to generate attributes sometimes, and not others. <code class="computeroutput">callback_rules</code>
         exist for these kinds of uses. A <code class="computeroutput"><a class="link" href="../../boost/parser/callback_rule.html" title="Struct template callback_rule">callback_rule</a></code> is just like
         a rule, except that it allows the rule's attribute to be returned to the
-        caller via a callback, as long as the parse is started with a call to <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21125.html" title="Function template callback_parse">callback_parse()</a></code> instead of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20865.html" title="Function template parse">parse()</a></code>. Within a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20865.html" title="Function template parse">parse()</a></code>, a <code class="computeroutput"><a class="link" href="../../boost/parser/callback_rule.html" title="Struct template callback_rule">callback_rule</a></code> is identical
+        caller via a callback, as long as the parse is started with a call to <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21418.html" title="Function template callback_parse">callback_parse()</a></code> instead of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code>. Within a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code>, a <code class="computeroutput"><a class="link" href="../../boost/parser/callback_rule.html" title="Struct template callback_rule">callback_rule</a></code> is identical
         to a regular <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>.
       </p>
 <p>
@@ -73,11 +73,11 @@
         </p></td></tr>
 </table></div>
 <p>
-        You opt into callback parsing by parsing with a call to <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21125.html" title="Function template callback_parse">callback_parse()</a></code>
-        instead of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20865.html" title="Function template parse">parse()</a></code>. If you use <code class="computeroutput">callback_rules</code> with <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20865.html" title="Function template parse">parse()</a></code>, they're just regular <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>.
+        You opt into callback parsing by parsing with a call to <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21418.html" title="Function template callback_parse">callback_parse()</a></code>
+        instead of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code>. If you use <code class="computeroutput">callback_rules</code> with <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code>, they're just regular <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>.
         This allows you to choose whether to do "normal" attribute-generating/attribute-assigning
-        parsing with <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm20865.html" title="Function template parse">parse()</a></code>, or callback parsing with
-        <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21125.html" title="Function template callback_parse">callback_parse()</a></code>, without rewriting much
+        parsing with <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code>, or callback parsing with
+        <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm21418.html" title="Function template callback_parse">callback_parse()</a></code>, without rewriting much
         parsing code, if any.
       </p>
 <p>
