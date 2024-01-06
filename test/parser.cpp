@@ -1843,3 +1843,37 @@ TEST(parser, github_issue_36)
     // Intentionally ill-formed.
     // bp::parse("i1 i2", ids, bp::ascii::space, str);   // (3)
 }
+
+namespace issue_50 {
+    struct X
+    {
+        char a;
+        int b;
+    };
+
+    struct Y
+    {
+        std::vector<X> x;
+        int c;
+    };
+}
+
+TEST(parser, github_issue_50)
+{
+    using namespace issue_50;
+
+    namespace bp = boost::parser;
+
+    {
+        auto parse_x = bp::char_ >> bp::int_;
+        auto parse_y = +parse_x >> bp::int_;
+
+        Y y;
+        auto b = bp::parse("d 3 4", parse_y, bp::ws, y);
+        EXPECT_TRUE(b);
+
+        EXPECT_EQ(y.x[0].a, 'd');
+        EXPECT_EQ(y.x[0].b, 3);
+        EXPECT_EQ(y.c, 4);
+    }
+}

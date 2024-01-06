@@ -1735,9 +1735,17 @@ namespace boost { namespace parser {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
             if constexpr (
+                !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_t> &&
+                !std::is_convertible_v<just_u &&, just_t> &&
+                is_struct_assignable_v<just_t, just_u>) {
+                auto int_seq =
+                    std::make_integer_sequence<int, tuple_size_<just_u>>();
+                t = detail::tuple_to_aggregate<just_t>(std::move(u), int_seq);
+            } else if constexpr (
                 is_tuple<just_t>::value && !is_tuple<just_u>::value &&
                 std::is_aggregate_v<just_u> &&
-                !std::is_convertible_v<just_t, just_u &&> &&
+                !std::is_convertible_v<just_u &&, just_t> &&
                 is_tuple_assignable_v<just_t, just_u>) {
                 auto tie = detail::tie_aggregate(u);
                 detail::aggregate_to_tuple(
@@ -2360,6 +2368,61 @@ namespace boost { namespace parser {
                 retval = false;
             return retval;
         }
+
+        // The notion of comaptibility is that, given a parser with the
+        // Attribute Tuple, we can parse into Struct instead.
+        template<typename Struct, typename Tuple>
+        constexpr auto is_struct_compatible();
+
+        struct element_compatibility
+        {
+            template<typename T, typename U>
+            constexpr auto operator()(T result, U x) const
+            {
+                using struct_elem =
+                    remove_cv_ref_t<decltype(parser::get(x, llong<0>{}))>;
+                using tuple_elem =
+                    remove_cv_ref_t<decltype(parser::get(x, llong<1>{}))>;
+                if constexpr (!T::value) {
+                    return std::false_type{};
+                } else if constexpr (std::is_convertible_v<
+                                         tuple_elem &&,
+                                         struct_elem>) {
+                    return std::true_type{};
+                } else if constexpr (
+                    container<struct_elem> && container<tuple_elem>) {
+                        return detail::is_struct_compatible<
+                            range_value_t<struct_elem>,
+                            range_value_t<tuple_elem>>();
+                } else {
+                        return std::bool_constant<detail::is_struct_compatible<
+                            struct_elem,
+                            tuple_elem>()>{};
+                }
+            }
+        };
+
+        template<typename T, typename U>
+        constexpr auto is_struct_compatible()
+        {
+            if constexpr (
+                !std::is_aggregate_v<T> ||
+                struct_arity_v<T> != tuple_size_<U>) {
+                return std::false_type{};
+            } else {
+                using result_t = decltype(detail::hl::fold_left(
+                    detail::hl::zip(
+                        detail::tie_aggregate(std::declval<T &>()),
+                        std::declval<U &>()),
+                    std::true_type{},
+                    element_compatibility{}));
+                return result_t{};
+            }
+        }
+
+        template<typename Struct, typename Tuple>
+        constexpr bool is_struct_compatible_v =
+            detail::is_struct_compatible<Struct, Tuple>();
     }
 
 
@@ -3277,9 +3340,7 @@ namespace boost { namespace parser {
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
                 detail::is_tuple<Attribute>{} ||
-                (std::is_aggregate_v<Attribute> &&
-                 detail::
-                     is_struct_assignable_v<Attribute, temp_result_attr_t>)) {
+                detail::is_struct_compatible_v<Attribute, temp_result_attr_t>) {
                 call_impl(
                     use_cbs,
                     first,
