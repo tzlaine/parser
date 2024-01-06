@@ -12,8 +12,21 @@
 #include <gtest/gtest.h>
 
 
-using namespace boost::parser;
 
+TEST(no_case, doc_example)
+{
+    namespace bp = boost::parser;
+    auto const street_parser = bp::string(u8"Tobias Straße");
+    assert(!bp::parse("Tobias Strasse" | bp::as_utf32, street_parser));             // No match.
+    assert(bp::parse("Tobias Strasse" | bp::as_utf32, bp::no_case[street_parser])); // Match!
+
+    auto const alpha_parser = bp::no_case[bp::char_('a', 'z')];
+    assert(bp::parse("a" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+    assert(bp::parse("B" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+}
+
+
+using namespace boost::parser;
 
 TEST(no_case, basic)
 {
@@ -89,6 +102,12 @@ TEST(no_case, char_range)
         auto const result = parse("a", no_case[upper_alpha_p]);
         EXPECT_TRUE(result);
         EXPECT_EQ(*result, 'a');
+    }
+
+    constexpr auto weird_ss_p = char_(U'ß', U'ß');
+    {
+        EXPECT_FALSE(parse(U"s", weird_ss_p));
+        EXPECT_FALSE(!parse(U"ß", weird_ss_p));
     }
 }
 

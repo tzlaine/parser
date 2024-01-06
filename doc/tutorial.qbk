@@ -459,6 +459,11 @@ stack that leads to your mistake is a far better user experience than sifting
 through compiler diagnostics.  See the _rationale_ section for a more detailed
 explanation.]
 
+[heading __no_case_func_]
+
+__no_case_func_ returns `true` if the current parse context is inside one or
+more (possibly nested) _no_case_ directives.
+
 [endsect]
 
 [section Rule Parsers]
@@ -1251,6 +1256,44 @@ Similar to the re-use scenario for _omit_ above, _string_view_ could be used
 to find the *locations* of all non-overlapping matches of `p` in a string.
 Whether _raw_ or _string_view_ is more natural to use to report the locations
 depends on your use case, but they are essentially the same.
+
+[heading _no_case_]
+
+`_no_case_np_[p]` enables case-insensitive parsing within the parse of `p`.
+This applies to the text parsed by `_ch_()`, _str_, and _b_ parsers.  The
+number parsers are already case-insensitive.  The case-insensitivity is
+achieved by doing Unicode case folding on the text being parsed and the values
+in the parser being matched (see note below if you want to know more about
+Unicode case folding).  In the non-Unicode code path, a full Unicode case
+folding is not done; instead, only the transformations of values less than
+`0x100` are done.  Examples:
+
+    namespace bp = boost::parser;
+    auto const street_parser = bp::string(u8"Tobias Straße");
+    assert(!bp::parse("Tobias Strasse" | bp::as_utf32, street_parser));             // No match.
+    assert(bp::parse("Tobias Strasse" | bp::as_utf32, bp::no_case[street_parser])); // Match!
+
+    auto const alpha_parser = bp::no_case[bp::char_('a', 'z')];
+    assert(bp::parse("a" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+    assert(bp::parse("B" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+
+Everything pretty much does what you'd naively expect inside _no_case_, except
+that the two-character range version of `char_` has a limitation.  It only
+compares a code point from the input to its two arguments (e.g. `'a'` and
+`'z'` in the example above).  It does not do anything special for multi-code
+point case folding expansions.  For instance, `char_(U'ß', U'ß')` matches the
+input `U"s"`, which makes sense, since `U'ß'` expands to `U"ss"`.  However,
+that same parser *does not* match the input `U"ß"`!  In short, stick to pairs
+of code points that have single-code point case folding expansions.  If you
+need to support the multi-expanding code points, use the other overload, like:
+`char_(U"abcd/*...*/ß")`.
+
+[note Unicode case folding is an operation that makes text uniformly one case,
+and if you do it to two bits of text `A` and `B`, then you can compare them
+bitwise to see if they are the same, except of case.  Case folding may
+sometimes expand a code point into multiple code points (e.g. case folding
+`"ẞ"` yields `"ss"`.  When such a multi-code point expansion occurs, the
+expanded code points are in the NFKC normalization form.]
 
 [heading _lexeme_]
 
