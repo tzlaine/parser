@@ -40,6 +40,8 @@ int main()
     std::string input;
     std::getline(std::cin, input);
 
+    static_assert(std::is_aggregate_v<std::decay_t<employee &>>);
+
     auto const result = bp::parse(input, employee_p, bp::ws);
 
     if (result) {

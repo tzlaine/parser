@@ -868,14 +868,6 @@ namespace boost { namespace parser {
         constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
-        struct is_tuple : std::false_type
-        {};
-
-        template<typename... T>
-        struct is_tuple<tuple<T...>> : std::true_type
-        {};
-
-        template<typename T>
         struct is_unconditional_eps : std::false_type
         {};
         template<>
