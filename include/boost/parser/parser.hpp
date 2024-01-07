@@ -2443,6 +2443,25 @@ namespace boost { namespace parser {
         template<typename Struct, typename Tuple>
         constexpr bool is_struct_compatible_v =
             detail::is_struct_compatible<Struct, Tuple>();
+
+        template<typename ParserAttr, typename GivenContainerAttr>
+        constexpr auto parser_attr_or_container_value_type()
+        {
+            if constexpr (is_nope_v<ParserAttr>) {
+                return nope{};
+            } else {
+                using value_type = range_value_t<GivenContainerAttr>;
+                return std::conditional_t<
+                    std::is_convertible_v<ParserAttr, value_type>,
+                    ParserAttr,
+                    value_type>{};
+            }
+        }
+        template<typename ParserAttr, typename GivenContainerAttr>
+        using parser_attr_or_container_value_type_v =
+            decltype(parser_attr_or_container_value_type<
+                     ParserAttr,
+                     GivenContainerAttr>());
     }
 
 
@@ -2643,8 +2662,6 @@ namespace boost { namespace parser {
                                                : flags,
                 retval);
 
-            using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
             if constexpr (detail::is_optional<Attribute>{}) {
                 detail::apply_parser(
                     *this,
@@ -2657,6 +2674,11 @@ namespace boost { namespace parser {
                     success,
                     retval);
             } else { // Otherwise, Attribute must be a container or a nope.
+                using attr_t = detail::parser_attr_or_container_value_type_v<
+                    decltype(parser_.call(
+                        use_cbs, first, last, context, skip, flags, success)),
+                    Attribute>;
+
                 int64_t count = 0;
 
                 for (int64_t end = detail::resolve(context, min_); count != end;
