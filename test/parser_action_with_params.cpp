@@ -24,11 +24,7 @@ auto const second_param_to_val = [](auto & context) {
 constexpr rule<struct action_param_tag, int> action_param = "abc or def";
 constexpr auto action_param_def =
     string("abc")[first_param_to_val] | string("def")[second_param_to_val];
-#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(action_param);
-#else
-BOOST_PARSER_DEFINE_RULE(action_param);
-#endif
 
 TEST(parser, val_attr)
 {
