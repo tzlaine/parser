@@ -114,6 +114,11 @@ namespace boost { namespace parser {
     using integral_constant = hana::integral_constant<T, I>;
 #endif
 
+    /** An accessor that returns a reference to the `I`-th data member of an
+        aggregate struct or `boost::parser::tuple`. */
+    template<typename T, typename U, U I>
+    constexpr decltype(auto) get(T && x, integral_constant<U, I> i);
+
     /** A template alias that is `boost::hana::llong<I>` unless
         `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined, in which case it is
         `std::integral_constant<long long, I>`. */
@@ -132,41 +137,43 @@ namespace boost { namespace parser {
         }
     }
 
-    /** A tuple accessor that returns a reference to the `I`-th element. */
-    template<typename T, T I, typename... Args>
-    constexpr decltype(auto)
-    get(tuple<Args...> const & t, integral_constant<T, I>)
-    {
-#if BOOST_PARSER_USE_STD_TUPLE
-        return std::get<I>(t);
-#else
-        return hana::at_c<I>(t);
-#endif
-    }
-
-    /** A tuple accessor that returns a reference to the `I`-th element. */
-    template<typename T, T I, typename... Args>
-    constexpr decltype(auto) get(tuple<Args...> & t, integral_constant<T, I>)
-    {
-#if BOOST_PARSER_USE_STD_TUPLE
-        return std::get<I>(t);
-#else
-        return hana::at_c<I>(t);
-#endif
-    }
-
-    /** A tuple accessor that returns a reference to the `I`-th element. */
-    template<typename T, T I, typename... Args>
-    constexpr decltype(auto) get(tuple<Args...> && t, integral_constant<T, I>)
-    {
-#if BOOST_PARSER_USE_STD_TUPLE
-        return std::move(std::get<I>(t));
-#else
-        return std::move(hana::at_c<I>(t));
-#endif
-    }
-
     namespace detail {
+        /** A tuple accessor that returns a reference to the `I`-th element. */
+        template<typename T, T I, typename... Args>
+        constexpr decltype(auto)
+        tuple_get(tuple<Args...> const & t, integral_constant<T, I>)
+        {
+#if BOOST_PARSER_USE_STD_TUPLE
+            return std::get<I>(t);
+#else
+            return hana::at_c<I>(t);
+#endif
+        }
+
+        /** A tuple accessor that returns a reference to the `I`-th element. */
+        template<typename T, T I, typename... Args>
+        constexpr decltype(auto)
+        tuple_get(tuple<Args...> & t, integral_constant<T, I>)
+        {
+#if BOOST_PARSER_USE_STD_TUPLE
+            return std::get<I>(t);
+#else
+            return hana::at_c<I>(t);
+#endif
+        }
+
+        /** A tuple accessor that returns a reference to the `I`-th element. */
+        template<typename T, T I, typename... Args>
+        constexpr decltype(auto)
+        tuple_get(tuple<Args...> && t, integral_constant<T, I>)
+        {
+#if BOOST_PARSER_USE_STD_TUPLE
+            return std::move(std::get<I>(t));
+#else
+            return std::move(hana::at_c<I>(t));
+#endif
+        }
+
         template<int N>
         struct ce_int
         {
@@ -213,10 +220,11 @@ namespace boost { namespace parser {
         // Fortunately, we don't care -- we never assign from tuples of size
         // 1.
         template<typename T>
-        constexpr int
-            struct_arity_v = detail::struct_arity_impl<T>(
-                                 std::make_integer_sequence<int, 50>()) -
-                             1;
+        constexpr int struct_arity_v =
+            detail::struct_arity_impl<T>(std::make_integer_sequence<
+                                         int,
+                                         BOOST_PARSER_MAX_AGGREGATE_SIZE>()) -
+            1;
 
         template<typename T>
         constexpr int tuple_size_ = -1;
@@ -306,25 +314,30 @@ namespace boost { namespace parser {
         template<typename Tuple, typename Struct>
         constexpr bool
             is_tuple_assignable_v = is_tuple_assignable_impl<Tuple, Struct>();
+
+        template<typename T>
+        struct is_tuple : std::false_type
+        {};
+        template<typename... T>
+        struct is_tuple<tuple<T...>> : std::true_type
+        {};
     }
 
-
-    /** An aggregate struct accessor that returns a reference to the `I`-th
-        data member. */
-#if BOOST_PARSER_USE_CONCEPTS
     template<typename T, typename U, U I>
-    requires std::is_aggregate_v<T>
-#else
-    template<
-        typename T,
-        typename U,
-        U I,
-        typename Enable = std::enable_if_t<std::is_aggregate_v<T>>>
-#endif
-    constexpr decltype(auto) get(T & x, integral_constant<U, I> i)
+    constexpr decltype(auto) get(T && x, integral_constant<U, I> i)
     {
-        auto tup = detail::tie_aggregate(x);
-        return parser::get(tup, i);
+        using just_t = std::decay_t<T>;
+        if constexpr (detail::is_tuple<just_t>::value) {
+            return detail::tuple_get((T &&) x, i);
+        } else if constexpr (std::is_aggregate_v<just_t>) {
+            auto tup = detail::tie_aggregate(x);
+            return detail::tuple_get(tup, i);
+        } else {
+            static_assert(
+                sizeof(T) != sizeof(T),
+                "boost::parser::get() is only defined for boost::parser::tuple "
+                "and aggregate structs.");
+        }
     }
 
 }}

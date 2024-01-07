@@ -868,14 +868,6 @@ namespace boost { namespace parser {
         constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
-        struct is_tuple : std::false_type
-        {};
-
-        template<typename... T>
-        struct is_tuple<tuple<T...>> : std::true_type
-        {};
-
-        template<typename T>
         struct is_unconditional_eps : std::false_type
         {};
         template<>
@@ -946,6 +938,10 @@ namespace boost { namespace parser {
         constexpr bool is_range =
             is_detected_v<has_begin, T> && is_detected_v<has_end, T>;
 
+        template<typename T>
+        using has_push_back =
+            decltype(std::declval<T &>().push_back(*std::declval<T>().begin()));
+
 #if BOOST_PARSER_USE_CONCEPTS
 
         template<typename T>
@@ -976,17 +972,16 @@ namespace boost { namespace parser {
         using range_value_t = iter_value_t<iterator_t<T>>;
 
         template<typename T>
-        using has_insert = decltype(std::declval<T>().insert(
+        using has_insert = decltype(std::declval<T &>().insert(
             std::declval<T>().begin(), *std::declval<T>().begin()));
         template<typename T>
-        using has_range_insert = decltype(std::declval<T>().insert(
+        using has_range_insert = decltype(std::declval<T &>().insert(
             std::declval<T>().begin(),
             std::declval<T>().begin(),
             std::declval<T>().end()));
 
         template<typename T>
-        constexpr bool is_container_v =
-            is_detected_v<has_insert, T> && is_detected_v<has_range_insert, T>;
+        constexpr bool is_container_v = is_detected_v<has_insert, T>;
 
         template<typename T, typename U>
         constexpr bool container_and_value_type = is_container_v<T> &&
@@ -1184,6 +1179,25 @@ namespace boost { namespace parser {
         };
 
         template<typename Container, typename T>
+        void insert(Container & c, T && x)
+        {
+            if constexpr (is_detected_v<has_push_back, Container>) {
+                c.push_back((T &&) x);
+            } else {
+                c.insert((T &&) x);
+            }
+        }
+
+        template<typename Container, typename I>
+        void insert(Container & c, I first, I last)
+        {
+            std::for_each(first, last, [&](auto && x) {
+                using type = decltype(x);
+                insert(c, (type &&) x);
+            });
+        }
+
+        template<typename Container, typename T>
         constexpr bool needs_transcoding_to_utf8 =
             (std::is_same_v<range_value_t<remove_cv_ref_t<Container>>, char>
 #if defined(__cpp_char8_t)
@@ -1205,7 +1219,7 @@ namespace boost { namespace parser {
                 auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
-                c.insert(c.end(), std::move(x));
+                detail::insert(c, std::move(x));
             }
         }
 
@@ -1231,7 +1245,7 @@ namespace boost { namespace parser {
                                text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
-                c.insert(c.end(), first, last);
+                detail::insert(c, first, last);
             }
         }
 
@@ -1583,8 +1597,6 @@ namespace boost { namespace parser {
             CharType c,
             char_pair<LoType, HiType> const & expected)
         {
-            // TODO: Document that this logic fails inside no_case[] when c or
-            // any value in expected has a multi-cp case fold expansion.
             auto const less = detail::no_case_aware_compare<false>(context);
             {
                 auto lo = detail::resolve(context, expected.lo_);
@@ -1665,8 +1677,8 @@ namespace boost { namespace parser {
                     is_struct_assignable_v<just_t, just_u>) {
                     auto int_seq =
                         std::make_integer_sequence<int, tuple_size_<just_u>>();
-                    c.insert(
-                        c.end(),
+                    detail::insert(
+                        c,
                         detail::tuple_to_aggregate<just_t>(
                             std::move(x), int_seq));
                 } else if constexpr (
@@ -1680,9 +1692,9 @@ namespace boost { namespace parser {
                         t,
                         tie,
                         std::make_integer_sequence<int, tuple_size_<just_t>>());
-                    c.insert(c.end(), std::move(t));
+                    detail::insert(c, std::move(t));
                 } else {
-                    c.insert(c.end(), std::move(x));
+                    detail::insert(c, std::move(x));
                 }
             }
         }
@@ -1743,9 +1755,17 @@ namespace boost { namespace parser {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
             if constexpr (
+                !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_t> &&
+                !std::is_convertible_v<just_u &&, just_t> &&
+                is_struct_assignable_v<just_t, just_u>) {
+                auto int_seq =
+                    std::make_integer_sequence<int, tuple_size_<just_u>>();
+                t = detail::tuple_to_aggregate<just_t>(std::move(u), int_seq);
+            } else if constexpr (
                 is_tuple<just_t>::value && !is_tuple<just_u>::value &&
                 std::is_aggregate_v<just_u> &&
-                !std::is_convertible_v<just_t, just_u &&> &&
+                !std::is_convertible_v<just_u &&, just_t> &&
                 is_tuple_assignable_v<just_t, just_u>) {
                 auto tie = detail::tie_aggregate(u);
                 detail::aggregate_to_tuple(
@@ -2368,6 +2388,61 @@ namespace boost { namespace parser {
                 retval = false;
             return retval;
         }
+
+        // The notion of comaptibility is that, given a parser with the
+        // Attribute Tuple, we can parse into Struct instead.
+        template<typename Struct, typename Tuple>
+        constexpr auto is_struct_compatible();
+
+        struct element_compatibility
+        {
+            template<typename T, typename U>
+            constexpr auto operator()(T result, U x) const
+            {
+                using struct_elem =
+                    remove_cv_ref_t<decltype(parser::get(x, llong<0>{}))>;
+                using tuple_elem =
+                    remove_cv_ref_t<decltype(parser::get(x, llong<1>{}))>;
+                if constexpr (!T::value) {
+                    return std::false_type{};
+                } else if constexpr (std::is_convertible_v<
+                                         tuple_elem &&,
+                                         struct_elem>) {
+                    return std::true_type{};
+                } else if constexpr (
+                    container<struct_elem> && container<tuple_elem>) {
+                        return detail::is_struct_compatible<
+                            range_value_t<struct_elem>,
+                            range_value_t<tuple_elem>>();
+                } else {
+                        return std::bool_constant<detail::is_struct_compatible<
+                            struct_elem,
+                            tuple_elem>()>{};
+                }
+            }
+        };
+
+        template<typename T, typename U>
+        constexpr auto is_struct_compatible()
+        {
+            if constexpr (
+                !std::is_aggregate_v<T> ||
+                struct_arity_v<T> != tuple_size_<U>) {
+                return std::false_type{};
+            } else {
+                using result_t = decltype(detail::hl::fold_left(
+                    detail::hl::zip(
+                        detail::tie_aggregate(std::declval<T &>()),
+                        std::declval<U &>()),
+                    std::true_type{},
+                    element_compatibility{}));
+                return result_t{};
+            }
+        }
+
+        template<typename Struct, typename Tuple>
+        constexpr bool is_struct_compatible_v =
+            detail::is_struct_compatible<Struct, Tuple>();
     }
 
 
@@ -2441,7 +2516,7 @@ namespace boost { namespace parser {
     }
 
     template<typename Context>
-    decltype(auto) _no_case(Context const & context) // TODO: Document.
+    decltype(auto) _no_case(Context const & context)
     {
         return context.no_case_depth_;
     }
@@ -3285,9 +3360,7 @@ namespace boost { namespace parser {
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
                 detail::is_tuple<Attribute>{} ||
-                (std::is_aggregate_v<Attribute> &&
-                 detail::
-                     is_struct_assignable_v<Attribute, temp_result_attr_t>)) {
+                detail::is_struct_compatible_v<Attribute, temp_result_attr_t>) {
                 call_impl(
                     use_cbs,
                     first,

@@ -78,8 +78,6 @@ namespace boost { namespace parser {
     concept container = std::ranges::common_range<T> && requires(T t) {
         { t.insert(t.begin(), *t.begin()) }
             -> std::same_as<std::ranges::iterator_t<T>>;
-        { t.insert(t.begin(), t.begin(), t.end()) }
-            -> std::same_as<std::ranges::iterator_t<T>>;
     };
     //]
 

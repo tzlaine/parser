@@ -38,6 +38,13 @@
     throughout Boost.Parser. */
 #    define BOOST_PARSER_DISABLE_HANA_TUPLE
 
+/** Boost.Parser automatically treats aggregate structs as if they were
+    tuples.  It uses some metaprogramming to do this.  The technique used has
+    a hard limit on the number of data members a struct can have.  Re-define
+    this macro to change the hard limit.  Note that large values may increase
+    compile times. */
+#    define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
+
 #else
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
@@ -69,6 +76,10 @@
 #    define BOOST_PARSER_USE_STD_TUPLE 1
 #else
 #    define BOOST_PARSER_USE_STD_TUPLE 0
+#endif
+
+#if !defined(BOOST_PARSER_MAX_AGGREGATE_SIZE)
+#define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
 #endif
 
 // VS2019 and VS2017 need conditional constexpr in some places, even in C++17 mode.
