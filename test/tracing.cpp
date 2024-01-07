@@ -39,11 +39,7 @@ auto a = [](auto & ctx) {};
 
 rule<class test_rule> const test_rule = "test_rule";
 auto const test_rule_def = char_;
-#if BOOST_PARSER_HAVE_BOOST_PP
 BOOST_PARSER_DEFINE_RULES(test_rule);
-#else
-BOOST_PARSER_DEFINE_RULE(test_rule);
-#endif
 
 #define PARSE(p)                                                               \
     std::cout << #p << ":\n";                                                  \

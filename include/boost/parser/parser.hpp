@@ -2868,21 +2868,6 @@ namespace boost { namespace parser {
             typename SkipParser>
         struct use_parser_t
         {
-            use_parser_t(
-                Iter & first,
-                Sentinel last,
-                Context const & context,
-                SkipParser const & skip,
-                detail::flags flags,
-                bool & success) :
-                first_(first),
-                last_(last),
-                context_(context),
-                skip_(skip),
-                flags_(flags),
-                success_(success)
-            {}
-
             template<typename Parser>
             auto operator()(Parser const & parser) const
             {
@@ -2946,8 +2931,8 @@ namespace boost { namespace parser {
                 Iter,
                 Sentinel,
                 Context,
-                SkipParser> const
-                use_parser(first, last, context, skip, flags, success);
+                SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
 
             // A result type for each of the parsers in parsers_.
             using all_types =
@@ -3022,12 +3007,16 @@ namespace boost { namespace parser {
                 Iter,
                 Sentinel,
                 Context,
-                SkipParser> const
-                use_parser(first, last, context, skip, flags, success);
+                SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
 
             bool done = false;
-            auto try_parser = [use_parser, &success, flags, &retval, &done](
-                                  auto const & parser) {
+            auto try_parser = [prev_first = first,
+                               use_parser,
+                               &success,
+                               flags,
+                               &retval,
+                               &done](auto const & parser) {
                 if (done)
                     return;
                 if (detail::gen_attrs(flags)) {
@@ -3039,6 +3028,8 @@ namespace boost { namespace parser {
                 }
                 if (success)
                     done = true;
+                else
+                    use_parser.first_ = prev_first;
             };
             detail::hl::for_each(parsers_, try_parser);
 
