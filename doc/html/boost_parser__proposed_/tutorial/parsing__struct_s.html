@@ -155,6 +155,8 @@
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">input</span><span class="special">;</span>
     <span class="identifier">std</span><span class="special">::</span><span class="identifier">getline</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">cin</span><span class="special">,</span> <span class="identifier">input</span><span class="special">);</span>
 
+    <span class="keyword">static_assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">is_aggregate_v</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">decay_t</span><span class="special">&lt;</span><span class="identifier">employee</span> <span class="special">&amp;&gt;&gt;);</span>
+
     <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">input</span><span class="special">,</span> <span class="identifier">employee_p</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
 
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">result</span><span class="special">)</span> <span class="special">{</span>

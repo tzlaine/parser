@@ -39,7 +39,7 @@
         when <code class="computeroutput"><span class="identifier">BOOST_PARSER_DISABLE_HANA_TUPLE</span></code>
         is defined. You can future-proof your code slightly by using <code class="computeroutput"><a class="link" href="../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code>, so that the code is
         well-formed, whether or not <code class="computeroutput"><span class="identifier">BOOST_PARSER_DISABLE_HANA_TUPLE</span></code>
-        is defined. For the same reason, Boost.Parser also provides a generic <code class="computeroutput"><a class="link" href="../boost/parser/get_idm21763.html" title="Function template get">boost::parser::get</a></code>
+        is defined. For the same reason, Boost.Parser also provides a generic <code class="computeroutput"><a class="link" href="../boost/parser/get.html" title="Function template get">boost::parser::get</a></code>
         that works with both kinds of tuple (since <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>
         has no <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>
         and <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span></code> does not work with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">get</span></code>).
@@ -51,6 +51,16 @@
       to the use of <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span></code>
       versus <code class="computeroutput"><span class="identifier">assert</span></code>, and printing
       typenames with Boost.TypeIndex versus with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">typeinfo</span></code>.
+    </p>
+<p>
+      Boost.Parser automatically treats aggregate <code class="computeroutput"><span class="keyword">struct</span></code>s
+      as if they were tuples in many cases. There is some metaprogramming logic that
+      makes this work, and this logic has a hard limit on the size of a <code class="computeroutput"><span class="keyword">struct</span></code> that it can operate on. There is a configuration
+      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm16879.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
+      that you can adjust if the default value is too small. Note that turning this
+      value up significantly can significantly increase compile times. Also, MSVC
+      seems to have a hard time with large values; I successfully set this value
+      to <code class="computeroutput"><span class="number">50</span></code> on MSVC, but <code class="computeroutput"><span class="number">100</span></code> broke the MSVC build entirely.
     </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>

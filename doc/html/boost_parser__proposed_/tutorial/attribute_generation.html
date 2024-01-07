@@ -45,7 +45,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21158.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm21123.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -202,7 +202,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm20861.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm20826.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -758,7 +758,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm20810.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm20775.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -771,7 +771,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm20810.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm20775.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -955,8 +955,6 @@
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="identifier">concept</span> <span class="identifier">container</span> <span class="special">=</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">common_range</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;</span> <span class="special">&amp;&amp;</span> <span class="identifier">requires</span><span class="special">(</span><span class="identifier">T</span> <span class="identifier">t</span><span class="special">)</span> <span class="special">{</span>
     <span class="special">{</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">t</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="special">*</span><span class="identifier">t</span><span class="special">.</span><span class="identifier">begin</span><span class="special">())</span> <span class="special">}</span>
-        <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">same_as</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">iterator_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;;</span>
-    <span class="special">{</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">t</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">t</span><span class="special">.</span><span class="identifier">end</span><span class="special">())</span> <span class="special">}</span>
         <span class="special">-&gt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">same_as</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">iterator_t</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;;</span>
 <span class="special">};</span>
 </pre>
