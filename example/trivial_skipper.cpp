@@ -18,8 +18,7 @@ int main()
     std::string input;
     std::getline(std::cin, input);
 
-    auto const result =
-        bp::parse(input, bp::double_ >> *(',' >> bp::double_), bp::ws);
+    auto const result = bp::parse(input, bp::double_ % ',', bp::ws);
 
     if (result) {
         std::cout << "Great! It looks like you entered:\n";
