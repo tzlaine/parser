@@ -67,7 +67,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
+<pre class="programlisting"><span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">%</span> <span class="char">','</span><span class="special">;</span>
 </pre>
 <p>
       </p>
@@ -129,7 +129,7 @@
 
 
 <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">doubles</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span> <span class="identifier">doubles</span> <span class="special">=</span> <span class="string">"doubles"</span><span class="special">;</span>
-<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">);</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">%</span> <span class="char">','</span><span class="special">;</span>
 <span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 
 <span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
