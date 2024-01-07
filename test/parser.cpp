@@ -1910,3 +1910,62 @@ TEST(parser, github_issue_50)
         EXPECT_EQ(y.c, 4);
     }
 }
+
+namespace issue_52 {
+    struct X
+    {
+        char a;
+        int b;
+    };
+
+    struct Y
+    {
+        std::vector<X> x;
+        int c;
+    };
+
+    struct Z
+    {
+        std::vector<Y> y;
+        int d;
+    };
+
+    struct W
+    {
+        std::vector<Z> z;
+        int e;
+    };
+}
+
+TEST(parser, github_issue_52)
+{
+    using namespace issue_52;
+
+    namespace bp = boost::parser;
+    auto parse_x = bp::char_ >> bp::int_;
+    auto parse_y = +parse_x >> bp::int_;
+    auto parse_z = +parse_y >> bp::char_;
+    auto parse_w = +parse_z >> bp::int_;
+
+    {
+        Z z;
+        auto b = bp::parse("d 2 3 c", parse_z, bp::ws, z);
+        EXPECT_TRUE(b);
+
+        EXPECT_EQ(z.y[0].x[0].a, 'd');
+        EXPECT_EQ(z.y[0].x[0].b, 2);
+        EXPECT_EQ(z.y[0].c, 3);
+        EXPECT_EQ(z.d, 'c');
+    }
+    {
+        W w;
+        auto b = bp::parse("d 2 3 c 4", parse_w, bp::ws, w);
+        EXPECT_TRUE(b);
+
+        EXPECT_EQ(w.z[0].y[0].x[0].a, 'd');
+        EXPECT_EQ(w.z[0].y[0].x[0].b, 2);
+        EXPECT_EQ(w.z[0].y[0].c, 3);
+        EXPECT_EQ(w.z[0].d, 'c');
+        EXPECT_EQ(w.e, 4);
+    }
+}
