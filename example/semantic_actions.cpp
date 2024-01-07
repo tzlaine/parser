@@ -26,8 +26,7 @@ int main()
     };
 //]
     auto const action_parser = bp::double_[action];
-    auto const success =
-        bp::parse(input, action_parser >> *(',' >> action_parser), bp::ws);
+    auto const success = bp::parse(input, action_parser % ',', bp::ws);
 
     if (success) {
         std::cout << "You entered:\n";

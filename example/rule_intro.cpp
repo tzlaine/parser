@@ -19,7 +19,7 @@ namespace bp = boost::parser;
 bp::rule<struct doubles, std::vector<double>> doubles = "doubles";
 //]
 //[ rule_intro_rule_definition_rule_def
-auto const doubles_def = bp::double_ >> *(',' >> bp::double_);
+auto const doubles_def = bp::double_ % ',';
 //]
 //[ rule_intro_rule_definition_macro
 BOOST_PARSER_DEFINE_RULE(doubles);

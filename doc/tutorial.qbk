@@ -169,6 +169,17 @@ followed /immediately/ by a `double`, but I inserted a space after the comma.
 The same failure to parse would occur if I put a space before the comma, or
 before or after the list of `double`s.
 
+One more thing: there is a much better way to write the parser above.  Instead
+of repeating the `double_` subparser, we could have written this:
+
+    bp::double_ % ','
+
+That's semantically identical to `bp::double_ >> *(',' >> bp::double_)`.  This
+pattern _emdash_ some bit of input repeated one or more times, with a
+separator between each instance _emdash_ comes up so often that there's an
+operator specifically for that, `operator%`.  We'll be using that operator
+from now on.
+
 [endsect]
 
 [section A Trivial Example That Gracefully Handles Whitespace]
@@ -2054,7 +2065,7 @@ If we wanted to use a `std::deque<double>` as the attribute type of our rule:
 
     // Attribute changed to std::deque<double>.
     bp::rule<struct doubles, std::deque<double>> doubles = "doubles";
-    auto const doubles_def = bp::double_ >> *(',' >> bp::double_);
+    auto const doubles_def = bp::double_ % ',';
     BOOST_PARSER_DEFINE_RULES(doubles);
 
     int main()
@@ -2064,9 +2075,9 @@ If we wanted to use a `std::deque<double>` as the attribute type of our rule:
     }
 
 So, the attribute flexibility is still available, but only *within* the rule
-_emdash_ the parser `bp::double_ >> *(',' >> bp::double_)` can parse into a
-`std::vector<double>` or a `std::deque<double>`, but the rule `doubles` must
-parse into only the exact attribute it was declared to generate.
+_emdash_ the parser `bp::double_ % ','` can parse into a `std::vector<double>`
+or a `std::deque<double>`, but the rule `doubles` must parse into only the
+exact attribute it was declared to generate.
 
 The reason for this is that, inside the rule parsing implementation, there is
 code something like this:
@@ -2088,7 +2099,7 @@ themselves to get the attribute flexibility we want across our code:
     namespace bp = boost::parser;
 
     // We only need to write the definition once...
-    auto const generic_doubles_def = bp::double_ >> *(',' >> bp::double_);
+    auto const generic_doubles_def = bp::double_ % ',';
 
     bp::rule<struct vec_doubles, std::vector<double>> vec_doubles = "vec_doubles";
     auto const & vec_doubles_def = generic_doubles_def; // ... and re-use it,
