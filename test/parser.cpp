@@ -1849,6 +1849,8 @@ namespace issue_50 {
     {
         char a;
         int b;
+
+        bool operator<(X rhs) const { return a < rhs.a; }
     };
 
     struct Y
@@ -1856,6 +1858,24 @@ namespace issue_50 {
         std::vector<X> x;
         int c;
     };
+
+    struct Y2
+    {
+        std::set<X> x;
+        int c;
+    };
+
+    static_assert(
+        boost::parser::detail::is_struct_compatible<
+            Y,
+            boost::parser::
+                tuple<std::vector<boost::parser::tuple<char, int>>, int>>());
+
+    static_assert(
+        boost::parser::detail::is_struct_compatible<
+            Y2,
+            boost::parser::
+                tuple<std::vector<boost::parser::tuple<char, int>>, int>>());
 }
 
 TEST(parser, github_issue_50)
@@ -1874,6 +1894,19 @@ TEST(parser, github_issue_50)
 
         EXPECT_EQ(y.x[0].a, 'd');
         EXPECT_EQ(y.x[0].b, 3);
+        EXPECT_EQ(y.c, 4);
+    }
+
+    {
+        auto parse_x = bp::char_ >> bp::int_;
+        auto parse_y = +parse_x >> bp::int_;
+
+        Y2 y;
+        auto b = bp::parse("d 3 4", parse_y, bp::ws, y);
+        EXPECT_TRUE(b);
+
+        EXPECT_EQ(y.x.begin()->a, 'd');
+        EXPECT_EQ(y.x.begin()->b, 3);
         EXPECT_EQ(y.c, 4);
     }
 }
