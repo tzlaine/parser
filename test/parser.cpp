@@ -1969,3 +1969,20 @@ TEST(parser, github_issue_52)
         EXPECT_EQ(w.e, 4);
     }
 }
+
+TEST(parser, no_need_for_sprit_2_hold_directive)
+{
+    namespace bp = boost::parser;
+
+    std::vector<int> v;
+    auto result = bp::parse(
+        "1 2",
+        bp::repeat(3)[bp::int_] | repeat(2)[bp::int_] >> bp::attr(0),
+        bp::ws,
+        v,
+        bp::trace::on);
+    EXPECT_TRUE(result);
+
+    EXPECT_EQ(v.size(), 3u);
+    EXPECT_EQ(v, std::vector<int>({1, 2, 0}));
+}
