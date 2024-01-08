@@ -23,6 +23,23 @@
 
 namespace boost { namespace parser {
 
+    /** A variable template that indicates that type `T` is an optional-like
+        type. */
+    template<typename T>
+    constexpr bool enable_optional = false;
+
+    /** A variable template that indicates that type `T` is an variant-like
+        type. */
+    template<typename T>
+    constexpr bool enable_variant = false;
+
+#ifndef BOOST_PARSER_DOXYGEN
+    template<typename T>
+    constexpr bool enable_optional<std::optional<T>> = true;
+    template<typename... Ts>
+    constexpr bool enable_variant<std::variant<Ts...>> = true;
+#endif
+
     /** A placeholder type used to represent the absence of information,
         value, etc., inside semantic actions.  For instance, calling
         `_locals(ctx)` in a semantic action associated with a parser that has
@@ -906,18 +923,10 @@ namespace boost { namespace parser {
         {};
 
         template<typename T>
-        struct is_optional : std::false_type
-        {};
-        template<typename T>
-        struct is_optional<std::optional<T>> : std::true_type
-        {};
+        constexpr bool is_optional_v = enable_optional<T>;
 
         template<typename T>
-        struct is_variant : std::false_type
-        {};
-        template<typename... T>
-        struct is_variant<std::variant<T...>> : std::true_type
-        {};
+        constexpr bool is_variant_v = enable_variant<T>;
 
         template<typename T>
         struct is_utf8_view : std::false_type
@@ -1060,7 +1069,7 @@ namespace boost { namespace parser {
             // for tuple<t> and on for tuple<optional<T>>, is because
             // MSVC.
             using type =
-                std::conditional_t<is_optional<T>::value, T, std::optional<T>>;
+                std::conditional_t<is_optional_v<T>, T, std::optional<T>>;
         };
 
         template<typename T>
@@ -2408,19 +2417,29 @@ namespace boost { namespace parser {
                     remove_cv_ref_t<decltype(parser::get(x, llong<1>{}))>;
                 if constexpr (!T::value) {
                     return std::false_type{};
+                } else if constexpr (
+                    is_optional_v<struct_elem> && is_optional_v<tuple_elem>) {
+                    using struct_opt_type = optional_type<struct_elem>;
+                    using tuple_opt_type = optional_type<tuple_elem>;
+                    using retval_t = decltype((*this)(
+                        result,
+                        detail::hl::make_tuple(
+                            std::declval<struct_opt_type &>(),
+                            std::declval<tuple_opt_type &>())));
+                    return retval_t{};
                 } else if constexpr (std::is_convertible_v<
                                          tuple_elem &&,
                                          struct_elem>) {
                     return std::true_type{};
                 } else if constexpr (
                     container<struct_elem> && container<tuple_elem>) {
-                        return detail::is_struct_compatible<
-                            range_value_t<struct_elem>,
-                            range_value_t<tuple_elem>>();
+                    return detail::is_struct_compatible<
+                        range_value_t<struct_elem>,
+                        range_value_t<tuple_elem>>();
                 } else {
-                        return std::bool_constant<detail::is_struct_compatible<
-                            struct_elem,
-                            tuple_elem>()>{};
+                    return std::bool_constant<detail::is_struct_compatible<
+                        struct_elem,
+                        tuple_elem>()>{};
                 }
             }
         };
@@ -2665,7 +2684,7 @@ namespace boost { namespace parser {
                                                : flags,
                 retval);
 
-            if constexpr (detail::is_optional<Attribute>{}) {
+            if constexpr (detail::is_optional_v<Attribute>) {
                 detail::optional_type<Attribute> attr;
                 detail::apply_parser(
                     *this,
@@ -3360,7 +3379,7 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
-            if constexpr (detail::is_variant<Attribute>{}) {
+            if constexpr (detail::is_variant_v<Attribute>) {
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -3371,7 +3390,7 @@ namespace boost { namespace parser {
                     detail::set_in_apply_parser(flags),
                     success,
                     retval);
-            } else if constexpr (detail::is_optional<Attribute>{}) {
+            } else if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
                 call(
                     use_cbs, first_, last, context, skip, flags, success, attr);
