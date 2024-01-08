@@ -596,6 +596,169 @@ members.  Fortunately, that limit is configurable; see _AGGR_SIZE_.]
 
 [endsect]
 
+[section Parsing In Detail]
+
+Now that you've seen some examples, let's see how parsing works in a bit more
+detail.  Consider this example.
+
+    namespace bp = boost::parser;
+    auto int_pair = bp::int_ >> bp::int_;         // Attribute: tuple<int, int>
+    auto int_pairs_plus = +int_pair >> bp::int_;  // Attribute: tuple<std::vector<tuple<int, int>>, int>
+
+`int_pairs_plus` must match a pair of `int`s (using `int_pair`) one or more
+times, and then must match an additional `int`.  In other words, it matches
+any odd number (greater than 1) of `int`s in the input.  Let's look at how
+this parse proceeds.
+
+    auto result = bp::parse("1 2 3", int_pairs_plus, bp::ws);
+
+Step 1) The input is `"1 2 3"`, and the stack of active parsers is
+`int_pairs_plus` -> `+int_pair` -> `int_pair` -> `bp::int_`.  This parses
+`"1"`, and the whitespace after is skipped by `bp::ws`.  Control passes to the
+second `bp::int_` parser in `int_pair`.
+
+Step 2) The input is `"2 3"` and the stack of parsers looks the same, except
+the active parser is the second `bp::int_` from `int_pair`.  This parser
+consumes `"2"` and then `bp::ws` skips the subsequent space.  Since we've
+finished with `int_pair`'s match, its `_bp_tup_<int, int>` attribute is
+complete.  It's parent is `+int_pair`, so this tuple attribute is pushed onto
+the back of `+int_pair`'s attribute, which is a `std::vector<_bp_tup_<int,
+int>>`.  Control passes up to the parent if `int_pair`, `+int_pair`.  Since
+`+int_pair` is a one-or-more parser, it starts a new iteration; control passes
+to `int_pair` again.
+
+Step 3) The input is `"3"` and the stack of parsers looks the same, except the
+active parser is the first `bp::int_` from `int_pair` again, and we're in the
+second iteration of `+int_pair`.  This parser consumes `"3"`.  Since this is
+the end of the input, the second `bp::int_` of `int_pair` does not match.
+This partial match of `"3"` should not count, since it was not part of a full
+match.  So, `int_pair` indicates its failure, and `+int_pair` stops iterating.
+Since it did match once, `+int_pair` does not fail; it is a zero-or-more
+parser; failure of its subparser after the first success does not cause it to
+fail.  Control passes to the next parser in sequence within `int_pairs_plus`.
+
+Step 4) The input is `"3"` again, and the stack of parsers is `int_pairs_plus`
+-> `bp::int_`.  This parses the `"3"`, and the parse reaches the end of input.
+Control passes to `int_pairs_plus`, which has just successfully matched with
+all parser in its sequence.  It then produces its attribute, a
+`_bp_tup_<std::vector<_bp_tup_<int, int>>, int>`, which gets returned from
+`bp::parse()`.
+
+Something to take note of between Steps #3 and #4: at the beginning of #4, the
+input position had returned to where is was at the beginning of #3.  This kind
+of backtracking happens in alternative parsers when an alternative fails.  The
+next page has more details on the semantics of backtracking.
+
+[heading Parsers in Detail]
+
+So far, parsers have been presented as somewhat abstract entities.  You may be
+wanting more detail.  A _Parser_ parser `P` is an invocable object with a pair
+of call operator overloads.  The two functions are very similar, and in many
+parsers one is implemented in terms of the other.  The first function does the
+parsing and returns the default attribute for the parser.  The second function
+does exactly the same parsing, but takes an out-param into which it writes the
+attribute for the parser.  The out-param does not need to be the same type as
+the default attribute, but they need to be compatible.
+
+Compatibility means that the default attribute is assignable to the out-param
+in some fashion.  This usually means direct assignment, but it may also mean a
+tuple -> aggregate or aggregate -> tuple conversion.  For sequence types,
+compatibility means that the sequence type has `insert` or `push_back` with
+the usual semantics.  This means that the parser `+boost::parser::int_` can
+fill a `std::set<int>` just as well as a `std::vector<int>`.
+
+Some parsers also have additional state that is required to perform a match.
+For instance, `char_` parsers can be parameterized with a single code point to
+match; the exact value of that code point is stored in the parser object.
+
+No parser has direct support for all the operations defined on parsers
+(`operator|`, `operator>>`, etc.).  Instead, there is a template called
+_p_iface_ that supports all of these operations.  _p_iface_ wraps each parser,
+storing it as a data member, adapting it for general use.  You should only
+ever see _p_iface_ in the debugger, or possibly in some of the reference
+documentation.  You should never have to write it in your own code.
+
+[endsect]
+
+[section Backtracking]
+
+As described in the previous page, backtracking occurs when the parse attempts
+to match the current parser `P`, matches part of the input, but fails to match
+all of `P`.  The part of the input consumed during the parse of `P` is
+essentially "given back".
+
+This is necessary because `P` may consist of subparsers, and each subparser
+that succeeds will try to consume input, produce attributes, etc.  When a
+later subparser fails, the parse of `P` fails, and the input must be rewound
+to where it was when `P` started its parse, not where the latest matching
+subparser stopped.
+
+Alternative parsers will often evaluate multiple subparsers one at a time,
+advancing and then restoring the input position, until one of the subparsers
+succeeds.  Consider this example.
+
+    namespace bp = boost::parser;
+    auto const parser = repeat(53)[other_parser] | repeat(10)[other_parser];
+
+Evaluating `parser` means trying to match `other_parser` 53 times, and if that
+fails, trying to match `other_parser` 10 times.  Say you parse input that
+matches `other_parser` 11 times.  `parser` will match it.  It will also
+evaluate `other_parser` 21 times during the parse.
+
+The attributes of the `repeat(53)[other_parser]` and
+`repeat(10)[other_parser]` are each `std::vector<ATTR(other_parser)>`; let's
+say that `ATTR(other_parser)` is `int`.  The attribute of `parser` as a whole
+is the same, `std::vector<int>`.  Since `other_parser` is busy producing
+`int`s _emdash_ 21 of them to be exact _emdash_ you may be wondering what
+happens to the ones produced during the evaluation of
+`repeat(53)[other_parser]` when it fails to find all 53 inputs.  Its
+`std::vector<int>` will contain 11 `int`s at that point.
+
+When a repeat-parser fails, and attributes are being generated, it clears its
+container.  This applies to parsers such as the ones above, but also all the
+other repeat parsers, including ones made using `operator+` or `operator*`.
+
+So, at the end of a successful parse by `parser` of 10 inputs (since the right
+side of the alternative only eats 10 repetitions), the `std::vector<int>`
+attribute of `parser` would contain 10 `int`s.
+
+[note Users of Boost.Spirit may be familiar with the `hold[]` directive.
+Because of the behavior described above, there is no such directive in
+_Parser_.]
+
+[heading Expectation Points]
+
+Ok, so if parsers all try their best to match the input, and are
+all-or-nothing, doesn't that leave room for all kinds of bad input to be
+ignored?  Consider the top-level parser from the _ex_json_ example.
+
+    auto const value_p_def =
+        number | bp::bool_ | null | string | array_p | object_p;
+
+What happens if I use this to parse `"\""`?  The parse tries `number`, fails.
+It then tries `bp::bool_`, fails.  Then `null` fails too.  Finally, it starts
+parsing `string`.  Good news, the first character is the open-quote of a JSON
+string.  Unfortunately, that's also the end of the input, so `string` must
+fail too.  However, we probably don't want to just give up on parsing `string`
+now and try `array_p`, right?  If the user wrote an open-quote with no
+matching close-quote, that's not the prefix of some later alternative of
+`value_p_def`; it's ill-formed JSON.  Here's the parser for the `string` rule:
+
+    auto const string_def = bp::lexeme['"' >> *(string_char - '"') > '"'];
+
+Notice that `operator>` is used on the right instead of `operator>>`.  This
+indicates the same sequence operation as `operator>>`, except that it also
+represents an expectation.  If the parse before the `operator>` succeeds,
+whatever comes after it *must* also succeed.  Otherwise, the top-level parse
+is failed, and a diagnostic is emitted.  It will say something like "Expected
+'"' here.", quoting the line, with a caret pointing to the place in the input
+where it expected the right-side match.
+
+Choosing to use `>` versus `>>` is how you indicate to _Parser_ that parse
+failure is or is not a hard error, respectively.
+
+[endsect]
+
 [section Symbol Tables]
 
 When writing a parser, it often comes up that there is a set of strings that,
