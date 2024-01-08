@@ -100,6 +100,23 @@ significantly increase compile times.  Also, MSVC seems to have a hard time
 with large values; I successfully set this value to `50` on MSVC, but `100`
 broke the MSVC build entirely.
 
+_Parser_ uses `std::optional` and `std::variant` internally.  There is no way
+to change this.  However, when _Parse_ generates values as a result of the
+parse (see _attr_gen_), it can place them into other implementations of
+optional and/or variant, if you tell it to do so.  You tell it which templates
+are usable as an optional or variant by specializing the associated variable
+template.  For instance, here is how you would tell _Parser_ that
+`boost::optional` is an optional-type:
+
+    template<typename T>
+    constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
+
+Here's how you would do the same thing for `boost::variant2::variant`:
+
+    template<typename... Ts>
+    constexpr bool boost::parser::enable_optional<boost::variant2::variant<Ts...>> = true;
+
+
 [endsect]
 
 [section This Library's Relationship to Boost.Spirit]
