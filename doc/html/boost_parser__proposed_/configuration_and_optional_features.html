@@ -56,7 +56,7 @@
       Boost.Parser automatically treats aggregate <code class="computeroutput"><span class="keyword">struct</span></code>s
       as if they were tuples in many cases. There is some metaprogramming logic that
       makes this work, and this logic has a hard limit on the size of a <code class="computeroutput"><span class="keyword">struct</span></code> that it can operate on. There is a configuration
-      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm16939.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
+      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm16938.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
       that you can adjust if the default value is too small. Note that turning this
       value up significantly can significantly increase compile times. Also, MSVC
       seems to have a hard time with large values; I successfully set this value
@@ -64,8 +64,8 @@
     </p>
 <p>
       Boost.Parser uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
-      internally. There is no way to change this. However, when <span class="underline">Parse</span>
-      generates values as a result of the parse (see <a class="link" href="tutorial/attribute_generation.html" title="Attribute Generation">Attribute
+      internally. There is no way to change this. However, when Boost.Parser generates
+      values as a result of the parse (see <a class="link" href="tutorial/attribute_generation.html" title="Attribute Generation">Attribute
       Generation</a>), it can place them into other implementations of optional
       and/or variant, if you tell it to do so. You tell it which templates are usable
       as an optional or variant by specializing the associated variable template.
