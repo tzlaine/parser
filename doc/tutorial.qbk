@@ -726,6 +726,37 @@ attribute of `parser` would contain 10 `int`s.
 Because of the behavior described above, there is no such directive in
 _Parser_.]
 
+[heading Expectation Points]
+
+Ok, so if parsers all try their best to match the input, and are
+all-or-nothing, doesn't that leave room for all kinds of bad input to be
+ignored?  Consider the top-level parser from the _ex_json_ example.
+
+    auto const value_p_def =
+        number | bp::bool_ | null | string | array_p | object_p;
+
+What happens if I use this to parse `"\""`?  The parse tries `number`, fails.
+It then tries `bp::bool_`, fails.  Then `null` fails too.  Finally, it starts
+parsing `string`.  Good news, the first character is the open-quote of a JSON
+string.  Unfortunately, that's also the end of the input, so `string` must
+fail too.  However, we probably don't want to just give up on parsing `string`
+now and try `array_p`, right?  If the user wrote an open-quote with no
+matching close-quote, that's not the prefix of some later alternative of
+`value_p_def`; it's ill-formed JSON.  Here's the parser for the `string` rule:
+
+    auto const string_def = bp::lexeme['"' >> *(string_char - '"') > '"'];
+
+Notice that `operator>` is used on the right instead of `operator>>`.  This
+indicates the same sequence operation as `operator>>`, except that it also
+represents an expectation.  If the parse before the `operator>` succeeds,
+whatever comes after it *must* also succeed.  Otherwise, the top-level parse
+is failed, and a diagnostic is emitted.  It will say something like "Expected
+'"' here.", quoting the line, with a caret pointing to the place in the input
+where it expected the right-side match.
+
+Choosing to use `>` versus `>>` is how you indicate to _Parser_ that parse
+failure is or is not a hard error, respectively.
+
 [endsect]
 
 [section Symbol Tables]
