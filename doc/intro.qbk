@@ -101,7 +101,7 @@ with large values; I successfully set this value to `50` on MSVC, but `100`
 broke the MSVC build entirely.
 
 _Parser_ uses `std::optional` and `std::variant` internally.  There is no way
-to change this.  However, when _Parse_ generates values as a result of the
+to change this.  However, when _Parser_ generates values as a result of the
 parse (see _attr_gen_), it can place them into other implementations of
 optional and/or variant, if you tell it to do so.  You tell it which templates
 are usable as an optional or variant by specializing the associated variable
