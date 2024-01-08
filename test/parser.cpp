@@ -8,11 +8,23 @@
 
 #include <boost/parser/parser.hpp>
 
+#if __has_include(<boost/optional/optional.hpp>)
+#define TEST_BOOST_OPTIONAL 1
+#include <boost/optional/optional.hpp>
+#include <boost/optional/optional_io.hpp>
+#else
+#define TEST_BOOST_OPTIONAL 0
+#endif
+
 #include <gtest/gtest.h>
 
 
 using namespace boost::parser;
 
+#if TEST_BOOST_OPTIONAL
+template<typename T>
+constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
+#endif
 
 TEST(parser, basic)
 {
@@ -156,6 +168,27 @@ TEST(parser, basic)
             first, boost::parser::detail::text::null_sentinel, parser_5, c));
         EXPECT_EQ(c, std::nullopt);
     }
+#if TEST_BOOST_OPTIONAL
+    {
+        std::string str = "a";
+        boost::optional<char> c;
+        EXPECT_TRUE(parse(str, parser_5, c));
+        EXPECT_EQ(c, 'a');
+    }
+    {
+        std::string str = "z";
+        boost::optional<char> c;
+        EXPECT_FALSE(parse(str, parser_5, c));
+    }
+    {
+        std::string str = "z";
+        boost::optional<char> c;
+        auto first = str.c_str();
+        EXPECT_TRUE(prefix_parse(
+            first, boost::parser::detail::text::null_sentinel, parser_5, c));
+        EXPECT_EQ(c, boost::none);
+    }
+#endif
 }
 
 TEST(parser, int_uint)
