@@ -116,6 +116,14 @@ Here's how you would do the same thing for `boost::variant2::variant`:
     template<typename... Ts>
     constexpr bool boost::parser::enable_optional<boost::variant2::variant<Ts...>> = true;
 
+The requirements on a template used as an optional are pretty simple, since
+_Parser_ does almost nothing but assign to them.  For a type `O` to be a
+usable optional, you must be able to assign to `O`, and `O` must have an
+`operator*` that returns the stored value, or a (possibly cv-qualified)
+reference to the stored value.
+
+For variants, the requirement is even simpler; the variant type only needs to
+be assignable.
 
 [endsect]
 
