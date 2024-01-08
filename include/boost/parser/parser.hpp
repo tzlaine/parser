@@ -926,6 +926,9 @@ namespace boost { namespace parser {
         struct is_utf8_view<text::utf8_view<V>> : std::true_type
         {};
 
+        template<typename T>
+        using optional_type = remove_cv_ref_t<decltype(*std::declval<T &>())>;
+
         template<typename F, typename... Args>
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
@@ -2663,6 +2666,7 @@ namespace boost { namespace parser {
                 retval);
 
             if constexpr (detail::is_optional<Attribute>{}) {
+                detail::optional_type<Attribute> attr;
                 detail::apply_parser(
                     *this,
                     use_cbs,
@@ -2672,7 +2676,9 @@ namespace boost { namespace parser {
                     skip,
                     detail::set_in_apply_parser(flags),
                     success,
-                    retval);
+                    attr);
+                if (success)
+                    retval = std::move(attr);
             } else { // Otherwise, Attribute must be a container or a nope.
                 using attr_t = detail::parser_attr_or_container_value_type_v<
                     decltype(parser_.call(
