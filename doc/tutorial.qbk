@@ -612,10 +612,16 @@ this parse proceeds.
 
     auto result = bp::parse("1 2 3", int_pairs_plus, bp::ws);
 
+At the beginning of the parse, the top level parser uses its first subparser
+(if any) to start parsing.  So, `int_pairs_plus`, being a sequence parser,
+would pass control to its first parser `+int_pair`.  Then `+int_pair` would
+use `int_pair` to do its parsing, which would in turn use `bp::int_`.  This
+creates a stack of parsers, each one using a particular subparser.
+
 Step 1) The input is `"1 2 3"`, and the stack of active parsers is
-`int_pairs_plus` -> `+int_pair` -> `int_pair` -> `bp::int_`.  This parses
-`"1"`, and the whitespace after is skipped by `bp::ws`.  Control passes to the
-second `bp::int_` parser in `int_pair`.
+`int_pairs_plus` -> `+int_pair` -> `int_pair` -> `bp::int_`.  (Read "->" as
+"uses".)  This parses `"1"`, and the whitespace after is skipped by `bp::ws`.
+Control passes to the second `bp::int_` parser in `int_pair`.
 
 Step 2) The input is `"2 3"` and the stack of parsers looks the same, except
 the active parser is the second `bp::int_` from `int_pair`.  This parser
