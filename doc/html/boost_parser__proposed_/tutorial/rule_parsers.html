@@ -89,11 +89,30 @@
 <p>
       </p>
 <p>
-        This macro expands to two overloads of a function called <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code> that each take a <code class="computeroutput"><span class="keyword">struct</span>
-        <span class="identifier">doubles</span></code> parameter and parse using
-        <code class="computeroutput"><span class="identifier">doubles_def</span></code>. The <code class="computeroutput"><span class="identifier">_def</span></code> suffix is a naming convention that
-        this macro relies on to work. The tag type allows the rule parser, <code class="computeroutput"><span class="identifier">doubles</span></code>, to call one of these overloads
-        when used as a parser. Now that we have the <code class="computeroutput"><span class="identifier">doubles</span></code>
+        This macro expands to the code necessary to make the rule <code class="computeroutput"><span class="identifier">doubles</span></code>
+        and its parser <code class="computeroutput"><span class="identifier">doubles_def</span></code>
+        work together. The <code class="computeroutput"><span class="identifier">_def</span></code> suffix
+        is a naming convention that this macro relies on to work. The tag type allows
+        the rule parser, <code class="computeroutput"><span class="identifier">doubles</span></code>,
+        to call one of these overloads when used as a parser.
+      </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          In case you're curious about exactly what code is produced by the above
+          use of <code class="computeroutput"><a class="link" href="../../BOOST_PARSER_DEFINE_RULE.html" title="Macro BOOST_PARSER_DEFINE_RULE">BOOST_PARSER_DEFINE_RULE</a></code>,
+          it's two overloads of a function called <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code>. The overloads each take a <code class="computeroutput"><span class="keyword">struct</span> <span class="identifier">doubles</span></code>
+          parameter (to distinguish them from the other overloads of <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code>
+          for other rules) and parse using <code class="computeroutput"><span class="identifier">doubles_def</span></code>.
+          You will never need to call any overload of <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code> yourself; it is used internally by the
+          parser that implements <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>, <code class="computeroutput"><span class="identifier">rule_parser</span></code>.
+        </p></td></tr>
+</table></div>
+<p>
+        Now that we have the <code class="computeroutput"><span class="identifier">doubles</span></code>
         parser, we can use it like we might any other parser:
       </p>
 <p>
@@ -151,6 +170,13 @@
 <span class="special">}</span>
 </pre>
 <p>
+      </p>
+<p>
+        All this is intended to introduce the notion of <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>. It still may be a bit
+        unclear why you would want to use <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>. The use cases for, and
+        lots of detail about, <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> is in a later section,
+        <a class="link" href="more_about_rules.html" title="More About Rules">More About
+        Rules</a>.
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>

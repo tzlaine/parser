@@ -37,12 +37,21 @@
 <pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"1 2 3"</span><span class="special">,</span> <span class="identifier">int_pairs_plus</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
 </pre>
 <p>
+        At the beginning of the parse, the top level parser uses its first subparser
+        (if any) to start parsing. So, <code class="computeroutput"><span class="identifier">int_pairs_plus</span></code>,
+        being a sequence parser, would pass control to its first parser <code class="computeroutput"><span class="special">+</span><span class="identifier">int_pair</span></code>.
+        Then <code class="computeroutput"><span class="special">+</span><span class="identifier">int_pair</span></code>
+        would use <code class="computeroutput"><span class="identifier">int_pair</span></code> to do
+        its parsing, which would in turn use <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span></code>.
+        This creates a stack of parsers, each one using a particular subparser.
+      </p>
+<p>
         Step 1) The input is <code class="computeroutput"><span class="string">"1 2 3"</span></code>,
         and the stack of active parsers is <code class="computeroutput"><span class="identifier">int_pairs_plus</span></code>
         -&gt; <code class="computeroutput"><span class="special">+</span><span class="identifier">int_pair</span></code>
         -&gt; <code class="computeroutput"><span class="identifier">int_pair</span></code> -&gt; <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span></code>.
-        This parses <code class="computeroutput"><span class="string">"1"</span></code>, and
-        the whitespace after is skipped by <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span></code>. Control
+        (Read "-&gt;" as "uses".) This parses <code class="computeroutput"><span class="string">"1"</span></code>,
+        and the whitespace after is skipped by <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span></code>. Control
         passes to the second <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span></code> parser in <code class="computeroutput"><span class="identifier">int_pair</span></code>.
       </p>
 <p>
@@ -90,7 +99,7 @@
 <h5>
 <a name="boost_parser__proposed_.tutorial.parsing_in_detail.h0"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.parsing_in_detail.parsers_in_detail"></a></span><a class="link" href="parsing_in_detail.html#boost_parser__proposed_.tutorial.parsing_in_detail.parsers_in_detail">Parsers
-        in Detail</a>
+        in detail</a>
       </h5>
 <p>
         So far, parsers have been presented as somewhat abstract entities. You may
