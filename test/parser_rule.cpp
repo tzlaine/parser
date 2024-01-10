@@ -475,3 +475,85 @@ TEST(param_parser, string_recursive_cb_rule)
         EXPECT_EQ(callbacks.all_results[0], "abcabc");
     }
 }
+
+namespace more_about_rules_1 {
+    namespace bp = boost::parser;
+
+    bp::rule<struct value_tag> value =
+        "an integer, or a list of integers in braces";
+
+    auto const ints = '{' > (value % ',') > '}';
+    auto const value_def = bp::int_ | ints;
+
+    BOOST_PARSER_DEFINE_RULE(value);
+}
+
+namespace more_about_rules_2 {
+    namespace bp = boost::parser;
+
+    bp::rule<struct value_tag> value =
+        "an integer, or a list of integers in braces";
+    bp::rule<struct comma_values_tag> comma_values =
+        "a comma-delimited list of integers";
+
+    auto const ints = '{' > comma_values > '}';
+    auto const value_def = bp::int_ | ints;
+    auto const comma_values_def = (value % ',');
+
+    BOOST_PARSER_DEFINE_RULES(value, comma_values);
+}
+
+namespace more_about_rules_3 {
+    namespace bp = boost::parser;
+
+    bp::rule<struct parens_tag> parens = "matched parentheses";
+
+    auto const parens_def = ('(' >> parens > ')') | bp::eps;
+
+    BOOST_PARSER_DEFINE_RULES(parens);
+}
+
+namespace more_about_rules_4 {
+    namespace bp = boost::parser;
+
+    bp::rule<struct parens_tag> parens = "matched parentheses";
+
+    auto const parens_def = ('(' >> parens > ')') | bp::eps;
+
+    BOOST_PARSER_DEFINE_RULES(parens);
+
+    bool balanced_parens(std::string_view str);
+}
+
+TEST(parser, doc_exaparensles)
+{
+    {
+        using namespace more_about_rules_1;
+
+        bp::parse("{ 4, 5 a", value, bp::ws);
+        bp::parse("{ }", value, bp::ws);
+    }
+    {
+        using namespace more_about_rules_2;
+
+        bp::parse("{ }", value, bp::ws);
+    }
+    {
+        using namespace more_about_rules_3;
+
+        EXPECT_TRUE(bp::parse("(((())))", parens, bp::ws));
+        EXPECT_FALSE(bp::parse("(((()))", parens, bp::ws));
+    }
+    {
+        using namespace more_about_rules_4;
+        assert(balanced_parens("(())"));
+    }
+}
+
+namespace more_about_rules_4 {
+    bool balanced_parens(std::string_view str)
+    {
+        namespace bp = boost::parser;
+        return bp::parse(str, bp::omit[parens], bp::ws);
+    }
+}
