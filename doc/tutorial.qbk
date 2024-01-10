@@ -668,7 +668,7 @@ input position had returned to where is was at the beginning of #3.  This kind
 of backtracking happens in alternative parsers when an alternative fails.  The
 next page has more details on the semantics of backtracking.
 
-[heading Parsers in Detail]
+[heading Parsers in detail]
 
 So far, parsers have been presented as somewhat abstract entities.  You may be
 wanting more detail.  A _Parser_ parser `P` is an invocable object with a pair
@@ -745,7 +745,7 @@ attribute of `parser` would contain 10 `int`s.
 Because of the behavior described above, there is no such directive in
 _Parser_.]
 
-[heading Expectation Points]
+[heading Expectation points]
 
 Ok, so if parsers all try their best to match the input, and are
 all-or-nothing, doesn't that leave room for all kinds of bad input to be
@@ -2206,6 +2206,25 @@ parser except the top-level parser.]
 
 [section More About Rules]
 
+In the earlier page about _rs_ (_rule_parsers_), I described _rs_ as being
+analogous to functions.  _rs_ are, at base, organizational.  Here are the
+common use cases for _rs_.  Use a _r_ if you want to:
+
+* fix the attribute type produced by a parser to something other than the
+  default;
+
+* create a named parser; this is useful in diagnostics;
+
+* create a recursive rule (more on this below);
+
+* create a set of mutually-recursive parsers; or
+
+* separately compile a parser.
+
+Let's look at the use cases in detail.
+
+[heading Fixing the attribute type]
+
 We saw in the previous section how _p_ is flexible in what types it will
 accept as attribute out-parameters.
 
@@ -2221,12 +2240,11 @@ _std_str_, the code is well-formed.  Usually, we expect type mismatches like
 this to be ill-formed in C++.  Fortunately, _rs_ help you address both these
 concerns.
 
-[heading Using _rs_ to nail down attribute flexibility]
-
-Every rule has a specific attribute type.  If one is not specified, the rule
-has no attribute.  The fact that the attribute is a specific type allows you
-to remove attribute flexibility.  For instance, say we have a rule defined
-like this:
+First, let's see _rs_ used to nail down attribute flexibility.  Every rule has
+a specific attribute type.  If one is not specified, the rule has no
+attribute.  The fact that the attribute is a specific type allows you to
+remove attribute flexibility.  For instance, say we have a rule defined like
+this:
 
 [rule_intro_rule_definition]
 
@@ -2272,11 +2290,10 @@ code something like this:
 Where `attribute_out_param` is the attribute out-parameter we pass to _p_.  If
 that final move assignment is ill-formed, the call to _p_ is too.
 
-[heading Using rules to exploit attribute flexibility]
-
-So, even though a rule reduces the flexibility of attributes it can generate,
-the fact that it is so easy to write a new rule means that we can use rules
-themselves to get the attribute flexibility we want across our code:
+You can also use rules to exploit attribute flexibility.  Even though a rule
+reduces the flexibility of attributes it can generate, the fact that it is so
+easy to write a new rule means that we can use rules themselves to get the
+attribute flexibility we want across our code:
 
     namespace bp = boost::parser;
 
@@ -2295,7 +2312,152 @@ themselves to get the attribute flexibility we want across our code:
 Now we have one of each, and we did not have to copy any parsing logic that
 would have to be maintained in two places.
 
-[heading Forward declaration]
+[heading Creating a named parser]
+
+Each _r_ has a name that _Parser_ can use to refer to that rule.  This is
+useful when the parse reaches a parse failure at an expectation point (see
+_expect_pts_).  Let's say you have the following code defined somewhere.
+
+    namespace bp = boost::parser;
+
+    bp::rule<struct value_tag> value =
+        "an integer, or a list of integers in braces";
+
+    auto const ints = '{' > (value % ',') > '}';
+    auto const value_def = bp::int_ | ints;
+
+    BOOST_PARSER_DEFINE_RULE(value);
+
+Notice the two expectation points.  One before `(value % ',')`, one before the
+final `'}'`.  Later, you call parse in some input:
+
+    bp::parse("{ 4, 5 a", value, bp::ws);
+
+This runs should of the second expectation point, and produces output like this:
+
+[pre
+1:7: error: Expected '}' here:
+{ 4, 5 a
+       ^
+]
+
+That's a pretty good error message.  Here's what it looks like if we violate
+the earlier expectation:
+
+    bp::parse("{ }", value, bp::ws);
+
+[pre
+1:2: error: Expected an integer, or a list of integers in braces % ',' here:
+{ }
+  ^
+]
+
+Not nearly as nice.  The problem is that the expectation is on `(value %
+',')`.  So, even thought we gave `value` a reasonable name, we named the wrong
+thing.  We can introduce a new rule to put a name in the right place.
+
+    namespace bp = boost::parser;
+
+    bp::rule<struct value_tag> value =
+        "an integer, or a list of integers in braces";
+    bp::rule<struct comma_values_tag> comma_values =
+        "a comma-delimited list of integers";
+
+    auto const ints = '{' > comma_values > '}';
+    auto const value_def = bp::int_ | ints;
+    auto const comma_values_def = (value % ',');
+
+    BOOST_PARSER_DEFINE_RULES(value, comma_values);
+
+Now when we call `bp::parse("{ }", value, bp::ws)` we get a much better
+message:
+
+[pre
+1:2: error: Expected a comma-delimited list of integers here:
+{ }
+  ^
+]
+
+The _r_ `value` might be useful elsewhere in our code, perhaps in another
+parser.  It's name is appropriate for those other potential uses.
+
+[heading Recursive rules]
+
+It's pretty common to see grammars that include recursive rules.  Consider
+this EBNF rule for balanced parentheses:
+
+[pre
+<parens> ::= "" | ( "(" <parens> ")" )
+]
+
+We can try to write this using _Parser_ like this:
+
+    namespace bp = boost::parser;
+    auto const parens = '(' >> parens >> ')' | bp::eps;
+
+We had to put the `bp::eps` second, because _Parser_'s parsing algorithm is
+greedy.  Otherwise, it's just a straight transliteration.  Unfortunately, it
+does not work.  The code is ill-formed because you can't define a variable in
+terms of itself.  Well you can, but nothing good comes of it.  If we instead
+make the parser in terms of a forward-declared _r_, it works.
+
+    namespace bp = boost::parser;
+    bp::rule<struct parens_tag> parens = "matched parentheses";
+    auto const parens_def = '(' >> parens > ')' | bp::eps;
+    BOOST_PARSER_DEFINE_RULES(parens);
+
+Later, if we use it to parse, it does what we want.
+
+    assert(bp::parse("(((())))", parens, bp::ws));
+
+When it fails, it even produces nice diagnostics.
+
+    bp::parse("(((()))", parens, bp::ws);
+
+[pre
+1:7: error: Expected ')' here (end of input):
+(((()))
+       ^
+]
+
+Recursive _rs_ work differently to other parsers in one way: when re-entering
+the rule recursively, only the attribute variable (`_attr(ctx)` in your
+semantic actions) is unique to that instance of the rule.  All the other state
+of the uppermost instance of that rule is shared.  This includes the value of
+the rule (`_val(ctx)`), and the locals and parameters to the rule.  In other
+words, `_val(ctx)` returns a reference to the *same object* in every instance
+of a recursive _r_.  This is because each instance of the rule needs a place
+to put the attribute it generates from its parse.  However, we only want a
+single return value for the uppermost rule; if each instance had a separate
+value in `_val(ctx)`, then it would be impossible to build up the result of a
+recursive rule step by step during in the evaluation of the recursive
+instantiations.
+
+Also, consider this rule:
+
+    namespace bp = boost::parser;
+    bp::rule<struct ints_tag, std::vector<int>> ints = "ints";
+    auto const ints_def = bp::int_ >> ints | bp::eps;
+
+What is the default attribute type for ints_def?  It sure looks like
+`_bp_tup_<std::vector<int>, int>`.  Inside the evaluation of `ints`, _Parser_
+must evaluate `ints_def`, and then produce a `std::vector<int>` _emdash_ the
+return type of `ints` _emdash_ from it.  How?  How do you turn a
+`_bp_tup_<std::vector<int>, int>` into a `std::vector<int>`?  To a human, it
+seems obvious, but the metaprogramming that generalizes from this simple
+example to the general case is certainly beyond me.
+
+_Parser_ has a specific semantic for what consitutes a recursive rule.  Each
+rule has a tag type associated with it, and if _Parser_ enters a rule with a
+certain tag `Tag`, and the currently-evaluating rule (if there is one) also
+has the tag `Tag`, then rule instance being entered is considered to be a
+recursion.  No other situations are considered recursion.  In particular, if
+you have rules `Ra` and `Rb`, and `Ra` uses `Rb`, which in turn used `Ra`, the
+second use of `Ra` is not considered recursion.  `Ra` and `Rb` are of course
+mutually recursive, but neither is considered a "recursive rule" for purposes
+of getting a unique value, locals, and parameters.
+
+[heading Mutually-recursive rules]
 
 One of the advantages of using rules is that you can declare all your rules up
 front and then use them immediately afterward.  This lets you make rules that
@@ -2325,6 +2487,42 @@ Here we have a parser for a Javascript-value-like type `value_type`.
 strings, etc.  Since we need to be able to parse objects within arrays and
 vice versa, we need each of those two parsers to be able to refer to each
 other.
+
+[heading Separately compiled rules]
+
+_Parser_ is obviously very template-heavy.  However, the template parameters
+used in your in _Parser_ code are all known at the time you write your rules
+and parsers _emdash_ except for the range you're parsing.
+
+Therefore, if you know you're only going to parse with a single kind of range,
+you can declare a function that does the parsing, and put the implementation
+in a .cpp file.  I know.  A Boost author talking about putting code in
+non-header files is weird.  Let's see an example; first, we forward declare
+our parse function in a header.
+
+    // foo.h
+    bool balanced_parens(std::string_view str);
+
+Then we define the function, plus all the rules and parsers it uses, in an
+implementation file:
+
+    // foo.cpp
+    namespace {
+        namespace bp = boost::parser;
+        bp::rule<struct parens_tag> parens = "matched parentheses";
+        auto const parens_def = ('(' >> parens > ')') | bp::eps;
+        BOOST_PARSER_DEFINE_RULES(parens);
+    }
+    bool balanced_parens(std::string_view str)
+    {
+        namespace bp = boost::parser;
+        return bp::parse(str, bp::omit[parens], bp::ws);
+    }
+
+For large parsers, separate compilation can be a significant savings on build
+time.
+
+[heading Accessors available in semantic actions on rules]
 
 [heading _val_]
 
@@ -2525,7 +2723,7 @@ results trying to match UTF-8 input in the Unicode and non-Unicode code paths:
     }
 
 
-[heading Implicit Transcoding]
+[heading Implicit transcoding]
 
 Additionally, it is expected that most programs will use UTF-8 for the
 encoding of Unicode strings.  _Parser_ is written with this typical case in
@@ -2546,7 +2744,7 @@ instance, though the entire interface of _symbols_ uses _std_str_ or
 `std::string_view`, UTF-32 comparisons are used internally.
 
 
-[heading Explicit Transcoding]
+[heading Explicit transcoding]
 
 I mentioned above that the use of `boost::parser::utf*_view` as the range to
 parse opts you in to Unicode parsing.  Here's a bit more about these views and
@@ -2733,7 +2931,7 @@ If you are morally opposed to this approach, or just hate fun, good news: you
 can turn off the use of this technique entirely by defining
 `BOOST_PARSER_NO_RUNTIME_ASSERTIONS`.
 
-[heading Runtime Debugging]
+[heading Runtime debugging]
 
 Debugging parsers is hard.  Any parser above a certain complexity level is
 nearly impossible to debug simply by looking at the parser's code.  Stepping

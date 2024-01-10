@@ -187,6 +187,8 @@
 [def _ATTR_np_             ['[^ATTR]]]
 
 [def _p_api_               [link boost_parser__proposed_.tutorial.the__parse____api the `parse()` API]]
+[def _rule_parsers_        [link boost_parser__proposed_.tutorial.rule_parsers Rule Parsers]]
+[def _expect_pts_          [link boost_parser__proposed_.tutorial.backtracking.html#boost_parser__proposed_.tutorial.backtracking.expectation_points Expectation points]]
 [def _attr_gen_            [link boost_parser__proposed_.tutorial.attribute_generation Attribute Generation]]
 [def _directives_          [link boost_parser__proposed_.tutorial.directives Directives]]
 [def _eh_debugging_        [link boost_parser__proposed_.tutorial.error_handling_and_debugging Error Handling and Debugging]]
