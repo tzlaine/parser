@@ -86,8 +86,9 @@ namespace boost { namespace parser {
     namespace detail {
 
         template<typename T, typename U>
-        concept container_and_value_type =
-            container<T> && std::is_same_v<std::ranges::range_value_t<T>, U>;
+        concept container_and_value_type = container<T> &&
+            (std::is_same_v<std::ranges::range_value_t<T>, U> ||
+             (std::is_same_v<T, std::string> && std::is_same_v<U, char32_t>));
 
     }
 
