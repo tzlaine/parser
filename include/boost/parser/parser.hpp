@@ -1121,6 +1121,10 @@ namespace boost { namespace parser {
         }
 
         template<typename T>
+        constexpr bool is_char_type_v =
+            std::is_same_v<T, char> || std::is_same_v<T, char32_t>;
+
+        template<typename T>
         struct optional_of_impl
         {
             using type = std::optional<T>;
@@ -3153,6 +3157,17 @@ namespace boost { namespace parser {
                     // T >> nope -> T
                     return detail::hl::make_tuple(
                         result,
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
+                } else if constexpr (
+                    detail::is_char_type_v<result_back_type> &&
+                    (detail::is_char_type_v<x_type> ||
+                     detail::is_char_type_v<unwrapped_optional_x_type>)) {
+                    // CHAR >> CHAR -> string
+                    return detail::hl::make_tuple(
+                        detail::hl::append(
+                            detail::hl::drop_back(result),
+                            detail::wrapper<std::string>{}),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (

@@ -309,8 +309,8 @@ TEST(parser, basic)
         tuple<char, char> result;
         EXPECT_TRUE(parse(str, parser_1, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(get(result, 0_c), 'a');
-        EXPECT_EQ(get(result, 1_c), 'b');
+        EXPECT_EQ(get(result, 0_c), 'b');
+        EXPECT_EQ(get(result, 1_c), '\0');
     }
     {
         char const * str = "abc";
@@ -331,9 +331,9 @@ TEST(parser, basic)
         tuple<char, char, char> result;
         EXPECT_TRUE(parse(str, parser_2, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(get(result, 0_c), 'a');
-        EXPECT_EQ(get(result, 1_c), 'b');
-        EXPECT_EQ(get(result, 2_c), 'c');
+        EXPECT_EQ(get(result, 0_c), 'c');
+        EXPECT_EQ(get(result, 1_c), '\0');
+        EXPECT_EQ(get(result, 2_c), '\0');
     }
     {
         char const * str = "a";
@@ -1751,22 +1751,21 @@ TEST(parser, combined_seq_and_or)
             char const * str = "abc";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('a', 'b', 'c'));
+            EXPECT_EQ(chars, tup('c', '\0', '\0'));
         }
 
         {
             char const * str = "abc";
-            std::optional<tuple<char, char, char>> const chars =
-                parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
-            EXPECT_EQ(*chars, tup('a', 'b', 'c'));
+            EXPECT_EQ(*chars, "abc");
         }
 
         {
             char const * str = "xyz";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('x', 'y', 'z'));
+            EXPECT_EQ(chars, tup('z', '\0', '\0'));
         }
     }
 
@@ -1814,7 +1813,7 @@ TEST(parser, combined_seq_and_or)
             char const * str = "xyz";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('x', 'y', 'z'));
+            EXPECT_EQ(chars, tup('z', '\0', '\0'));
         }
     }
 

@@ -1809,14 +1809,15 @@ for `p`.
 as `X >> Y -> Z`, where `X` is the type of the current attribute, `Y` is the
 type of the next attribute, and `Z` is the new current attribute type.  In
 these rules, `C<T>` is a container of `T`; `none` is a special type that
-indicates that there is no attribute; `T` is a type; and `Ts...` is a
-parameter pack of one or more types.  Note that `T` may be the special type
-`none`.  The current attribute is always a tuple (call it `Tup`), so the
-"current attribute `X`" refers to the last element of `Tup`, not `Tup` itself,
-except for those rules that explicitly mention `_bp_tup_<>` as part of `X`'s
-type.
+indicates that there is no attribute; `T` is a type; `CHAR` is a character
+type, either `char` or `char32_t`; and `Ts...` is a parameter pack of one or
+more types.  Note that `T` may be the special type `none`.  The current
+attribute is always a tuple (call it `Tup`), so the "current attribute `X`"
+refers to the last element of `Tup`, not `Tup` itself, except for those rules
+that explicitly mention `_bp_tup_<>` as part of `X`'s type.
 
 * `none >> T -> T`
+* `CHAR` >> `CHAR` -> `std::string`
 * `T >> none -> T`
 * `C<T> >> T -> C<T>`
 * `T >> C<T> -> C<T>`
