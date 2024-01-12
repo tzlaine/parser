@@ -183,7 +183,10 @@ namespace boost { namespace parser {
         `parser::tuple` of `std::bool_constant` values.  The `i`th such value
         indicates whether backtracking is allowed if the `i`th parser
         fails. */
-    template<typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     struct seq_parser;
 
     /** Applies the given parser `p` of type `Parser` and an invocable `a` of

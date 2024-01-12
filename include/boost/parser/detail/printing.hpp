@@ -70,10 +70,15 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    template<typename Context, typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename Context,
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     void print_parser(
         Context const & context,
-        seq_parser<ParserTuple, BacktrackingTuple> const & parser,
+        seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups> const &
+            parser,
         std::ostream & os,
         int components = 0);
 

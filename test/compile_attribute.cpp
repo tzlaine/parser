@@ -872,4 +872,29 @@ void compile_attribute()
                       attr_t,
                       std::optional<tuple<std::string, std::string>>>);
     }
+
+    {
+        constexpr auto parser = char_ >> string("str");
+        using attr_t = decltype(prefix_parse(first, last, parser));
+        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+    }
+
+    {
+        constexpr auto parser = char_ >> ' ' >> string("str");
+        using attr_t = decltype(prefix_parse(first, last, parser));
+        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+    }
+
+    {
+        constexpr auto parser = char_ >> ' ' >> string("str") >> ' ' >> char_;
+        using attr_t = decltype(prefix_parse(first, last, parser));
+        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+    }
+
+    {
+        constexpr auto parser =
+            eps >> char_ >> ' ' >> string("str") >> ' ' >> char_;
+        using attr_t = decltype(prefix_parse(first, last, parser));
+        static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+    }
 }

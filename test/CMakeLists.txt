@@ -31,6 +31,7 @@ add_executable(
     compile_attribute.cpp
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
+    compile_combining_groups.cpp
 )
 set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(compile_tests parser)
@@ -59,3 +60,4 @@ add_test_executable(parse_empty)
 add_test_executable(tuple_aggregate)
 add_test_executable(case_fold_generated)
 add_test_executable(no_case)
+add_test_executable(merge_separate)

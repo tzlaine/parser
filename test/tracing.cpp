@@ -152,6 +152,15 @@ int main()
 
     PARSE(raw[char_]);
 
+#if 0 // TODO defined(__cpp_lib_concepts)
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| string_view[]                         |\n"
+              << "----------------------------------------\n";
+
+    PARSE(string_view[char_]);
+#endif
+
     std::cout << "\n\n"
               << "----------------------------------------\n"
               << "| skip[]                                |\n"
@@ -159,6 +168,28 @@ int main()
 
     PARSE(skip[char_]);
     PARSE(skip(ws)[char_]);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| merge[]                               |\n"
+              << "----------------------------------------\n";
+
+    PARSE(merge[char_ >> char_]);
+    PARSE(char_ >> merge[char_ >> char_]);
+    PARSE(merge[char_ >> char_] >> char_);
+    PARSE(merge[char_ >> char_] >> char_ >> char_ >> char_);
+    PARSE(merge[char_ >> char_ >> char_ >> char_ >> char_]);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| separate[]                            |\n"
+              << "----------------------------------------\n";
+
+    PARSE(separate[char_ >> char_]);
+    PARSE(char_ >> separate[char_ >> char_]);
+    PARSE(separate[char_ >> char_] >> char_);
+    PARSE(separate[char_ >> char_] >> char_ >> char_ >> char_);
+    PARSE(separate[char_ >> char_ >> char_ >> char_ >> char_]);
 
     std::cout << "\n\n"
               << "----------------------------------------\n"
