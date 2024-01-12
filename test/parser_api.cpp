@@ -309,8 +309,8 @@ TEST(parser, basic)
         tuple<char, char> result;
         EXPECT_TRUE(parse(str, parser_1, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(get(result, 0_c), 'a');
-        EXPECT_EQ(get(result, 1_c), 'b');
+        EXPECT_EQ(get(result, 0_c), 'b');
+        EXPECT_EQ(get(result, 1_c), '\0');
     }
     {
         char const * str = "abc";
@@ -331,9 +331,9 @@ TEST(parser, basic)
         tuple<char, char, char> result;
         EXPECT_TRUE(parse(str, parser_2, result));
         using namespace boost::parser::literals;
-        EXPECT_EQ(get(result, 0_c), 'a');
-        EXPECT_EQ(get(result, 1_c), 'b');
-        EXPECT_EQ(get(result, 2_c), 'c');
+        EXPECT_EQ(get(result, 0_c), 'c');
+        EXPECT_EQ(get(result, 1_c), '\0');
+        EXPECT_EQ(get(result, 2_c), '\0');
     }
     {
         char const * str = "a";
@@ -1751,22 +1751,21 @@ TEST(parser, combined_seq_and_or)
             char const * str = "abc";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('a', 'b', 'c'));
+            EXPECT_EQ(chars, tup('c', '\0', '\0'));
         }
 
         {
             char const * str = "abc";
-            std::optional<tuple<char, char, char>> const chars =
-                parse(str, parser);
+            std::optional<std::string> const chars = parse(str, parser);
             EXPECT_TRUE(chars);
-            EXPECT_EQ(*chars, tup('a', 'b', 'c'));
+            EXPECT_EQ(*chars, "abc");
         }
 
         {
             char const * str = "xyz";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('x', 'y', 'z'));
+            EXPECT_EQ(chars, tup('z', '\0', '\0'));
         }
     }
 
@@ -1814,7 +1813,7 @@ TEST(parser, combined_seq_and_or)
             char const * str = "xyz";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('x', 'y', 'z'));
+            EXPECT_EQ(chars, tup('z', '\0', '\0'));
         }
     }
 
@@ -1972,37 +1971,37 @@ TEST(parser, attr_out_param_compat)
     }
     {
         namespace bp = boost::parser;
-        auto const p = +(bp::cp - ' ') >> ' ' >> +string("foo");
+        auto const p = +(bp::cp - ' ') >> ' ' >> string("foo");
 
         using attr_type = decltype(bp::parse(u8"", p));
-        static_assert(
-            std::is_same_v<
-                attr_type,
-                std::optional<
-                    tuple<std::vector<char32_t>, std::vector<std::string>>>>);
+        static_assert(std::is_same_v<
+                      attr_type,
+                      std::optional<bp::tuple<std::string, std::string>>>);
 
-        tuple<std::string, std::vector<std::string>> result;
-        bool const success = bp::parse(bp::as_utf8(u8"rôle foofoo"), p, result);
+        bp::tuple<std::vector<int>, std::string> result;
+        bool const success = bp::parse(u8"rôle foo" | bp::as_utf8, p, result);
         using namespace bp::literals;
 
-        assert(success);                              // p matches.
-        assert(bp::get(result, 0_c).size() == 5u);    // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
-        assert(bp::get(result, 0_c) == (char const *)u8"rôle");
-        assert(bp::get(result, 1_c) == std::vector<std::string>({"foo", "foo"}));
+        assert(success);
+        assert(bp::get(result, 0_c) == std::vector<int>({'r', U'ô', 'l', 'e'}));
+        assert(bp::get(result, 1_c) == "foo");
     }
     {
         namespace bp = boost::parser;
-        auto const p = +(bp::int_ >> +bp::cp);
+        auto const p = +(bp::cp - ' ') >> ' ' >> string("foo");
 
         using attr_type = decltype(bp::parse(u8"", p));
-        static_assert(
-            std::is_same_v<
-                attr_type,
-                std::optional<std::vector<tuple<int, std::vector<char32_t>>>>>);
+        static_assert(std::is_same_v<
+                      attr_type,
+                      std::optional<bp::tuple<std::string, std::string>>>);
 
-        std::vector<tuple<int, std::string>> result;
-#if 0
-        bool const success = bp::parse(u8"42 rôle", p, bp::ws, result); // ill-formed!
-#endif
+        bp::tuple<std::vector<char>, std::string> result;
+        bool const success = bp::parse(u8"rôle foo" | bp::as_utf8, p, result);
+        using namespace bp::literals;
+
+        assert(success);
+        // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
+        assert(bp::get(result, 0_c) == std::vector<char>({'r', (char)0xc3, (char)0xb4, 'l', 'e'}));
+        assert(bp::get(result, 1_c) == "foo");
     }
 }

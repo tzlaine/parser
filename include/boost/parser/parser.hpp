@@ -996,8 +996,10 @@ namespace boost { namespace parser {
         constexpr bool is_container_v = is_detected_v<has_insert, T>;
 
         template<typename T, typename U>
-        constexpr bool container_and_value_type = is_container_v<T> &&
-            std::is_same_v<detected_t<range_value_t, T>, U>;
+        constexpr bool container_and_value_type =
+            is_container_v<T> &&
+            (std::is_same_v<detected_t<range_value_t, T>, U> ||
+             (std::is_same_v<T, std::string> && std::is_same_v<U, char32_t>));
 
         template<typename T>
         constexpr bool is_parsable_code_unit_impl =
@@ -1106,25 +1108,21 @@ namespace boost { namespace parser {
         using to_hana_tuple_or_type_t = typename to_hana_tuple_or_type<T>::type;
 
         template<typename T>
-        struct sequence_of_impl
+        auto make_sequence_of()
         {
-            using type = std::vector<T>;
-        };
-
-        template<>
-        struct sequence_of_impl<char>
-        {
-            using type = std::string;
-        };
-
-        template<>
-        struct sequence_of_impl<nope>
-        {
-            using type = nope;
-        };
+            if constexpr (
+                std::is_same_v<T, char> || std::is_same_v<T, char32_t>) {
+                return std::string{};
+            } else if constexpr (std::is_same_v<T, nope>) {
+                return nope{};
+            } else {
+                return std::vector<T>{};
+            }
+        }
 
         template<typename T>
-        using sequence_of = typename sequence_of_impl<T>::type;
+        constexpr bool is_char_type_v =
+            std::is_same_v<T, char> || std::is_same_v<T, char32_t>;
 
         template<typename T>
         struct optional_of_impl
@@ -2663,7 +2661,7 @@ namespace boost { namespace parser {
         {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
-            detail::sequence_of<attr_t> retval;
+            auto retval = detail::make_sequence_of<attr_t>();
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -3159,6 +3157,17 @@ namespace boost { namespace parser {
                     // T >> nope -> T
                     return detail::hl::make_tuple(
                         result,
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)));
+                } else if constexpr (
+                    detail::is_char_type_v<result_back_type> &&
+                    (detail::is_char_type_v<x_type> ||
+                     detail::is_char_type_v<unwrapped_optional_x_type>)) {
+                    // CHAR >> CHAR -> string
+                    return detail::hl::make_tuple(
+                        detail::hl::append(
+                            detail::hl::drop_back(result),
+                            detail::wrapper<std::string>{}),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)));
                 } else if constexpr (
