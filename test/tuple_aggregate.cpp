@@ -1219,19 +1219,6 @@ TEST(struct_tuple, seq_parser_struct_cb_rule)
     }
 }
 
-#if TEST_BOOST_OPTIONAL
-// This only exists to unbreak the printing of
-// boost::optional<std::vector<int>> in the trace logic.
-namespace boost {
-    std::ostream &
-    operator<<(std::ostream & os, boost::optional<std::vector<int>> const & vec)
-    {
-        return os;
-    }
-}
-#endif
-// TODO: Document that boost::optional badly breaks the tracing logic.
-
 TEST(struct_tuple, parse_into_struct)
 {
     // tuples

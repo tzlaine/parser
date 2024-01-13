@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
+#include <variant>
 
 
 namespace boost::parser::detail { namespace text {
@@ -24,7 +26,29 @@ namespace boost { namespace parser {
         type, iff the pointer is null. */
     using null_sentinel_t = boost::parser::detail::text::null_sentinel_t;
 
+    /** A variable template that indicates that type `T` is an optional-like
+        type. */
+    template<typename T>
+    constexpr bool enable_optional = false;
+
+    /** A variable template that indicates that type `T` is an variant-like
+        type. */
+    template<typename T>
+    constexpr bool enable_variant = false;
+
+#ifndef BOOST_PARSER_DOXYGEN
+    template<typename T>
+    constexpr bool enable_optional<std::optional<T>> = true;
+    template<typename... Ts>
+    constexpr bool enable_variant<std::variant<Ts...>> = true;
+#endif
+
     namespace detail {
+        template<typename T>
+        constexpr bool is_optional_v = enable_optional<T>;
+        template<typename T>
+        constexpr bool is_variant_v = enable_variant<T>;
+
         struct nope;
 
         enum class flags : unsigned int {

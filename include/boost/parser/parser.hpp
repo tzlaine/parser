@@ -23,23 +23,6 @@
 
 namespace boost { namespace parser {
 
-    /** A variable template that indicates that type `T` is an optional-like
-        type. */
-    template<typename T>
-    constexpr bool enable_optional = false;
-
-    /** A variable template that indicates that type `T` is an variant-like
-        type. */
-    template<typename T>
-    constexpr bool enable_variant = false;
-
-#ifndef BOOST_PARSER_DOXYGEN
-    template<typename T>
-    constexpr bool enable_optional<std::optional<T>> = true;
-    template<typename... Ts>
-    constexpr bool enable_variant<std::variant<Ts...>> = true;
-#endif
-
     /** A placeholder type used to represent the absence of information,
         value, etc., inside semantic actions.  For instance, calling
         `_locals(ctx)` in a semantic action associated with a parser that has
@@ -921,12 +904,6 @@ namespace boost { namespace parser {
         template<typename T>
         struct is_one_plus_p<one_plus_parser<T>> : std::true_type
         {};
-
-        template<typename T>
-        constexpr bool is_optional_v = enable_optional<T>;
-
-        template<typename T>
-        constexpr bool is_variant_v = enable_variant<T>;
 
         template<typename T>
         struct is_utf8_view : std::false_type

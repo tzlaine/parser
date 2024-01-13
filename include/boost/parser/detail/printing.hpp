@@ -460,51 +460,31 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename... T>
-    inline void print(std::ostream & os, tuple<T...> const & attr);
-
-    template<typename... T>
-    inline void print(std::ostream & os, std::variant<T...> const & attr);
-
-    template<typename T>
-    inline void print(std::ostream & os, std::optional<T> const & attr);
-
-    template<typename Attribute>
-    inline void print(std::ostream & os, Attribute const & attr);
-
-    template<typename... T>
-    inline void print(std::ostream & os, tuple<T...> const & attr)
-    {
-        os << "(";
-        bool first = false;
-        hl::for_each(attr, [&](auto const & a) {
-            if (first)
-                os << ", ";
-            detail::print(os, a);
-            first = false;
-        });
-        os << ")\n";
-    }
-
-    template<typename... T>
-    inline void print(std::ostream & os, std::variant<T...> const & attr)
-    {
-        os << "<<variant>>";
-    }
-
-    template<typename T>
-    inline void print(std::ostream & os, std::optional<T> const & attr)
-    {
-        if (!attr)
-            os << "<<empty>>";
-        else
-            detail::print(os, *attr);
-    }
-
     template<typename Attribute>
     inline void print(std::ostream & os, Attribute const & attr)
     {
-        printer<Attribute>{}(os, attr);
+        using just_attribute =
+            std::remove_cv_t<std::remove_reference_t<Attribute>>;
+        if constexpr (is_tuple<just_attribute>{}) {
+            os << "(";
+            bool first = false;
+            hl::for_each(attr, [&](auto const & a) {
+                if (first)
+                    os << ", ";
+                detail::print(os, a);
+                first = false;
+            });
+            os << ")\n";
+        } else if constexpr (is_optional_v<just_attribute>) {
+            if (!attr)
+                os << "<<empty>>";
+            else
+                detail::print(os, *attr);
+        } else if constexpr (is_variant_v<just_attribute>) {
+            os << "<<variant>>";
+        } else {
+            printer<just_attribute>{}(os, attr);
+        }
     }
 
     template<typename Attribute>
