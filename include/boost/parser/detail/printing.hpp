@@ -460,6 +460,11 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
+    template<typename T>
+    constexpr bool is_variant_v = false;
+    template<typename... Ts>
+    constexpr bool is_variant_v<std::variant<Ts...>> = true;
+
     template<typename Attribute>
     inline void print(std::ostream & os, Attribute const & attr)
     {

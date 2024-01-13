@@ -40,17 +40,6 @@ template<typename T>
 constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
 #endif
 
-#if TEST_BOOST_VARIANT
-template<typename... Ts>
-constexpr bool boost::parser::enable_variant<boost::variant<Ts...>> = true;
-#endif
-
-#if TEST_BOOST_VARIANT2
-template<typename... Ts>
-constexpr bool boost::parser::enable_variant<boost::variant2::variant<Ts...>> =
-    true;
-#endif
-
 
 struct s0_rule_tag
 {};

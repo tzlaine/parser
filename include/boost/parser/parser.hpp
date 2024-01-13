@@ -3375,18 +3375,7 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
-            if constexpr (detail::is_variant_v<Attribute>) {
-                detail::apply_parser(
-                    *this,
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    detail::set_in_apply_parser(flags),
-                    success,
-                    retval);
-            } else if constexpr (detail::is_optional_v<Attribute>) {
+            if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
                 call(
                     use_cbs, first_, last, context, skip, flags, success, attr);
