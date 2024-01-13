@@ -120,7 +120,7 @@ TEST(no_case, match_any_within_string)
         EXPECT_TRUE(*result == U'ß');
     }
     {
-        auto const result = parse(U"s", _trasse_p); // TODO
+        auto const result = parse(U"s", _trasse_p);
         EXPECT_TRUE(result);
         EXPECT_TRUE(*result == U's');
     }
@@ -130,7 +130,7 @@ TEST(no_case, match_any_within_string)
         EXPECT_EQ(*result, 's');
     }
     {
-        auto const result = parse(U"S", _trasse_p); // TODO
+        auto const result = parse(U"S", _trasse_p);
         EXPECT_TRUE(result);
         EXPECT_TRUE(*result == U'S');
     }

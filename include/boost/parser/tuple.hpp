@@ -16,9 +16,8 @@
 
 #else
 
-// Silence very verbose warnings about std::is_pod being deprecated.  TODO:
-// Remove this if/when Hana accepts releases the fix for this (already on
-// develop).
+// Silence very verbose warnings about std::is_pod/std::is_literal being
+// deprecated.
 #if defined(__GNUC__) || defined(__clang__)
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wdeprecated-declarations"

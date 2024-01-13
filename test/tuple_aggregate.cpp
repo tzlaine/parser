@@ -279,18 +279,6 @@ TEST(struct_tuple, seq_parser_struct_rule)
         EXPECT_EQ(get(struct_, llong<1>{}), "text");
         EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
     }
-#if 0 // TODO: Do we want to support this?  Probably not.  It would require us
-      // to make an operation equivalent to s0_like::operator=(s0 const &)
-      // work.
-    {
-        s0_like struct_;
-
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_rule, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
     {
         s1 struct_;
 

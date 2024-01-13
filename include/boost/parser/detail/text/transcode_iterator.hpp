@@ -2535,7 +2535,7 @@ namespace boost::parser::detail { namespace text {
                 typename Enable = std::enable_if_t<std::is_convertible_v<I2, I>>
 #endif
                 >
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS // TODO
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             requires std::convertible_to<I2, I>
 #endif
             first_and_curr(const first_and_curr<I2> & other) : curr{other.curr}
