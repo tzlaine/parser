@@ -7890,11 +7890,10 @@ namespace boost { namespace parser {
                 char const *,
                 context_t,
                 skipper_t> const;
-            using all_types = decltype(detail::hl::transform(
-                parsers, std::declval<use_parser_t>()));
-            auto all_types_wrapped =
-                detail::hl::transform(all_types{}, detail::wrap{});
-            auto first_non_nope = detail::hl::fold_left(
+            using all_types =
+                decltype(hl::transform(parsers, std::declval<use_parser_t>()));
+            auto all_types_wrapped = hl::transform(all_types{}, detail::wrap{});
+            auto first_non_nope = hl::fold_left(
                 all_types_wrapped,
                 wrapper<nope>{},
                 [=](auto result, auto type) {
@@ -7906,11 +7905,11 @@ namespace boost { namespace parser {
                 });
             using first_t = typename decltype(first_non_nope)::type;
             static_assert(
-                !detail::is_nope_v<first_t>,
+                !is_nope_v<first_t>,
                 "It looks like you wrote merge[p1 >> p2 >> ... pn], and none "
                 "of the parsers p1, p2, ... pn produces an attribute.  Please "
                 "fix.");
-            detail::hl::for_each(all_types_wrapped, [=]<class T>(T type) {
+            hl::for_each(all_types_wrapped, [=]<class T>(T type) {
                 using t = typename T::type;
                 if constexpr (!is_nope_v<t>) {
                     static_assert(
