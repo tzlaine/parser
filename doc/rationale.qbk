@@ -220,4 +220,59 @@ _Parser_ therefore makes the common case the default behavior, and provides
 you with the _merge_ and _sep_ directives to let you opt-in to generating the
 less-common attributes.
 
+[heading Attribute compatibility rules are more strict than in Spirit]
+
+Consider this parser.
+
+    namespace bp = boost::parser;
+    auto parser = -(bp::char_ % ',');
+
+But _Parser_ and Spirit consider the attribute type of this parser to be
+`optional<SEQ-OF<char>>`.  However, Spirit allows you to parse that into a
+`std::vector<char>` or a `std::string`, and _Parser_ does not.  _Parser_
+requires you to parse that into a `std::optional<std::string>`, or change the
+parser to `-(bp::char_ % ',') | bp::attr(std::string{})`.  In other words,
+Spirit considers an optional of a-sequence-of-one-or-more to be equivalent to
+just a sequence, because the empty state of the sequence represents the empty
+optional state.  _Parser_ does not.  Why the strictness?
+
+I understand why Spirit works that way _emdash_ there's no loss of
+information, so why not?  However, I don't agree with that approach.
+
+When I write `operator-`, I get a `std::optional`. That's a simple rule.
+
+If I did write `operator-`, I was opting in to getting a `std::optional`. The
+code expresses that intent.  If the library changes my written intent, there
+better be a damn good reason.
+
+There is of course an exception to the "simple rule" above -- if I write `-p1
+>> *p2`, and the `ATTR(p1)` is the same as `ATTR(p2)`, attributes are the
+same, the optional value gets slurped up into the container. I consider this a
+"damn good reason", because this is a very common use case.  For other,
+less-common cases, _sep_ can be used to keep the attributes non-combining. So
+`separate[-int_ >> *int_]` has the attribute `_bp_tup_<std::optional<int>,
+std::vector<int>>`.  This makes opting out of this exception very easy, and
+the intent remains visible in the code.
+
+By contrast, "I wrote `-+int_` but I really want a `std::vector<int>` instead
+of a `std::optional<std::vector<int>>`" is not a really common use case.
+
+Also, Spirit-style looseness is more complicated than `parser` above
+indicates.  Remember, `int_ | eps` and `-int_` are supposed to be semantically
+equivalent.  To do otherwise this would be a profound violation of the
+principle of least surprise.  So, if they're equivalent, we would need to
+apply the same rule to `int_ | eps`.  Also, we would probably need to apply it
+to `if_(cond)[int_]`, which is also a `std::optional<int>`.  This is a lot to
+remember, and this is complicated to implement and maintain.
+
+I've been using Spirit 1 and later Spirit 2 since they were released.  I did
+not know about the particular looseness discussed here; a user pointed it out
+on Github.  In many years of using these libraries, I never fully learned all
+the attribute-compatibility rules, and was often surprised by them.
+
+Having a small set of rules that the user can internalize is vital; if the
+attribute generated is different from my expressed intent, that's a problem.
+For this not to be a problem, I need to be able to understand the rules, so I
+can express my intent, and not be surprised.
+
 [endsect]

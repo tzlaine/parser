@@ -177,7 +177,7 @@ namespace boost { namespace parser {
     struct or_parser;
 
     /** Applies each parser in `ParserTuple`, in order.  The parse succeeds
-        iff all of the sub-parsers succeeds.  The attribute produced is a
+        iff all of the sub-parsers succeed.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in
         `ParserTuple`.  The BacktrackingTuple template parameter is a
         `parser::tuple` of `std::bool_constant` values.  The `i`th such value
@@ -214,12 +214,12 @@ namespace boost { namespace parser {
     /** Applies the given parser `p` of type `Parser`.  Regardless of the
         attribute produced by `Parser`, this parser's attribute is equivalent
         to `std::basic_string_view<char_type>` within a semantic action on
-        `p`, where `char_type` is the type of character in the underlying the
-        sequence being parsed.  If the parsed range is transcoded, `char_type`
-        will be the type being transcoded from.  If the underlying range of
-        `char_type` is non-contiguous, using `string_view_parser` is
-        ill-formed.  This is only available in C++20 and later.  The parse
-        succeeds iff `p` succeeds. */
+        `p`, where `char_type` is the type of character in the sequence being
+        parsed.  If the parsed range is transcoded, `char_type` will be the
+        type being transcoded from.  If the underlying range of `char_type` is
+        non-contiguous, code using `string_view_parser` is ill-formed.  The
+        parse succeeds iff `p` succeeds.  This parser is only available in
+        C++20 and later. */
     template<typename Parser>
     struct string_view_parser;
 #endif
@@ -245,7 +245,8 @@ namespace boost { namespace parser {
     struct skip_parser;
 
     /** Applies the given parser `p` of type `Parser`, producing no attributes
-        and consuming no input.  The parse succeeds iff `p` succeeds. */
+        and consuming no input.  The parse succeeds iff `p`'s success is
+        unequal to `FailOnMatch`. */
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
 
@@ -263,12 +264,12 @@ namespace boost { namespace parser {
         object of type `LocalState`, and a default-constructed object of type
         `ParamsTuple`, are added to the parse context before the associated
         parser is applied.  The parse succeeds iff `p` succeeds.  If
-        `CanUseCallbacks` is `true`, and within a call to `callback_parse()`,
-        the attribute is produced via callback; otherwise, the attribute is
-        produced as normal (as a return value, or as an out-param).  The rule
-        may be constructed with a user-friendly name that will appear if the
-        top-level parse is executed with `trace_mode ==
-        boost::parser::trace::on`. */
+        `CanUseCallbacks` is `true`, and if this parser is used within a call
+        to `callback_parse()`, the attribute is produced via callback;
+        otherwise, the attribute is produced as normal (as a return value, or
+        as an out-param).  The rule may be constructed with a user-friendly
+        name that will appear if the top-level parse is executed with
+        `trace_mode == boost::parser::trace::on`. */
     template<
         bool CanUseCallbacks,
         typename TagType,
@@ -288,7 +289,7 @@ namespace boost { namespace parser {
     struct eoi_parser;
 
     /** Matches anything, consumes no input, and produces an attribute of type
-        `Attribute`. */
+        `RESOLVE(Attribute)`. */
     template<typename Attribute>
     struct attr_parser;
 
@@ -297,7 +298,7 @@ namespace boost { namespace parser {
         attribute type is the decayed type of the matched code point.  The
         parse fails only if the parser is constructed with a specific set of
         expected code point values that does not include the matched code
-        point `CP`. */
+        point. */
     template<typename Expected, typename AttributeType = void>
     struct char_parser;
 
@@ -413,8 +414,8 @@ namespace boost { namespace parser {
     template<typename Context>
     decltype(auto) _attr(Context const & context);
 
-    /** Returns a `view` that describes the matched range of the bottommost
-        parser. */
+    /** Returns a `subrange` that describes the matched range of the
+        bottommost parser. */
     template<typename Context>
     decltype(auto) _where(Context const & context);
 
@@ -450,13 +451,13 @@ namespace boost { namespace parser {
     decltype(auto) _params(Context const & context);
 
     /** Returns a reference to the globals object associated with the
-        bottommost parser.  Returns `none` if there is no associated globals
+        top-level parser.  Returns `none` if there is no associated globals
         object. */
     template<typename Context>
     decltype(auto) _globals(Context const & context);
 
     /** Returns a reference to the error handler object associated with the
-        bottommost parser.  Returns `none` if there is no associated error
+        top-level parser.  Returns `none` if there is no associated error
         handler. */
     template<typename Context>
     decltype(auto) _error_handler(Context const & context);

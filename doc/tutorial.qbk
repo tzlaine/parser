@@ -393,9 +393,9 @@ error handler, and you want access to some part of it's interface besides
 
 [heading Accessors for data that are only sometimes available] 
 
-[heading _attr_]
+[heading __attr_]
 
-_attr_ returns a reference to the value of the current parser's attribute.  It
+__attr_ returns a reference to the value of the current parser's attribute.  It
 is available only when the current parser's parse is successful.  If the
 parser has no semantic action, no attribute gets added to the parse context.
 It can be used to read and write the current parser's attribute:
@@ -1097,7 +1097,7 @@ the input they match unless otherwise stated in the table below.]
     [[ _attr_np_`(arg0)` ]
      [ Always matches, and consumes no input.  Generates the attribute `_RES_np_(arg0)`. ]
      [ `decltype(_RES_np_(arg0))`. ]
-     []]
+     [ An important use case for `_attr_` is to provide a default attribute value as a trailing alternative.  For instance, an *optional* comma-delmited list is: `int_ % ',' | attr(std::vector<int>)`.  Without the "`| attr(...)`", at least one `int_` match would be required. ]]
 
     [[ _ch_ ]
      [ Matches any single code point. ]
@@ -1574,7 +1574,7 @@ consume the input they match unless otherwise stated in the table below.]
     [[`p1 > p2`] [ Matches iff `p1` matches and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
     [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 | p2`] [ Matches iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
+    [[`p1 | p2`] [ Matches iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes, and where the attribute types are different; see _attr_gen_ for the full rules. ]]
     [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p)`] []]
     [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p)`] []]
     [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
@@ -1848,6 +1848,9 @@ the following steps applied:
 
 * all the `none` attributes are left out, and if any are, the attribute is
   wrapped in a `std::optional`, like `std::optional<std::variant</*...*/>>`;
+
+* duplicates in the `std::variant` template parameters `<T1, T2, ... Tn>` are
+  removed; every type that appears does so exacly once;
 
 * if the attribute is `std::variant<T>` or `std::optional<std::variant<T>>`,
   the attribute becomes instead `T` or `std::optional<T>`, respectively; and
@@ -2218,6 +2221,45 @@ from this example:
   `char8_t`, _Parser_ assumes that this is a UTF-32-to-UTF-8 conversion, and
   silently transcodes the data when inserting into the new container.
 
+Let's look at a case where another simple-seeming type replacement does *not*
+work.  First, the case that works:
+
+    namespace bp = boost::parser;
+    auto parser = -(bp::char_ % ',');
+    std::vector<int> result;
+    auto b = bp::parse("a, b", parser, bp::ws, result);
+
+`ATTR(parser)` is `std::optional<std::string>`.  Even though we pass a
+`std::vector<int>`, everything is fine.  However, if we modify this case only
+sightly, so that the `std::optional<std::string>` is nested within the
+attribute, the code becomes ill-formed.
+
+    struct S
+    {
+        std::vector<int> chars;
+        int i;
+    };
+    namespace bp = boost::parser;
+    auto parser = -(bp::char_ % ',') >> bp::int_;
+    S result;
+    auto b = bp::parse("a, b 42", parser, bp::ws, result);
+
+If we change `chars` to a `std::vector<char>`, the code is still ill-formed.
+Same if we change `chars` to a `std::string`.  We must actually use
+`std::optional<std::string>` exactly to make the code well-formed again.
+
+The reason the same looseness from the top-level parser does not apply to a
+nested parser is that, at some point in the code, the parser `-(bp::char_ %
+',')` would try to assign a `std::optional<std::string>` _emdash_ the element
+type of the attribute type it normally generates _emdash_ to a `chars`.  If
+there's no implicit conversion there, the code is ill-formed.
+
+The take-away for this last example is that the ability to arbitrarily swap
+out data types within the type of the attribute you pass to _p_ is very
+flexible, but is also limited to structurally simple cases.  When we discuss
+_rs_ in the next section, we'll see how this flexibility in the types of
+attributes can help when writing complicated parsers.
+
 Those were examples of swapping out one container type for another.  They make
 good examples because that is more likely to be surprising, and so it's
 getting lots of coverage here.  You can also do much simpler things like parse
@@ -2510,7 +2552,7 @@ When it fails, it even produces nice diagnostics.
        ^
 ]
 
-Recursive _rs_ work differently to other parsers in one way: when re-entering
+Recursive _rs_ work differently from other parsers in one way: when re-entering
 the rule recursively, only the attribute variable (`_attr(ctx)` in your
 semantic actions) is unique to that instance of the rule.  All the other state
 of the uppermost instance of that rule is shared.  This includes the value of
@@ -2530,12 +2572,12 @@ Also, consider this rule:
     auto const ints_def = bp::int_ >> ints | bp::eps;
 
 What is the default attribute type for ints_def?  It sure looks like
-`_bp_tup_<std::vector<int>, int>`.  Inside the evaluation of `ints`, _Parser_
+`std::optional<std::vector<int>>`.  Inside the evaluation of `ints`, _Parser_
 must evaluate `ints_def`, and then produce a `std::vector<int>` _emdash_ the
 return type of `ints` _emdash_ from it.  How?  How do you turn a
-`_bp_tup_<std::vector<int>, int>` into a `std::vector<int>`?  To a human, it
-seems obvious, but the metaprogramming that generalizes from this simple
-example to the general case is certainly beyond me.
+`std::optional<std::vector<int>>` into a `std::vector<int>`?  To a human, it
+seems obvious, but the metaprogramming that properly handles this simple
+example and the general case is certainly beyond me.
 
 _Parser_ has a specific semantic for what consitutes a recursive rule.  Each
 rule has a tag type associated with it, and if _Parser_ enters a rule with a
