@@ -393,9 +393,9 @@ error handler, and you want access to some part of it's interface besides
 
 [heading Accessors for data that are only sometimes available] 
 
-[heading _attr_]
+[heading __attr_]
 
-_attr_ returns a reference to the value of the current parser's attribute.  It
+__attr_ returns a reference to the value of the current parser's attribute.  It
 is available only when the current parser's parse is successful.  If the
 parser has no semantic action, no attribute gets added to the parse context.
 It can be used to read and write the current parser's attribute:
@@ -1097,7 +1097,7 @@ the input they match unless otherwise stated in the table below.]
     [[ _attr_np_`(arg0)` ]
      [ Always matches, and consumes no input.  Generates the attribute `_RES_np_(arg0)`. ]
      [ `decltype(_RES_np_(arg0))`. ]
-     []]
+     [ An important use case for `_attr_` is to provide a default attribute value as a trailing alternative.  For instance, an *optional* comma-delmited list is: `int_ % ',' | attr(std::vector<int>)`.  Without the "`| attr(...)`", at least one `int_` match would be required. ]]
 
     [[ _ch_ ]
      [ Matches any single code point. ]
