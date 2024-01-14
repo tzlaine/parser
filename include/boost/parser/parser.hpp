@@ -1541,13 +1541,13 @@ namespace boost { namespace parser {
             static bool
             call(Context const & context, CharType c, Expected const & expected)
             {
-                auto const compare =
-                    detail::no_case_aware_compare<true>(context);
                 auto resolved = detail::resolve(context, expected);
                 if constexpr (is_detected_v<
                                   eq_comparable,
                                   CharType,
                                   decltype(resolved)>) {
+                    auto const compare =
+                        detail::no_case_aware_compare<true>(context);
                     return !compare(c, resolved);
                 } else {
                     return !resolved.contains(c, context);
