@@ -5263,7 +5263,6 @@ namespace boost { namespace parser {
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
 
-    // TODO: This needs tests!
 #if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
     /** The `string_view` directive, whose `operator[]` returns a
         `parser_interface<string_view_parser<P>>` from a given parser of type

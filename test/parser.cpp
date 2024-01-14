@@ -872,6 +872,146 @@ TEST(parser, raw)
     }
 }
 
+#if defined(__cpp_lib_concepts)
+TEST(parser, string_view)
+{
+    {
+        constexpr auto parser = string_view[*string("zs")];
+        using range_t = std::string_view;
+
+        {
+            std::string const str = "";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_EQ(r, "");
+        }
+        {
+            std::string const str = "z";
+            range_t r;
+            EXPECT_FALSE(parse(str, parser, r));
+            EXPECT_EQ(r, "");
+        }
+        {
+            std::string const str = "z";
+            range_t r;
+            auto first = str.begin();
+            EXPECT_TRUE(prefix_parse(first, str.end(), parser, r));
+            EXPECT_EQ(r, "");
+        }
+        {
+            std::string const str = "zs";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_EQ(r, "zs");
+        }
+        {
+            std::string const str = "zszs";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_EQ(r, "zszs");
+        }
+        {
+            std::string const str = "";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "");
+        }
+        {
+            std::string const str = "z";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_FALSE(result);
+        }
+        {
+            std::string const str = "z";
+            auto first = str.begin();
+            std::optional<range_t> result =
+                prefix_parse(first, str.end(), parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "");
+        }
+        {
+            std::string const str = "zs";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "zs");
+        }
+        {
+            std::string const str = "zszs";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "zszs");
+        }
+    }
+    {
+        constexpr auto parser = string_view[*string("zs")];
+        using range_t = std::u32string_view;
+
+        {
+            std::u32string const str = U"";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_TRUE(r == U"");
+        }
+        {
+            std::u32string const str = U"z";
+            range_t r;
+            EXPECT_FALSE(parse(str, parser, r));
+            EXPECT_TRUE(r == U"");
+        }
+        {
+            std::u32string const str = U"z";
+            range_t r;
+            auto first = str.begin();
+            EXPECT_TRUE(prefix_parse(first, str.end(), parser, r));
+            EXPECT_TRUE(r == U"");
+        }
+        {
+            std::u32string const str = U"zs";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_TRUE(r == U"zs");
+        }
+        {
+            std::u32string const str = U"zszs";
+            range_t r;
+            EXPECT_TRUE(parse(str, parser, r));
+            EXPECT_TRUE(r == U"zszs");
+        }
+        {
+            std::u32string const str = U"";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_TRUE(*result == U"");
+        }
+        {
+            std::u32string const str = U"z";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_FALSE(result);
+        }
+        {
+            std::u32string const str = U"z";
+            auto first = str.begin();
+            std::optional<range_t> result =
+                prefix_parse(first, str.end(), parser);
+            EXPECT_TRUE(result);
+            EXPECT_TRUE(*result == U"");
+        }
+        {
+            std::u32string const str = U"zs";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_TRUE(*result == U"zs");
+        }
+        {
+            std::u32string const str = U"zszs";
+            std::optional<range_t> result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_TRUE(*result == U"zszs");
+        }
+    }
+}
+#endif
+
 TEST(parser, delimited)
 {
     {
