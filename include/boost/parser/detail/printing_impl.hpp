@@ -59,8 +59,12 @@ namespace boost { namespace parser { namespace detail {
     struct n_aray_parser<or_parser<ParserTuple>> : std::true_type
     {};
 
-    template<typename ParserTuple, typename BacktrackingTuple>
-    struct n_aray_parser<seq_parser<ParserTuple, BacktrackingTuple>>
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
+    struct n_aray_parser<
+        seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups>>
         : std::true_type
     {};
 
@@ -181,34 +185,51 @@ namespace boost { namespace parser { namespace detail {
         });
     }
 
-    template<typename Context, typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename Context,
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     void print_parser(
         Context const & context,
-        seq_parser<ParserTuple, BacktrackingTuple> const & parser,
+        seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups> const &
+            parser,
         std::ostream & os,
         int components)
     {
+        int prev_group = 0;
         int i = 0;
         bool printed_ellipsis = false;
+        using combining_groups =
+            detail::combining_t<ParserTuple, CombiningGroups>;
         hl::for_each(
-            hl::zip(parser.parsers_, BacktrackingTuple{}),
+            hl::zip(parser.parsers_, BacktrackingTuple{}, combining_groups{}),
             [&](auto const & parser_and_backtrack) {
                 using namespace literals;
                 auto const & parser = parser::get(parser_and_backtrack, 0_c);
                 auto const backtrack = parser::get(parser_and_backtrack, 1_c);
+                auto const group = parser::get(parser_and_backtrack, 2_c);
 
                 if (components == parser_component_limit) {
-                    if (!printed_ellipsis)
+                    if (!printed_ellipsis) {
                         os << (backtrack ? " >> ..." : " > ...");
+                    }
                     printed_ellipsis = true;
                     return;
                 }
+                if (group != prev_group && prev_group)
+                    os << ']';
                 if (i)
                     os << (backtrack ? " >> " : " > ");
+                if (group != prev_group && group)
+                    os << (group == -1 ? "separate[" : "merge[");
                 detail::print_parser(context, parser, os, components);
                 ++components;
                 ++i;
+                prev_group = group;
             });
+        if (prev_group && !printed_ellipsis)
+            os << ']';
     }
 
     template<typename Context, typename Parser, typename Action>
@@ -786,10 +807,15 @@ namespace boost { namespace parser { namespace detail {
         os << "double_";
     }
 
-    template<typename Context, typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename Context,
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     void print_switch_matchers(
         Context const & context,
-        seq_parser<ParserTuple, BacktrackingTuple> const & parser,
+        seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups> const &
+            parser,
         std::ostream & os,
         int components)
     {

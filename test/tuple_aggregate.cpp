@@ -40,17 +40,6 @@ template<typename T>
 constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
 #endif
 
-#if TEST_BOOST_VARIANT
-template<typename... Ts>
-constexpr bool boost::parser::enable_optional<boost::variant<Ts...>> = true;
-#endif
-
-#if TEST_BOOST_VARIANT2
-template<typename... Ts>
-constexpr bool boost::parser::enable_optional<boost::variant2::variant<Ts...>> =
-    true;
-#endif
-
 
 struct s0_rule_tag
 {};
@@ -290,18 +279,6 @@ TEST(struct_tuple, seq_parser_struct_rule)
         EXPECT_EQ(get(struct_, llong<1>{}), "text");
         EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
     }
-#if 0 // TODO: Do we want to support this?  Probably not.  It would require us
-      // to make an operation equivalent to s0_like::operator=(s0 const &)
-      // work.
-    {
-        s0_like struct_;
-
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_rule, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
     {
         s1 struct_;
 
@@ -1218,19 +1195,6 @@ TEST(struct_tuple, seq_parser_struct_cb_rule)
         EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
     }
 }
-
-#if TEST_BOOST_OPTIONAL
-// This only exists to unbreak the printing of
-// boost::optional<std::vector<int>> in the trace logic.
-namespace boost {
-    std::ostream &
-    operator<<(std::ostream & os, boost::optional<std::vector<int>> const & vec)
-    {
-        return os;
-    }
-}
-#endif
-// TODO: Document that boost::optional badly breaks the tracing logic.
 
 TEST(struct_tuple, parse_into_struct)
 {

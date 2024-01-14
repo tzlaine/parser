@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
+#include <variant>
 
 
 namespace boost::parser::detail { namespace text {
@@ -24,7 +26,20 @@ namespace boost { namespace parser {
         type, iff the pointer is null. */
     using null_sentinel_t = boost::parser::detail::text::null_sentinel_t;
 
+    /** A variable template that indicates that type `T` is an optional-like
+        type. */
+    template<typename T>
+    constexpr bool enable_optional = false;
+
+#ifndef BOOST_PARSER_DOXYGEN
+    template<typename T>
+    constexpr bool enable_optional<std::optional<T>> = true;
+#endif
+
     namespace detail {
+        template<typename T>
+        constexpr bool is_optional_v = enable_optional<T>;
+
         struct nope;
 
         enum class flags : unsigned int {
@@ -168,7 +183,10 @@ namespace boost { namespace parser {
         `parser::tuple` of `std::bool_constant` values.  The `i`th such value
         indicates whether backtracking is allowed if the `i`th parser
         fails. */
-    template<typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     struct seq_parser;
 
     /** Applies the given parser `p` of type `Parser` and an invocable `a` of

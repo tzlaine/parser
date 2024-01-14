@@ -96,41 +96,6 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 #endif
 
-#if 0 // TODO
-    template<typename...>
-    struct void_
-    {
-        using type = void;
-        static constexpr bool value = true;
-    };
-
-    template<typename... T>
-    using void_t = typename void_<T...>::type;
-
-    template<typename T>
-    struct fixup_ptr
-    {
-        using type = T;
-    };
-
-    template<typename T>
-    using remove_v_t = typename std::remove_volatile<T>::type;
-
-    template<typename T>
-    struct fixup_ptr<T *>
-    {
-        using type = remove_v_t<T> const *;
-    };
-
-    template<typename T>
-    using fixup_ptr_t = typename fixup_ptr<T>::type;
-
-    template<typename T>
-    using remove_cv_ref_t =
-        typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-#endif
-
-
     template<typename T>
     using has_begin = decltype(*detail::begin(std::declval<T &>()));
     template<typename T>

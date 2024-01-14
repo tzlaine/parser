@@ -31,6 +31,7 @@ add_executable(
     compile_attribute.cpp
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
+    compile_combining_groups.cpp
 )
 set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(compile_tests parser)
@@ -44,15 +45,6 @@ macro(add_test_executable name)
     endif ()
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
-
-# Disabling these.  They served their purpose, but take too long to build and
-# run.  They also require a patched version of Boost.Hana, as of Boost 1.74:
-# https://github.com/boostorg/hana/issues/470.
-#file(GLOB generated_parser_tests generated_parsers_???.cpp)
-#foreach(test ${generated_parser_tests})
-#    get_filename_component(test_name ${test} NAME_WE)
-#    add_test_executable(${test_name})
-#endforeach()
 
 add_test_executable(hl)
 add_test_executable(aggr_tuple_assignment)
@@ -68,3 +60,4 @@ add_test_executable(parse_empty)
 add_test_executable(tuple_aggregate)
 add_test_executable(case_fold_generated)
 add_test_executable(no_case)
+add_test_executable(merge_separate)

@@ -19,7 +19,6 @@
 
 namespace boost::parser::detail { namespace text {
 
-    // TODO: Should this live somewhere else?
     template<typename Range>
     struct utf_range_like_iterator
     {

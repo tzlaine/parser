@@ -91,7 +91,6 @@ namespace boost::parser::detail { namespace text {
         }
     };
 
-    // TODO: This specialization is inexplicably assignable.
     template<typename T>
     struct optional_ref<T, true>
     {
@@ -349,11 +348,6 @@ namespace boost::parser::detail { namespace text {
             return !(lhs == rhs);
         }
     };
-
-    // TODO: KeyIter, KeyRange, and Range concepts.
-    // TODO: Key concept specifying that Key is a container.
-    // TODO: Compare concept specifying that Compare compares Key::value_types.
-    // Don't forget to mention that Compare must be statically polymorphic.
 
     /** A trie, or prefix-tree.  A trie contains a set of keys, each of which
         is a sequence, and a set of values, each associated with some key.

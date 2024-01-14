@@ -11,7 +11,6 @@
 #if __has_include(<boost/optional/optional.hpp>)
 #define TEST_BOOST_OPTIONAL 1
 #include <boost/optional/optional.hpp>
-#include <boost/optional/optional_io.hpp>
 #else
 #define TEST_BOOST_OPTIONAL 0
 #endif

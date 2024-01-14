@@ -6,10 +6,12 @@
 void compile_attribute();
 void compile_seq_attribute();
 void compile_or_attribute();
+void compile_combining_groups();
 
 int main()
 {
     compile_attribute();
     compile_seq_attribute();
     compile_or_attribute();
+    compile_combining_groups();
 }

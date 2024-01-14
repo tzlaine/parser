@@ -23,23 +23,6 @@
 
 namespace boost { namespace parser {
 
-    /** A variable template that indicates that type `T` is an optional-like
-        type. */
-    template<typename T>
-    constexpr bool enable_optional = false;
-
-    /** A variable template that indicates that type `T` is an variant-like
-        type. */
-    template<typename T>
-    constexpr bool enable_variant = false;
-
-#ifndef BOOST_PARSER_DOXYGEN
-    template<typename T>
-    constexpr bool enable_optional<std::optional<T>> = true;
-    template<typename... Ts>
-    constexpr bool enable_variant<std::variant<Ts...>> = true;
-#endif
-
     /** A placeholder type used to represent the absence of information,
         value, etc., inside semantic actions.  For instance, calling
         `_locals(ctx)` in a semantic action associated with a parser that has
@@ -911,8 +894,8 @@ namespace boost { namespace parser {
         template<typename T>
         struct is_seq_p : std::false_type
         {};
-        template<typename T, typename U>
-        struct is_seq_p<seq_parser<T, U>> : std::true_type
+        template<typename T, typename U, typename V>
+        struct is_seq_p<seq_parser<T, U, V>> : std::true_type
         {};
 
         template<typename T>
@@ -921,12 +904,6 @@ namespace boost { namespace parser {
         template<typename T>
         struct is_one_plus_p<one_plus_parser<T>> : std::true_type
         {};
-
-        template<typename T>
-        constexpr bool is_optional_v = enable_optional<T>;
-
-        template<typename T>
-        constexpr bool is_variant_v = enable_variant<T>;
 
         template<typename T>
         struct is_utf8_view : std::false_type
@@ -1564,13 +1541,13 @@ namespace boost { namespace parser {
             static bool
             call(Context const & context, CharType c, Expected const & expected)
             {
-                auto const compare =
-                    detail::no_case_aware_compare<true>(context);
                 auto resolved = detail::resolve(context, expected);
                 if constexpr (is_detected_v<
                                   eq_comparable,
                                   CharType,
                                   decltype(resolved)>) {
+                    auto const compare =
+                        detail::no_case_aware_compare<true>(context);
                     return !compare(c, resolved);
                 } else {
                     return !resolved.contains(c, context);
@@ -3082,17 +3059,29 @@ namespace boost { namespace parser {
         ParserTuple parsers_;
     };
 
-    template<typename ParserTuple, typename BacktrackingTuple>
-    struct seq_parser
-    {
-        using backtracking = BacktrackingTuple;
+    namespace detail {
+        template<int N, int... I>
+        constexpr auto
+        make_default_combining_impl(std::integer_sequence<int, I...>)
+        {
+            return hl::make_tuple(((void)I, llong<N>{})...);
+        }
+        template<template<class...> class Tuple, typename... Args>
+        constexpr auto make_default_combining(Tuple<Args...>)
+        {
+            return detail::make_default_combining_impl<0>(
+                std::make_integer_sequence<int, sizeof...(Args)>());
+        }
+        template<typename ParserTuple>
+        using default_combining_t = decltype(detail::make_default_combining(
+            std::declval<ParserTuple>()));
 
-        constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
-
-#ifndef BOOST_PARSER_DOXYGEN
-
-        static constexpr auto true_ = std::true_type{};
-        static constexpr auto false_ = std::false_type{};
+        struct default_combine_t
+        {};
+        struct merge_t
+        {};
+        struct separate_t
+        {};
 
         template<
             bool UseCallbacks,
@@ -3136,29 +3125,199 @@ namespace boost { namespace parser {
             bool & success_;
         };
 
+        template<typename... Args>
+        constexpr void static_assert_merge_attributes(tuple<Args...> parsers);
+
+        // Combining groups are: 0, which is default merge behavior, as in
+        // seq_parser::combine; -1, which is don't merge with anything, ever;
+        // and N>0, which is merge with other members of group N.
+        template<typename CombiningGroups, typename... Args>
+        constexpr auto make_combining(tuple<Args...> parsers)
+        {
+            if constexpr (std::is_same_v<CombiningGroups, default_combine_t>) {
+                return detail::make_default_combining_impl<0>(
+                    std::make_integer_sequence<int, sizeof...(Args)>());
+            } else if constexpr (std::is_same_v<CombiningGroups, merge_t>) {
+                detail::static_assert_merge_attributes(parsers);
+                return detail::make_default_combining_impl<1>(
+                    std::make_integer_sequence<int, sizeof...(Args)>());
+            } else if constexpr (std::is_same_v<CombiningGroups, separate_t>) {
+                return detail::make_default_combining_impl<-1>(
+                    std::make_integer_sequence<int, sizeof...(Args)>());
+            } else {
+                return CombiningGroups{};
+            }
+        }
+        template<typename ParserTuple, typename CombiningGroups>
+        using combining_t = decltype(detail::make_combining<CombiningGroups>(
+            std::declval<ParserTuple>()));
+
+        struct max_
+        {
+            template<typename T, typename U>
+            constexpr auto operator()(T x, U y) const
+            {
+                if constexpr (T::value < U::value)
+                    return y;
+                else
+                    return x;
+            }
+        };
+        template<int MaxGroupIdx>
+        struct adjust_combining_groups
+        {
+            template<typename T, typename U>
+            constexpr auto operator()(T result, U x) const
+            {
+                if constexpr (U::value <= 0)
+                    return hl::append(result, x);
+                else
+                    return hl::append(result, llong<MaxGroupIdx + U::value>{});
+            }
+        };
+        template<typename Tuple1, typename Tuple2>
+        constexpr auto make_combined_combining(Tuple1 lhs, Tuple2 rhs)
+        {
+            auto max_group_idx = detail::hl::fold_left(lhs, llong<0>{}, max_{});
+            auto rhs_adjusted = detail::hl::fold_left(
+                rhs,
+                tuple<>{},
+                adjust_combining_groups<decltype(max_group_idx)::value>{});
+            return hl::concat(lhs, rhs_adjusted);
+        }
+        template<typename CombiningGroups1, typename CombiningGroups2>
+        using combined_combining_t = decltype(detail::make_combined_combining(
+            std::declval<CombiningGroups1>(),
+            std::declval<CombiningGroups2>()));
+    }
+
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
+    struct seq_parser
+    {
+        using backtracking = BacktrackingTuple;
+        using combining_groups = CombiningGroups;
+
+        constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+        static constexpr auto true_ = std::true_type{};
+        static constexpr auto false_ = std::false_type{};
+
+        enum class merge_kind
+        {
+            singleton,
+            merged,
+            group
+        };
+
+        template<merge_kind Kind>
+        struct merge_kind_t
+        {
+            static constexpr merge_kind kind = Kind;
+        };
+
+        template<merge_kind Kind>
+        static constexpr auto wrap = merge_kind_t<Kind>{};
+
         struct combine
         {
             template<typename T, typename U>
-            auto operator()(T result_and_indices, U x) const
+            auto operator()(
+                T result_merging_indices_and_prev_group, U x_and_group) const
             {
-                auto result = parser::get(result_and_indices, llong<0>{});
-                using result_back_type = typename std::decay_t<decltype(
-                    detail::hl::back(result))>::type;
+                using namespace literals;
+
+                auto x = parser::get(x_and_group, 0_c);
+                auto group = parser::get(x_and_group, 1_c);
+
+                auto result =
+                    parser::get(result_merging_indices_and_prev_group, 0_c);
+                using result_back_type =
+                    typename std::decay_t<decltype(detail::hl::back(
+                        result))>::type;
                 using unwrapped_optional_result_back_type =
                     detail::unwrapped_optional_t<result_back_type>;
 
-                auto indices = parser::get(result_and_indices, llong<1>{});
+                auto merging =
+                    parser::get(result_merging_indices_and_prev_group, 1_c);
+                auto indices =
+                    parser::get(result_merging_indices_and_prev_group, 2_c);
+                auto prev_group =
+                    parser::get(result_merging_indices_and_prev_group, 3_c);
 
                 using x_type = typename decltype(x)::type;
                 using unwrapped_optional_x_type =
                     detail::unwrapped_optional_t<x_type>;
 
                 if constexpr (detail::is_nope_v<x_type>) {
-                    // T >> nope -> T
+                    if constexpr (
+                        !detail::is_nope_v<result_back_type> &&
+                        0 < decltype(group)::value &&
+                        decltype(group)::value != decltype(prev_group)::value) {
+                        // T >> merge[nope >> ...] -> nope
+                        // This is a very special case.  If we see a nope at
+                        // the begining of a group, and there's a non-nope
+                        // before it, we put the nope in place in the result
+                        // tuple temporarily, knowing that a non-nope will
+                        // come along later in the group to replace it.
+                        return detail::hl::make_tuple(
+                            detail::hl::append(result, x),
+                            detail::hl::append(
+                                merging, wrap<merge_kind::singleton>),
+                            detail::hl::append(
+                                indices, detail::hl::size(result)),
+                            group);
+                    } else {
+                        // T >> nope -> T
+                        return detail::hl::make_tuple(
+                            result,
+                            detail::hl::append(
+                                merging, wrap<merge_kind::singleton>),
+                            detail::hl::append(
+                                indices, detail::hl::size_minus_one(result)),
+                            prev_group);
+                    }
+                } else if constexpr (detail::is_nope_v<result_back_type>) {
+                    // tuple<nope> >> T -> tuple<T>
                     return detail::hl::make_tuple(
-                        result,
+                        detail::hl::append(detail::hl::drop_back(result), x),
                         detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
+                            merging, wrap<merge_kind::singleton>),
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)),
+                        group);
+                } else if constexpr (
+                    decltype(group)::value == -1 ||
+                    decltype(group)::value != decltype(prev_group)::value) {
+                    return detail::hl::make_tuple(
+                        detail::hl::append(result, x),
+                        detail::hl::append(
+                            merging, wrap<merge_kind::singleton>),
+                        detail::hl::append(indices, detail::hl::size(result)),
+                        group);
+                } else if constexpr (0 < decltype(group)::value) {
+                    if constexpr (
+                        decltype(prev_group)::value == decltype(group)::value) {
+                        return detail::hl::make_tuple(
+                            result,
+                            detail::hl::append(
+                                merging, wrap<merge_kind::group>),
+                            detail::hl::append(
+                                indices, detail::hl::size_minus_one(result)),
+                            group);
+                    } else {
+                        return detail::hl::make_tuple(
+                            detail::hl::append(result, x),
+                            detail::hl::append(
+                                merging, wrap<merge_kind::group>),
+                            detail::hl::append(
+                                indices, detail::hl::size(result)),
+                            group);
+                    }
                 } else if constexpr (
                     detail::is_char_type_v<result_back_type> &&
                     (detail::is_char_type_v<x_type> ||
@@ -3169,7 +3328,13 @@ namespace boost { namespace parser {
                             detail::hl::drop_back(result),
                             detail::wrapper<std::string>{}),
                         detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
+                            detail::hl::append(
+                                detail::hl::drop_front(merging),
+                                wrap<merge_kind::merged>),
+                            wrap<merge_kind::merged>),
+                        detail::hl::append(
+                            indices, detail::hl::size_minus_one(result)),
+                        group);
                 } else if constexpr (
                     detail::
                         container_and_value_type<result_back_type, x_type> ||
@@ -3180,8 +3345,10 @@ namespace boost { namespace parser {
                     // C<T> >> optional<T> -> C<T>
                     return detail::hl::make_tuple(
                         result,
+                        detail::hl::append(merging, wrap<merge_kind::merged>),
                         detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
+                            indices, detail::hl::size_minus_one(result)),
+                        group);
                 } else if constexpr (
                     detail::
                         container_and_value_type<x_type, result_back_type> ||
@@ -3193,49 +3360,34 @@ namespace boost { namespace parser {
                     return detail::hl::make_tuple(
                         detail::hl::append(detail::hl::drop_back(result), x),
                         detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
-                } else if constexpr (detail::is_nope_v<result_back_type>) {
-                    // tuple<nope> >> T -> tuple<T>
-                    return detail::hl::make_tuple(
-                        detail::hl::append(detail::hl::drop_back(result), x),
+                            detail::hl::append(
+                                detail::hl::drop_front(merging),
+                                wrap<merge_kind::merged>),
+                            wrap<merge_kind::singleton>),
                         detail::hl::append(
-                            indices, detail::hl::size_minus_one(result)));
+                            indices, detail::hl::size_minus_one(result)),
+                        group);
                 } else {
                     // tuple<Ts...> >> T -> tuple<Ts..., T>
                     return detail::hl::make_tuple(
                         detail::hl::append(result, x),
-                        detail::hl::append(indices, detail::hl::size(result)));
+                        detail::hl::append(
+                            merging, wrap<merge_kind::singleton>),
+                        detail::hl::append(indices, detail::hl::size(result)),
+                        group);
                 }
             }
         };
 
-        struct find_merged
+        template<long long I>
+        static constexpr auto
+        merging_from_group(integral_constant<long long, I>)
         {
-            template<typename T, typename U>
-            auto operator()(T final_types_and_result, U x_and_index) const
-            {
-                auto final_types =
-                    parser::get(final_types_and_result, llong<0>{});
-                auto result = parser::get(final_types_and_result, llong<1>{});
-
-                auto index = parser::get(x_and_index, llong<1>{});
-                auto x_type_wrapper = parser::get(x_and_index, llong<0>{});
-                auto type_at_index_wrapper = parser::get(final_types, index);
-                using x_type = typename decltype(x_type_wrapper)::type;
-                using type_at_index =
-                    typename decltype(type_at_index_wrapper)::type;
-
-                if constexpr (
-                    !std::is_same_v<x_type, type_at_index> &&
-                    container<type_at_index>) {
-                    return detail::hl::make_tuple(
-                        final_types, detail::hl::append(result, true_));
-                } else {
-                    return detail::hl::make_tuple(
-                        final_types, detail::hl::append(result, false_));
-                }
-            }
-        };
+            if constexpr (0 < I)
+                return wrap<merge_kind::group>;
+            else
+                return wrap<merge_kind::singleton>;
+        }
 
         // Returns the tuple of values produced by this parser, and the
         // indices into that tuple that each parser should use in turn.  The
@@ -3255,7 +3407,9 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            dummy_use_parser_t<
+            using namespace literals;
+
+            detail::dummy_use_parser_t<
                 UseCallbacks,
                 Iter,
                 Sentinel,
@@ -3271,34 +3425,35 @@ namespace boost { namespace parser {
             using all_types_wrapped =
                 decltype(detail::hl::transform(all_types{}, detail::wrap{}));
 
+            using combining_groups =
+                detail::combining_t<ParserTuple, CombiningGroups>;
+            constexpr auto first_group = detail::hl::front(combining_groups{});
+
             // Generate a tuple of outputs; the index that each parser should
             // use to write into its output; and whether the attribute for
             // each parser was merged into an adjacent container-attribute.
             constexpr auto combine_start = detail::hl::make_tuple(
                 detail::hl::make_tuple(detail::hl::front(all_types_wrapped{})),
-                tuple<llong<0>>{});
+                detail::hl::make_tuple(merging_from_group(first_group)),
+                tuple<llong<0>>{},
+                first_group);
             using combined_types = decltype(detail::hl::fold_left(
-                detail::hl::drop_front(all_types_wrapped{}),
+                detail::hl::zip(
+                    detail::hl::drop_front(all_types_wrapped{}),
+                    detail::hl::drop_front(combining_groups{})),
                 combine_start,
                 combine{}));
 
             // Unwrap the result tuple's types.
             constexpr auto result_type_wrapped =
-                parser::get(combined_types{}, llong<0>{});
+                parser::get(combined_types{}, 0_c);
             using result_type = decltype(detail::hl::transform(
                 result_type_wrapped, detail::unwrap{}));
 
-            using indices = decltype(parser::get(combined_types{}, llong<1>{}));
-
-            constexpr auto find_merged_start =
-                detail::hl::make_tuple(result_type_wrapped, tuple<>{});
-            using merged = decltype(detail::hl::fold_left(
-                detail::hl::zip(all_types_wrapped{}, indices{}),
-                find_merged_start,
-                find_merged{}));
+            using indices = decltype(parser::get(combined_types{}, 2_c));
 
             return detail::hl::make_tuple(
-                result_type{}, indices{}, parser::get(merged{}, llong<1>{}));
+                result_type{}, indices{}, parser::get(combined_types{}, 1_c));
         }
 
 #endif
@@ -3398,18 +3553,7 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
-            if constexpr (detail::is_variant_v<Attribute>) {
-                detail::apply_parser(
-                    *this,
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    detail::set_in_apply_parser(flags),
-                    success,
-                    retval);
-            } else if constexpr (detail::is_optional_v<Attribute>) {
+            if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
                 call(
                     use_cbs, first_, last, context, skip, flags, success, attr);
@@ -3503,10 +3647,12 @@ namespace boost { namespace parser {
 
                 auto const & parser =
                     parser::get(parser_index_merged_and_backtrack, 0_c);
-                auto was_merged =
+                auto merge_kind_t_ =
                     parser::get(parser_index_merged_and_backtrack, 2_c);
-                constexpr auto was_merged_into_adjacent_container =
-                    std::is_same_v<decltype(was_merged), std::true_type>;
+                constexpr bool was_merged_into_adjacent_container =
+                    decltype(merge_kind_t_)::kind == merge_kind::merged;
+                constexpr bool is_in_a_group =
+                    decltype(merge_kind_t_)::kind == merge_kind::group;
                 bool const can_backtrack =
                     parser::get(parser_index_merged_and_backtrack, 3_c);
 
@@ -3533,6 +3679,7 @@ namespace boost { namespace parser {
                     "because you passed an out-param to parse() at the top "
                     "level that is not compatible with the attribute type "
                     "generated by the parser you passed to parse().");
+                // TODO: Cause the type to be printed here.
                 auto & out = parser::get(retval, tuple_idx);
 
                 using attr_t = decltype(parser.call(
@@ -3542,8 +3689,9 @@ namespace boost { namespace parser {
                 constexpr bool attr_container = container<attr_t>;
 
                 if constexpr (
-                    out_container == attr_container &&
-                    !was_merged_into_adjacent_container) {
+                    (out_container == attr_container &&
+                     !was_merged_into_adjacent_container) ||
+                    is_in_a_group) {
                     parser.call(
                         use_cbs,
                         first,
@@ -4475,7 +4623,8 @@ namespace boost { namespace parser {
             } else {
                 using parser_t = seq_parser<
                     tuple<parser_type, ParserType2>,
-                    tuple<std::true_type, std::true_type>>;
+                    tuple<std::true_type, std::true_type>,
+                    tuple<llong<0>, llong<0>>>;
                 return parser::parser_interface{parser_t{
                     tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
@@ -4517,7 +4666,8 @@ namespace boost { namespace parser {
             } else {
                 using parser_t = seq_parser<
                     tuple<parser_type, ParserType2>,
-                    tuple<std::true_type, std::false_type>>;
+                    tuple<std::true_type, std::false_type>,
+                    tuple<llong<0>, llong<0>>>;
                 return parser::parser_interface{parser_t{
                     tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
             }
@@ -5017,11 +5167,19 @@ namespace boost { namespace parser {
         }
     }
 
-    template<typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     template<bool AllowBacktracking, typename Parser>
-    constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::prepend(
+    constexpr auto
+    seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
+        using combining_groups =
+            detail::combining_t<ParserTuple, CombiningGroups>;
+        using final_combining_groups =
+            decltype(detail::hl::prepend(combining_groups{}, llong<0>{}));
         using backtracking = decltype(detail::hl::prepend(
             detail::hl::prepend(
                 detail::hl::drop_front(BacktrackingTuple{}),
@@ -5029,30 +5187,46 @@ namespace boost { namespace parser {
             std::true_type{}));
         using parser_t = seq_parser<
             decltype(detail::hl::prepend(parsers_, parser.parser_)),
-            backtracking>;
+            backtracking,
+            final_combining_groups>;
         return parser_interface{
             parser_t{detail::hl::prepend(parsers_, parser.parser_)}};
     }
 
-    template<typename ParserTuple, typename BacktrackingTuple>
+    template<
+        typename ParserTuple,
+        typename BacktrackingTuple,
+        typename CombiningGroups>
     template<bool AllowBacktracking, typename Parser>
-    constexpr auto seq_parser<ParserTuple, BacktrackingTuple>::append(
+    constexpr auto
+    seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups>::append(
         parser_interface<Parser> parser) const noexcept
     {
+        using combining_groups =
+            detail::combining_t<ParserTuple, CombiningGroups>;
         if constexpr (detail::is_seq_p<Parser>{}) {
+            using parser_combining_groups = detail::combining_t<
+                decltype(parser.parser_.parsers_),
+                typename Parser::combining_groups>;
+            using final_combining_groups = detail::
+                combined_combining_t<combining_groups, parser_combining_groups>;
             using backtracking = decltype(detail::hl::concat(
                 BacktrackingTuple{}, typename Parser::backtracking{}));
             using parser_t = seq_parser<
                 decltype(detail::hl::concat(parsers_, parser.parser_.parsers_)),
-                backtracking>;
+                backtracking,
+                final_combining_groups>;
             return parser_interface{parser_t{
                 detail::hl::concat(parsers_, parser.parser_.parsers_)}};
         } else {
+            using final_combining_groups =
+                decltype(detail::hl::append(combining_groups{}, llong<0>{}));
             using backtracking = decltype(detail::hl::append(
                 BacktrackingTuple{}, std::bool_constant<AllowBacktracking>{}));
             using parser_t = seq_parser<
                 decltype(detail::hl::append(parsers_, parser.parser_)),
-                backtracking>;
+                backtracking,
+                final_combining_groups>;
             return parser_interface{
                 parser_t{detail::hl::append(parsers_, parser.parser_)}};
         }
@@ -5076,30 +5250,30 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The `omit` directive, whose `operator[]` returns an
+    /** The `omit` directive, whose `operator[]` returns a
         `parser_interface<omit_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<omit_parser> omit;
 
-    /** The `raw` directive, whose `operator[]` returns an
+    /** The `raw` directive, whose `operator[]` returns a
         `parser_interface<raw_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
 
     // TODO: This needs tests!
 #if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
-    /** The `string_view` directive, whose `operator[]` returns an
+    /** The `string_view` directive, whose `operator[]` returns a
         `parser_interface<string_view_parser<P>>` from a given parser of type
         `parser_interface<P>`.  This is only available in C++20 and later. */
     inline constexpr directive<string_view_parser> string_view;
 #endif
 
-    /** The `lexeme` directive, whose `operator[]` returns an
+    /** The `lexeme` directive, whose `operator[]` returns a
         `parser_interface<lexeme_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<lexeme_parser> lexeme;
 
-    /** The `no_case` directive, whose `operator[]` returns an
+    /** The `no_case` directive, whose `operator[]` returns a
         `parser_interface<no_case_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr directive<no_case_parser> no_case;
@@ -5123,7 +5297,7 @@ namespace boost { namespace parser {
     };
 
     /** Returns a `repeat_directive` that repeats exactly `n` times, and whose
-        `operator[]` returns an `parser_interface<repeat_parser<P>>` from a
+        `operator[]` returns a `parser_interface<repeat_parser<P>>` from a
         given parser of type `parser_interface<P>`. */
     template<typename T>
     constexpr repeat_directive<T, T> repeat(T n) noexcept
@@ -5132,7 +5306,7 @@ namespace boost { namespace parser {
     }
 
     /** Returns a `repeat_directive` that repeats between `min_` and `max_`
-        times, inclusive, and whose `operator[]` returns an
+        times, inclusive, and whose `operator[]` returns a
         `parser_interface<repeat_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     template<typename MinType, typename MaxType>
@@ -5172,11 +5346,66 @@ namespace boost { namespace parser {
         SkipParser skip_parser_;
     };
 
-    /** The `skip_directive`, whose `operator[]` returns an
+    /** The `skip_directive`, whose `operator[]` returns a
         `parser_interface<skip_parser<P>>` from a given parser of type
         `parser_interface<P>`. */
     inline constexpr skip_directive<> skip;
 
+    /** A directive type that can only be used on sequence parsers, that
+        forces the merge of all the sequence_parser's subparser's attributes
+        into a single attribute. */
+    struct merge_directive
+    {
+        template<
+            typename ParserTuple,
+            typename BacktrackingTuple,
+            typename CombiningGroups>
+        constexpr auto
+        operator[](parser_interface<
+                   seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups>>
+                       rhs) const noexcept
+        {
+            return parser_interface{
+                seq_parser<ParserTuple, BacktrackingTuple, detail::merge_t>{
+                    rhs.parser_.parsers_}};
+        }
+    };
+
+    /** The `merge_directive`, whose `operator[]` returns a
+        `parser_interface<P2>`, from a given parser of type
+        `parser_interface<P>`, where `P` is a `seq_parser`.  `P2` is the same
+        as `P`, except that its `CombiningGroups` template parameter is
+        replaced with a tag type that causes the subparser's attributes to be
+        merged into a single attribute. */
+    inline constexpr merge_directive merge;
+
+    /** A directive type that can only be used on sequence parsers, that
+        prevents each of the sequence_parser's subparser's attributes from
+        merging with any other subparser's attribute. */
+    struct separate_directive
+    {
+        template<
+            typename ParserTuple,
+            typename BacktrackingTuple,
+            typename CombiningGroups>
+        constexpr auto
+        operator[](parser_interface<
+                   seq_parser<ParserTuple, BacktrackingTuple, CombiningGroups>>
+                       rhs) const noexcept
+        {
+            return parser_interface{
+                seq_parser<ParserTuple, BacktrackingTuple, detail::separate_t>{
+                    rhs.parser_.parsers_}};
+        }
+    };
+
+    /** The `separate_directive`, whose `operator[]` returns a
+        `parser_interface<P2>`, from a given parser of type
+        `parser_interface<P>`, where `P` is a `seq_parser`.  `P2` is the same
+        as `P`, except that its `CombiningGroups` template parameter is
+        replaced with a tag type that prevents each subparser's attribute from
+        merging with any other subparser's attribute. */
+    inline constexpr separate_directive separate;
 
 
     // First order parsers.
@@ -7643,6 +7872,59 @@ namespace boost { namespace parser {
         constexpr auto operator""_p(char32_t const * str, std::size_t)
         {
             return parser::string(str);
+        }
+    }
+
+    namespace detail {
+        template<typename... Args>
+        constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
+        {
+            // This code chokes older GCCs.  I can't figure out why, and this
+            // is an optional check, so I'm disabling it for those GCCS.
+#if !defined(__GNUC__) || 13 <= __GNUC__
+            using context_t = parse_context<
+                char const *,
+                char const *,
+                default_error_handler>;
+            using skipper_t = parser_interface<ws_parser<false>>;
+            using use_parser_t = dummy_use_parser_t<
+                false,
+                char const *,
+                char const *,
+                context_t,
+                skipper_t> const;
+            using all_types =
+                decltype(hl::transform(parsers, std::declval<use_parser_t>()));
+            auto all_types_wrapped = hl::transform(all_types{}, detail::wrap{});
+            auto first_non_nope = hl::fold_left(
+                all_types_wrapped,
+                wrapper<nope>{},
+                [=](auto result, auto type) {
+                    if constexpr (is_nope_v<typename decltype(result)::type>) {
+                        return type;
+                    } else {
+                        return result;
+                    }
+                });
+            using first_t = typename decltype(first_non_nope)::type;
+            static_assert(
+                !is_nope_v<first_t>,
+                "It looks like you wrote merge[p1 >> p2 >> ... pn], and none "
+                "of the parsers p1, p2, ... pn produces an attribute.  Please "
+                "fix.");
+            hl::for_each(all_types_wrapped, [=](auto type) {
+                using t = typename decltype(type)::type;
+                if constexpr (!is_nope_v<t>) {
+                    static_assert(
+                        std::is_same_v<t, first_t>,
+                        "If you see an error here, you wrote merge[p1 >> "
+                        "p2 >> ... pn] where at least one of the types in "
+                        "ATTR(p1), ATTR(p2), ... ATTR(pn) is not the same "
+                        "type as one of the others.");
+                    // TODO: Cause the type to be printed here.
+                }
+            });
+#endif
         }
     }
 

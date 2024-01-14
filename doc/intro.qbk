@@ -100,30 +100,21 @@ significantly increase compile times.  Also, MSVC seems to have a hard time
 with large values; I successfully set this value to `50` on MSVC, but `100`
 broke the MSVC build entirely.
 
-_Parser_ uses `std::optional` and `std::variant` internally.  There is no way
-to change this.  However, when _Parser_ generates values as a result of the
-parse (see _attr_gen_), it can place them into other implementations of
-optional and/or variant, if you tell it to do so.  You tell it which templates
-are usable as an optional or variant by specializing the associated variable
-template.  For instance, here is how you would tell _Parser_ that
-`boost::optional` is an optional-type:
+_Parser_ uses `std::optional` internally.  There is no way to change this.
+However, when _Parser_ generates values as a result of the parse (see
+_attr_gen_), it can place them into other implementations of optional, if you
+tell it to do so.  You tell it a template is usable as an optional by
+specializing the `enable_optional` template.  For instance, here is how you
+would tell _Parser_ that `boost::optional` is an optional-type:
 
     template<typename T>
     constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
-
-Here's how you would do the same thing for `boost::variant2::variant`:
-
-    template<typename... Ts>
-    constexpr bool boost::parser::enable_optional<boost::variant2::variant<Ts...>> = true;
 
 The requirements on a template used as an optional are pretty simple, since
 _Parser_ does almost nothing but assign to them.  For a type `O` to be a
 usable optional, you must be able to assign to `O`, and `O` must have an
 `operator*` that returns the stored value, or a (possibly cv-qualified)
 reference to the stored value.
-
-For variants, the requirement is even simpler; the variant type only needs to
-be assignable.
 
 [endsect]
 

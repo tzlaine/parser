@@ -142,7 +142,7 @@ namespace boost::parser::detail { namespace text {
     template<bool Const>
     class project_view<V, F>::iterator
         : public boost::parser::detail::stl_interfaces::proxy_iterator_interface<
-              iterator<Const>, // TODO
+              iterator<Const>,
               detail::iterator_to_tag_t<detail::iterator_t<detail::maybe_const<Const, V>>>,
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
               std::invoke_result_t<decltype(F)&, detail::range_reference_t<V>>
@@ -491,8 +491,7 @@ namespace boost::parser::detail { namespace text {
     template<format Format, utf_range V>
         requires std::ranges::view<V>
 #else
-    template<format Format, typename V/* TODO,
-                                        typename Enable = std::enable_if_t<detail::utf_range_v<V>>*/>
+    template<format Format, typename V>
 #endif
     class utf_view : public stl_interfaces::view_interface<utf_view<Format, V>>
     {
