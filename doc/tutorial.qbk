@@ -2513,7 +2513,7 @@ When it fails, it even produces nice diagnostics.
        ^
 ]
 
-Recursive _rs_ work differently to other parsers in one way: when re-entering
+Recursive _rs_ work differently from other parsers in one way: when re-entering
 the rule recursively, only the attribute variable (`_attr(ctx)` in your
 semantic actions) is unique to that instance of the rule.  All the other state
 of the uppermost instance of that rule is shared.  This includes the value of
@@ -2533,12 +2533,12 @@ Also, consider this rule:
     auto const ints_def = bp::int_ >> ints | bp::eps;
 
 What is the default attribute type for ints_def?  It sure looks like
-`_bp_tup_<std::vector<int>, int>`.  Inside the evaluation of `ints`, _Parser_
+`std::optional<std::vector<int>>`.  Inside the evaluation of `ints`, _Parser_
 must evaluate `ints_def`, and then produce a `std::vector<int>` _emdash_ the
 return type of `ints` _emdash_ from it.  How?  How do you turn a
-`_bp_tup_<std::vector<int>, int>` into a `std::vector<int>`?  To a human, it
-seems obvious, but the metaprogramming that generalizes from this simple
-example to the general case is certainly beyond me.
+`std::optional<std::vector<int>>` into a `std::vector<int>`?  To a human, it
+seems obvious, but the metaprogramming that properly handles this simple
+example and the general case is certainly beyond me.
 
 _Parser_ has a specific semantic for what consitutes a recursive rule.  Each
 rule has a tag type associated with it, and if _Parser_ enters a rule with a
