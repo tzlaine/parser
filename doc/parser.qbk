@@ -160,6 +160,8 @@
 [def _no_case_             [globalref boost::parser::no_case `no_case[]`]]
 [def _string_view_         [globalref boost::parser::string_view `string_view[]`]]
 [def _skip_                [globalref boost::parser::skip `skip[]`]]
+[def _merge_               [globalref boost::parser::merge `merge[]`]]
+[def _sep_                 [globalref boost::parser::separate `separate[]`]]
 
 [def _omit_np_             [globalref boost::parser::omit `omit`]]
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
@@ -167,6 +169,8 @@
 [def _no_case_np_          [globalref boost::parser::no_case `no_case`]]
 [def _string_view_np_      [globalref boost::parser::string_view `string_view`]]
 [def _skip_np_             [globalref boost::parser::skip `skip`]]
+[def _merge_np_            [globalref boost::parser::merge `merge`]]
+[def _sep_np_              [globalref boost::parser::separate `separate`]]
 
 [def _alnum_               [globalref boost::parser::ascii::alnum `ascii::alnum`]]
 [def _alpha_               [globalref boost::parser::ascii::alpha `ascii::alpha`]]

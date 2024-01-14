@@ -188,4 +188,36 @@ are instead arbitrary types being constructed and inserted into containers.
 Allowing the insertion to happen on arbitrary types that model the `container`
 concept is what allows generic use of different containers.
 
+[heading Sequences of character type are treated specially]
+
+_Parser_ attempts to keep the rules for attribute generation simple.  However,
+there are some rules for attribute generation that only apply to character
+types like `char` and `char32_t`.  Sequences of these produce a `std::string`
+attribute, while sequences of every other type produce `std::vector`s.  There
+are a couple of reasons for this.
+
+First, strings and vectors are different.  We know that strings are just
+arrays of numbers, but we have a whole different type for them, `std::string`.
+It has a different API, and other code that operates on text expects a string
+instead of some other container.  Arrays of characters are already considered
+special by the standard library and common practice in C++.
+
+Second, When you write a parser that parses multiple characters in a row, you
+are typically trying to produce a string attribute, rather than a few
+individual character values.  When you use multiple non-character parsers in a
+row, you are typically trying to produce multiple values.  For instance:
+
+    namespace bp = boost::parser;
+    auto parser_1 = bp::char_ >> bp::char_ >> -bp::char_;
+    auto parser_2 = +(bp::char_ - ' ') >> ' ' >> +(bp::char_ - ' ');
+
+I don't know about you, but I've rarely written a parser like `parser_1` and
+wanted to produce a `_bp_tup_<char, char, std::optional<char>>`.  Similarly,
+I've rarely written a parser like `parser_2` and wanted a
+`std::vector<std::string>`.
+
+_Parser_ therefore makes the common case the default behavior, and provides
+you with the _merge_ and _sep_ directives to let you opt-in to generating the
+less-common attributes.
+
 [endsect]
