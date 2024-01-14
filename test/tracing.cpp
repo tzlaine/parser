@@ -152,7 +152,7 @@ int main()
 
     PARSE(raw[char_]);
 
-#if 0 // TODO defined(__cpp_lib_concepts)
+#if defined(__cpp_lib_concepts)
     std::cout << "\n\n"
               << "----------------------------------------\n"
               << "| string_view[]                         |\n"

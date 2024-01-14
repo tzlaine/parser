@@ -3959,14 +3959,15 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
-                first, last);
-            // string_view_parser and the string_view[] directive that uses it
-            // requires that the underlying char sequence being parsed be a
-            // contiguous range.  If you're seeing this static_assert, you
-            // have not met this contract.
-            static_assert(std::contiguous_iterator<decltype(r.f_)>);
-            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            auto r =
+                parser::detail::text::unpack_iterator_and_sentinel(first, last);
+            static_assert(
+                std::contiguous_iterator<decltype(r.first)>,
+                "string_view_parser and the string_view[] directive that uses "
+                "it requires that the underlying char sequence being parsed be "
+                "a contiguous range.  If you're seeing this static_assert, you "
+                "have not met this contract.");
+            using char_type = detail::remove_cv_ref_t<decltype(*r.first)>;
             std::basic_string_view<char_type> retval;
             call(
                 use_cbs,
@@ -4010,21 +4011,22 @@ namespace boost { namespace parser {
                 detail::disable_attrs(flags),
                 success);
 
-            auto r = parser::detail::text::detail::unpack_iterator_and_sentinel(
+            auto r = parser::detail::text::unpack_iterator_and_sentinel(
                 initial_first, first);
-            // string_view_parser and the string_view[] directive that uses it
-            // requires that the underlying char sequence being parsed be a
-            // contiguous range.  If you're seeing this static_assert, you
-            // have not met this contract.
-            static_assert(std::contiguous_iterator<decltype(r.f_)>);
-            using char_type = detail::remove_cv_ref_t<decltype(*r.f_)>;
+            static_assert(
+                std::contiguous_iterator<decltype(r.first)>,
+                "string_view_parser and the string_view[] directive that uses "
+                "it requires that the underlying char sequence being parsed be "
+                "a contiguous range.  If you're seeing this static_assert, you "
+                "have not met this contract.");
+            using char_type = detail::remove_cv_ref_t<decltype(*r.first)>;
             if (initial_first == first) {
                 detail::assign(retval, std::basic_string_view<char_type>{});
             } else {
                 detail::assign(
                     retval,
                     std::basic_string_view<char_type>{
-                        &*r.f_, std::size_t(r.l_ - r.f_)});
+                        &*r.first, std::size_t(r.last - r.first)});
             }
         }
 
