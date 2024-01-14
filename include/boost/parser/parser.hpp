@@ -3126,58 +3126,7 @@ namespace boost { namespace parser {
         };
 
         template<typename... Args>
-        constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
-        {
-            parse_context<char const *, char const *, default_error_handler>
-                context;
-            parser_interface<ws_parser<false>> skipper;
-            bool success = true;
-            dummy_use_parser_t<
-                false,
-                char const *,
-                char const *,
-                decltype(context),
-                decltype(skipper)> const
-                dummy_use_parser(
-                    context.first_,
-                    context.last_,
-                    context,
-                    skipper,
-                    default_flags(),
-                    success);
-            using all_types =
-                decltype(detail::hl::transform(parsers, dummy_use_parser));
-            auto all_types_wrapped =
-                detail::hl::transform(all_types{}, detail::wrap{});
-            auto first_non_nope = detail::hl::fold_left(
-                all_types_wrapped,
-                wrapper<nope>{},
-                [=](auto result, auto type) {
-                    if constexpr (is_nope_v<typename decltype(result)::type>) {
-                        return type;
-                    } else {
-                        return result;
-                    }
-                });
-            using first_t = typename decltype(first_non_nope)::type;
-            static_assert(
-                !detail::is_nope_v<first_t>,
-                "It looks like you wrote merge[p1 >> p2 >> ... pn], and none "
-                "of the parsers p1, p2, ... pn produces an attribute.  Please "
-                "fix.");
-            detail::hl::for_each(all_types_wrapped, [=](auto type) {
-                using t = typename decltype(type)::type;
-                if constexpr (!is_nope_v<t>) {
-                    static_assert(
-                        std::is_same_v<t, first_t>,
-                        "If you see an error here, you wrote merge[p1 >> "
-                        "p2 >> ... pn] where at least one of the types in "
-                        "ATTR(p1), ATTR(p2), ... ATTR(pn) is not the same "
-                        "type as one of the others.");
-                    // TODO: Cause the type to be printed here.
-                }
-            });
-        }
+        constexpr void static_assert_merge_attributes(tuple<Args...> parsers);
 
         // Combining groups are: 0, which is default merge behavior, as in
         // seq_parser::combine; -1, which is don't merge with anything, ever;
@@ -7923,6 +7872,56 @@ namespace boost { namespace parser {
         constexpr auto operator""_p(char32_t const * str, std::size_t)
         {
             return parser::string(str);
+        }
+    }
+
+    namespace detail {
+        template<typename... Args>
+        constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
+        {
+            using context_t = parse_context<
+                char const *,
+                char const *,
+                default_error_handler>;
+            using skipper_t = parser_interface<ws_parser<false>>;
+            using use_parser_t = dummy_use_parser_t<
+                false,
+                char const *,
+                char const *,
+                context_t,
+                skipper_t> const;
+            using all_types = decltype(detail::hl::transform(
+                parsers, std::declval<use_parser_t>()));
+            auto all_types_wrapped =
+                detail::hl::transform(all_types{}, detail::wrap{});
+            auto first_non_nope = detail::hl::fold_left(
+                all_types_wrapped,
+                wrapper<nope>{},
+                [=](auto result, auto type) {
+                    if constexpr (is_nope_v<typename decltype(result)::type>) {
+                        return type;
+                    } else {
+                        return result;
+                    }
+                });
+            using first_t = typename decltype(first_non_nope)::type;
+            static_assert(
+                !detail::is_nope_v<first_t>,
+                "It looks like you wrote merge[p1 >> p2 >> ... pn], and none "
+                "of the parsers p1, p2, ... pn produces an attribute.  Please "
+                "fix.");
+            detail::hl::for_each(all_types_wrapped, [=]<class T>(T type) {
+                using t = typename T::type;
+                if constexpr (!is_nope_v<t>) {
+                    static_assert(
+                        std::is_same_v<t, first_t>,
+                        "If you see an error here, you wrote merge[p1 >> "
+                        "p2 >> ... pn] where at least one of the types in "
+                        "ATTR(p1), ATTR(p2), ... ATTR(pn) is not the same "
+                        "type as one of the others.");
+                    // TODO: Cause the type to be printed here.
+                }
+            });
         }
     }
 
