@@ -7879,6 +7879,9 @@ namespace boost { namespace parser {
         template<typename... Args>
         constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
         {
+            // This code chokes older GCCs.  I can't figure out why, and this
+            // is an optional check, so I'm disabling it for those GCCS.
+#if !defined(__GNUC__) || 13 <= __GNUC__
             using context_t = parse_context<
                 char const *,
                 char const *,
@@ -7921,6 +7924,7 @@ namespace boost { namespace parser {
                     // TODO: Cause the type to be printed here.
                 }
             });
+#endif
         }
     }
 
