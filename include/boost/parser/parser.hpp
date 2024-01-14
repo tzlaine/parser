@@ -7912,8 +7912,8 @@ namespace boost { namespace parser {
                 "It looks like you wrote merge[p1 >> p2 >> ... pn], and none "
                 "of the parsers p1, p2, ... pn produces an attribute.  Please "
                 "fix.");
-            hl::for_each(all_types_wrapped, [=]<class T>(T type) {
-                using t = typename T::type;
+            hl::for_each(all_types_wrapped, [=](auto type) {
+                using t = typename decltype(type)::type;
                 if constexpr (!is_nope_v<t>) {
                     static_assert(
                         std::is_same_v<t, first_t>,
