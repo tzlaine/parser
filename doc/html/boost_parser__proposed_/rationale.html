@@ -242,6 +242,46 @@ make: *** [Makefile:827: json] Error 2
       Allowing the insertion to happen on arbitrary types that model the <code class="computeroutput">container</code>
       concept is what allows generic use of different containers.
     </p>
+<h4>
+<a name="boost_parser__proposed_.rationale.h3"></a>
+      <span class="phrase"><a name="boost_parser__proposed_.rationale.sequences_of_character_type_are_treated_specially"></a></span><a class="link" href="rationale.html#boost_parser__proposed_.rationale.sequences_of_character_type_are_treated_specially">Sequences
+      of character type are treated specially</a>
+    </h4>
+<p>
+      Boost.Parser attempts to keep the rules for attribute generation simple. However,
+      there are some rules for attribute generation that only apply to character
+      types like <code class="computeroutput">char</code> and <code class="computeroutput">char32_t</code>. Sequences of these
+      produce a <code class="computeroutput">std::string</code> attribute, while sequences of every other
+      type produce <code class="computeroutput">std::vector</code>s. There are a couple of reasons for this.
+    </p>
+<p>
+      First, strings and vectors are different. We know that strings are just arrays
+      of numbers, but we have a whole different type for them, <code class="computeroutput">std::string</code>.
+      It has a different API, and other code that operates on text expects a string
+      instead of some other container. Arrays of characters are already considered
+      special by the standard library and common practice in C++.
+    </p>
+<p>
+      Second, When you write a parser that parses multiple characters in a row, you
+      are typically trying to produce a string attribute, rather than a few individual
+      character values. When you use multiple non-character parsers in a row, you
+      are typically trying to produce multiple values. For instance:
+    </p>
+<pre class="programlisting">namespace bp = boost::parser;
+auto parser_1 = bp::char_ &gt;&gt; bp::char_ &gt;&gt; -bp::char_;
+auto parser_2 = +(bp::char_ - ' ') &gt;&gt; ' ' &gt;&gt; +(bp::char_ - ' ');
+</pre>
+<p>
+      I don't know about you, but I've rarely written a parser like <code class="computeroutput">parser_1</code>
+      and wanted to produce a <code class="computeroutput"><a class="link" href="../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a>&lt;char,
+      char, std::optional&lt;char&gt;&gt;</code>. Similarly, I've rarely written
+      a parser like <code class="computeroutput">parser_2</code> and wanted a <code class="computeroutput">std::vector&lt;std::string&gt;</code>.
+    </p>
+<p>
+      Boost.Parser therefore makes the common case the default behavior, and provides
+      you with the <code class="computeroutput"><a class="link" href="../boost/parser/merge.html" title="Global merge">merge[]</a></code> and <code class="computeroutput"><a class="link" href="../boost/parser/separate.html" title="Global separate">separate[]</a></code>
+      directives to let you opt-in to generating the less-common attributes.
+    </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

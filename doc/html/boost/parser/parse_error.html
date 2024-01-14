@@ -26,20 +26,20 @@
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Iter<span class="special">&gt;</span> 
 <span class="keyword">struct</span> <a class="link" href="parse_error.html" title="Struct template parse_error">parse_error</a> <span class="special">:</span> <span class="keyword">public</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span> <span class="special">{</span>
   <span class="comment">// <a class="link" href="parse_error.html#boost.parser.parse_errorconstruct-copy-destruct">construct/copy/destruct</a></span>
-  <a class="link" href="parse_error.html#idm18484-bb"><span class="identifier">parse_error</span></a><span class="special">(</span><span class="identifier">Iter</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="parse_error.html#idm18754-bb"><span class="identifier">parse_error</span></a><span class="special">(</span><span class="identifier">Iter</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">)</span><span class="special">;</span>
 
   <span class="comment">// public data members</span>
   <span class="identifier">Iter</span> <span class="identifier">iter</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm18510"></a><h2>Description</h2>
+<a name="idm18736"></a><h2>Description</h2>
 <p>The exception thrown when a parse error is encountered, consisting of an iterator to the point of failure, and the name of the failed parser or rule in <code class="computeroutput">what()</code>. </p>
 <div class="refsect2">
-<a name="idm18514"></a><h3>
+<a name="idm18740"></a><h3>
 <a name="boost.parser.parse_errorconstruct-copy-destruct"></a><code class="computeroutput">parse_error</code> 
         public
        construct/copy/destruct</h3>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm18484-bb"></a><span class="identifier">parse_error</span><span class="special">(</span><span class="identifier">Iter</span> it<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span> <span class="special">&amp;</span> msg<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm18754-bb"></a><span class="identifier">parse_error</span><span class="special">(</span><span class="identifier">Iter</span> it<span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="keyword">const</span> <span class="special">&amp;</span> msg<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
 </div>
 </div>
 </div>
