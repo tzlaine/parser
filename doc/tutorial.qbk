@@ -1912,7 +1912,89 @@ same attribute generation rules.
     [[`p1 | p2[a] | p3`]             [`std::optional<std::variant<_ATTR_np_(p1), _ATTR_np_(p3)>>`]]
 ]
 
-[heading Directives that affect attribute generation]
+[heading Controlling attribute generation with _merge_ and _sep_]
+
+As we saw in the previous _parsing_structs_ section, if you parse two strings
+in a row, you get two separate strings in the resulting attribute.  The parser
+from that example was this:
+
+    namespace bp = boost::parser;
+    auto employee_parser = bp::lit("employee")
+        >> '{'
+        >> bp::int_ >> ','
+        >> quoted_string >> ','
+        >> quoted_string >> ','
+        >> bp::double_
+        >> '}';
+
+`employee_parser`'s attribute is `_bp_tup_<int, std::string, std::string,
+double>`.  The two `quoted_string` parsers produce `std::string` attributes,
+and those attributes are not combined.  That is the default behavior, and it
+is just what we want for this case; we don't want the first and last name
+fields to be jammed together such that we can't tell where one name ends and
+the other begins.  What if we were parsing some string that consisted of a
+prefix and a suffix, and the prefix and suffix were defined separately for
+reuse elsewhere?
+
+    namespace bp = boost::parser;
+    auto prefix = /* ... */;
+    auto suffix = /* ... */;
+    auto special_string = prefix >> suffix;
+    // Continue to use prefix and suffix to make other parsers....
+
+In this case, we might want to use these separate parsers, but want
+`special_string` to produce a single `std::string` for its attribute.  _merge_
+exists for this purpose.
+
+    namespace bp = boost::parser;
+    auto prefix = /* ... */;
+    auto suffix = /* ... */;
+    auto special_string = bp::merge[prefix >> suffix];
+
+_merge_ only applies to sequence parsers (like `p1 >> p2`), and forces all
+subparsers in the sequence parser to use the same variable for their
+attribute.
+
+Another directive, _sep_, also applies only to sequence parsers, but does the
+opposite of _merge_.  If forces all the attributes produced by the subparsers
+of the sequence parser to stay separate, even if they would have combined.
+For instance, consider this parser.
+
+    namespace bp = boost::parser;
+    auto string_and_char = +bp::char_('a') >> ' ' >> bp::cp;
+
+`string_and_char` matches one or more `'a'`s, followed by some other
+character.  As written above, `string_and_char` produces a `std::string`, and
+the final character is appended to the string, after all the `'a'`s.  However,
+if you wanted to store the final character as a separate value, you would use
+_sep_.
+
+    namespace bp = boost::parser;
+    auto string_and_char = bp::separate[+bp::char_('a') >> ' ' >> bp::cp];
+
+With this change, `string_and_char` produces the attribute
+`_bp_tup_<std::string, char32_t>`.
+
+[heading _merge_ and _sep_ in more detail]
+
+As mentioned previously, _merge_ applies only to sequence parsers.  All
+subparsers must have the same attribute, or produce no attribute at all.  At
+least one subparser must produce an attribute.  When you use _merge_, you
+create a /combining group/.  Every parser in a combining group uses the same
+variable for its attribute.  No parser in a combining group interacts with the
+attributes of any parsers outside of its combining group.  Combining groups
+are disjoint; `merge[/*...*/] >> merge[/*...*/]` will produce a tuple of two
+attributes, not one.
+
+_sep_ also applies only to sequence parsers.  When you use _sep_, you disable
+interaction of all the subparsers' attributes with adjacent attributes,
+whether they are inside or outside the _sep_ directive; you force each
+subparser to have a separate attribute.
+
+The rules for _merge_ and _sep_ overrule the steps of the algorithm described
+above for combining the attributes of a sequence parser.
+
+[heading Other directives that affect attribute generation]
 
 `_omit_np_[p]` disables attribute generation for the parser `p`.
 `_raw_np_[p]` changes the attribute from `_ATTR_np_(p)` to a view that

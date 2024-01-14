@@ -42,7 +42,6 @@ TEST(merge_separate, merge_)
             EXPECT_EQ(*result, detail::hl::make_tuple('a', 'c', 'd'));
         }
     }
-    // TODO: Don't forget to document that merge[eps >> eps] is ill-formed.
     {
         constexpr auto parser = char_ >> merge[eps >> char_ >> char_] >> char_;
 
