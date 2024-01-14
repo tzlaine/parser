@@ -2221,6 +2221,45 @@ from this example:
   `char8_t`, _Parser_ assumes that this is a UTF-32-to-UTF-8 conversion, and
   silently transcodes the data when inserting into the new container.
 
+Let's look at a case where another simple-seeming type replacement does *not*
+work.  First, the case that works:
+
+    namespace bp = boost::parser;
+    auto parser = -(bp::char_ % ',');
+    std::vector<int> result;
+    auto b = bp::parse("a, b", parser, bp::ws, result);
+
+`ATTR(parser)` is `std::optional<std::string>`.  Even though we pass a
+`std::vector<int>`, everything is fine.  However, if we modify this case only
+sightly, so that the `std::optional<std::string>` is nested within the
+attribute, the code becomes ill-formed.
+
+    struct S
+    {
+        std::vector<int> chars;
+        int i;
+    };
+    namespace bp = boost::parser;
+    auto parser = -(bp::char_ % ',') >> bp::int_;
+    S result;
+    auto b = bp::parse("a, b 42", parser, bp::ws, result);
+
+If we change `chars` to a `std::vector<char>`, the code is still ill-formed.
+Same if we change `chars` to a `std::string`.  We must actually use
+`std::optional<std::string>` exactly to make the code well-formed again.
+
+The reason the same looseness from the top-level parser does not apply to a
+nested parser is that, at some point in the code, the parser `-(bp::char_ %
+',')` would try to assign a `std::optional<std::string>` _emdash_ the element
+type of the attribute type it normally generates _emdash_ to a `chars`.  If
+there's no implicit conversion there, the code is ill-formed.
+
+The take-away for this last example is that the ability to arbitrarily swap
+out data types within the type of the attribute you pass to _p_ is very
+flexible, but is also limited to structurally simple cases.  When we discuss
+_rs_ in the next section, we'll see how this flexibility in the types of
+attributes can help when writing complicated parsers.
+
 Those were examples of swapping out one container type for another.  They make
 good examples because that is more likely to be surprising, and so it's
 getting lots of coverage here.  You can also do much simpler things like parse
