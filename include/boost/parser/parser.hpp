@@ -7972,29 +7972,28 @@ namespace boost { namespace parser {
                 [[maybe_unused]] detail::print_type<tuple<Args...>> tuple_types;
                 [[maybe_unused]] detail::print_type<all_types> attribute_types;
             }
-            hl::for_each(
-                all_types_wrapped, [=](auto type) {
-                    using t = typename decltype(type)::type;
-                    if constexpr (!is_nope_v<t>) {
-                        static_assert(
-                            std::is_same_v<t, first_t>,
-                            "If you see an error here, you wrote merge[p1 >> "
-                            "p2 >> ... pn] where at least one of the types in "
-                            "ATTR(p1), ATTR(p2), ... ATTR(pn) is not the same "
-                            "type as one of the others.");
-                        if constexpr (!std::is_same_v<t, first_t>) {
-                            [[maybe_unused]] detail::print_type<tuple<Args...>>
-                                tuple_types;
-                            [[maybe_unused]] detail::print_type<all_types>
-                                attribute_types;
-                            [[maybe_unused]] detail::print_type<first_t>
-                                first_type;
-                            [[maybe_unused]] detail::print_type<t> this_type;
-                        }
+            hl::for_each(all_types_wrapped, [=](auto type) {
+                using t = typename decltype(type)::type;
+                if constexpr (!is_nope_v<t>) {
+                    static_assert(
+                        std::is_same_v<t, first_t>,
+                        "If you see an error here, you wrote merge[p1 >> "
+                        "p2 >> ... pn] where at least one of the types in "
+                        "ATTR(p1), ATTR(p2), ... ATTR(pn) is not the same "
+                        "type as one of the others.");
+                    if constexpr (!std::is_same_v<t, first_t>) {
+                        [[maybe_unused]] detail::print_type<tuple<Args...>>
+                            tuple_types;
+                        [[maybe_unused]] detail::print_type<all_types>
+                            attribute_types;
+                        [[maybe_unused]] detail::print_type<first_t> first_type;
+                        [[maybe_unused]] detail::print_type<t> this_type;
                     }
-                });
-        }
+                }
+            });
 #endif
-}}}
+        }
+    }
+}}
 
 #endif
