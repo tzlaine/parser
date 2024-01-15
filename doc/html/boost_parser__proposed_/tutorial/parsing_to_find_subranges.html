@@ -68,18 +68,18 @@
 <p>
         Note that the <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a></code>
         has the iterator type <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">::</span><span class="identifier">const_iterator</span></code>,
-        because that's the iterator type passed to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24177.html" title="Function template prefix_parse">prefix_parse()</a></code>.
+        because that's the iterator type passed to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24184.html" title="Function template prefix_parse">prefix_parse()</a></code>.
         If we had passed <code class="computeroutput"><span class="keyword">char</span> <span class="keyword">const</span>
-        <span class="special">*</span></code> iterators to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24177.html" title="Function template prefix_parse">prefix_parse()</a></code>,
+        <span class="special">*</span></code> iterators to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24184.html" title="Function template prefix_parse">prefix_parse()</a></code>,
         that would have been the iterator type. The only exception to this comes
         from Unicode-aware parsing (see <a class="link" href="unicode_support.html" title="Unicode Support">Unicode
         Support</a>). In some of those cases, the iterator being used in the parse
-        is not the one you passed. For instance, if you call <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24177.html" title="Function template prefix_parse">prefix_parse()</a></code>
+        is not the one you passed. For instance, if you call <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24184.html" title="Function template prefix_parse">prefix_parse()</a></code>
         with <code class="computeroutput"><span class="identifier">char8_t</span> <span class="special">*</span></code>
         iterators, it will create a UTF-8 to UTF-32 transcoding view, and parse the
         iterators of that view. In such a case, you'll get a <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a></code> whose iterator type
         is a transcoding iterator. When that happens, you can get the underlying
-        iterator — the one you passed to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24177.html" title="Function template prefix_parse">prefix_parse()</a></code>
+        iterator — the one you passed to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24184.html" title="Function template prefix_parse">prefix_parse()</a></code>
         — by calling the <code class="computeroutput"><span class="special">.</span><span class="identifier">base</span><span class="special">()</span></code> member function on each transcoding iterator
         in the returned <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a></code>.
       </p>
@@ -121,8 +121,8 @@
         <code class="computeroutput"><span class="identifier">CharT</span></code> with <code class="computeroutput"><a class="link" href="../../boost/parser/string_view.html" title="Global string_view">string_view[]</a></code>,
         you get exactly a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">basic_string_view</span><span class="special">&lt;</span><span class="identifier">CharT</span><span class="special">&gt;</span></code>.
         If the parse is using transcoding in the Unicode-aware path, <code class="computeroutput"><a class="link" href="../../boost/parser/string_view.html" title="Global string_view">string_view[]</a></code> will decompose the transcoding
-        iterator as necessary. If you pass a transcoding view to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24208.html" title="Function template parse">parse()</a></code>
-        or transcoding iterators to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24177.html" title="Function template prefix_parse">prefix_parse()</a></code>,
+        iterator as necessary. If you pass a transcoding view to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code>
+        or transcoding iterators to <code class="computeroutput"><a class="link" href="../../boost/parser/prefix_parse_idm24184.html" title="Function template prefix_parse">prefix_parse()</a></code>,
         <code class="computeroutput"><a class="link" href="../../boost/parser/string_view.html" title="Global string_view">string_view[]</a></code> will still see through the
         transcoding iterators without issue, and give you a <code class="computeroutput"><span class="identifier">string_view</span></code>
         of part of the underlying range.

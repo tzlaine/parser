@@ -26,22 +26,22 @@
 </span>
 <span class="keyword">struct</span> <a class="link" href="merge_directive.html" title="Struct merge_directive">merge_directive</a> <span class="special">{</span>
 
-  <span class="comment">// <a class="link" href="merge_directive.html#idm21164-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="merge_directive.html#idm21171-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ParserTuple<span class="special">,</span> <span class="keyword">typename</span> BacktrackingTuple<span class="special">,</span> 
            <span class="keyword">typename</span> CombiningGroups<span class="special">&gt;</span> 
     <span class="keyword">constexpr</span> <span class="keyword">auto</span> 
-    <a class="link" href="merge_directive.html#idm21165-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <a class="link" href="seq_parser.html" title="Struct template seq_parser">seq_parser</a><span class="special">&lt;</span> <span class="identifier">ParserTuple</span><span class="special">,</span> <span class="identifier">BacktrackingTuple</span><span class="special">,</span> <span class="identifier">CombiningGroups</span> <span class="special">&gt;</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <a class="link" href="merge_directive.html#idm21172-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <a class="link" href="seq_parser.html" title="Struct template seq_parser">seq_parser</a><span class="special">&lt;</span> <span class="identifier">ParserTuple</span><span class="special">,</span> <span class="identifier">BacktrackingTuple</span><span class="special">,</span> <span class="identifier">CombiningGroups</span> <span class="special">&gt;</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm26674"></a><h2>Description</h2>
+<a name="idm26681"></a><h2>Description</h2>
 <p>A directive type that can only be used on sequence parsers, that forces the merge of all the sequence_parser's subparser's attributes into a single attribute. </p>
 <div class="refsect2">
-<a name="idm26677"></a><h3>
-<a name="idm21164-bb"></a><code class="computeroutput">merge_directive</code> public member functions</h3>
+<a name="idm26684"></a><h3>
+<a name="idm21171-bb"></a><code class="computeroutput">merge_directive</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> ParserTuple<span class="special">,</span> <span class="keyword">typename</span> BacktrackingTuple<span class="special">,</span> 
          <span class="keyword">typename</span> CombiningGroups<span class="special">&gt;</span> 
   <span class="keyword">constexpr</span> <span class="keyword">auto</span> 
-  <a name="idm21165-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <a class="link" href="seq_parser.html" title="Struct template seq_parser">seq_parser</a><span class="special">&lt;</span> <span class="identifier">ParserTuple</span><span class="special">,</span> <span class="identifier">BacktrackingTuple</span><span class="special">,</span> <span class="identifier">CombiningGroups</span> <span class="special">&gt;</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li></ol></div>
+  <a name="idm21172-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <a class="link" href="seq_parser.html" title="Struct template seq_parser">seq_parser</a><span class="special">&lt;</span> <span class="identifier">ParserTuple</span><span class="special">,</span> <span class="identifier">BacktrackingTuple</span><span class="special">,</span> <span class="identifier">CombiningGroups</span> <span class="special">&gt;</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li></ol></div>
 </div>
 </div>
 </div>
