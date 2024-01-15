@@ -1537,6 +1537,11 @@ _p_ call:
 The first occurrence of `zero_or_more` will use the skipper passed to _p_,
 which is _space_; the second will use _ws_ as its skipper.
 
+[heading _merge_ and _sep_]
+
+These two directives influence the generation of attributes.  See _attr_gen_
+section for more details on them.
+
 [endsect]
 
 [section Combining Operations]
