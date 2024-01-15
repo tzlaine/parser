@@ -62,8 +62,6 @@
         Most of Boost.Parser's error handlers format their diagnostics this way,
         though you are not bound by that. You can make an error handler type that
         does whatever you want, as long as it meets the error handler interface.
-        See <code class="computeroutput">error_handler</code> in <a class="link" href="../concepts.html" title="Concepts">Concepts</a>
-        for details.
       </p>
 <p>
         The Boost.Parser error handlers are:
@@ -97,20 +95,240 @@
             <code class="computeroutput">diagnose()</code> member functions are no-ops.
           </li>
 </ul></div>
-<div class="tip"><table border="0" summary="Tip">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
-<th align="left">Tip</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          If you want to provide your own error handler, but still want to use the
-          same formatting as Boost.Parser error handlers, you can use the functions
-          <code class="computeroutput">write_formatted_message()</code> and <code class="computeroutput">write_formatted_expectation_failure_error_message()</code>
-          to do that for you.
-        </p></td></tr>
-</table></div>
+<p>
+        You can set the error handler to any of these, or one of your own, using
+        <code class="computeroutput"><a class="link" href="../../boost/parser/with_error_handler.html" title="Function template with_error_handler">with_error_handler()</a></code> (see <a class="link" href="the__parse____api.html" title="The parse() API">The
+        <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+        API</a>). If you do not set one, <code class="computeroutput"><a class="link" href="../../boost/parser/default_error_handler.html" title="Struct default_error_handler">default_error_handler</a></code> will
+        be used.
+      </p>
+<p>
+        You can get access to the error handler within any semantic action by calling
+        <code class="computeroutput">_error_handler(ctx)</code> (see <a class="link" href="the_parse_context.html" title="The Parse Context">The
+        Parse Context</a>). Any error handler must have the following member functions:
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Iter</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">diagnose</span><span class="special">(</span>
+    <span class="identifier">diagnostic_kind</span> <span class="identifier">kind</span><span class="special">,</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> <span class="identifier">message</span><span class="special">,</span>
+    <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">,</span>
+    <span class="identifier">Iter</span> <span class="identifier">it</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<p>
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">&gt;</span>
+<span class="keyword">void</span> <span class="identifier">diagnose</span><span class="special">(</span>
+    <span class="identifier">diagnostic_kind</span> <span class="identifier">kind</span><span class="special">,</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> <span class="identifier">message</span><span class="special">,</span>
+    <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<p>
+      </p>
+<p>
+        If you call the second one, the one without the iterator parameter, it will
+        call the first with <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where</a>(context).begin()</code>
+        as the iterator parameter. The one without the iterator is the one you will
+        use most often. The one with the explicit iterator parameter can be useful
+        in situations where you have messages that are related to each other, associated
+        with multiple locations. For instance, if you are parsing XML, you may want
+        to report that a close-tag does not match its associated open-tag by showing
+        the line where the open-tag was found. That may of course not be located
+        anywhere near <code class="computeroutput">_where(ctx).begin()</code>. (A description of <code class="computeroutput"><a class="link" href="../../boost/parser/_globals.html" title="Function template _globals">_globals()</a></code> is below.)
+      </p>
+<pre class="programlisting">[](auto &amp; ctx) {
+    // Assume we have a std::vector of open tags, and another
+    // std::vector of iterators to where the open tags were parsed, in our
+    // globals.
+    if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+        std::string open_tag_msg =
+            "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+        _error_handler(ctx).diagnose(
+            boost::parser::diagnostic_kind::error,
+            open_tag_msg,
+            ctx,
+            _globals(ctx).open_tags_position.back());
+        std::string close_tag_msg =
+            "does not match close-tag \"" + _attr(ctx) + "\" here:";
+        _error_handler(ctx).diagnose(
+            boost::parser::diagnostic_kind::error,
+            close_tag_msg,
+            ctx);
+
+        // Explicitly fail the parse.  Diagnostics to not affect parse success.
+        _pass(ctx) = false;
+    }
+}
+</pre>
 <h5>
 <a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h1"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging._functionname_alt__boost__parser___report_error___code__phrase_role__identifier___report_error__phrase__phrase_role__special______phrase___code___functionname__and__functionname_alt__boost__parser___report_warning___code__phrase_role__identifier___report_warning__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging._functionname_alt__boost__parser___report_error___code__phrase_role__identifier___report_error__phrase__phrase_role__special______phrase___code___functionname__and__functionname_alt__boost__parser___report_warning___code__phrase_role__identifier___report_warning__phrase__phrase_role__special______phrase___code___functionname_">_report_error() and _report_warning()</a>
+      </h5>
+<p>
+        There are also some convenience functions that make the above code a little
+        less verbose, <code class="computeroutput"><a class="link" href="../../boost/parser/report_error_idm23246.html" title="Function template _report_error">_report_error()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/report_warning_idm23258.html" title="Function template _report_warning">_report_warning()</a></code>:
+      </p>
+<pre class="programlisting">[](auto &amp; ctx) {
+    // Assume we have a std::vector of open tags, and another
+    // std::vector of iterators to where the open tags were parsed, in our
+    // globals.
+    if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+        std::string open_tag_msg =
+            "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+        _report_error(ctx, open_tag_msg, _globals(ctx).open_tag_positions.back());
+        std::string close_tag_msg =
+            "does not match close-tag \"" + _attr(ctx) + "\" here:";
+        _report_error(ctx, close_tag_msg);
+
+        // Explicitly fail the parse.  Diagnostics to not affect parse success.
+        _pass(ctx) = false;
+    }
+}
+</pre>
+<p>
+        You should use these less verbose functions almost all the time. The only
+        time you would want to use <code class="computeroutput"><a class="link" href="../../boost/parser/_error_handler.html" title="Function template _error_handler">_error_handler()</a></code>
+        directly is when you are using a custom error handler, and you want access
+        to some part of its interface besides <code class="computeroutput">diagnose()</code>.
+      </p>
+<p>
+        Though there is support for reporting warnings using the functions above,
+        none of the error handlers supplied by Boost.Parser will ever report a warning.
+        Warnings are strictly for user code.
+      </p>
+<p>
+        For more information on the rest of the error handling and diagnostic API,
+        see the header reference pages for <code class="computeroutput"><a class="link" href="../../header/boost/parser/error_handling_fwd_hpp.html" title="Header &lt;boost/parser/error_handling_fwd.hpp&gt;">error_handling_fwd.hpp</a></code>
+        and <code class="computeroutput"><a class="link" href="../../header/boost/parser/error_handling_hpp.html" title="Header &lt;boost/parser/error_handling.hpp&gt;">error_handling.hpp</a></code>.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h2"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.creating_your_own_error_handler"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.creating_your_own_error_handler">Creating
+        your own error handler</a>
+      </h5>
+<p>
+        Creating your own error handler is pretty easy; you just need to implement
+        three member functions. Say you want an error handler that writes diagnostics
+        to a file. Here's how you might do that.
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">logging_error_handler</span>
+<span class="special">{</span>
+    <span class="identifier">logging_error_handler</span><span class="special">()</span> <span class="special">{}</span>
+    <span class="identifier">logging_error_handler</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> <span class="identifier">filename</span><span class="special">)</span> <span class="special">:</span>
+        <span class="identifier">filename_</span><span class="special">(</span><span class="identifier">filename</span><span class="special">),</span> <span class="identifier">ofs_</span><span class="special">(</span><span class="identifier">filename_</span><span class="special">)</span>
+    <span class="special">{</span>
+        <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">ofs_</span><span class="special">)</span>
+            <span class="keyword">throw</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">runtime_error</span><span class="special">(</span><span class="string">"Could not open file."</span><span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="comment">// This is the function called by Boost.Parser after a parser fails the</span>
+    <span class="comment">// parse at an expectation point and throws a parse_error.  It is expected</span>
+    <span class="comment">// to create a diagnostic message, and put it where it needs to go.  In</span>
+    <span class="comment">// this case, we're writing it to a log file.  This function returns a</span>
+    <span class="comment">// bp::error_handler_result, which is an enum with two enumerators -- fail</span>
+    <span class="comment">// and rethrow.  Returning fail fails the top-level parse; returning</span>
+    <span class="comment">// rethrow just re-throws the parse_error exception that got us here in</span>
+    <span class="comment">// the first place.</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Iter</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Sentinel</span><span class="special">&gt;</span>
+    <span class="identifier">bp</span><span class="special">::</span><span class="identifier">error_handler_result</span>
+    <span class="keyword">operator</span><span class="special">()(</span><span class="identifier">Iter</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">Sentinel</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse_error</span><span class="special">&lt;</span><span class="identifier">Iter</span><span class="special">&gt;</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span> <span class="keyword">const</span>
+    <span class="special">{</span>
+        <span class="identifier">bp</span><span class="special">::</span><span class="identifier">write_formatted_expectation_failure_error_message</span><span class="special">(</span>
+            <span class="identifier">ofs_</span><span class="special">,</span> <span class="identifier">filename_</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">e</span><span class="special">);</span>
+        <span class="keyword">return</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">error_handler_result</span><span class="special">::</span><span class="identifier">fail</span><span class="special">;</span>
+    <span class="special">}</span>
+
+    <span class="comment">// This function is for users to call within a semantic action to produce</span>
+    <span class="comment">// a diagnostic.</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">,</span> <span class="keyword">typename</span> <span class="identifier">Iter</span><span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">diagnose</span><span class="special">(</span>
+        <span class="identifier">bp</span><span class="special">::</span><span class="identifier">diagnostic_kind</span> <span class="identifier">kind</span><span class="special">,</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> <span class="identifier">message</span><span class="special">,</span>
+        <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">,</span>
+        <span class="identifier">Iter</span> <span class="identifier">it</span><span class="special">)</span> <span class="keyword">const</span>
+    <span class="special">{</span>
+        <span class="identifier">bp</span><span class="special">::</span><span class="identifier">write_formatted_message</span><span class="special">(</span>
+            <span class="identifier">ofs_</span><span class="special">,</span>
+            <span class="identifier">filename_</span><span class="special">,</span>
+            <span class="identifier">bp</span><span class="special">::</span><span class="identifier">_begin</span><span class="special">(</span><span class="identifier">context</span><span class="special">),</span>
+            <span class="identifier">it</span><span class="special">,</span>
+            <span class="identifier">bp</span><span class="special">::</span><span class="identifier">_end</span><span class="special">(</span><span class="identifier">context</span><span class="special">),</span>
+            <span class="identifier">message</span><span class="special">);</span>
+    <span class="special">}</span>
+
+    <span class="comment">// This is just like the other overload of diagnose(), except that it</span>
+    <span class="comment">// determines the Iter parameter for the other overload by calling</span>
+    <span class="comment">// _where(ctx).</span>
+    <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">&gt;</span>
+    <span class="keyword">void</span> <span class="identifier">diagnose</span><span class="special">(</span>
+        <span class="identifier">bp</span><span class="special">::</span><span class="identifier">diagnostic_kind</span> <span class="identifier">kind</span><span class="special">,</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span> <span class="identifier">message</span><span class="special">,</span>
+        <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">)</span> <span class="keyword">const</span>
+    <span class="special">{</span>
+        <span class="identifier">diagnose</span><span class="special">(</span><span class="identifier">kind</span><span class="special">,</span> <span class="identifier">message</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">_where</span><span class="special">(</span><span class="identifier">context</span><span class="special">).</span><span class="identifier">begin</span><span class="special">());</span>
+    <span class="special">}</span>
+
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">filename_</span><span class="special">;</span>
+    <span class="keyword">mutable</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">ofstream</span> <span class="identifier">ofs_</span><span class="special">;</span>
+<span class="special">};</span>
+</pre>
+<p>
+      </p>
+<p>
+        That's it. You just need to do the important work of the error handler in
+        its call operator, and then implement the two overloads of <code class="computeroutput">diagnose()</code>
+        that it must provide for use inside semantic actions. The default implementation
+        of these is even available as the free function <code class="computeroutput">write_formatted_message()</code>,
+        so you can just call that, as you see above. Here's how you might use it.
+      </p>
+<p>
+</p>
+<pre class="programlisting"><span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
+<span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"Enter a list of integers, separated by commas. "</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">input</span><span class="special">;</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">getline</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">cin</span><span class="special">,</span> <span class="identifier">input</span><span class="special">);</span>
+
+    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">parser</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span> <span class="special">&gt;&gt;</span> <span class="special">*(</span><span class="char">','</span> <span class="special">&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">);</span>
+    <span class="identifier">logging_error_handler</span> <span class="identifier">error_handler</span><span class="special">(</span><span class="string">"parse.log"</span><span class="special">);</span>
+    <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="identifier">input</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">with_error_handler</span><span class="special">(</span><span class="identifier">parser</span><span class="special">,</span> <span class="identifier">error_handler</span><span class="special">));</span>
+
+    <span class="keyword">if</span> <span class="special">(</span><span class="identifier">result</span><span class="special">)</span> <span class="special">{</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"It looks like you entered:\n"</span><span class="special">;</span>
+        <span class="keyword">for</span> <span class="special">(</span><span class="keyword">int</span> <span class="identifier">x</span> <span class="special">:</span> <span class="special">*</span><span class="identifier">result</span><span class="special">)</span> <span class="special">{</span>
+            <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">x</span> <span class="special">&lt;&lt;</span> <span class="string">"\n"</span><span class="special">;</span>
+        <span class="special">}</span>
+    <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+<p>
+      </p>
+<p>
+        We just define a <code class="computeroutput">logging_error_handler</code>, and pass it by reference
+        to <code class="computeroutput"><a class="link" href="../../boost/parser/with_error_handler.html" title="Function template with_error_handler">with_error_handler()</a></code>, which decorates the top-level
+        parser with the error handler. We <span class="bold"><strong>could not</strong></span>
+        have written <code class="computeroutput">bp::with_error_handler(parser, logging_error_handler("parse.log"))</code>,
+        because <code class="computeroutput"><a class="link" href="../../boost/parser/with_error_handler.html" title="Function template with_error_handler">with_error_handler()</a></code>
+        does not accept rvalues. This is becuse the error handler eventually goes
+        into the parse context. The parse context only stores pointers and iterators,
+        keeping it cheap to copy.
+      </p>
+<p>
+        If we run the example and give it the input <code class="computeroutput">"1,"</code>,
+        this shows up in the log file:
+      </p>
+<pre class="programlisting">parse.log:1:2: error: Expected int_ here (end of input):
+1,
+  ^
+</pre>
+<h5>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h3"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.fixing_ill_formed_code"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.fixing_ill_formed_code">Fixing
         ill-formed code</a>
       </h5>
@@ -118,7 +336,7 @@
         Sometimes, during the writing of a parser, you make a simple mistake that
         is diagnosed horrifyingly, due to the high number of template instantiations
         between the line you just wrote and the point of use (usually, the call to
-        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23545.html" title="Function template parse">parse()</a></code>). By "sometimes",
+        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23681.html" title="Function template parse">parse()</a></code>). By "sometimes",
         I mean "almost always and many, many times". Boost.Parser has a
         workaround for situations like this. The workaround is to make the ill-formed
         code well-formed in as many circumstances as possible, and then do a runtime
@@ -136,7 +354,7 @@
         you can turn off the use of this technique entirely by defining <code class="computeroutput">BOOST_PARSER_NO_RUNTIME_ASSERTIONS</code>.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h2"></a>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h4"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.runtime_debugging"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.runtime_debugging">Runtime
         debugging</a>
       </h5>
@@ -145,14 +363,14 @@
         nearly impossible to debug simply by looking at the parser's code. Stepping
         through the parse in a debugger is even worse. To provide a reasonable chance
         of debugging your parsers, Boost.Parser has a trace mode that you can turn
-        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23545.html" title="Function template parse">parse()</a></code>
-        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm23805.html" title="Function template callback_parse">callback_parse()</a></code>:
+        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23681.html" title="Function template parse">parse()</a></code>
+        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm23941.html" title="Function template callback_parse">callback_parse()</a></code>:
       </p>
 <pre class="programlisting">boost::parser::parse(input, parser, boost::parser::trace::on);
 </pre>
 <p>
-        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23545.html" title="Function template parse">parse()</a></code>
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm23805.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
+        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm23681.html" title="Function template parse">parse()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm23941.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
         which is defaulted to <code class="computeroutput">boost::parser::trace::off</code>.
       </p>
 <p>
