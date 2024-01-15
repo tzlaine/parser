@@ -419,73 +419,8 @@ located, without producing any other attributes.
 [heading _error_handler_]
 
 _error_handler_ returns a reference to the error handler associated with the
-parser passed to _p_.  Any error handler must have the following member
-functions:
-
-[error_handler_api_1]
-
-[error_handler_api_2]
-
-If you call the second one, the one without the iterator parameter, it will
-call the first with `_where(context).begin()` as the iterator parameter.  The
-one without the iterator is the one you will use most often.  The one with the
-explicit iterator parameter can be useful in situations where you have
-messages that are related to each other, associated with multiple locations.
-For instance, if you are parsing XML, you may want to report that a close-tag
-does not match its associated open-tag by showing the line where the open-tag
-was found.  That may of course not be located anywhere near
-`_where(ctx).begin()`.  (A description of _globals_ is below.)
-
-    [](auto & ctx) {
-        // Assume we have a std::vector of open tags, and another
-        // std::vector of iterators to where the open tags were parsed, in our
-        // globals.
-        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
-            std::string open_tag_msg =
-                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
-            _error_handler(ctx).diagnose(
-                boost::parser::diagnostic_kind::error,
-                open_tag_msg,
-                ctx,
-                _globals(ctx).open_tags_position.back());
-            std::string close_tag_msg =
-                "does not match close-tag \"" + _attr(ctx) + "\" here:";
-            _error_handler(ctx).diagnose(
-                boost::parser::diagnostic_kind::error,
-                close_tag_msg,
-                ctx);
-
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
-            _pass(ctx) = false;
-        }
-    }
-
-[heading _report_error_ and _report_warning_]
-
-There are also some convenience functions that make the above code a little
-less verbose, _report_error_ and _report_warning_:
-
-    [](auto & ctx) {
-        // Assume we have a std::vector of open tags, and another
-        // std::vector of iterators to where the open tags were parsed, in our
-        // globals.
-        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
-            std::string open_tag_msg =
-                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
-            _report_error(ctx, open_tag_msg, _globals(ctx).open_tag_positions.back());
-            std::string close_tag_msg =
-                "does not match close-tag \"" + _attr(ctx) + "\" here:";
-            _report_error(ctx, close_tag_msg);
-
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
-            _pass(ctx) = false;
-        }
-    }
-
-You should use these less verbose functions almost all the time.  The only
-time you would want to use _error_handler_ is when you are using a custom
-error handler, and you want access to some part of it's interface besides
-`diagnose()`.
+parser passed to _p_.  See _eh_debugging_ for more information on what you can
+do with the error handler.
 
 [heading Accessors for data that are only sometimes available] 
 
@@ -3114,8 +3049,7 @@ Clang and/or GCC diagnostics.
 
 Most of _Parser_'s error handlers format their diagnostics this way, though
 you are not bound by that.  You can make an error handler type that does
-whatever you want, as long as it meets the error handler interface.  See
-`error_handler` in _concepts_ for details.
+whatever you want, as long as it meets the error handler interface.
 
 The _Parser_ error handlers are:
 
@@ -3138,10 +3072,116 @@ The _Parser_ error handlers are:
 * _rethrow_eh_: Does nothing but re-throw any exception that it is asked to
   handle.  Its `diagnose()` member functions are no-ops.
 
-[tip If you want to provide your own error handler, but still want to use the
-same formatting as _Parser_ error handlers, you can use the functions
-`write_formatted_message()` and
-`write_formatted_expectation_failure_error_message()` to do that for you.]
+You can set the error handler to any of these, or one of your own, using
+_w_eh_ (see _p_api_).  If you do not set one, _default_eh_ will be used.
+
+You can get access to the error handler within any semantic action by calling
+`_error_handler(ctx)` (see _parse_ctx_).  Any error handler must have the
+following member functions:
+
+[error_handler_api_1]
+
+[error_handler_api_2]
+
+If you call the second one, the one without the iterator parameter, it will
+call the first with `_where_np_(context).begin()` as the iterator parameter.  The
+one without the iterator is the one you will use most often.  The one with the
+explicit iterator parameter can be useful in situations where you have
+messages that are related to each other, associated with multiple locations.
+For instance, if you are parsing XML, you may want to report that a close-tag
+does not match its associated open-tag by showing the line where the open-tag
+was found.  That may of course not be located anywhere near
+`_where(ctx).begin()`.  (A description of _globals_ is below.)
+
+    [](auto & ctx) {
+        // Assume we have a std::vector of open tags, and another
+        // std::vector of iterators to where the open tags were parsed, in our
+        // globals.
+        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+            std::string open_tag_msg =
+                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+            _error_handler(ctx).diagnose(
+                boost::parser::diagnostic_kind::error,
+                open_tag_msg,
+                ctx,
+                _globals(ctx).open_tags_position.back());
+            std::string close_tag_msg =
+                "does not match close-tag \"" + _attr(ctx) + "\" here:";
+            _error_handler(ctx).diagnose(
+                boost::parser::diagnostic_kind::error,
+                close_tag_msg,
+                ctx);
+
+            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            _pass(ctx) = false;
+        }
+    }
+
+[heading _report_error_ and _report_warning_]
+
+There are also some convenience functions that make the above code a little
+less verbose, _report_error_ and _report_warning_:
+
+    [](auto & ctx) {
+        // Assume we have a std::vector of open tags, and another
+        // std::vector of iterators to where the open tags were parsed, in our
+        // globals.
+        if (_attr(ctx) != _globals(ctx).open_tags.back()) {
+            std::string open_tag_msg =
+                "Previous open-tag \"" + _globals(ctx).open_tags.back() + "\" here:";
+            _report_error(ctx, open_tag_msg, _globals(ctx).open_tag_positions.back());
+            std::string close_tag_msg =
+                "does not match close-tag \"" + _attr(ctx) + "\" here:";
+            _report_error(ctx, close_tag_msg);
+
+            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            _pass(ctx) = false;
+        }
+    }
+
+You should use these less verbose functions almost all the time.  The only
+time you would want to use _error_handler_ directly is when you are using a
+custom error handler, and you want access to some part of its interface
+besides `diagnose()`.
+
+Though there is support for reporting warnings using the functions above, none
+of the error handlers supplied by _Parser_ will ever report a warning.
+Warnings are strictly for user code.
+
+For more information on the rest of the error handling and diagnostic API, see
+the header reference pages for _err_fwd_hpp_ and _err_hpp_.
+
+[heading Creating your own error handler]
+
+Creating your own error handler is pretty easy; you just need to implement
+three member functions.  Say you want an error handler that writes diagnostics
+to a file.  Here's how you might do that.
+
+[logging_error_handler]
+
+That's it.  You just need to do the important work of the error handler in its
+call operator, and then implement the two overloads of `diagnose()` that it
+must provide for use inside semantic actions.  The default implementation of
+these is even available as the free function `write_formatted_message()`, so
+you can just call that, as you see above.  Here's how you might use it.
+
+[using_logging_error_handler]
+
+We just define a `logging_error_handler`, and pass it by reference to _w_eh_,
+which decorates the top-level parser with the error handler.  We *could not*
+have written `bp::with_error_handler(parser,
+logging_error_handler("parse.log"))`, because _w_eh_ does not accept rvalues.
+This is becuse the error handler eventually goes into the parse context.  The
+parse context only stores pointers and iterators, keeping it cheap to copy.
+
+If we run the example and give it the input `"1,"`, this shows up in the log
+file:
+
+[pre
+parse.log:1:2: error: Expected int_ here (end of input):
+1,
+  ^
+]
 
 [heading Fixing ill-formed code]
 

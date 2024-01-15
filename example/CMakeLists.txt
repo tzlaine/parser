@@ -26,6 +26,7 @@ add_sample(rule_intro)
 add_sample(struct_rule)
 add_sample(parsing_into_a_struct)
 add_sample(roman_numerals)
+add_sample(user_error_handler)
 
 if (Boost_FOUND)
     if (NOT BUILD_WITHOUT_HANA)
