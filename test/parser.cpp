@@ -7,6 +7,7 @@
  */
 
 #include <boost/parser/parser.hpp>
+#include <boost/parser/transcode_view.hpp>
 
 #if __has_include(<boost/optional/optional.hpp>)
 #define TEST_BOOST_OPTIONAL 1
@@ -2160,4 +2161,60 @@ TEST(parser, no_need_for_sprit_2_hold_directive)
 
     EXPECT_EQ(v.size(), 3u);
     EXPECT_EQ(v, std::vector<int>({1, 2, 0}));
+}
+
+TEST(parser, raw_doc_example)
+{
+    namespace bp = boost::parser;
+    auto int_parser = bp::int_ % ',';            // ATTR(int_parser) is std::vector<int>
+    auto subrange_parser = bp::raw[int_parser];  // ATTR(subrange_parser) is a subrange
+
+    // Parse using int_parser, generating integers.
+    auto ints = bp::parse("1, 2, 3, 4", int_parser, bp::ws);
+    assert(ints);
+    assert(*ints == std::vector<int>({1, 2, 3, 4}));
+
+    // Parse again using int_parser, but this time generating only the
+    // subrange matched by int_parser.  (prefix_parse() allows matches that
+    // don't consume the entire input.)
+    auto const str = std::string("1, 2, 3, 4, a, b, c");
+    auto first = str.begin();
+    auto range = bp::prefix_parse(first, str.end(), subrange_parser, bp::ws);
+    assert(range);
+    assert(range->begin() == str.begin());
+    assert(range->end() == str.begin() + 10);
+
+    static_assert(std::is_same_v<
+                  decltype(range),
+                  std::optional<bp::subrange<std::string::const_iterator>>>);
+
+#if defined(__cpp_char8_t)
+    auto const u8str = std::u8string(u8"1, 2, 3, 4, a, b, c");
+    auto u8first = u8str.begin();
+    auto u8range = bp::prefix_parse(u8first, u8str.end(), subrange_parser, bp::ws);
+    assert(u8range);
+    assert(u8range->begin().base() == u8str.begin());
+    assert(u8range->end().base() == u8str.begin() + 10);
+#endif
+}
+
+TEST(parser, string_view_doc_example)
+{
+    namespace bp = boost::parser;
+    auto int_parser = bp::int_ % ',';              // ATTR(int_parser) is std::vector<int>
+    auto sv_parser = bp::string_view[int_parser];  // ATTR(subrange_parser) is a string_view
+
+    auto const str = std::string("1, 2, 3, 4, a, b, c");
+    auto first = str.begin();
+    auto sv1 = bp::prefix_parse(first, str.end(), sv_parser, bp::ws);
+    assert(sv1);
+    assert(*sv1 == str.substr(0, 10));
+
+    static_assert(std::is_same_v<decltype(sv1), std::optional<std::string_view>>);
+
+    auto sv2 = bp::parse("1, 2, 3, 4" | bp::as_utf32, sv_parser, bp::ws);
+    assert(sv2);
+    assert(*sv2 == "1, 2, 3, 4");
+
+    static_assert(std::is_same_v<decltype(sv2), std::optional<std::string_view>>);
 }
