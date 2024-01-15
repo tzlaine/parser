@@ -25,6 +25,7 @@
 [/ Imports ]
 
 [/ Examples ]
+[import ../include/boost/parser/parser.hpp]
 [import ../example/hello.cpp]
 [import ../example/trivial.cpp]
 [import ../example/trivial_skipper.cpp]
@@ -90,7 +91,7 @@
 [def _w_glb_               [funcref boost::parser::with_globals `with_globals()`]]
 [def _w_eh_                [funcref boost::parser::with_error_handler `with_error_handler()`]]
 
-[def __attr_                [funcref boost::parser::_attr `_attr()`]]
+[def __attr_               [funcref boost::parser::_attr `_attr()`]]
 [def _val_                 [funcref boost::parser::_val `_val()`]]
 [def _pass_                [funcref boost::parser::_pass `_pass()`]]
 [def _begin_               [funcref boost::parser::_begin `_begin()`]]

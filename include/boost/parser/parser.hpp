@@ -2850,9 +2850,12 @@ namespace boost { namespace parser {
         {}
     };
 
+    //[ opt_parser_beginning
     template<typename Parser>
     struct opt_parser
     {
+        //]
+        //[ opt_parser_attr_call
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2874,7 +2877,9 @@ namespace boost { namespace parser {
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
+        //]
 
+        //[ opt_parser_out_param_call
         template<
             bool UseCallbacks,
             typename Iter,
@@ -2892,25 +2897,36 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
+            //[ opt_parser_trace
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
+            //]
 
+            //[ opt_parser_skip
             detail::skip(first, last, skip, flags);
+            //]
 
+            //[ opt_parser_no_gen_attr_path
             if (!detail::gen_attrs(flags)) {
                 parser_.call(
                     use_cbs, first, last, context, skip, flags, success);
                 success = true;
                 return;
             }
+            //]
 
+            //[ opt_parser_gen_attr_path
             parser_.call(
                 use_cbs, first, last, context, skip, flags, success, retval);
             success = true;
+            //]
         }
+        //]
 
+        //[ opt_parser_end
         Parser parser_;
     };
+    //]
 
     template<typename ParserTuple>
     struct or_parser

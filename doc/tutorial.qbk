@@ -756,11 +756,11 @@ matches `other_parser` 11 times.  `parser` will match it.  It will also
 evaluate `other_parser` 21 times during the parse.
 
 The attributes of the `repeat(53)[other_parser]` and
-`repeat(10)[other_parser]` are each `std::vector<ATTR(other_parser)>`; let's
-say that `ATTR(other_parser)` is `int`.  The attribute of `parser` as a whole
-is the same, `std::vector<int>`.  Since `other_parser` is busy producing
-`int`s _emdash_ 21 of them to be exact _emdash_ you may be wondering what
-happens to the ones produced during the evaluation of
+`repeat(10)[other_parser]` are each `std::vector<_ATTR_np_(other_parser)>`;
+let's say that `_ATTR_np_(other_parser)` is `int`.  The attribute of `parser`
+as a whole is the same, `std::vector<int>`.  Since `other_parser` is busy
+producing `int`s _emdash_ 21 of them to be exact _emdash_ you may be wondering
+what happens to the ones produced during the evaluation of
 `repeat(53)[other_parser]` when it fails to find all 53 inputs.  Its
 `std::vector<int>` will contain 11 `int`s at that point.
 
@@ -2265,7 +2265,7 @@ work.  First, the case that works:
     std::vector<int> result;
     auto b = bp::parse("a, b", parser, bp::ws, result);
 
-`ATTR(parser)` is `std::optional<std::string>`.  Even though we pass a
+`_ATTR_np_(parser)` is `std::optional<std::string>`.  Even though we pass a
 `std::vector<int>`, everything is fine.  However, if we modify this case only
 sightly, so that the `std::optional<std::string>` is nested within the
 attribute, the code becomes ill-formed.
@@ -3498,6 +3498,156 @@ parsing is even necessary.  For instance, a test case might look like this:
     TEST(my_parser_tests, my_rule_test) {
         my_rule r;
     }
+
+[endsect]
+
+[section Writing Your Own Parsers]
+
+You should probably never need to write your own low-level parser.  You have
+primitives like _ch_ from which to build up the parsers that you need.  It is
+unlikely that you're going to need to do things on a lower level than a single
+character.
+
+However.  Some people are obsessed with writing everything for themselves.  We
+call them C++ programmers.  This section is for them.  However, this section
+is not an in-depth tutorial.  It is a basic orientation to get you familiar
+enough with all the moving parts of writing a parser that you can then learn
+by reading the _Parser_ code.
+
+Each parser must provide two overloads of a function `call()`.  One overload
+parses, producing an attribute (which may be the special no-attribute type
+`detail::nope`).  The other one parses, filling in a given attribute.  The
+type of the given attribute is a template parameter, so it can take any type
+that you can form a reference to.
+
+Let's take a look at a _Parser_ parser, `opt_parser`.  This is the parser
+produced by use of `operator-`.  First, here is the beginning of its
+definition.
+
+[opt_parser_beginning]
+
+The end of its definition is:
+
+[opt_parser_end]
+
+As you can see, `opt_parser`'s only data member is the parser it adapts,
+`parser_`.  Here is its attribute-generating overload to `call()`.
+
+[opt_parser_attr_call]
+
+First, let's look at the template and function parameters.
+
+* `UseCallbacks` is `true` only within a call to _cbp_ (or _cbpp_), and it is
+  deduced from the `use_cbs` function parameter.
+
+* `Iter & first` is the iterator.  It is taken as an out-param.  It is the
+  responsibility of `call()` to advance `first` if and only if the parse
+  succeeds.
+
+* `Sentinel last` is the sentinel.  If the parse has not yet succeeded within
+  `call()`, and `first == last` is `true`, `call()` must fail (by setting
+  `bool & success` to `false`).
+
+* `Context const & context` is the parse context.  It will be some
+  specialization of `detail::parse_context`.  The context is used in any call
+  to a subparser's `call()`, and in some cases a new context should be
+  created, and the new context passed to a subparser instead; more on that
+  below.
+
+* `SkipParser const & skip` is the current skip parser.  `skip` should be used
+  at the beginning of the parse, and in between any two uses of any
+  subparser(s).
+
+* `detail::flags flags` are a collection of flags indicating various things
+  about the current state of the parse.  `flags` is concerned with whether to
+  produce attributes at all; whether to apply the skip parser `skip`; whether
+  to produce a verbose trace (as when `parser::trace::on` is passed at the top
+  level); and whether we are currently inside the utility function
+  `detail::apply_parser`.
+
+* `bool & success` is the final function parameter.  It should be set to
+  `true` if the parse succeeds, and `false` otherwise.
+
+Now the body of the function. Notice that it just dispatches to the other
+`call()` overload.  This is really common, since both overloads need to to the
+same parsing; only the attribute may differ.  The first line of the body
+defines `attr_t`, the default attribute type of our wrapped parser `parser_`.
+It does this by getting the `decltype()` of a use of `parser_.call()`.  (This
+is the logic represented by _ATTR_ in the rest of the documentation.)  Since
+`opt_parser` represents an optional value, the natural type for its attribute
+is `std::optional<_ATTR_np_(parser)>`.  However, this does not work for all
+cases.  In particular, it does not work for the "no-attribute" type
+`detail::nope`, nor for `std::optional<T>` _emdash_ `_ATTR_np_(--p)` is just
+`_ATTR_np_(-p)`.  So, the second line uses an alias that takes care of those
+details, `detail::optional_of<>`.  The third line just calls the other
+overload of `call()`, passing `retval` as the out-param.  Finally, `retval` is
+returned on the last line.
+
+Now, on to the other overload.
+
+[opt_parser_out_param_call]
+
+The template and function parameters here are identical to the ones from the
+other overload, except that we have `Attribute & retval`, our out-param.
+
+Let's look at the implementation a bit at a time.
+
+[opt_parser_trace]
+
+This defines a RAII trace object that will produce the verbose trace requested
+by the user if they passed `parser::trace::on` to the top-level parse.  It
+only has effect if `detail::enable_trace(flags)` is `true`.  If trace is
+enabled, it will show the state of the parse at the point at which it is
+defined, and then again when it goes out of scope.
+
+[important For the tracing code to work, you must define an overload of
+`detail::print_parser` for your new parser type/template.  See
+`<boost/parser/detail/printing.hpp>` for examples.]
+
+[opt_parser_skip]
+
+This one is pretty simple; it just applies the skip parser.  `opt_parser` only
+has one subparser, but if it had more than one, or if it had one that it
+applied more than once, it would need to repeat this line using `skip` between
+every pair of uses of any subparser.
+
+[opt_parser_no_gen_attr_path]
+
+This path accounts for the case where we don't want to generate attributes at
+all, perhaps because this parser sits inside an _omit_ directive.
+
+[opt_parser_gen_attr_path]
+
+This is the other, typical, path.  Here, we do want to generate attributes,
+and so we do the same call to `parser_.call()`, except that we also pass
+`retval`.
+
+Note that we set `success` to `true` after the call to `parser_.call()` in
+both code paths.  Since `opt_parser` is zero-or-one, if the subparser fails,
+`opt_parse` still succeeds.
+
+[heading When to make a new parse context]
+
+Sometimes, you need to change something about the parse context before calling
+a subparser.  For instance, `rule_parser` sets up the value, locals, etc.,
+that are available for that rule.  `action_parser` adds the generated
+attribute to the context (available as `_attr(ctx)`).  Contexts are immutable
+in _Parser_.  To "modify" one for a subparser, you create a new one with the
+appropriate call to `detail::make_context()`.
+
+[heading `detail::apply_parser()`]
+
+Sometimes a parser needs to operate on an out-param that is not exactly the
+same as its default attribute, but that is compatible in some way.  To do
+this, it's often useful for the parser to call itself, but with slightly
+different parameters.  `detail::apply_parser()` helps with this.  See the
+out-param overload of `repeat_parser::call()` for an example.  Note that since
+this creates a new scope for the ersatz parser, the `scoped_trace` object
+needs to know whether we're inside `detail::apply_parser` or not.
+
+That's a lot, I know.  Again, this section is not meant to be an in-depth
+tutorial.  You know enough now that the parsers in `parser.hpp` are at least
+readable.
 
 [endsect]
 
