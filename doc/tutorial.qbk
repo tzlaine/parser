@@ -262,6 +262,102 @@ section defines what exactly the parse context is and how it works.
 
 [endsect]
 
+[section Parsing to Find Subranges]
+
+So far we've seen examples that parse some text and generate associated
+attributes.  Sometimes, you want to find some subrange of the input that
+contains what you're looking for, and you don't want to generate attributes at
+all.
+
+There are two ['directive]s that affect the attribute type of any parser, _raw_
+and _string_view_.  (We'll get to directives in more detail in the
+_directives_ section later.  For now, you just need to know that a directive
+wraps a parser, and changes some aspect of how it functions.)
+
+[heading _raw_]
+
+_raw_ changes the attribute of its parser to be a _v_ whose `begin()` and
+`end()` return the bounds of the sequence being parsed that match `p`.
+
+    namespace bp = boost::parser;
+    auto int_parser = bp::int_ % ',';            // ATTR(int_parser) is std::vector<int>
+    auto subrange_parser = bp::raw[int_parser];  // ATTR(subrange_parser) is a subrange
+
+    // Parse using int_parser, generating integers.
+    auto ints = bp::parse("1, 2, 3, 4", int_parser, bp::ws);
+    assert(ints);
+    assert(*ints == std::vector<int>({1, 2, 3, 4}));
+
+    // Parse again using int_parser, but this time generating only the
+    // subrange matched by int_parser.  (prefix_parse() allows matches that
+    // don't consume the entire input.)
+    auto const str = std::string("1, 2, 3, 4, a, b, c");
+    auto first = str.begin();
+    auto range = bp::prefix_parse(first, str.end(), subrange_parser, bp::ws);
+    assert(range);
+    assert(range->begin() == str.begin());
+    assert(range->end() == str.begin() + 10);
+
+    static_assert(std::is_same_v<
+                  decltype(range),
+                  std::optional<bp::subrange<std::string::const_iterator>>>);
+
+Note that the _v_ has the iterator type `std::string::const_iterator`, because
+that's the iterator type passed to _pp_.  If we had passed `char const *`
+iterators to _pp_, that would have been the iterator type.  The only exception
+to this comes from Unicode-aware parsing (see _unicode_).  In some of those
+cases, the iterator being used in the parse is not the one you passed.  For
+instance, if you call _pp_ with `char8_t *` iterators, it will create a UTF-8
+to UTF-32 transcoding view, and parse the iterators of that view.  In such a
+case, you'll get a _v_ whose iterator type is a transcoding iterator.  When
+that happens, you can get the underlying iterator _emdash_ the one you passed
+to _pp_ _emdash_ by calling the `.base()` member function on each transcoding
+iterator in the returned _v_.
+
+    auto const u8str = std::u8string(u8"1, 2, 3, 4, a, b, c");
+    auto u8first = u8str.begin();
+    auto u8range = bp::prefix_parse(u8first, u8str.end(), subrange_parser, bp::ws);
+    assert(u8range);
+    assert(u8range->begin().base() == u8str.begin());
+    assert(u8range->end().base() == u8str.begin() + 10);
+
+[heading _string_view_]
+
+_string_view_ has very similar semantics to _raw_, except that it produces a
+`std::basic_string_view<CharT>` (where `CharT` is the type of the underlying
+range begin parsed) instead of a _v_.  For this to work, the underlying range
+must be contiguous.  Contiguity of iterators is not detectable before C++20,
+so this directive is only available in C++20 and later.
+
+    namespace bp = boost::parser;
+    auto int_parser = bp::int_ % ',';              // ATTR(int_parser) is std::vector<int>
+    auto sv_parser = bp::string_view[int_parser];  // ATTR(subrange_parser) is a string_view
+
+    auto const str = std::string("1, 2, 3, 4, a, b, c");
+    auto first = str.begin();
+    auto sv1 = bp::prefix_parse(first, str.end(), sv_parser, bp::ws);
+    assert(sv1);
+    assert(*sv1 == str.substr(0, 10));
+
+    static_assert(std::is_same_v<decltype(sv1), std::optional<std::string_view>>);
+
+Since _string_view_ produces `string_view`s, it cannot return transcoding
+iterators as described above for _raw_.  If you parse a sequence of `CharT`
+with _string_view_, you get exactly a `std::basic_string_view<CharT>`.  If the
+parse is using transcoding in the Unicode-aware path, _string_view_ will
+decompose the transcoding iterator as necessary.  If you pass a transcoding
+view to _p_ or transcoding iterators to _pp_, _string_view_ will still see
+through the transcoding iterators without issue, and give you a `string_view`
+of part of the underlying range.
+
+    auto sv2 = bp::parse("1, 2, 3, 4" | bp::as_utf32, sv_parser, bp::ws);
+    assert(sv2);
+    assert(*sv2 == "1, 2, 3, 4");
+
+    static_assert(std::is_same_v<decltype(sv2), std::optional<std::string_view>>);
+
+[endsect]
+
 [section The Parse Context]
 
 Now would be a good time to describe the parse context in some detail.  Any
@@ -1536,6 +1632,11 @@ _p_ call:
 
 The first occurrence of `zero_or_more` will use the skipper passed to _p_,
 which is _space_; the second will use _ws_ as its skipper.
+
+[heading _merge_ and _sep_]
+
+These two directives influence the generation of attributes.  See _attr_gen_
+section for more details on them.
 
 [endsect]
 
