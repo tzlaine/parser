@@ -1674,6 +1674,11 @@ When calling _p_ in a form that returns the attribute parsed, when there is no
 attribute, simply returns `bool`; this indicates the success of failure of the
 parse.]
 
+[warning _Parser_ assumes that all attributes are semi-regular (see
+`std::semiregular`.  Within the _Parser_ code, attributes are assigned, moved,
+copy, and default constructed.  There is no support for move-only or
+non-default-constructible types.]
+
 [heading Parser attributes]
 
 This table summarizes the attributes generated for all _Parser_ parsers.  In
