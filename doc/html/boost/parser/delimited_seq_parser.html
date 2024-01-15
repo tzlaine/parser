@@ -28,19 +28,19 @@
   <span class="keyword">public</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">repeat_parser</span><span class="special">&lt;</span> <span class="identifier">Parser</span><span class="special">,</span> <span class="identifier">DelimiterParser</span> <span class="special">&gt;</span>
 <span class="special">{</span>
   <span class="comment">// <a class="link" href="delimited_seq_parser.html#boost.parser.delimited_seq_parserconstruct-copy-destruct">construct/copy/destruct</a></span>
-  <a class="link" href="delimited_seq_parser.html#idm20179-bb"><span class="identifier">delimited_seq_parser</span></a><span class="special">(</span><span class="identifier">Parser</span><span class="special">,</span> <span class="identifier">DelimiterParser</span><span class="special">)</span><span class="special">;</span>
+  <a class="link" href="delimited_seq_parser.html#idm20706-bb"><span class="identifier">delimited_seq_parser</span></a><span class="special">(</span><span class="identifier">Parser</span><span class="special">,</span> <span class="identifier">DelimiterParser</span><span class="special">)</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm24387"></a><h2>Description</h2>
+<a name="idm24907"></a><h2>Description</h2>
 <p>Repeats the application of another parser <code class="computeroutput">p</code> of type <code class="computeroutput">Parser</code>, <code class="computeroutput">[1, Inf)</code> times, applying a parser <code class="computeroutput">d</code> of type <code class="computeroutput">DelimiterParser</code> in between each pair of applications of <code class="computeroutput">p</code>. The parse succeeds iff <code class="computeroutput">p</code> succeeds at least once, and <code class="computeroutput">d</code> succeeds each time it is applied. The attribute produced is a sequence of the type of attribute produced by <code class="computeroutput">Parser</code>.</p>
 <p>A simplified <code class="computeroutput"><a class="link" href="repeat_parser.html" title="Struct template repeat_parser">repeat_parser</a></code> that applies <code class="computeroutput">parser</code> zero or more times, with <code class="computeroutput">delimiter_parser</code> applied before each application of <code class="computeroutput">parser</code> after the first. <br>
  </p>
 <div class="refsect2">
-<a name="idm24406"></a><h3>
+<a name="idm24926"></a><h3>
 <a name="boost.parser.delimited_seq_parserconstruct-copy-destruct"></a><code class="computeroutput">delimited_seq_parser</code> 
         public
        construct/copy/destruct</h3>
-<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm20179-bb"></a><span class="identifier">delimited_seq_parser</span><span class="special">(</span><span class="identifier">Parser</span> parser<span class="special">,</span> <span class="identifier">DelimiterParser</span> delimiter_parser<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
+<div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><a name="idm20706-bb"></a><span class="identifier">delimited_seq_parser</span><span class="special">(</span><span class="identifier">Parser</span> parser<span class="special">,</span> <span class="identifier">DelimiterParser</span> delimiter_parser<span class="special">)</span><span class="special">;</span></pre></li></ol></div>
 </div>
 </div>
 </div>
