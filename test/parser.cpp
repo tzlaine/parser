@@ -2198,6 +2198,8 @@ TEST(parser, raw_doc_example)
 #endif
 }
 
+
+#if defined(__cpp_lib_concepts)
 TEST(parser, string_view_doc_example)
 {
     namespace bp = boost::parser;
@@ -2218,3 +2220,4 @@ TEST(parser, string_view_doc_example)
 
     static_assert(std::is_same_v<decltype(sv2), std::optional<std::string_view>>);
 }
+#endif
