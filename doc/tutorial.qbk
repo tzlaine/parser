@@ -1675,8 +1675,8 @@ attribute, simply returns `bool`; this indicates the success of failure of the
 parse.]
 
 [warning _Parser_ assumes that all attributes are semi-regular (see
-`std::semiregular`.  Within the _Parser_ code, attributes are assigned, moved,
-copy, and default constructed.  There is no support for move-only or
+`std::semiregular`).  Within the _Parser_ code, attributes are assigned,
+moved, copy, and default constructed.  There is no support for move-only or
 non-default-constructible types.]
 
 [heading Parser attributes]
