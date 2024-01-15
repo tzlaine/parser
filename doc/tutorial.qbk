@@ -257,8 +257,8 @@ The way we get the parsed `double` in the lambda is by asking the parse
 context for it. `_attr(ctx)` is how you ask the parse context for the
 attribute produced by the parser to which the semantic action is attached.
 There are lots of functions like `_attr()` that can be used to access the
-state in the parse context.  We'll cover more of them later on.  The next
-section defines what exactly the parse context is and how it works.
+state in the parse context.  We'll cover more of them later on.  _parse_ctx_
+defines what exactly the parse context is and how it works.
 
 [endsect]
 
@@ -422,7 +422,7 @@ _error_handler_ returns a reference to the error handler associated with the
 parser passed to _p_.  See _eh_debugging_ for more information on what you can
 do with the error handler.
 
-[heading Accessors for data that are only sometimes available] 
+[heading Accessors for data that are only sometimes available]
 
 [heading __attr_]
 
@@ -1673,6 +1673,11 @@ actions, asking for the attribute of a non-attribute-producing parser (using
 When calling _p_ in a form that returns the attribute parsed, when there is no
 attribute, simply returns `bool`; this indicates the success of failure of the
 parse.]
+
+[warning _Parser_ assumes that all attributes are semi-regular (see
+`std::semiregular`.  Within the _Parser_ code, attributes are assigned, moved,
+copy, and default constructed.  There is no support for move-only or
+non-default-constructible types.]
 
 [heading Parser attributes]
 
