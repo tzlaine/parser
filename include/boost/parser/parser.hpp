@@ -7060,7 +7060,7 @@ namespace boost { namespace parser {
 
     /** An enumeration used for parameters to enable and disable trace in the
         `*parse()` functions. */
-    enum class trace { on, off };
+    enum class trace { off, on };
 
     // Parse API.
 

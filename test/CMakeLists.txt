@@ -46,6 +46,7 @@ macro(add_test_executable name)
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 
+add_test_executable(search)
 add_test_executable(hl)
 add_test_executable(aggr_tuple_assignment)
 add_test_executable(parser_lazy_params)
