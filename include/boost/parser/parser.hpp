@@ -968,9 +968,11 @@ namespace boost { namespace parser {
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
         template<typename T>
-        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        using has_begin =
+            decltype(*detail::text::detail::begin(std::declval<T &>()));
         template<typename T>
-        using has_end = decltype(std::end(std::declval<T &>()));
+        using has_end =
+            decltype(detail::text::detail::end(std::declval<T &>()));
 
         template<typename T>
         constexpr bool is_range =
@@ -999,9 +1001,11 @@ namespace boost { namespace parser {
 #else
 
         template<typename T>
-        using iterator_t = decltype(std::begin(std::declval<T &>()));
+        using iterator_t =
+            decltype(detail::text::detail::begin(std::declval<T &>()));
         template<typename Range>
-        using sentinel_t = decltype(std::end(std::declval<Range>()));
+        using sentinel_t =
+            decltype(detail::text::detail::end(std::declval<Range>()));
         template<typename T>
         using iter_value_t = typename std::iterator_traits<T>::value_type;
         template<typename T>
@@ -2322,8 +2326,8 @@ namespace boost { namespace parser {
                 using value_type = range_value_t<r_t>;
                 if constexpr (std::is_array_v<r_t>) {
                     if constexpr (std::is_same_v<value_type, char>) {
-                        auto first = std::begin(r);
-                        auto last = std::end(r);
+                        auto first = detail::text::detail::begin(r);
+                        auto last = detail::text::detail::end(r);
                         if (first != last && !*std::prev(last))
                             --last;
                         return parser::make_subrange(first, last);
@@ -2334,7 +2338,9 @@ namespace boost { namespace parser {
                     if constexpr (
                         std::is_same_v<value_type, char> &&
                         !is_utf8_view<r_t>::value) {
-                        return parser::make_subrange(std::begin(r), std::end(r));
+                        return parser::make_subrange(
+                            detail::text::detail::begin(r),
+                            detail::text::detail::end(r));
                     } else {
                         return r | text::as_utf32;
                     }
@@ -2348,7 +2354,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return r;
             } else {
-                return std::begin(r);
+                return detail::text::detail::begin(r);
             }
         }
 
@@ -2358,7 +2364,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return text::null_sentinel;
             } else {
-                return std::end(r);
+                return detail::text::detail::end(r);
             }
         }
 
