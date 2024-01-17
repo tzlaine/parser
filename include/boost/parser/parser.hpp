@@ -4,7 +4,6 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
-#include <boost/parser/subrange.hpp>
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
@@ -1281,8 +1280,8 @@ namespace boost { namespace parser {
             if constexpr (needs_transcoding_to_utf8<
                               Container,
                               iter_value_t<Iter>>) {
-                auto const r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                               text::as_utf8;
+                auto const r =
+                    BOOST_PARSER_SUBRANGE(first, last) | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
                 detail::insert(c, first, last);
@@ -1540,14 +1539,14 @@ namespace boost { namespace parser {
                 }
             }
 
-            subrange<Iter, Sentinel> chars_;
+            BOOST_PARSER_SUBRANGE<Iter, Sentinel> chars_;
         };
 
         template<typename Iter, typename Sentinel>
         constexpr auto make_char_range(Iter first, Sentinel last)
         {
             return char_range<Iter, Sentinel>{
-                subrange<Iter, Sentinel>{first, last}};
+                BOOST_PARSER_SUBRANGE<Iter, Sentinel>{first, last}};
         }
 
         template<typename R>
@@ -2318,7 +2317,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<r_t>) {
                 using value_type = iter_value_t<r_t>;
                 if constexpr (std::is_same_v<value_type, char>) {
-                    return parser::make_subrange(r, text::null_sentinel);
+                    return BOOST_PARSER_SUBRANGE(r, text::null_sentinel);
                 } else {
                     return r | text::as_utf32;
                 }
@@ -2330,7 +2329,7 @@ namespace boost { namespace parser {
                         auto last = detail::text::detail::end(r);
                         if (first != last && !*std::prev(last))
                             --last;
-                        return parser::make_subrange(first, last);
+                        return BOOST_PARSER_SUBRANGE(first, last);
                     } else {
                         return r | text::as_utf32;
                     }
@@ -2338,7 +2337,7 @@ namespace boost { namespace parser {
                     if constexpr (
                         std::is_same_v<value_type, char> &&
                         !is_utf8_view<r_t>::value) {
-                        return parser::make_subrange(
+                        return BOOST_PARSER_SUBRANGE(
                             detail::text::detail::begin(r),
                             detail::text::detail::end(r));
                     } else {
@@ -3871,7 +3870,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            subrange const where(initial_first, first);
+            BOOST_PARSER_SUBRANGE const where(initial_first, first);
             if (success) {
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
@@ -3957,7 +3956,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        subrange<Iter> call(
+        BOOST_PARSER_SUBRANGE<Iter> call(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3966,7 +3965,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            subrange<Iter> retval;
+            BOOST_PARSER_SUBRANGE<Iter> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -4001,7 +4000,8 @@ namespace boost { namespace parser {
                 detail::disable_attrs(flags),
                 success);
             if (success && detail::gen_attrs(flags))
-                detail::assign(retval, subrange<Iter>(initial_first, first));
+                detail::assign(
+                    retval, BOOST_PARSER_SUBRANGE<Iter>(initial_first, first));
         }
 
         Parser parser_;
@@ -5470,7 +5470,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            subrange const where(first, first);
+            BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -5500,7 +5500,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            subrange const where(first, first);
+            BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -5879,9 +5879,9 @@ namespace boost { namespace parser {
             if constexpr (std::is_same_v<
                               detail::remove_cv_ref_t<decltype(*first)>,
                               char32_t>) {
-                auto const cps = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(
-                                     expected_first_, expected_last_) |
-                                 detail::text::as_utf32;
+                auto const cps =
+                    BOOST_PARSER_SUBRANGE(expected_first_, expected_last_) |
+                    detail::text::as_utf32;
 
                 auto const mismatch = detail::no_case_aware_string_mismatch(
                     first,
@@ -7023,8 +7023,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7127,8 +7127,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7232,8 +7232,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_, attr);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7344,8 +7344,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7403,8 +7403,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7460,8 +7460,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7666,8 +7666,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7792,8 +7792,8 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);

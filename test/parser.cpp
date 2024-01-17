@@ -2184,9 +2184,10 @@ TEST(parser, raw_doc_example)
     assert(range->begin() == str.begin());
     assert(range->end() == str.begin() + 10);
 
-    static_assert(std::is_same_v<
-                  decltype(range),
-                  std::optional<bp::subrange<std::string::const_iterator>>>);
+    static_assert(
+        std::is_same_v<
+            decltype(range),
+            std::optional<BOOST_PARSER_SUBRANGE<std::string::const_iterator>>>);
 
 #if defined(__cpp_char8_t)
     auto const u8str = std::u8string(u8"1, 2, 3, 4, a, b, c");
