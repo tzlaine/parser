@@ -5,6 +5,7 @@
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/detection.hpp>
 #include <boost/parser/detail/hl.hpp>
+#include <boost/parser/detail/text/unpack.hpp>
 
 #include <boost/parser/detail/text/transcode_view.hpp>
 
@@ -315,9 +316,6 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            static_assert(
-                std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
-            static_assert(SizeofValueType == 4, "");
             auto utf8 = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first_, last_) | text::as_utf8;
             auto first = utf8.begin();
             auto last = utf8.end();
@@ -342,16 +340,19 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            auto utf32 = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first_, last_) | text::as_utf32;
+            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first_, last_);
+            auto r_unpacked =
+                detail::text::unpack_iterator_and_sentinel(first_, last_);
+            auto utf32 = r | text::as_utf32;
             auto first = utf32.begin();
             auto const last = utf32.end();
-            static_assert(sizeof(*first_) == 1);
             for (int64_t i = 0; i < trace_input_cps && first != last; ++i) {
                 ++first;
             }
             if (quote)
                 os << '"';
-            for (Iter it = first_, end = first.base(); it != end; ++it) {
+            auto first_repacked = r_unpacked.repack(first.base());
+            for (Iter it = first_, end = first_repacked; it != end; ++it) {
                 detail::print_char(os, *it);
             }
             if (quote)
