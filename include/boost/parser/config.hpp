@@ -63,15 +63,6 @@
 #define BOOST_PARSER_USE_CONCEPTS 0
 #endif
 
-#if 202002L < __cplusplus || /**/                                              \
-    (defined(_MSC_VER) && 1922 <= _MSC_VER) ||                                 \
-    (defined(__GNUC__) && 10 <= __GNUC__) ||                                   \
-    (defined(__clang__) && 10 <= __clang_major__)
-#define BOOST_PARSER_USE_CXX20_EQUALITY_AND_COMPARISON 1
-#else
-#define BOOST_PARSER_USE_CXX20_EQUALITY_AND_COMPARISON 0
-#endif
-
 #if defined(BOOST_PARSER_DISABLE_HANA_TUPLE)
 #    define BOOST_PARSER_USE_STD_TUPLE 1
 #else
