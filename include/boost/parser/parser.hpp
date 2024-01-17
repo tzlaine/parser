@@ -2323,7 +2323,7 @@ namespace boost { namespace parser {
                 }
             } else {
                 using value_type = range_value_t<r_t>;
-                if constexpr (std::is_array_v<r_t>) {
+                if constexpr (text::detail::is_bounded_array_v<r_t>) {
                     if constexpr (std::is_same_v<value_type, char>) {
                         auto first = detail::text::detail::begin(r);
                         auto last = detail::text::detail::end(r);
