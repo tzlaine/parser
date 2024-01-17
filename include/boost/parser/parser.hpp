@@ -4117,15 +4117,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4242,15 +4234,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::enable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4320,15 +4304,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
