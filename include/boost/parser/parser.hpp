@@ -3967,15 +3967,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             subrange<Iter> retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4008,7 +4000,8 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
-            detail::assign(retval, subrange<Iter>(initial_first, first));
+            if (success && detail::gen_attrs(flags))
+                detail::assign(retval, subrange<Iter>(initial_first, first));
         }
 
         Parser parser_;
@@ -4043,15 +4036,7 @@ namespace boost { namespace parser {
                 "have not met this contract.");
             using char_type = detail::remove_cv_ref_t<decltype(*r.first)>;
             std::basic_string_view<char_type> retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4084,6 +4069,9 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
+
+            if (!success || !detail::gen_attrs(flags))
+                return;
 
             auto r = parser::detail::text::unpack_iterator_and_sentinel(
                 initial_first, first);
