@@ -47,6 +47,7 @@ macro(add_test_executable name)
 endmacro()
 
 add_test_executable(search)
+add_test_executable(split)
 add_test_executable(hl)
 add_test_executable(aggr_tuple_assignment)
 add_test_executable(parser_lazy_params)
