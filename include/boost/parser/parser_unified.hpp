@@ -1,7 +1,7 @@
-#line 1 "../parser/include/boost/parser/parser.hpp"
+#line 1 "include/boost/parser/parser.hpp"
 #ifndef BOOST_PARSER_PARSER_HPP
 #define BOOST_PARSER_PARSER_HPP
-#line 1 "../parser/include/boost/parser/parser_fwd.hpp"
+#line 1 "include/boost/parser/parser_fwd.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -9,7 +9,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_PARSER_FWD_HPP
 #define BOOST_PARSER_PARSER_FWD_HPP
-#line 1 "../parser/include/boost/parser/config.hpp"
+#line 1 "include/boost/parser/config.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -17,7 +17,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_CONFIG_HPP
 #define BOOST_PARSER_CONFIG_HPP
-#line 1 "../parser/include/boost/parser/detail/debug_assert.hpp"
+#line 1 "include/boost/parser/detail/debug_assert.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -36,7 +36,7 @@
 #endif
 
 #endif
-#line 11 "../parser/include/boost/parser/config.hpp"
+#line 11 "include/boost/parser/config.hpp"
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 
@@ -100,7 +100,7 @@
 #if defined(__cpp_lib_ranges)
 #    define BOOST_PARSER_SUBRANGE std::ranges::subrange
 #else
-#line 1 "../parser/include/boost/parser/subrange.hpp"
+#line 1 "include/boost/parser/subrange.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -108,7 +108,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_SUBRANGE_HPP
 #define BOOST_PARSER_SUBRANGE_HPP
-#line 1 "../parser/include/boost/parser/detail/text/config.hpp"
+#line 1 "include/boost/parser/detail/text/config.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -116,13 +116,13 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_CONFIG_HPP
 #define BOOST_PARSER_DETAIL_TEXT_CONFIG_HPP
-#line 1 "../parser/include/boost/parser/config.hpp"
+#line 1 "include/boost/parser/config.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#line 11 "../parser/include/boost/parser/detail/text/config.hpp"
+#line 11 "include/boost/parser/detail/text/config.hpp"
 // Included for definition of __cpp_lib_concepts.
 #include <iterator>
 
@@ -147,7 +147,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
     inline constexpr auto end = std::ranges::end;
 }}}
 #else
-#line 1 "../parser/include/boost/parser/detail/text/detail/begin_end.hpp"
+#line 1 "include/boost/parser/detail/text/detail/begin_end.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -155,7 +155,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_BEGIN_END_HPP
 #define BOOST_PARSER_DETAIL_TEXT_BEGIN_END_HPP
-#line 1 "../parser/include/boost/parser/detail/detection.hpp"
+#line 1 "include/boost/parser/detail/detection.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -246,7 +246,7 @@ namespace boost::parser::detail {
 }
 
 #endif
-#line 11 "../parser/include/boost/parser/detail/text/detail/begin_end.hpp"
+#line 11 "include/boost/parser/detail/text/detail/begin_end.hpp"
 #include <initializer_list>
 
 
@@ -391,19 +391,19 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 36 "../parser/include/boost/parser/detail/text/config.hpp"
+#line 36 "include/boost/parser/detail/text/config.hpp"
 #endif
 
 #if defined(__cpp_lib_ranges)
 #    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE std::ranges::subrange
 #else
-#line 1 "../parser/include/boost/parser/subrange.hpp"
+#line 1 "include/boost/parser/subrange.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#line 42 "../parser/include/boost/parser/detail/text/config.hpp"
+#line 42 "include/boost/parser/detail/text/config.hpp"
 #    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE boost::parser::subrange
 #endif
 
@@ -429,7 +429,7 @@ namespace boost::parser::detail { namespace text {
 #endif
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/text/detail/algorithm.hpp"
+#line 1 "include/boost/parser/detail/text/detail/algorithm.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -437,7 +437,7 @@ namespace boost::parser::detail { namespace text {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
-#line 1 "../parser/include/boost/parser/detail/text/concepts.hpp"
+#line 1 "include/boost/parser/detail/text/concepts.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -445,7 +445,7 @@ namespace boost::parser::detail { namespace text {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_CONCEPTS_HPP
 #define BOOST_PARSER_DETAIL_TEXT_CONCEPTS_HPP
-#line 1 "../parser/include/boost/parser/detail/text/utf.hpp"
+#line 1 "include/boost/parser/detail/text/utf.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -493,7 +493,7 @@ namespace boost::parser::detail { namespace text {
 }}
 
 #endif
-#line 13 "../parser/include/boost/parser/detail/text/concepts.hpp"
+#line 13 "include/boost/parser/detail/text/concepts.hpp"
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 
 #include <ranges>
@@ -751,7 +751,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/text/detail/iterator.hpp"
+#line 1 "include/boost/parser/detail/text/detail/iterator.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -759,7 +759,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_DETAIL_ITERATOR_HPP
 #define BOOST_PARSER_DETAIL_TEXT_DETAIL_ITERATOR_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/reverse_iterator.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/reverse_iterator.hpp"
 // Copyright (C) 2019 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -767,7 +767,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_REVERSE_ITERATOR_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_REVERSE_ITERATOR_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/iterator_interface.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/iterator_interface.hpp"
 // Copyright (C) 2019 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -775,7 +775,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_ITERATOR_INTERFACE_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_ITERATOR_INTERFACE_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/fwd.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/fwd.hpp"
 // Copyright (C) 2019 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -783,7 +783,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_FWD_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_FWD_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/config.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/config.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -791,13 +791,13 @@ namespace boost::parser::detail { namespace text { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_CONFIG_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_CONFIG_HPP
-#line 1 "../parser/include/boost/parser/config.hpp"
+#line 1 "include/boost/parser/config.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#line 12 "../parser/include/boost/parser/detail/stl_interfaces/config.hpp"
+#line 12 "include/boost/parser/detail/stl_interfaces/config.hpp"
 #if !BOOST_PARSER_USE_CONCEPTS
 #    define BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS 0
 #else
@@ -835,7 +835,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 #endif
 
 #endif
-#line 11 "../parser/include/boost/parser/detail/stl_interfaces/fwd.hpp"
+#line 11 "include/boost/parser/detail/stl_interfaces/fwd.hpp"
 #if BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS
 #include <ranges>
 #endif
@@ -912,7 +912,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
 }}
 
 #endif
-#line 11 "../parser/include/boost/parser/detail/stl_interfaces/iterator_interface.hpp"
+#line 11 "include/boost/parser/detail/stl_interfaces/iterator_interface.hpp"
 #include <utility>
 #include <type_traits>
 #if defined(__cpp_lib_three_way_comparison)
@@ -2020,7 +2020,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 #endif
 
 #endif
-#line 12 "../parser/include/boost/parser/detail/stl_interfaces/reverse_iterator.hpp"
+#line 12 "include/boost/parser/detail/stl_interfaces/reverse_iterator.hpp"
 namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 {
 
     namespace v1_dtl {
@@ -2231,7 +2231,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 #endif
 
 #endif
-#line 12 "../parser/include/boost/parser/detail/text/detail/iterator.hpp"
+#line 12 "include/boost/parser/detail/text/detail/iterator.hpp"
 #include <iterator>
 
 
@@ -2245,7 +2245,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 13 "../parser/include/boost/parser/detail/text/detail/algorithm.hpp"
+#line 13 "include/boost/parser/detail/text/detail/algorithm.hpp"
 #include <numeric>
 #include <type_traits>
 #include <utility>
@@ -3151,7 +3151,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/view_interface.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/view_interface.hpp"
 // Copyright (C) 2019 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -3380,7 +3380,7 @@ namespace boost::parser::detail { namespace stl_interfaces { BOOST_PARSER_DETAIL
 #endif
 
 #endif
-#line 15 "../parser/include/boost/parser/subrange.hpp"
+#line 15 "include/boost/parser/subrange.hpp"
 namespace boost::parser {
 
     /** A simple view type used throughout the rest of the library in C++17
@@ -3476,7 +3476,7 @@ namespace std::ranges {
 #endif
 
 #endif
-#line 75 "../parser/include/boost/parser/config.hpp"
+#line 75 "include/boost/parser/config.hpp"
 #    define BOOST_PARSER_SUBRANGE boost::parser::subrange
 #endif
 
@@ -3498,10 +3498,10 @@ namespace std::ranges {
 #endif
 
 #endif
-#line 1 "../parser/include/boost/parser/error_handling_fwd.hpp"
+#line 1 "include/boost/parser/error_handling_fwd.hpp"
 #ifndef BOOST_PARSER_ERROR_HANDLING_FWD_HPP
 #define BOOST_PARSER_ERROR_HANDLING_FWD_HPP
-#line 1 "../parser/include/boost/parser/detail/text/transcode_view.hpp"
+#line 1 "include/boost/parser/detail/text/transcode_view.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -3509,7 +3509,7 @@ namespace std::ranges {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
-#line 1 "../parser/include/boost/parser/detail/text/transcode_algorithm.hpp"
+#line 1 "include/boost/parser/detail/text/transcode_algorithm.hpp"
 // Copyright (C) 2018 Robert N. Steagall
 // Copyright (C) 2019 T. Zachary Laine
 //
@@ -3518,7 +3518,7 @@ namespace std::ranges {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ALGORITHM_HPP
-#line 1 "../parser/include/boost/parser/detail/text/in_out_result.hpp"
+#line 1 "include/boost/parser/detail/text/in_out_result.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -3566,7 +3566,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 #endif
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/text/transcode_iterator.hpp"
+#line 1 "include/boost/parser/detail/text/transcode_iterator.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -3574,7 +3574,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ITERATOR_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ITERATOR_HPP
-#line 1 "../parser/include/boost/parser/detail/text/transcode_iterator_fwd.hpp"
+#line 1 "include/boost/parser/detail/text/transcode_iterator_fwd.hpp"
 // Copyright (C) 2023 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -3676,7 +3676,7 @@ namespace boost::parser::detail { namespace text {
 }}
 
 #endif
-#line 17 "../parser/include/boost/parser/detail/text/transcode_iterator.hpp"
+#line 17 "include/boost/parser/detail/text/transcode_iterator.hpp"
 #include <array>
 #include <iterator>
 #include <type_traits>
@@ -5435,7 +5435,7 @@ namespace boost::parser::detail { namespace text {
     };
 
 }}
-#line 1 "../parser/include/boost/parser/detail/text/unpack.hpp"
+#line 1 "include/boost/parser/detail/text/unpack.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -5623,13 +5623,13 @@ namespace boost::parser::detail { namespace text {
 
     }
 }}
-#line 1 "../parser/include/boost/parser/detail/text/transcode_iterator.hpp"
+#line 1 "include/boost/parser/detail/text/transcode_iterator.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-#line 191 "../parser/include/boost/parser/detail/text/unpack.hpp"
+#line 191 "include/boost/parser/detail/text/unpack.hpp"
 namespace boost::parser::detail { namespace text { namespace detail {
 
     template<
@@ -5714,7 +5714,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 1778 "../parser/include/boost/parser/detail/text/transcode_iterator.hpp"
+#line 1778 "include/boost/parser/detail/text/transcode_iterator.hpp"
 namespace boost::parser::detail { namespace text { namespace detail {
 
     template<format Tag>
@@ -7422,7 +7422,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 13 "../parser/include/boost/parser/detail/text/transcode_algorithm.hpp"
+#line 13 "include/boost/parser/detail/text/transcode_algorithm.hpp"
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 #include <algorithm>
 #endif
@@ -7783,7 +7783,7 @@ namespace boost::parser::detail { namespace text {
             return {first, out};
         }
     }
-#line 409 "../parser/include/boost/parser/detail/text/transcode_algorithm.hpp"
+#line 409 "include/boost/parser/detail/text/transcode_algorithm.hpp"
 }}
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 {
@@ -8176,7 +8176,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 #endif
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/view_adaptor.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/view_adaptor.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -8184,7 +8184,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_ADAPTOR_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_ADAPTOR_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/detail/view_closure.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/detail/view_closure.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -8192,7 +8192,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_STL_INTERFACES_DETAIL_VIEW_CLOSURE_HPP
 #define BOOST_PARSER_DETAIL_STL_INTERFACES_DETAIL_VIEW_CLOSURE_HPP
-#line 1 "../parser/include/boost/parser/detail/stl_interfaces/detail/pipeable_view.hpp"
+#line 1 "include/boost/parser/detail/stl_interfaces/detail/pipeable_view.hpp"
 // Copyright (C) 2022 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -8345,7 +8345,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
 }}}
 
 #endif
-#line 11 "../parser/include/boost/parser/detail/stl_interfaces/detail/view_closure.hpp"
+#line 11 "include/boost/parser/detail/stl_interfaces/detail/view_closure.hpp"
 #include <utility>
 
 
@@ -8443,7 +8443,7 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
 }}}
 
 #endif
-#line 14 "../parser/include/boost/parser/detail/stl_interfaces/view_adaptor.hpp"
+#line 14 "include/boost/parser/detail/stl_interfaces/view_adaptor.hpp"
 #include <tuple>
 #include <type_traits>
 
@@ -8749,7 +8749,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
 }}
 
 #endif
-#line 15 "../parser/include/boost/parser/detail/text/transcode_view.hpp"
+#line 15 "include/boost/parser/detail/text/transcode_view.hpp"
 #include <climits>
 
 
@@ -9569,7 +9569,7 @@ namespace std::ranges {
 #endif
 
 #endif
-#line 8 "../parser/include/boost/parser/error_handling_fwd.hpp"
+#line 8 "include/boost/parser/error_handling_fwd.hpp"
 #include <iostream>
 #include <string_view>
 
@@ -9793,7 +9793,7 @@ namespace boost { namespace parser {
 }}
 
 #endif
-#line 12 "../parser/include/boost/parser/parser_fwd.hpp"
+#line 12 "include/boost/parser/parser_fwd.hpp"
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -10272,7 +10272,7 @@ namespace boost { namespace parser {
 }}
 
 #endif
-#line 1 "../parser/include/boost/parser/concepts.hpp"
+#line 1 "include/boost/parser/concepts.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -10372,13 +10372,13 @@ namespace boost { namespace parser {
 #endif
 
 #endif
-#line 1 "../parser/include/boost/parser/error_handling.hpp"
+#line 1 "include/boost/parser/error_handling.hpp"
 #ifndef BOOST_PARSER_ERROR_HANDLING_HPP
 #define BOOST_PARSER_ERROR_HANDLING_HPP
-#line 1 "../parser/include/boost/parser/detail/printing.hpp"
+#line 1 "include/boost/parser/detail/printing.hpp"
 #ifndef BOOST_PARSER_DETAIL_PRINTING_HPP
 #define BOOST_PARSER_DETAIL_PRINTING_HPP
-#line 1 "../parser/include/boost/parser/tuple.hpp"
+#line 1 "include/boost/parser/tuple.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 // Copyright Louis Dionne 2013-2017
 //
@@ -10721,7 +10721,7 @@ namespace boost { namespace parser {
     }
 
 }}
-#line 1 "../parser/include/boost/parser/detail/aggr_to_tuple_generated.hpp"
+#line 1 "include/boost/parser/detail/aggr_to_tuple_generated.hpp"
 // Copyright (c) 2023 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -13654,9 +13654,9 @@ return parser::tuple<
 
 
 }
-#line 346 "../parser/include/boost/parser/tuple.hpp"
+#line 346 "include/boost/parser/tuple.hpp"
 #endif
-#line 1 "../parser/include/boost/parser/detail/hl.hpp"
+#line 1 "include/boost/parser/detail/hl.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -14048,7 +14048,7 @@ namespace boost { namespace parser { namespace detail::hl {
 }}}
 
 #endif
-#line 12 "../parser/include/boost/parser/detail/printing.hpp"
+#line 12 "include/boost/parser/detail/printing.hpp"
 #include <iomanip>
 #include <iostream>
 #include <optional>
@@ -14654,7 +14654,7 @@ namespace boost { namespace parser { namespace detail {
 }}}
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/text/algorithm.hpp"
+#line 1 "include/boost/parser/detail/text/algorithm.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -14662,7 +14662,7 @@ namespace boost { namespace parser { namespace detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
-#line 1 "../parser/include/boost/parser/detail/text/detail/sentinel_tag.hpp"
+#line 1 "include/boost/parser/detail/text/detail/sentinel_tag.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -14682,7 +14682,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 }}}
 
 #endif
-#line 15 "../parser/include/boost/parser/detail/text/algorithm.hpp"
+#line 15 "include/boost/parser/detail/text/algorithm.hpp"
 #include <cstddef>
 #include <iterator>
 #include <utility>
@@ -15056,7 +15056,7 @@ namespace std::ranges {
 #endif
 
 #endif
-#line 10 "../parser/include/boost/parser/error_handling.hpp"
+#line 10 "include/boost/parser/error_handling.hpp"
 #include <array>
 #include <functional>
 #include <iostream>
@@ -15407,7 +15407,7 @@ namespace boost { namespace parser {
 }}
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/numeric.hpp"
+#line 1 "include/boost/parser/detail/numeric.hpp"
 /*=============================================================================
     Copyright (c) 2001-2014 Joel de Guzman
     Copyright (c) 2001-2011 Hartmut Kaiser
@@ -16377,10 +16377,10 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
 }}}
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/case_fold.hpp"
+#line 1 "include/boost/parser/detail/case_fold.hpp"
 #ifndef BOOST_PARSER_DETAIL_CASE_FOLD_HPP
 #define BOOST_PARSER_DETAIL_CASE_FOLD_HPP
-#line 1 "../parser/include/boost/parser/detail/case_fold_data_generated.hpp"
+#line 1 "include/boost/parser/detail/case_fold_data_generated.hpp"
 // Copyright (c) 2024 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -16914,7 +16914,7 @@ inline constexpr char32_t single_mapping_cps[1426] = {
 };
 
 }
-#line 8 "../parser/include/boost/parser/detail/case_fold.hpp"
+#line 8 "include/boost/parser/detail/case_fold.hpp"
 #include <algorithm>
 
 
@@ -17020,7 +17020,7 @@ namespace boost::parser::detail {
 }
 
 #endif
-#line 1 "../parser/include/boost/parser/detail/pp_for_each.hpp"
+#line 1 "include/boost/parser/detail/pp_for_each.hpp"
 #ifndef BOOST_PARSER_DETAIL_PP_FOR_EACH_HPP_INCLUDED
 #define BOOST_PARSER_DETAIL_PP_FOR_EACH_HPP_INCLUDED
 
@@ -17028,7 +17028,7 @@ namespace boost::parser::detail {
 // Copyright 2023 T. Zachary Laine
 // Distributed under the Boost Software License, Version 1.0.
 // https://www.boost.org/LICENSE_1_0.txt
-#line 1 "../parser/include/boost/parser/detail/pp_utilities.hpp"
+#line 1 "include/boost/parser/detail/pp_utilities.hpp"
 #ifndef BOOST_PARSER_DETAIL_PP_UTILITIES_HPP_INCLUDED
 #define BOOST_PARSER_DETAIL_PP_UTILITIES_HPP_INCLUDED
 
@@ -17122,7 +17122,7 @@ namespace boost::parser::detail {
 #endif
 
 #endif // #ifndef BOOST_PARSER_DETAIL_PP_UTILITIES_HPP_INCLUDED
-#line 11 "../parser/include/boost/parser/detail/pp_for_each.hpp"
+#line 11 "include/boost/parser/detail/pp_for_each.hpp"
 #define BOOST_PARSER_PP_FOR_EACH_0(F, a)
 #define BOOST_PARSER_PP_FOR_EACH_1(F, a, x) BOOST_PARSER_PP_CALL(F, a, x)
 #define BOOST_PARSER_PP_FOR_EACH_2(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_1(F, a, __VA_ARGS__))
@@ -17180,9 +17180,9 @@ namespace boost::parser::detail {
 #define BOOST_PARSER_PP_FE_EXTRACT(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, V, ...) V
 
 #define BOOST_PARSER_PP_FOR_EACH(F, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_FE_EXTRACT(__VA_ARGS__, BOOST_PARSER_PP_FOR_EACH_52, BOOST_PARSER_PP_FOR_EACH_51, BOOST_PARSER_PP_FOR_EACH_50, BOOST_PARSER_PP_FOR_EACH_49, BOOST_PARSER_PP_FOR_EACH_48, BOOST_PARSER_PP_FOR_EACH_47, BOOST_PARSER_PP_FOR_EACH_46, BOOST_PARSER_PP_FOR_EACH_45, BOOST_PARSER_PP_FOR_EACH_44, BOOST_PARSER_PP_FOR_EACH_43, BOOST_PARSER_PP_FOR_EACH_42, BOOST_PARSER_PP_FOR_EACH_41, BOOST_PARSER_PP_FOR_EACH_40, BOOST_PARSER_PP_FOR_EACH_39, BOOST_PARSER_PP_FOR_EACH_38, BOOST_PARSER_PP_FOR_EACH_37, BOOST_PARSER_PP_FOR_EACH_36, BOOST_PARSER_PP_FOR_EACH_35, BOOST_PARSER_PP_FOR_EACH_34, BOOST_PARSER_PP_FOR_EACH_33, BOOST_PARSER_PP_FOR_EACH_32, BOOST_PARSER_PP_FOR_EACH_31, BOOST_PARSER_PP_FOR_EACH_30, BOOST_PARSER_PP_FOR_EACH_29, BOOST_PARSER_PP_FOR_EACH_28, BOOST_PARSER_PP_FOR_EACH_27, BOOST_PARSER_PP_FOR_EACH_26, BOOST_PARSER_PP_FOR_EACH_25, BOOST_PARSER_PP_FOR_EACH_24, BOOST_PARSER_PP_FOR_EACH_23, BOOST_PARSER_PP_FOR_EACH_22, BOOST_PARSER_PP_FOR_EACH_21, BOOST_PARSER_PP_FOR_EACH_20, BOOST_PARSER_PP_FOR_EACH_19, BOOST_PARSER_PP_FOR_EACH_18, BOOST_PARSER_PP_FOR_EACH_17, BOOST_PARSER_PP_FOR_EACH_16, BOOST_PARSER_PP_FOR_EACH_15, BOOST_PARSER_PP_FOR_EACH_14, BOOST_PARSER_PP_FOR_EACH_13, BOOST_PARSER_PP_FOR_EACH_12, BOOST_PARSER_PP_FOR_EACH_11, BOOST_PARSER_PP_FOR_EACH_10, BOOST_PARSER_PP_FOR_EACH_9, BOOST_PARSER_PP_FOR_EACH_8, BOOST_PARSER_PP_FOR_EACH_7, BOOST_PARSER_PP_FOR_EACH_6, BOOST_PARSER_PP_FOR_EACH_5, BOOST_PARSER_PP_FOR_EACH_4, BOOST_PARSER_PP_FOR_EACH_3, BOOST_PARSER_PP_FOR_EACH_2, BOOST_PARSER_PP_FOR_EACH_1, BOOST_PARSER_PP_FOR_EACH_0))(F, __VA_ARGS__))
-#line 123 "../parser/include/boost/parser/detail/pp_for_each.hpp"
+#line 123 "include/boost/parser/detail/pp_for_each.hpp"
 #endif // #ifndef BOOST_PARSER_DETAIL_PP_FOR_EACH_HPP_INCLUDED
-#line 1 "../parser/include/boost/parser/detail/text/trie.hpp"
+#line 1 "include/boost/parser/detail/text/trie.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -17190,7 +17190,7 @@ namespace boost::parser::detail {
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
 #define BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
-#line 1 "../parser/include/boost/parser/detail/text/trie_fwd.hpp"
+#line 1 "include/boost/parser/detail/text/trie_fwd.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
@@ -17229,7 +17229,7 @@ namespace boost::parser::detail { namespace text {
 }}
 
 #endif
-#line 12 "../parser/include/boost/parser/detail/text/trie.hpp"
+#line 12 "include/boost/parser/detail/text/trie.hpp"
 #include <algorithm>
 #include <memory>
 #include <type_traits>
@@ -17653,9 +17653,9 @@ namespace boost::parser::detail { namespace text {
 #ifndef BOOST_TEXT_DOXYGEN
 
 #define BOOST_TRIE_C_STR_OVERLOAD(rtype, func) template<typename Char, std::size_t N> rtype func(Char const(&chars)[N]) { static_assert( std::is_same<Char, key_element_type>::value, "Only well-formed when Char is Key::value_type."); return func(detail::char_range<Char const>{chars, chars + N - 1}); }
-#line 444 "../parser/include/boost/parser/detail/text/trie.hpp"
+#line 444 "include/boost/parser/detail/text/trie.hpp"
 #define BOOST_TRIE_C_STR_OVERLOAD_QUALS(rtype, func, quals) template<typename Char, std::size_t N> rtype func(Char const(&chars)[N]) quals { static_assert( std::is_same<Char, key_element_type>::value, "Only well-formed when Char is Key::value_type."); return func(detail::char_range<Char const>{chars, chars + N - 1}); }
-#line 454 "../parser/include/boost/parser/detail/text/trie.hpp"
+#line 454 "include/boost/parser/detail/text/trie.hpp"
 #endif
 
         /** Returns true if `key` is found in *this. */
@@ -18604,7 +18604,7 @@ namespace boost::parser::detail { namespace text {
 }}
 
 #endif
-#line 18 "../parser/include/boost/parser/parser.hpp"
+#line 18 "include/boost/parser/parser.hpp"
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -23685,7 +23685,7 @@ namespace boost { namespace parser {
 #ifndef BOOST_PARSER_DOXYGEN
 
 #define BOOST_PARSER_DEFINE_IMPL(_, name_) template< bool UseCallbacks, typename Iter, typename Sentinel, typename Context, typename SkipParser> auto parse_rule( decltype(name_)::parser_type::tag_type *, std::bool_constant<UseCallbacks> use_cbs, Iter & first, Sentinel last, Context const & context, SkipParser const & skip, boost::parser::detail::flags flags, bool & success) { auto const & parser = BOOST_PARSER_PP_CAT(name_, _def); return parser(use_cbs, first, last, context, skip, flags, success); } template< bool UseCallbacks, typename Iter, typename Sentinel, typename Context, typename SkipParser, typename Attribute> void parse_rule( decltype(name_)::parser_type::tag_type *, std::bool_constant<UseCallbacks> use_cbs, Iter & first, Sentinel last, Context const & context, SkipParser const & skip, boost::parser::detail::flags flags, bool & success, Attribute & retval) { auto const & parser = BOOST_PARSER_PP_CAT(name_, _def); using attr_t = decltype(parser( use_cbs, first, last, context, skip, flags, success)); if constexpr (boost::parser::detail::is_nope_v<attr_t>) { parser(use_cbs, first, last, context, skip, flags, success); } else { parser( use_cbs, first, last, context, skip, flags, success, retval); } }
-#line 5147 "../parser/include/boost/parser/parser.hpp"
+#line 5147 "include/boost/parser/parser.hpp"
 #endif
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
@@ -25509,7 +25509,7 @@ namespace boost { namespace parser {
     }
 
 }}
-#line 1 "../parser/include/boost/parser/detail/printing_impl.hpp"
+#line 1 "include/boost/parser/detail/printing_impl.hpp"
 #ifndef BOOST_PARSER_DETAIL_PRINTING_IMPL_HPP
 #define BOOST_PARSER_DETAIL_PRINTING_IMPL_HPP
 
@@ -26381,7 +26381,7 @@ namespace boost { namespace parser { namespace detail {
 }}}
 
 #endif
-#line 6973 "../parser/include/boost/parser/parser.hpp"
+#line 6973 "include/boost/parser/parser.hpp"
 namespace boost { namespace parser {
 
     /** An enumeration used for parameters to enable and disable trace in the
@@ -27395,7 +27395,7 @@ namespace boost { namespace parser {
 }}
 
 #endif
-#line 1 "../parser/include/boost/parser/transcode_view.hpp"
+#line 1 "include/boost/parser/transcode_view.hpp"
 // Copyright (C) 2020 T. Zachary Laine
 //
 // Distributed under the Boost Software License, Version 1.0. (See
