@@ -1702,39 +1702,42 @@ namespace boost { namespace parser {
         template<typename Container, typename U>
         constexpr void move_back_impl(Container & c, U && x)
         {
+            using just_t = range_value_t<Container>;
+            using just_u = remove_cv_ref_t<U>;
             if constexpr (needs_transcoding_to_utf8<Container, U>) {
                 char32_t cps[1] = {(char32_t)x};
                 auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
+            } else if constexpr (std::is_convertible_v<just_u &&, just_t>) {
+                detail::insert(c, std::move(x));
+            } else if constexpr (
+                !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_t> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_struct_assignable_v<just_t, just_u>) {
+                auto int_seq =
+                    std::make_integer_sequence<int, tuple_size_<just_u>>();
+                detail::insert(
+                    c,
+                    detail::tuple_to_aggregate<just_t>(std::move(x), int_seq));
+            } else if constexpr (
+                is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_u> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_tuple_assignable_v<just_t, just_u>) {
+                just_t t;
+                auto tie = detail::tie_aggregate(x);
+                detail::aggregate_to_tuple(
+                    t,
+                    tie,
+                    std::make_integer_sequence<int, tuple_size_<just_t>>());
+                detail::insert(c, std::move(t));
             } else {
-                using just_t = range_value_t<Container>;
-                using just_u = remove_cv_ref_t<U>;
-                if constexpr (
-                    !is_tuple<just_t>::value && is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_t> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_struct_assignable_v<just_t, just_u>) {
-                    auto int_seq =
-                        std::make_integer_sequence<int, tuple_size_<just_u>>();
-                    detail::insert(
-                        c,
-                        detail::tuple_to_aggregate<just_t>(
-                            std::move(x), int_seq));
-                } else if constexpr (
-                    is_tuple<just_t>::value && !is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_u> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_tuple_assignable_v<just_t, just_u>) {
-                    just_t t;
-                    auto tie = detail::tie_aggregate(x);
-                    detail::aggregate_to_tuple(
-                        t,
-                        tie,
-                        std::make_integer_sequence<int, tuple_size_<just_t>>());
-                    detail::insert(c, std::move(t));
-                } else {
-                    detail::insert(c, std::move(x));
-                }
+                static_assert(
+                    sizeof(U) && false,
+                    "Could not insert value into container, by: just inserting "
+                    "it; doing tuple -> aggregate or aggregate -> tuple "
+                    "conversions; or tuple -> class type construction.");
             }
         }
 
@@ -1788,12 +1791,21 @@ namespace boost { namespace parser {
         constexpr void move_back(Container & c, nope, bool gen_attrs)
         {}
 
+        template<typename From, typename To>
+        using move_assignable_expr =
+            decltype(std::declval<To &>() = std::declval<From &&>());
+        template<typename From, typename To>
+        constexpr bool is_move_assignable_v =
+            is_detected_v<move_assignable_expr, From, To>;
+
         template<typename T, typename U>
         constexpr void assign(T & t, U && u)
         {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
-            if constexpr (
+            if constexpr (is_move_assignable_v<just_u, just_t>) {
+                t = std::move(u);
+            } else if constexpr (
                 !is_tuple<just_t>::value && is_tuple<just_u>::value &&
                 std::is_aggregate_v<just_t> &&
                 !std::is_convertible_v<just_u &&, just_t> &&
@@ -1812,7 +1824,11 @@ namespace boost { namespace parser {
                     tie,
                     std::make_integer_sequence<int, tuple_size_<just_t>>());
             } else {
-                t = std::move(u);
+                static_assert(
+                    sizeof(T) && false,
+                    "Could not assign value, by: just assigning it; doing tuple "
+                    "-> aggregate or aggregate -> tuple conversions; or tuple "
+                    "-> class type construction.");
             }
         }
 
