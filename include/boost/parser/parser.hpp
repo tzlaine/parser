@@ -1699,6 +1699,35 @@ namespace boost { namespace parser {
         using insertable = decltype(std::declval<Container &>().insert(
             std::declval<Container &>().end(), std::declval<T>()));
 
+        template<typename T, typename Tuple, int... Is>
+        auto
+        make_from_tuple_impl(Tuple && tup, std::integer_sequence<int, Is...>)
+            -> decltype(T(parser::get(std::move(tup), llong<Is>{})...))
+        {
+            return T(parser::get(std::move(tup), llong<Is>{})...);
+        }
+
+        template<typename T, typename... Args>
+        auto make_from_tuple(tuple<Args...> && tup)
+            -> decltype(detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>()))
+        {
+            return detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>());
+        }
+
+        template<typename T, typename Tuple>
+        using constructible_from_tuple_expr =
+            decltype(detail::make_from_tuple<T>(std::declval<Tuple>()));
+
+        template<typename T, typename Tuple, bool = is_tuple<Tuple>{}>
+        constexpr bool is_constructible_from_tuple_v = false;
+        template<typename T, typename Tuple>
+        constexpr bool is_constructible_from_tuple_v<T, Tuple, true> =
+            is_detected_v<constructible_from_tuple_expr, T, Tuple>;
+
         template<typename Container, typename U>
         constexpr void move_back_impl(Container & c, U && x)
         {
@@ -1732,6 +1761,11 @@ namespace boost { namespace parser {
                     tie,
                     std::make_integer_sequence<int, tuple_size_<just_t>>());
                 detail::insert(c, std::move(t));
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                detail::insert(
+                    c, detail::make_from_tuple<just_t>(std::move(x)));
             } else {
                 static_assert(
                     sizeof(U) && false,
@@ -1823,6 +1857,11 @@ namespace boost { namespace parser {
                     t,
                     tie,
                     std::make_integer_sequence<int, tuple_size_<just_t>>());
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                static_assert(sizeof(T) && false); // TODO
+                t = detail::make_from_tuple<just_t>(std::move(u));
             } else {
                 static_assert(
                     sizeof(T) && false,
@@ -3639,6 +3678,17 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
+
+            auto max_ = [](auto result, auto x) {
+                if constexpr (decltype(result)::value < decltype(x)::value) {
+                    return x;
+                } else {
+                    return result;
+                }
+            };
+            using max_index_t =
+                decltype(detail::hl::fold_left(indices, llong<0>{}, max_));
+
             if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
                 call(use_cbs, first, last, context, skip, flags, success, attr);
@@ -3661,6 +3711,29 @@ namespace boost { namespace parser {
 
                 if (!success || !detail::gen_attrs(flags))
                     detail::assign(retval, Attribute());
+            } else if constexpr (
+                0 < max_index_t::value && detail::is_constructible_from_tuple_v<
+                                              Attribute,
+                                              temp_result_attr_t>) {
+                temp_result_attr_t temp_retval;
+                call_impl(
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices,
+                    merged);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval,
+                        detail::make_from_tuple<Attribute>(
+                            std::move(temp_retval)));
+                }
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
                 tuple<Attribute> temp_retval;
