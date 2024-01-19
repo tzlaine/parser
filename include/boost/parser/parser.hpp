@@ -3625,8 +3625,7 @@ namespace boost { namespace parser {
                 merged;
             if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
-                call(
-                    use_cbs, first_, last, context, skip, flags, success, attr);
+                call(use_cbs, first, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
