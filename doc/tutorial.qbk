@@ -555,7 +555,7 @@ that this macro relies on to work.  The tag type allows the rule parser,
 `doubles`, to call one of these overloads when used as a parser.
 
 [note In case you're curious about exactly what code is produced by the above
-use of _RULE_, it's two overloads of a function called `parse_rule()`.  The
+use of _RULES_, it's two overloads of a function called `parse_rule()`.  The
 overloads each take a `struct doubles` parameter (to distinguish them from the
 other overloads of `parse_rule()` for other rules) and parse using
 `doubles_def`.  You will never need to call any overload of `parse_rule()`
@@ -566,9 +566,6 @@ Now that we have the `doubles` parser, we can use it like we might any other
 parser:
 
 [rule_intro_parse_call]
-
-[note We used _RULE_ in this example.  There is also another macro that allows
-you to define multiple rules in one macro expansion, _RULES_.]
 
 The full program:
 
@@ -2546,7 +2543,7 @@ defined somewhere.
     auto const ints = '{' > (value % ',') > '}';
     auto const value_def = bp::int_ | ints;
 
-    BOOST_PARSER_DEFINE_RULE(value);
+    BOOST_PARSER_DEFINE_RULES(value);
 
 Notice the two expectation points.  One before `(value % ',')`, one before the
 final `'}'`.  Later, you call parse in some input:

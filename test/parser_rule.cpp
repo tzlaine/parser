@@ -12,11 +12,11 @@ using namespace boost::parser;
 
 constexpr rule<struct flat_rule_tag> flat_rule = "flat_rule";
 constexpr auto flat_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULE(flat_rule);
+BOOST_PARSER_DEFINE_RULES(flat_rule);
 
 constexpr rule<struct recursive_rule_tag> recursive_rule = "recursive_rule";
 constexpr auto recursive_rule_def = string("abc") >> -('a' >> recursive_rule);
-BOOST_PARSER_DEFINE_RULE(recursive_rule);
+BOOST_PARSER_DEFINE_RULES(recursive_rule);
 
 TEST(parser, no_attribute_rules)
 {
@@ -53,7 +53,7 @@ TEST(parser, no_attribute_rules)
 constexpr rule<struct flat_string_rule_tag, std::string> flat_string_rule =
     "flat_string_rule";
 constexpr auto flat_string_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULE(flat_string_rule);
+BOOST_PARSER_DEFINE_RULES(flat_string_rule);
 
 constexpr callback_rule<struct recursive_string_rule_tag, std::string>
     recursive_string_rule = "recursive_string_rule";
@@ -64,7 +64,7 @@ auto append_string = [](auto & ctx) {
 };
 constexpr auto recursive_string_rule_def = string("abc")[append_string] >>
                                            -('a' >> recursive_string_rule);
-BOOST_PARSER_DEFINE_RULE(recursive_string_rule);
+BOOST_PARSER_DEFINE_RULES(recursive_string_rule);
 
 TEST(parser, string_attribute_rules)
 {
@@ -112,7 +112,7 @@ TEST(parser, string_attribute_rules)
 constexpr rule<struct flat_vector_rule_tag, std::vector<char>>
     flat_vector_rule = "flat_vector_rule";
 constexpr auto flat_vector_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULE(flat_vector_rule);
+BOOST_PARSER_DEFINE_RULES(flat_vector_rule);
 
 TEST(parser, vector_attribute_rules)
 {
@@ -155,12 +155,12 @@ TEST(parser, vector_attribute_rules)
 constexpr callback_rule<struct callback_vector_rule_tag, std::vector<char>>
     callback_vector_rule = "callback_vector_rule";
 constexpr auto callback_vector_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULE(callback_vector_rule);
+BOOST_PARSER_DEFINE_RULES(callback_vector_rule);
 
 constexpr callback_rule<struct callback_void_rule_tag> callback_void_rule =
     "callback_void_rule";
 constexpr auto callback_void_rule_def = string("abc") | string("def");
-BOOST_PARSER_DEFINE_RULE(callback_void_rule);
+BOOST_PARSER_DEFINE_RULES(callback_void_rule);
 
 struct callback_vector_rule_tag
 {};
@@ -353,7 +353,7 @@ constexpr callback_rule<recursive_strings_rule_tag, std::vector<std::string>>
 auto push_back = [](auto & ctx) { _val(ctx).push_back(std::move(_attr(ctx))); };
 constexpr auto recursive_strings_rule_def = string("abc")[push_back] >>
                                             -('a' >> recursive_strings_rule);
-BOOST_PARSER_DEFINE_RULE(recursive_strings_rule);
+BOOST_PARSER_DEFINE_RULES(recursive_strings_rule);
 
 TEST(param_parser, container_populating_recursive_rule)
 {
@@ -485,7 +485,7 @@ namespace more_about_rules_1 {
     auto const ints = '{' > (value % ',') > '}';
     auto const value_def = bp::int_ | ints;
 
-    BOOST_PARSER_DEFINE_RULE(value);
+    BOOST_PARSER_DEFINE_RULES(value);
 }
 
 namespace more_about_rules_2 {

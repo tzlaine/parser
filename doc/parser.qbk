@@ -110,7 +110,6 @@
 [def _locals_np_           [funcref boost::parser::_locals `_locals`]]
 [def _params_np_           [funcref boost::parser::_params `_params`]]
 
-[def _RULE_                [macroref BOOST_PARSER_DEFINE_RULE `BOOST_PARSER_DEFINE_RULE`]]
 [def _RULES_               [macroref BOOST_PARSER_DEFINE_RULES `BOOST_PARSER_DEFINE_RULES`]]
 [def _AGGR_SIZE_           [macroref BOOST_PARSER_MAX_AGGREGATE_SIZE `BOOST_PARSER_MAX_AGGREGATE_SIZE`]]
 

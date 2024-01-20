@@ -5244,11 +5244,6 @@ namespace boost { namespace parser {
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
 
-    /** Defines a pair of `parse_rule()` overloads for the given rule, used
-        internally within Boost.Parser.  The pair implements the parsing
-        behavior rule `rule`, using the parser `rule_def`. */
-#define BOOST_PARSER_DEFINE_RULE(rule) BOOST_PARSER_DEFINE_IMPL(_, rule)
-
 
 #ifndef BOOST_PARSER_DOXYGEN
 
