@@ -2434,9 +2434,11 @@ common use cases for _rs_.  Use a _r_ if you want to:
 
 * create a recursive rule (more on this below);
 
-* create a set of mutually-recursive parsers; or
+* create a set of mutually-recursive parsers;
 
-* separately compile a parser.
+* separately compile a parser; or
+
+* do callback parsing.
 
 Let's look at the use cases in detail.
 
@@ -2738,6 +2740,13 @@ implementation file:
 
 For large parsers, separate compilation can be a significant savings on build
 time.
+
+[heading Callback parsing]
+
+Only _rs_ can be callback parsers, so if you want to get attributes supplied
+to you via callbacks instead of somewhere in the middle of a giant attribute
+that represents the whole parse result, you need to use _rs_.  See
+_ex_cb_json_ for an extended example of callback parsing.
 
 [heading Accessors available in semantic actions on rules]
 
