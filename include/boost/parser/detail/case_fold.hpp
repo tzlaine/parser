@@ -57,9 +57,11 @@ namespace boost::parser::detail {
                 return out;
             } else {
                 // Skip [0x41, 0x5a), handled above.
-                auto const first = std::begin(mapping_ranges) + 1;
+                auto const first =
+                    detail::text::detail::begin(mapping_ranges) + 1;
                 // 7th entry starts with 0x100.
-                auto const last = std::begin(mapping_ranges) + 7;
+                auto const last =
+                    detail::text::detail::begin(mapping_ranges) + 7;
                 if (auto out_opt = do_short_mapping(first, last, cp, out))
                     return *out_opt;
             }
@@ -69,17 +71,17 @@ namespace boost::parser::detail {
 
         // Single-cp-mapping path (next most common case).
         {
-            auto const first = std::begin(mapping_ranges);
-            auto const last = std::end(mapping_ranges);
+            auto const first = detail::text::detail::begin(mapping_ranges);
+            auto const last = detail::text::detail::end(mapping_ranges);
             if (auto out_opt = do_short_mapping(first, last, cp, out))
                 return *out_opt;
         }
 
         // Multi-cp mapping path.
         {
-            auto const last = std::end(long_mappings);
+            auto const last = detail::text::detail::end(long_mappings);
             auto const it = std::lower_bound(
-                std::begin(long_mappings),
+                detail::text::detail::begin(long_mappings),
                 last,
                 cp,
                 [](long_mapping const & mapping, char32_t cp) {
@@ -93,7 +95,9 @@ namespace boost::parser::detail {
                 return std::copy(
                     it->mapping_,
                     std::find(
-                        std::begin(it->mapping_), std::end(it->mapping_), 0),
+                        detail::text::detail::begin(it->mapping_),
+                        detail::text::detail::end(it->mapping_),
+                        0),
                     out);
 #endif
             }

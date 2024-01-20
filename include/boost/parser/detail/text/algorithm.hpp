@@ -6,7 +6,8 @@
 #ifndef BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 #define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
 
-#include <boost/parser/subrange.hpp>
+#include <boost/parser/detail/text/config.hpp>
+#include <boost/parser/detail/text/detail/algorithm.hpp>
 #include <boost/parser/detail/text/detail/sentinel_tag.hpp>
 
 #include <boost/parser/detail/stl_interfaces/view_interface.hpp>
@@ -157,7 +158,8 @@ namespace boost::parser::detail { namespace text {
 
     /** A utility range type returned by `foreach_subrange*()`. */
     template<typename Iter, typename Sentinel = Iter>
-    using foreach_subrange_range = subrange<Iter, Sentinel>;
+    using foreach_subrange_range =
+        BOOST_PARSER_DETAIL_TEXT_SUBRANGE<Iter, Sentinel>;
 
     /** Calls `f(sub)` for each subrange `sub` in `[first, last)`.  A subrange
         is a contiguous subsequence of elements that each compares equal to

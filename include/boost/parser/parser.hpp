@@ -4,7 +4,6 @@
 #include <boost/parser/parser_fwd.hpp>
 #include <boost/parser/concepts.hpp>
 #include <boost/parser/error_handling.hpp>
-#include <boost/parser/subrange.hpp>
 #include <boost/parser/tuple.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
@@ -968,9 +967,11 @@ namespace boost { namespace parser {
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
         template<typename T>
-        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        using has_begin =
+            decltype(*detail::text::detail::begin(std::declval<T &>()));
         template<typename T>
-        using has_end = decltype(std::end(std::declval<T &>()));
+        using has_end =
+            decltype(detail::text::detail::end(std::declval<T &>()));
 
         template<typename T>
         constexpr bool is_range =
@@ -999,9 +1000,11 @@ namespace boost { namespace parser {
 #else
 
         template<typename T>
-        using iterator_t = decltype(std::begin(std::declval<T &>()));
+        using iterator_t =
+            decltype(detail::text::detail::begin(std::declval<T &>()));
         template<typename Range>
-        using sentinel_t = decltype(std::end(std::declval<Range>()));
+        using sentinel_t =
+            decltype(detail::text::detail::end(std::declval<Range>()));
         template<typename T>
         using iter_value_t = typename std::iterator_traits<T>::value_type;
         template<typename T>
@@ -1277,8 +1280,8 @@ namespace boost { namespace parser {
             if constexpr (needs_transcoding_to_utf8<
                               Container,
                               iter_value_t<Iter>>) {
-                auto const r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                               text::as_utf8;
+                auto const r =
+                    BOOST_PARSER_SUBRANGE(first, last) | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
                 detail::insert(c, first, last);
@@ -1536,14 +1539,14 @@ namespace boost { namespace parser {
                 }
             }
 
-            subrange<Iter, Sentinel> chars_;
+            BOOST_PARSER_SUBRANGE<Iter, Sentinel> chars_;
         };
 
         template<typename Iter, typename Sentinel>
         constexpr auto make_char_range(Iter first, Sentinel last)
         {
             return char_range<Iter, Sentinel>{
-                subrange<Iter, Sentinel>{first, last}};
+                BOOST_PARSER_SUBRANGE<Iter, Sentinel>{first, last}};
         }
 
         template<typename R>
@@ -1696,42 +1699,79 @@ namespace boost { namespace parser {
         using insertable = decltype(std::declval<Container &>().insert(
             std::declval<Container &>().end(), std::declval<T>()));
 
+        template<typename T, typename Tuple, int... Is>
+        auto
+        make_from_tuple_impl(Tuple && tup, std::integer_sequence<int, Is...>)
+            -> decltype(T(parser::get(std::move(tup), llong<Is>{})...))
+        {
+            return T(parser::get(std::move(tup), llong<Is>{})...);
+        }
+
+        template<typename T, typename... Args>
+        auto make_from_tuple(tuple<Args...> && tup)
+            -> decltype(detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>()))
+        {
+            return detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>());
+        }
+
+        template<typename T, typename Tuple>
+        using constructible_from_tuple_expr =
+            decltype(detail::make_from_tuple<T>(std::declval<Tuple>()));
+
+        template<typename T, typename Tuple, bool = is_tuple<Tuple>{}>
+        constexpr bool is_constructible_from_tuple_v = false;
+        template<typename T, typename Tuple>
+        constexpr bool is_constructible_from_tuple_v<T, Tuple, true> =
+            is_detected_v<constructible_from_tuple_expr, T, Tuple>;
+
         template<typename Container, typename U>
         constexpr void move_back_impl(Container & c, U && x)
         {
+            using just_t = range_value_t<Container>;
+            using just_u = remove_cv_ref_t<U>;
             if constexpr (needs_transcoding_to_utf8<Container, U>) {
                 char32_t cps[1] = {(char32_t)x};
                 auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
+            } else if constexpr (std::is_convertible_v<just_u &&, just_t>) {
+                detail::insert(c, std::move(x));
+            } else if constexpr (
+                !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_t> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_struct_assignable_v<just_t, just_u>) {
+                auto int_seq =
+                    std::make_integer_sequence<int, tuple_size_<just_u>>();
+                detail::insert(
+                    c,
+                    detail::tuple_to_aggregate<just_t>(std::move(x), int_seq));
+            } else if constexpr (
+                is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_u> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_tuple_assignable_v<just_t, just_u>) {
+                just_t t;
+                auto tie = detail::tie_aggregate(x);
+                detail::aggregate_to_tuple(
+                    t,
+                    tie,
+                    std::make_integer_sequence<int, tuple_size_<just_t>>());
+                detail::insert(c, std::move(t));
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                detail::insert(
+                    c, detail::make_from_tuple<just_t>(std::move(x)));
             } else {
-                using just_t = range_value_t<Container>;
-                using just_u = remove_cv_ref_t<U>;
-                if constexpr (
-                    !is_tuple<just_t>::value && is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_t> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_struct_assignable_v<just_t, just_u>) {
-                    auto int_seq =
-                        std::make_integer_sequence<int, tuple_size_<just_u>>();
-                    detail::insert(
-                        c,
-                        detail::tuple_to_aggregate<just_t>(
-                            std::move(x), int_seq));
-                } else if constexpr (
-                    is_tuple<just_t>::value && !is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_u> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_tuple_assignable_v<just_t, just_u>) {
-                    just_t t;
-                    auto tie = detail::tie_aggregate(x);
-                    detail::aggregate_to_tuple(
-                        t,
-                        tie,
-                        std::make_integer_sequence<int, tuple_size_<just_t>>());
-                    detail::insert(c, std::move(t));
-                } else {
-                    detail::insert(c, std::move(x));
-                }
+                static_assert(
+                    sizeof(U) && false,
+                    "Could not insert value into container, by: just inserting "
+                    "it; doing tuple -> aggregate or aggregate -> tuple "
+                    "conversions; or tuple -> class type construction.");
             }
         }
 
@@ -1785,12 +1825,21 @@ namespace boost { namespace parser {
         constexpr void move_back(Container & c, nope, bool gen_attrs)
         {}
 
+        template<typename From, typename To>
+        using move_assignable_expr =
+            decltype(std::declval<To &>() = std::declval<From &&>());
+        template<typename From, typename To>
+        constexpr bool is_move_assignable_v =
+            is_detected_v<move_assignable_expr, From, To>;
+
         template<typename T, typename U>
         constexpr void assign(T & t, U && u)
         {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
-            if constexpr (
+            if constexpr (is_move_assignable_v<just_u, just_t>) {
+                t = std::move(u);
+            } else if constexpr (
                 !is_tuple<just_t>::value && is_tuple<just_u>::value &&
                 std::is_aggregate_v<just_t> &&
                 !std::is_convertible_v<just_u &&, just_t> &&
@@ -1808,8 +1857,17 @@ namespace boost { namespace parser {
                     t,
                     tie,
                     std::make_integer_sequence<int, tuple_size_<just_t>>());
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                static_assert(sizeof(T) && false); // TODO
+                t = detail::make_from_tuple<just_t>(std::move(u));
             } else {
-                t = std::move(u);
+                static_assert(
+                    sizeof(T) && false,
+                    "Could not assign value, by: just assigning it; doing tuple "
+                    "-> aggregate or aggregate -> tuple conversions; or tuple "
+                    "-> class type construction.");
             }
         }
 
@@ -2314,19 +2372,19 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<r_t>) {
                 using value_type = iter_value_t<r_t>;
                 if constexpr (std::is_same_v<value_type, char>) {
-                    return parser::make_subrange(r, text::null_sentinel);
+                    return BOOST_PARSER_SUBRANGE(r, text::null_sentinel);
                 } else {
                     return r | text::as_utf32;
                 }
             } else {
                 using value_type = range_value_t<r_t>;
-                if constexpr (std::is_array_v<r_t>) {
+                if constexpr (text::detail::is_bounded_array_v<r_t>) {
                     if constexpr (std::is_same_v<value_type, char>) {
-                        auto first = std::begin(r);
-                        auto last = std::end(r);
+                        auto first = detail::text::detail::begin(r);
+                        auto last = detail::text::detail::end(r);
                         if (first != last && !*std::prev(last))
                             --last;
-                        return parser::make_subrange(first, last);
+                        return BOOST_PARSER_SUBRANGE(first, last);
                     } else {
                         return r | text::as_utf32;
                     }
@@ -2334,7 +2392,9 @@ namespace boost { namespace parser {
                     if constexpr (
                         std::is_same_v<value_type, char> &&
                         !is_utf8_view<r_t>::value) {
-                        return parser::make_subrange(std::begin(r), std::end(r));
+                        return BOOST_PARSER_SUBRANGE(
+                            detail::text::detail::begin(r),
+                            detail::text::detail::end(r));
                     } else {
                         return r | text::as_utf32;
                     }
@@ -2348,7 +2408,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return r;
             } else {
-                return std::begin(r);
+                return detail::text::detail::begin(r);
             }
         }
 
@@ -2358,7 +2418,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return text::null_sentinel;
             } else {
-                return std::end(r);
+                return detail::text::detail::end(r);
             }
         }
 
@@ -3618,10 +3678,20 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
+
+            auto max_ = [](auto result, auto x) {
+                if constexpr (decltype(result)::value < decltype(x)::value) {
+                    return x;
+                } else {
+                    return result;
+                }
+            };
+            using max_index_t =
+                decltype(detail::hl::fold_left(indices, llong<0>{}, max_));
+
             if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
-                call(
-                    use_cbs, first_, last, context, skip, flags, success, attr);
+                call(use_cbs, first, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
@@ -3641,6 +3711,29 @@ namespace boost { namespace parser {
 
                 if (!success || !detail::gen_attrs(flags))
                     detail::assign(retval, Attribute());
+            } else if constexpr (
+                0 < max_index_t::value && detail::is_constructible_from_tuple_v<
+                                              Attribute,
+                                              temp_result_attr_t>) {
+                temp_result_attr_t temp_retval;
+                call_impl(
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices,
+                    merged);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval,
+                        detail::make_from_tuple<Attribute>(
+                            std::move(temp_retval)));
+                }
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
                 tuple<Attribute> temp_retval;
@@ -3865,7 +3958,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            subrange const where(initial_first, first);
+            BOOST_PARSER_SUBRANGE const where(initial_first, first);
             if (success) {
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
@@ -3951,7 +4044,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        subrange<Iter> call(
+        BOOST_PARSER_SUBRANGE<Iter> call(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -3960,16 +4053,8 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            subrange<Iter> retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            BOOST_PARSER_SUBRANGE<Iter> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4002,7 +4087,9 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
-            detail::assign(retval, subrange<Iter>(initial_first, first));
+            if (success && detail::gen_attrs(flags))
+                detail::assign(
+                    retval, BOOST_PARSER_SUBRANGE<Iter>(initial_first, first));
         }
 
         Parser parser_;
@@ -4037,15 +4124,7 @@ namespace boost { namespace parser {
                 "have not met this contract.");
             using char_type = detail::remove_cv_ref_t<decltype(*r.first)>;
             std::basic_string_view<char_type> retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4078,6 +4157,9 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
+
+            if (!success || !detail::gen_attrs(flags))
+                return;
 
             auto r = parser::detail::text::unpack_iterator_and_sentinel(
                 initial_first, first);
@@ -4123,15 +4205,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4248,15 +4322,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::enable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4326,15 +4392,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -4603,7 +4661,7 @@ namespace boost { namespace parser {
             }
         }
 
-        std::string_view name_;
+        std::string_view diagnostic_text_;
         ParamsTuple params_;
     };
 
@@ -5060,7 +5118,10 @@ namespace boost { namespace parser {
             !std::is_same_v<TagType, void>,
             "void is not a valid tag type for a rule.");
 
-        constexpr rule(char const * name) { this->parser_.name_ = name; }
+        constexpr rule(char const * diagnostic_text)
+        {
+            this->parser_.diagnostic_text_ = diagnostic_text;
+        }
 
         template<typename T, typename... Ts>
         constexpr auto with(T && x, Ts &&... xs) const
@@ -5079,7 +5140,7 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
@@ -5094,9 +5155,9 @@ namespace boost { namespace parser {
         : parser_interface<
               rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>>
     {
-        constexpr callback_rule(char const * name)
+        constexpr callback_rule(char const * diagnostic_text)
         {
-            this->parser_.name_ = name;
+            this->parser_.diagnostic_text_ = diagnostic_text;
         }
 
         template<typename T, typename... Ts>
@@ -5116,7 +5177,7 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
@@ -5124,7 +5185,7 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-#define BOOST_PARSER_DEFINE_IMPL(_, name_)                                     \
+#define BOOST_PARSER_DEFINE_IMPL(_, diagnostic_text_)                          \
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
@@ -5132,7 +5193,7 @@ namespace boost { namespace parser {
         typename Context,                                                      \
         typename SkipParser>                                                   \
     auto parse_rule(                                                           \
-        decltype(name_)::parser_type::tag_type *,                              \
+        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5141,7 +5202,7 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
+        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
         return parser(use_cbs, first, last, context, skip, flags, success);    \
     }                                                                          \
                                                                                \
@@ -5153,7 +5214,7 @@ namespace boost { namespace parser {
         typename SkipParser,                                                   \
         typename Attribute>                                                    \
     void parse_rule(                                                           \
-        decltype(name_)::parser_type::tag_type *,                              \
+        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5163,7 +5224,7 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
+        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
         using attr_t = decltype(parser(                                        \
             use_cbs, first, last, context, skip, flags, success));             \
         if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
@@ -5182,11 +5243,6 @@ namespace boost { namespace parser {
         only available when the Boost.Preprocessor headers are available. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
-
-    /** Defines a pair of `parse_rule()` overloads for the given rule, used
-        internally within Boost.Parser.  The pair implements the parsing
-        behavior rule `rule`, using the parser `rule_def`. */
-#define BOOST_PARSER_DEFINE_RULE(rule) BOOST_PARSER_DEFINE_IMPL(_, rule)
 
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -5500,7 +5556,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            subrange const where(first, first);
+            BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -5530,7 +5586,7 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            subrange const where(first, first);
+            BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
             // Predicate must be a parse predicate.  If you see an error here,
@@ -5909,9 +5965,9 @@ namespace boost { namespace parser {
             if constexpr (std::is_same_v<
                               detail::remove_cv_ref_t<decltype(*first)>,
                               char32_t>) {
-                auto const cps = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(
-                                     expected_first_, expected_last_) |
-                                 detail::text::as_utf32;
+                auto const cps =
+                    BOOST_PARSER_SUBRANGE(expected_first_, expected_last_) |
+                    detail::text::as_utf32;
 
                 auto const mismatch = detail::no_case_aware_string_mismatch(
                     first,
@@ -7053,8 +7109,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7157,8 +7213,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7262,8 +7318,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_, attr);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7374,8 +7430,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7433,8 +7489,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7490,8 +7546,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7696,8 +7752,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -7822,8 +7878,8 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = BOOST_PARSER_DETAIL_TEXT_SUBRANGE(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);

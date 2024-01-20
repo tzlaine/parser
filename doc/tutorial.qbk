@@ -530,8 +530,8 @@ things:
 
 * This rule object itself is called `doubles`.
 
-* We've given `doubles` the string name `"doubles"` so that _Parser_ knows
-  what to call it when producing a trace of the parser during debugging.
+* We've given `doubles` the diagnstic text `"doubles"` so that _Parser_ knows
+  how to refer to it when producing a trace of the parser during debugging.
 
 Ok, so if `doubles` is a parser, what does it do?  We define the rule's
 behavior by defining a separate parser that by now should look pretty
@@ -555,7 +555,7 @@ that this macro relies on to work.  The tag type allows the rule parser,
 `doubles`, to call one of these overloads when used as a parser.
 
 [note In case you're curious about exactly what code is produced by the above
-use of _RULE_, it's two overloads of a function called `parse_rule()`.  The
+use of _RULES_, it's two overloads of a function called `parse_rule()`.  The
 overloads each take a `struct doubles` parameter (to distinguish them from the
 other overloads of `parse_rule()` for other rules) and parse using
 `doubles_def`.  You will never need to call any overload of `parse_rule()`
@@ -566,9 +566,6 @@ Now that we have the `doubles` parser, we can use it like we might any other
 parser:
 
 [rule_intro_parse_call]
-
-[note We used _RULE_ in this example.  There is also another macro that allows
-you to define multiple rules in one macro expansion, _RULES_.]
 
 The full program:
 
@@ -584,7 +581,7 @@ instead.]
 
 [endsect]
 
-[section Parsing `struct`s]
+[section Parsing into `struct`s and `class`es]
 
 So far, we've seen only simple parsers that parse the same value repeatedly
 (with or without commas and spaces).  It's also very common to parse a few
@@ -604,11 +601,18 @@ The attribute type for `employee_parser` is `_bp_tup_<int, std::string,
 std::string, double>`.  That's great, in that you got all the parsed data for
 the record without having to write any semantic actions.  It's not so great
 that you now have to get all the individual elements out by their indices,
-using `get()`.  It would be much nicer to parse into a `struct` that has data
-members _emdash_ with names _emdash_ of the types listed in the _bp_tup_.
+using `get()`.  It would be much nicer to parse into the final data structure
+that your program is going to use.  This is often some `struct` or `class`.
+_Parser_ supports parsing into arbitrary aggregate `struct`s, and
+non-aggregates that are constructible from the tuple at hand.
 
-Fortunately, this just works in _Parser_.  The main requirement is that the
-`struct` you provide be an aggregate type.
+[heading Aggregate types as attributes]
+
+If we have a `struct` that has data members of the same types listed in the
+_bp_tup_ attribute type for `employee_parser`, it would be nice to parse
+directly into it, instead of parsing into a tuple and then constructing our
+`struct` later.  Fortunately, this just works in _Parser_.  Here is an example
+of parsing straight into a compatible aggregate type.
 
 [parsing_into_a_struct_example]
 
@@ -637,6 +641,43 @@ attribute type is a tuple, you can also pass a tuple as an out-param to
 bit of metaprogramming.  Due to compiler limits, the metaprogram that detects
 the number of data members of a `struct` is limited to a maximum number of
 members.  Fortunately, that limit is configurable; see _AGGR_SIZE_.]
+
+[heading General `class` types as attributes]
+
+Many times you don't have an aggregate struct that you want to produce from
+your parse.  It would be even nicer than the aggregate code above if _Parser_
+could detect that the members of a tuple that is produced as an attribute are
+usable as the arguments to some type's constructor.  So, _Parser_ does that.
+
+[parsing_into_a_class_example]
+
+Let's look at the first parse.
+
+[parsing_into_a_class_str]
+
+Here, we use the parser `string_uint_uint`, which produces a
+`_bp_tup_<std::string, unsigned int, unsigned int>` attribute.  When we try to
+parse that into an out-param `std::string` attribute, it just works.  This is
+because `std::string` has a constructor that takes a `std::string`, an offset,
+and a length.  Here's the other parse:
+
+[parsing_into_a_class_vec_of_strs]
+
+Now we have the parser `uint_string`, which produces `_bp_tup_<unsigned int,
+std::string>` attribute _emdash_ the two `char`s at the end combine into a
+`std::string`.  Those two values can be used to construct a
+`std::vector<std::string>`, via the count, `T` constructor.
+
+Just like with using aggregates in place of tuples, non-aggregate `class`
+types can be substituted for tuples in most places.  That includes using a
+non-aggregate `class` type as the attribute type of a _r_.
+
+However, while compatible tuples can be substituted for aggregates, you
+*can't* substitute a tuple for some `class` type `T` just because the tuple
+could have been used to construct `T`.  Think of trying to invert the
+substitution in the second parse above.  Converting a
+`std::vector<std::string>` into a `_bp_tup_<unsigned int, std::string>` makes
+no sense.
 
 [endsect]
 
@@ -2386,13 +2427,15 @@ common use cases for _rs_.  Use a _r_ if you want to:
 * fix the attribute type produced by a parser to something other than the
   default;
 
-* create a named parser; this is useful in diagnostics;
+* create a parser that produces useful diagnostic text;
 
 * create a recursive rule (more on this below);
 
-* create a set of mutually-recursive parsers; or
+* create a set of mutually-recursive parsers;
 
-* separately compile a parser.
+* separately compile a parser; or
+
+* do callback parsing.
 
 Let's look at the use cases in detail.
 
@@ -2485,11 +2528,12 @@ attribute flexibility we want across our code:
 Now we have one of each, and we did not have to copy any parsing logic that
 would have to be maintained in two places.
 
-[heading Creating a named parser]
+[heading Creating a parser for better diagnostics]
 
-Each _r_ has a name that _Parser_ can use to refer to that rule.  This is
-useful when the parse reaches a parse failure at an expectation point (see
-_expect_pts_).  Let's say you have the following code defined somewhere.
+Each _r_ has associated diagnostic text that _Parser_ can use for failures of
+that rule.  This is useful when the parse reaches a parse failure at an
+expectation point (see _expect_pts_).  Let's say you have the following code
+defined somewhere.
 
     namespace bp = boost::parser;
 
@@ -2499,7 +2543,7 @@ _expect_pts_).  Let's say you have the following code defined somewhere.
     auto const ints = '{' > (value % ',') > '}';
     auto const value_def = bp::int_ | ints;
 
-    BOOST_PARSER_DEFINE_RULE(value);
+    BOOST_PARSER_DEFINE_RULES(value);
 
 Notice the two expectation points.  One before `(value % ',')`, one before the
 final `'}'`.  Later, you call parse in some input:
@@ -2526,8 +2570,9 @@ the earlier expectation:
 ]
 
 Not nearly as nice.  The problem is that the expectation is on `(value %
-',')`.  So, even thought we gave `value` a reasonable name, we named the wrong
-thing.  We can introduce a new rule to put a name in the right place.
+',')`.  So, even thought we gave `value` reasonable dianostic text, we put the
+text on the wrong thing.  We can introduce a new rule to put the diagnstic
+text in the right place.
 
     namespace bp = boost::parser;
 
@@ -2552,7 +2597,7 @@ message:
 ]
 
 The _r_ `value` might be useful elsewhere in our code, perhaps in another
-parser.  It's name is appropriate for those other potential uses.
+parser.  It's diagnostic text is appropriate for those other potential uses.
 
 [heading Recursive rules]
 
@@ -2694,6 +2739,13 @@ implementation file:
 
 For large parsers, separate compilation can be a significant savings on build
 time.
+
+[heading Callback parsing]
+
+Only _rs_ can be callback parsers, so if you want to get attributes supplied
+to you via callbacks instead of somewhere in the middle of a giant attribute
+that represents the whole parse result, you need to use _rs_.  See
+_ex_cb_json_ for an extended example of callback parsing.
 
 [heading Accessors available in semantic actions on rules]
 

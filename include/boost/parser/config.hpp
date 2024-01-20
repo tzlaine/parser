@@ -45,6 +45,11 @@
     compile times. */
 #    define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
 
+/** The subrange template that is used throughout Boost.Parser.  This will be
+    `boost::parser::subrange` in C++17 builds, and `std::ranges::subrange` in
+    all other builds. */
+#    define BOOST_PARSER_SUBRANGE
+
 #else
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
@@ -58,18 +63,16 @@
 #endif
 
 #if defined(__cpp_lib_concepts) && !defined(BOOST_PARSER_DISABLE_CONCEPTS)
-#define BOOST_PARSER_USE_CONCEPTS 1
+#    define BOOST_PARSER_USE_CONCEPTS 1
 #else
-#define BOOST_PARSER_USE_CONCEPTS 0
+#    define BOOST_PARSER_USE_CONCEPTS 0
 #endif
 
-#if 202002L < __cplusplus || /**/                                              \
-    (defined(_MSC_VER) && 1922 <= _MSC_VER) ||                                 \
-    (defined(__GNUC__) && 10 <= __GNUC__) ||                                   \
-    (defined(__clang__) && 10 <= __clang_major__)
-#define BOOST_PARSER_USE_CXX20_EQUALITY_AND_COMPARISON 1
+#if defined(__cpp_lib_ranges)
+#    define BOOST_PARSER_SUBRANGE std::ranges::subrange
 #else
-#define BOOST_PARSER_USE_CXX20_EQUALITY_AND_COMPARISON 0
+#    include <boost/parser/subrange.hpp>
+#    define BOOST_PARSER_SUBRANGE boost::parser::subrange
 #endif
 
 #if defined(BOOST_PARSER_DISABLE_HANA_TUPLE)

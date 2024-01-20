@@ -22,7 +22,7 @@ bp::rule<struct doubles, std::vector<double>> doubles = "doubles";
 auto const doubles_def = bp::double_ % ',';
 //]
 //[ rule_intro_rule_definition_macro
-BOOST_PARSER_DEFINE_RULE(doubles);
+BOOST_PARSER_DEFINE_RULES(doubles);
 //]
 //]
 

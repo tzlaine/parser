@@ -14,8 +14,8 @@
 
 namespace boost::parser {
 
-    /** A simple view type used throughout the rest of the library, similar to
-        `std::ranges::subrange`. */
+    /** A simple view type used throughout the rest of the library in C++17
+        builds; similar to `std::ranges::subrange`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<std::forward_iterator I, std::sentinel_for<I> S = I>
 #else

@@ -35,7 +35,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 #include <boost/parser/detail/text/detail/begin_end.hpp>
 #endif
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if defined(__cpp_lib_ranges)
 #    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE std::ranges::subrange
 #else
 #    include <boost/parser/subrange.hpp>
