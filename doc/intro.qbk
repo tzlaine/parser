@@ -116,6 +116,13 @@ usable optional, you must be able to assign to `O`, and `O` must have an
 `operator*` that returns the stored value, or a (possibly cv-qualified)
 reference to the stored value.
 
+_Parser_ uses `std::ranges::subrange` extensively.  However, there is no C++17
+equivalent.  So, there is a `boost::parser::subrange` for C++17 builds.  To
+switch between these transparently in the code, while keeping CTAD
+operational, _Parser_ defines _SUBRNG_.  This is the name of the template, so
+if you use it in your own code you would use it like `_SUBRNG_<I>` to
+instantiate it.
+
 [endsect]
 
 [section This Library's Relationship to Boost.Spirit]
