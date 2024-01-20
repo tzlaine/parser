@@ -26,22 +26,22 @@
 </span><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> MinType<span class="special">,</span> <span class="keyword">typename</span> MaxType<span class="special">&gt;</span> 
 <span class="keyword">struct</span> <a class="link" href="repeat_directive.html" title="Struct template repeat_directive">repeat_directive</a> <span class="special">{</span>
 
-  <span class="comment">// <a class="link" href="repeat_directive.html#idm22205-bb">public member functions</a></span>
+  <span class="comment">// <a class="link" href="repeat_directive.html#idm22700-bb">public member functions</a></span>
   <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser2<span class="special">&gt;</span> 
-    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="repeat_directive.html#idm22206-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser2</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
+    <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a class="link" href="repeat_directive.html#idm22701-bb"><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span></a><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser2</span> <span class="special">&gt;</span><span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span>
 
   <span class="comment">// public data members</span>
   <span class="identifier">MinType</span> <span class="identifier">min_</span><span class="special">;</span>
   <span class="identifier">MaxType</span> <span class="identifier">max_</span><span class="special">;</span>
 <span class="special">}</span><span class="special">;</span></pre></div>
 <div class="refsect1">
-<a name="idm30701"></a><h2>Description</h2>
+<a name="idm31178"></a><h2>Description</h2>
 <p>Represents a <code class="computeroutput"><a class="link" href="repeat_parser.html" title="Struct template repeat_parser">repeat_parser</a></code> as a directive (e.g. <code class="computeroutput">repeat[other_parser]</code>). </p>
 <div class="refsect2">
-<a name="idm30707"></a><h3>
-<a name="idm22205-bb"></a><code class="computeroutput">repeat_directive</code> public member functions</h3>
+<a name="idm31184"></a><h3>
+<a name="idm22700-bb"></a><code class="computeroutput">repeat_directive</code> public member functions</h3>
 <div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><pre class="literallayout"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Parser2<span class="special">&gt;</span> 
-  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm22206-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser2</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li></ol></div>
+  <span class="keyword">constexpr</span> <span class="keyword">auto</span> <a name="idm22701-bb"></a><span class="keyword">operator</span><span class="special">[</span><span class="special">]</span><span class="special">(</span><a class="link" href="parser_interface.html" title="Struct template parser_interface">parser_interface</a><span class="special">&lt;</span> <span class="identifier">Parser2</span> <span class="special">&gt;</span> rhs<span class="special">)</span> <span class="keyword">const</span> <span class="keyword">noexcept</span><span class="special">;</span></pre></li></ol></div>
 </div>
 </div>
 </div>

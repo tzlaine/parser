@@ -7,12 +7,12 @@
 <link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="the_parse_context.html" title="The Parse Context">
-<link rel="next" href="parsing__struct_s.html" title="Parsing structs">
+<link rel="next" href="parsing_into__struct_s_and__class_es.html" title="Parsing into structs and classes">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="the_parse_context.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="parsing__struct_s.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="the_parse_context.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="parsing_into__struct_s_and__class_es.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -55,9 +55,9 @@
           </li>
 <li class="listitem">
             We've given <code class="computeroutput"><span class="identifier">doubles</span></code> the
-            string name <code class="computeroutput"><span class="string">"doubles"</span></code>
-            so that Boost.Parser knows what to call it when producing a trace of
-            the parser during debugging.
+            diagnstic text <code class="computeroutput"><span class="string">"doubles"</span></code>
+            so that Boost.Parser knows how to refer to it when producing a trace
+            of the parser during debugging.
           </li>
 </ul></div>
 <p>
@@ -84,7 +84,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 </pre>
 <p>
       </p>
@@ -103,7 +103,7 @@
 </tr>
 <tr><td align="left" valign="top"><p>
           In case you're curious about exactly what code is produced by the above
-          use of <code class="computeroutput"><a class="link" href="../../BOOST_PARSER_DEFINE_RULE.html" title="Macro BOOST_PARSER_DEFINE_RULE">BOOST_PARSER_DEFINE_RULE</a></code>,
+          use of <code class="computeroutput"><a class="link" href="../../BOOST_PARSER_DEFINE_RULES.html" title="Macro BOOST_PARSER_DEFINE_RULES">BOOST_PARSER_DEFINE_RULES</a></code>,
           it's two overloads of a function called <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code>. The overloads each take a <code class="computeroutput"><span class="keyword">struct</span> <span class="identifier">doubles</span></code>
           parameter (to distinguish them from the other overloads of <code class="computeroutput"><span class="identifier">parse_rule</span><span class="special">()</span></code>
           for other rules) and parse using <code class="computeroutput"><span class="identifier">doubles_def</span></code>.
@@ -121,17 +121,6 @@
 </pre>
 <p>
       </p>
-<div class="note"><table border="0" summary="Note">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
-<th align="left">Note</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          We used <code class="computeroutput"><a class="link" href="../../BOOST_PARSER_DEFINE_RULE.html" title="Macro BOOST_PARSER_DEFINE_RULE">BOOST_PARSER_DEFINE_RULE</a></code>
-          in this example. There is also another macro that allows you to define
-          multiple rules in one macro expansion, <code class="computeroutput"><a class="link" href="../../BOOST_PARSER_DEFINE_RULES.html" title="Macro BOOST_PARSER_DEFINE_RULES">BOOST_PARSER_DEFINE_RULES</a></code>.
-        </p></td></tr>
-</table></div>
 <p>
         The full program:
       </p>
@@ -149,7 +138,7 @@
 
 <span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">doubles</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span> <span class="identifier">doubles</span> <span class="special">=</span> <span class="string">"doubles"</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">%</span> <span class="char">','</span><span class="special">;</span>
-<span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 
 <span class="keyword">int</span> <span class="identifier">main</span><span class="special">()</span>
 <span class="special">{</span>
@@ -197,7 +186,7 @@
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="the_parse_context.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="parsing__struct_s.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="the_parse_context.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="parsing_into__struct_s_and__class_es.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

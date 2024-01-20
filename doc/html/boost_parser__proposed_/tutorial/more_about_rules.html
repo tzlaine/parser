@@ -33,16 +33,19 @@
             default;
           </li>
 <li class="listitem">
-            create a named parser; this is useful in diagnostics;
+            create a parser that produces useful diagnostic text;
           </li>
 <li class="listitem">
             create a recursive rule (more on this below);
           </li>
 <li class="listitem">
-            create a set of mutually-recursive parsers; or
+            create a set of mutually-recursive parsers;
           </li>
 <li class="listitem">
-            separately compile a parser.
+            separately compile a parser; or
+          </li>
+<li class="listitem">
+            do callback parsing.
           </li>
 </ul></div>
 <p>
@@ -54,7 +57,7 @@
         the attribute type</a>
       </h5>
 <p>
-        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code>
+        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code>
         is flexible in what types it will accept as attribute out-parameters.
       </p>
 <p>
@@ -85,13 +88,13 @@
 </p>
 <pre class="programlisting"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">doubles</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span> <span class="identifier">doubles</span> <span class="special">=</span> <span class="string">"doubles"</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">doubles_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">%</span> <span class="char">','</span><span class="special">;</span>
-<span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">doubles</span><span class="special">);</span>
 </pre>
 <p>
       </p>
 <p>
-        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code>,
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
+        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code>,
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
       </p>
 <p>
 </p>
@@ -100,7 +103,7 @@
 <p>
       </p>
 <p>
-        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
+        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
         it must be exactly <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>:
       </p>
 <pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">vec_result</span><span class="special">;</span>
@@ -141,8 +144,8 @@
 </pre>
 <p>
         Where <code class="computeroutput"><span class="identifier">attribute_out_param</span></code>
-        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code>.
-        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24215.html" title="Function template parse">parse()</a></code>
+        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code>.
+        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm24710.html" title="Function template parse">parse()</a></code>
         is too.
       </p>
 <p>
@@ -171,13 +174,14 @@
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.more_about_rules.h1"></a>
-        <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.creating_a_named_parser"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.creating_a_named_parser">Creating
-        a named parser</a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.creating_a_parser_for_better_diagnostics"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.creating_a_parser_for_better_diagnostics">Creating
+        a parser for better diagnostics</a>
       </h5>
 <p>
         Each <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>
-        has a name that Boost.Parser can use to refer to that rule. This is useful
-        when the parse reaches a parse failure at an expectation point (see <a class="link" href="../../">Expectation
+        has associated diagnostic text that Boost.Parser can use for failures of
+        that rule. This is useful when the parse reaches a parse failure at an expectation
+        point (see <a class="link" href="../../">Expectation
         points</a>). Let's say you have the following code defined somewhere.
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
@@ -188,7 +192,7 @@
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">ints</span> <span class="special">=</span> <span class="char">'{'</span> <span class="special">&gt;</span> <span class="special">(</span><span class="identifier">value</span> <span class="special">%</span> <span class="char">','</span><span class="special">)</span> <span class="special">&gt;</span> <span class="char">'}'</span><span class="special">;</span>
 <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">value_def</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span> <span class="special">|</span> <span class="identifier">ints</span><span class="special">;</span>
 
-<span class="identifier">BOOST_PARSER_DEFINE_RULE</span><span class="special">(</span><span class="identifier">value</span><span class="special">);</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">value</span><span class="special">);</span>
 </pre>
 <p>
         Notice the two expectation points. One before <code class="computeroutput"><span class="special">(</span><span class="identifier">value</span> <span class="special">%</span> <span class="char">','</span><span class="special">)</span></code>, one before
@@ -218,8 +222,8 @@
 <p>
         Not nearly as nice. The problem is that the expectation is on <code class="computeroutput"><span class="special">(</span><span class="identifier">value</span> <span class="special">%</span> <span class="char">','</span><span class="special">)</span></code>.
         So, even thought we gave <code class="computeroutput"><span class="identifier">value</span></code>
-        a reasonable name, we named the wrong thing. We can introduce a new rule
-        to put a name in the right place.
+        reasonable dianostic text, we put the text on the wrong thing. We can introduce
+        a new rule to put the diagnstic text in the right place.
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
 
@@ -247,8 +251,8 @@
 <p>
         The <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>
         <code class="computeroutput"><span class="identifier">value</span></code> might be useful elsewhere
-        in our code, perhaps in another parser. It's name is appropriate for those
-        other potential uses.
+        in our code, perhaps in another parser. It's diagnostic text is appropriate
+        for those other potential uses.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.more_about_rules.h2"></a>
@@ -419,11 +423,23 @@
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.more_about_rules.h5"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.callback_parsing"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.callback_parsing">Callback
+        parsing</a>
+      </h5>
+<p>
+        Only <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>
+        can be callback parsers, so if you want to get attributes supplied to you
+        via callbacks instead of somewhere in the middle of a giant attribute that
+        represents the whole parse result, you need to use <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>. See <a class="link" href="../extended_examples/parsing_json_with_callbacks.html" title="Parsing JSON With Callbacks">Parsing
+        JSON With Callbacks</a> for an extended example of callback parsing.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.more_about_rules.h6"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.accessors_available_in_semantic_actions_on_rules"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.accessors_available_in_semantic_actions_on_rules">Accessors
         available in semantic actions on rules</a>
       </h5>
 <h5>
-<a name="boost_parser__proposed_.tutorial.more_about_rules.h6"></a>
+<a name="boost_parser__proposed_.tutorial.more_about_rules.h7"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules._functionname_alt__boost__parser___val___code__phrase_role__identifier___val__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules._functionname_alt__boost__parser___val___code__phrase_role__identifier___val__phrase__phrase_role__special______phrase___code___functionname_">_val()</a>
       </h5>
 <p>
@@ -456,7 +472,7 @@
         </p></td></tr>
 </table></div>
 <h5>
-<a name="boost_parser__proposed_.tutorial.more_about_rules.h7"></a>
+<a name="boost_parser__proposed_.tutorial.more_about_rules.h8"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.locals"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.locals">Locals</a>
       </h5>
 <p>
@@ -494,7 +510,7 @@
         to track state as they parse.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.more_about_rules.h8"></a>
+<a name="boost_parser__proposed_.tutorial.more_about_rules.h9"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.parameters"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.parameters">Parameters</a>
       </h5>
 <p>
@@ -546,7 +562,7 @@
         data that they have already parsed.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.more_about_rules.h9"></a>
+<a name="boost_parser__proposed_.tutorial.more_about_rules.h10"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.more_about_rules.the__globalname_alt__boost__parser___p___code__phrase_role__identifier___p__phrase___code___globalname__variable_template"></a></span><a class="link" href="more_about_rules.html#boost_parser__proposed_.tutorial.more_about_rules.the__globalname_alt__boost__parser___p___code__phrase_role__identifier___p__phrase___code___globalname__variable_template">The
         _p
         variable template</a>
