@@ -699,3 +699,26 @@ TEST(search, search_all_unicode)
         EXPECT_EQ(count, 5);
     }
 }
+
+TEST(search, doc_examples)
+{
+    {
+        namespace bp = boost::parser;
+        auto result = bp::search("aaXYZq", bp::lit("XYZ"), bp::ws);
+        assert(!result.empty());
+        assert(
+            std::string_view(result.begin(), result.end() - result.begin()) ==
+            "XYZ");
+    }
+    {
+        auto r = "XYZaaXYZbaabaXYZXYZ" | bp::search_all(bp::lit("XYZ"));
+        int count = 0;
+        // Prints XYZ XYZ XYZ XYZ.
+        for (auto subrange : r) {
+            std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+            ++count;
+        }
+        std::cout << "\n";
+        assert(count == 4);
+    }
+}

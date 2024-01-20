@@ -26,7 +26,7 @@ namespace deduction {
 }
 #endif
 
-TEST(search, split_)
+TEST(split, split_)
 {
     {
         auto r = bp::split("", bp::lit("XYZ"), bp::ws);
@@ -123,7 +123,7 @@ TEST(search, split_)
     }
 }
 
-TEST(search, split_unicode)
+TEST(split, split_unicode)
 {
     {
         char const str_[] = "";
@@ -226,5 +226,20 @@ TEST(search, split_unicode)
             ++count;
         }
         EXPECT_EQ(count, 6);
+    }
+}
+
+TEST(split, doc_examples)
+{
+    {
+        auto r = "XYZaaXYZbaabaXYZXYZ" | bp::split(bp::lit("XYZ"));
+        int count = 0;
+        // Prints '' 'aa' 'baaba' '' ''.
+        for (auto subrange : r) {
+            std::cout << "'" << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << "' ";
+            ++count;
+        }
+        std::cout << "\n";
+        assert(count == 5);
     }
 }

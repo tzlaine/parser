@@ -77,6 +77,16 @@
 [def _cb_eh_               [classref boost::parser::callback_error_handler `callback_error_handler`]]
 [def _rethrow_eh_          [classref boost::parser::rethrow_error_handler `rethrow_error_handler`]]
 
+[def _trace_               [enumref boost::parser::trace `boost::parser::trace`]]
+
+[def _search_              [funcref boost::parser::search `boost::parser::search()`]]
+[def _search_all_          [globalref boost::parser::search_all `boost::parser::search_all`]]
+[def _search_all_v_        [classref boost::parser::search_all_view `boost::parser::search_all_view`]]
+[def _search_all_vs_       [classref boost::parser::search_all_view `boost::parser::search_all_view`s]]
+[def _split_               [globalref boost::parser::split `boost::parser::split`]]
+[def _split_v_             [classref boost::parser::split_view `boost::parser::split_view`]]
+[def _split_vs_            [classref boost::parser::split_view `boost::parser::split_view`s]]
+
 
 [def _std_str_             `std::string`]
 [def _std_vec_char_        `std::vector<char>`]

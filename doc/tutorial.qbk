@@ -2379,7 +2379,7 @@ whereas `boost::parser::parse(r, p)` does not.]
 [heading The `trace_mode` parameter to _p_]
 
 Debugging parsers is notoriously difficult once they reach a certain size.  To
-get a verbose trace of your parse, pass `boost::parser::trace::on` as the
+get a verbose trace of your parse, pass `_trace_::on` as the
 final parameter to _p_.  It will show you the current parser being matched,
 the next few characters to be parsed, and any attributes generated.  See the
 _eh_debugging_ section of the tutorial for details.
@@ -2862,6 +2862,121 @@ similar.
 
 [endsect]
 
+[section Algorithms and Views That Use Parsers]
+
+[heading _search_]
+
+As shown in _p_api_, the two patterns of parsing in _Parser_ are whole-parse
+and prefix-parse.  When you want to find something in the middle of the
+sequence being parsed, there's no `parse` API for that.  You can of course
+make a simple parser that skips everything before what you're looking for.
+
+    namespace bp = boost::parser;
+    constexpr auto parser = /* ... */;
+    constexpr auto middle_parser = bp::omit[*(bp::char_ - parser)] >> parser;
+
+`middle_parser` will skip over everything, one `char_` at a time, as long as
+the next `char_` is not the beginning of a successful match of `parser`.
+After this, control passes to `parser` itself.  Ok, so that's not too hard to
+write.  If you need to parse something from the middle in order to generate
+attributes, this is what you should use.
+
+However, it often turns out you only need to find some subrange in the parsed
+sequence.  In these cases, it would be nice to turn this into a proper
+algorithm in the pattern of the ones in `std::ranges`, since that's more
+idiomatic.  _search_ is that algorithm.  It has very similar semantics to
+`std::ranges::search`, except that it searches not for a match to an exact
+subsequence, but to a match with the given parser.  Like
+`std::ranges::search()`, it returns a subrange (`boost::parser::subrange` in
+C++17, `std::ranges::subrange` in C++20 and later).
+
+    namespace bp = boost::parser;
+    auto result = bp::search("aaXYZq", bp::lit("XYZ"), bp::ws);
+    assert(!result.empty());
+    assert(std::string_view(result.begin(), result.end() - result.begin()) == "XYZ");
+
+Since _search_ returns a subrange, whatever parser you give it produces no
+attribute.  I wrote `bp::lit("XYZ")` above; if I had written
+`bp::string("XYZ")` instead, the result (and lack of `std::string`
+construction) would not change.
+
+As you can see above, one aspect of _search_ differs intentionally from the
+conventions of the `std::ranges` algorithms _emdash_ it accepts C-style
+strings, treating them as if they were proper ranges.
+
+Also, _search_ knows how to accommodate your iterator type.  You can pass the
+C-style string `"aaXYZq"` as in the example above, or `"aaXYZq" |
+bp::as_utf32`, or `"aaXYZq" | bp::as_utf8`, or even `"aaXYZq" | bp::as_utf16`,
+and it will return a subrange whose iterators are the type that you passed as
+input, even though internally the iterator type might be something different
+(a UTF-8 -> UTF-32 transcoding iterator in Unicode parsing, as with all the `|
+bp::as_utfN` examples above).  As long as you pass a range to be parsed whose
+value type is `char`, `char8_t`, `char32_t`, or that is adapted using some
+combination of `as_utfN` adaptors, this accommodation will operate correctly.
+
+_search_ has multiple overloads.  You can pass a range or an iterator/sentinel
+pair, and you can pass a skip parser or not.  That's four overloads.  Also,
+all four overloads take an optional _trace_ parameter at the end.  This is
+really handy for investigating why you're not finding something in the input
+that you expected to.
+
+[heading _search_all_]
+
+_search_all_ creates _search_all_vs_.  _search_all_v_ is a `std::views`-style
+view.  It produces a range of subranges.  Each subrange it produces is the
+next match of the given parser in the parsed range.
+
+    auto r = "XYZaaXYZbaabaXYZXYZ" | bp::search_all(bp::lit("XYZ"));
+    int count = 0;
+    // Prints XYZ XYZ XYZ XYZ.
+    for (auto subrange : r) {
+        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+        ++count;
+    }
+    std::cout << "\n";
+    assert(count == 4);
+
+All the details called out in the subsection on _search_ above apply to
+_search_all_: its parser produces no attributes; it accepts C-style strings as
+if they were ranges; and it knows how to get from the internally-used iterator
+type back to the given iterator type, in typical cases.
+
+_search_all_ can be called with, and and _search_all_v_ can be constructed
+with, a skip parser or not, and you can always pass _trace_ at the end of any
+of their overloads.
+
+[heading _split_]
+
+_split_ creates _split_vs_.  _split_v_ is a `std::views`-style view.  It
+produces a range of subranges of the parsed range split on matches of the
+given parser.  You can think of _split_v_ as being the complement of
+_search_all_v_, in that _split_v_ produces the subranges between the subranges
+produced by _search_all_v_.  _split_v_ has very similar semantics to
+`std::views::split_view`. Just like `std::views::split_view`, _split_v_ will
+produce empty ranges between the beginning/end of the parsed range and an
+adjacent match, or between adjacent matches.
+
+    auto r = "XYZaaXYZbaabaXYZXYZ" | bp::split(bp::lit("XYZ"));
+    int count = 0;
+    // Prints '' 'aa' 'baaba' '' ''.
+    for (auto subrange : r) {
+        std::cout << "'" << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << "' ";
+        ++count;
+    }
+    std::cout << "\n";
+    assert(count == 5);
+
+All the details called out in the subsection on _search_ above apply to
+_search_all_: its parser produces no attributes; it accepts C-style strings as
+if they were ranges; and it knows how to get from the internally-used iterator
+type back to the given iterator type, in typical cases.
+
+_search_all_ can be called with, and and _search_all_v_ can be constructed
+with, a skip parser or not, and you can always pass _trace_ at the end of any
+of their overloads.
+
+[endsect]
+
 [section Unicode Support]
 
 _Parser_ was designed from the start to be Unicode friendly.  There are
@@ -3272,7 +3387,7 @@ simply by providing an extra parameter to _p_ or _cbp_:
     boost::parser::parse(input, parser, boost::parser::trace::on);
 
 Every overload of _p_ and _cbp_ takes this final parameter, which is defaulted
-to `boost::parser::trace::off`.
+to `_trace_::off`.
 
 If we trace a substantial parser, we will see a *lot* of output.  Each code
 point of the input must be considered, one at a time, to see if a certain rule
@@ -3445,7 +3560,7 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
 * The error handlers that can take a file name allocate memory for the file
   name, if one is provided.
 
-* If trace is turned on by passing `boost::parser::trace::on` to a top-level
+* If trace is turned on by passing `_trace_::on` to a top-level
   parsing function, the names of parsers are allocated.
 
 * When a failed expectation is encountered (using `operator>()`), the name of
@@ -3618,7 +3733,7 @@ First, let's look at the template and function parameters.
 * `detail::flags flags` are a collection of flags indicating various things
   about the current state of the parse.  `flags` is concerned with whether to
   produce attributes at all; whether to apply the skip parser `skip`; whether
-  to produce a verbose trace (as when `parser::trace::on` is passed at the top
+  to produce a verbose trace (as when `_trace_::on` is passed at the top
   level); and whether we are currently inside the utility function
   `detail::apply_parser`.
 
@@ -3652,10 +3767,10 @@ Let's look at the implementation a bit at a time.
 [opt_parser_trace]
 
 This defines a RAII trace object that will produce the verbose trace requested
-by the user if they passed `parser::trace::on` to the top-level parse.  It
-only has effect if `detail::enable_trace(flags)` is `true`.  If trace is
-enabled, it will show the state of the parse at the point at which it is
-defined, and then again when it goes out of scope.
+by the user if they passed `_trace_::on` to the top-level parse.  It only has
+effect if `detail::enable_trace(flags)` is `true`.  If trace is enabled, it
+will show the state of the parse at the point at which it is defined, and then
+again when it goes out of scope.
 
 [important For the tracing code to work, you must define an overload of
 `detail::print_parser` for your new parser type/template.  See
