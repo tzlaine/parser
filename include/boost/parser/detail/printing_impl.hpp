@@ -372,7 +372,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << parser.name_;
+        os << parser.diagnostic_text_;
         if constexpr (!is_nope_v<ParamsTuple>) {
             os << ".with(";
             int i = 0;

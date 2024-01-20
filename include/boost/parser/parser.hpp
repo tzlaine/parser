@@ -4661,7 +4661,7 @@ namespace boost { namespace parser {
             }
         }
 
-        std::string_view name_;
+        std::string_view diagnostic_text_;
         ParamsTuple params_;
     };
 
@@ -5118,7 +5118,10 @@ namespace boost { namespace parser {
             !std::is_same_v<TagType, void>,
             "void is not a valid tag type for a rule.");
 
-        constexpr rule(char const * name) { this->parser_.name_ = name; }
+        constexpr rule(char const * diagnostic_text)
+        {
+            this->parser_.diagnostic_text_ = diagnostic_text;
+        }
 
         template<typename T, typename... Ts>
         constexpr auto with(T && x, Ts &&... xs) const
@@ -5137,7 +5140,7 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
@@ -5152,9 +5155,9 @@ namespace boost { namespace parser {
         : parser_interface<
               rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>>
     {
-        constexpr callback_rule(char const * name)
+        constexpr callback_rule(char const * diagnostic_text)
         {
-            this->parser_.name_ = name;
+            this->parser_.diagnostic_text_ = diagnostic_text;
         }
 
         template<typename T, typename... Ts>
@@ -5174,7 +5177,7 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
@@ -5182,7 +5185,7 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-#define BOOST_PARSER_DEFINE_IMPL(_, name_)                                     \
+#define BOOST_PARSER_DEFINE_IMPL(_, diagnostic_text_)                          \
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
@@ -5190,7 +5193,7 @@ namespace boost { namespace parser {
         typename Context,                                                      \
         typename SkipParser>                                                   \
     auto parse_rule(                                                           \
-        decltype(name_)::parser_type::tag_type *,                              \
+        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5199,7 +5202,7 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
+        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
         return parser(use_cbs, first, last, context, skip, flags, success);    \
     }                                                                          \
                                                                                \
@@ -5211,7 +5214,7 @@ namespace boost { namespace parser {
         typename SkipParser,                                                   \
         typename Attribute>                                                    \
     void parse_rule(                                                           \
-        decltype(name_)::parser_type::tag_type *,                              \
+        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5221,7 +5224,7 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(name_, _def);                \
+        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
         using attr_t = decltype(parser(                                        \
             use_cbs, first, last, context, skip, flags, success));             \
         if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
