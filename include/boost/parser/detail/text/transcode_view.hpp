@@ -800,12 +800,14 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if defined(__cpp_lib_ranges)
 
 namespace std::ranges {
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<class V, auto F>
     inline constexpr bool enable_borrowed_range<boost::parser::detail::text::project_view<V, F>> =
         enable_borrowed_range<V>;
+#endif
 
     template<class V>
     inline constexpr bool enable_borrowed_range<boost::parser::detail::text::unpacking_view<V>> =
