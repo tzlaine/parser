@@ -38,7 +38,7 @@ TEST(class_type, std_type_from_tuple)
         constexpr auto p = lexeme[+(char_ - ' ')] >> uint_ >> uint_;
         constexpr auto parser = -p;
         std::optional<std::string> out;
-        auto result = parse("something 4 5", parser, ws, out, trace::on);
+        auto result = parse("something 4 5", parser, ws, out);
         EXPECT_TRUE(result);
         EXPECT_TRUE(out);
         EXPECT_EQ(*out, "thing");

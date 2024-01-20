@@ -25,6 +25,7 @@ add_sample(semantic_actions)
 add_sample(rule_intro)
 add_sample(struct_rule)
 add_sample(parsing_into_a_struct)
+add_sample(parsing_into_a_class)
 add_sample(roman_numerals)
 add_sample(user_error_handler)
 
