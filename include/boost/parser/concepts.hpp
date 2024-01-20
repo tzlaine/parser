@@ -19,7 +19,7 @@ namespace boost { namespace parser {
 
     //[ all_concepts
     template<typename T>
-    concept parsable_code_unit =
+    concept code_unit =
         std::same_as<std::remove_cv_t<T>, char> ||
         std::same_as<std::remove_cv_t<T>, wchar_t> ||
         std::same_as<std::remove_cv_t<T>, char8_t> ||
@@ -28,20 +28,27 @@ namespace boost { namespace parser {
 
     template<typename T>
     concept parsable_iter =
-        std::forward_iterator<T> && parsable_code_unit<std::iter_value_t<T>>;
+        std::forward_iterator<T> && code_unit<std::iter_value_t<T>>;
 
     //[ parsable_range_like_concept
     template<typename T>
     concept parsable_range = std::ranges::forward_range<T> &&
-        parsable_code_unit<std::ranges::range_value_t<T>>;
+        code_unit<std::ranges::range_value_t<T>>;
 
     template<typename T>
     concept parsable_pointer = std::is_pointer_v<std::remove_cvref_t<T>> &&
-        parsable_code_unit<std::remove_pointer_t<std::remove_cvref_t<T>>>;
+        code_unit<std::remove_pointer_t<std::remove_cvref_t<T>>>;
 
     template<typename T>
     concept parsable_range_like = parsable_range<T> || parsable_pointer<T>;
     //]
+
+    template<typename T>
+    concept utf_pointer =
+        std::is_pointer_v<T> && code_unit<std::iter_value_t<T>>;
+    template<typename T>
+    concept range_like =
+        std::ranges::range<T> || utf_pointer<std::remove_cvref_t<T>>;
 
     template<
         typename I,
