@@ -99,7 +99,7 @@
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
             <code class="computeroutput">UseCallbacks</code> is <code class="computeroutput">true</code> only within a call to
-            <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm24993.html" title="Function template callback_parse">callback_parse()</a></code> (or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_prefix_p_idm24954.html" title="Function template callback_prefix_parse">callback_prefix_parse()</a></code>),
+            <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm25621.html" title="Function template callback_parse">callback_parse()</a></code> (or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_prefix_p_idm25582.html" title="Function template callback_prefix_parse">callback_prefix_parse()</a></code>),
             and it is deduced from the <code class="computeroutput">use_cbs</code> function parameter.
           </li>
 <li class="listitem">
@@ -130,8 +130,9 @@
             various things about the current state of the parse. <code class="computeroutput">flags</code>
             is concerned with whether to produce attributes at all; whether to apply
             the skip parser <code class="computeroutput">skip</code>; whether to produce a verbose trace
-            (as when <code class="computeroutput">parser::trace::on</code> is passed at the top level);
-            and whether we are currently inside the utility function <code class="computeroutput">detail::apply_parser</code>.
+            (as when <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a>::on</code>
+            is passed at the top level); and whether we are currently inside the
+            utility function <code class="computeroutput">detail::apply_parser</code>.
           </li>
 <li class="listitem">
             <code class="computeroutput">bool &amp; success</code> is the final function parameter. It should
@@ -216,7 +217,7 @@
       </p>
 <p>
         This defines a RAII trace object that will produce the verbose trace requested
-        by the user if they passed <code class="computeroutput">parser::trace::on</code> to the top-level
+        by the user if they passed <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a>::on</code> to the top-level
         parse. It only has effect if <code class="computeroutput">detail::enable_trace(flags)</code> is
         <code class="computeroutput">true</code>. If trace is enabled, it will show the state of the parse
         at the point at which it is defined, and then again when it goes out of scope.
