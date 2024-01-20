@@ -112,6 +112,7 @@
 
 [def _RULES_               [macroref BOOST_PARSER_DEFINE_RULES `BOOST_PARSER_DEFINE_RULES`]]
 [def _AGGR_SIZE_           [macroref BOOST_PARSER_MAX_AGGREGATE_SIZE `BOOST_PARSER_MAX_AGGREGATE_SIZE`]]
+[def _SUBRNG_              [macroref BOOST_PARSER_SUBRANGE `BOOST_PARSER_SUBRANGE`]]
 
 [def __p_                  [globalref boost::parser::_p `_p`]]
 
