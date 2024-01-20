@@ -800,6 +800,8 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
+#if defined(__cpp_lib_ranges)
+
 namespace std::ranges {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<class V, auto F>
@@ -827,5 +829,7 @@ namespace std::ranges {
         enable_borrowed_range<V>;
 #endif
 }
+
+#endif
 
 #endif
