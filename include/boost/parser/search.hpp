@@ -8,6 +8,40 @@
 namespace boost::parser {
 
     namespace detail {
+        template<
+            typename R_,
+            bool = std::is_pointer_v<remove_cv_ref_t<R_>> ||
+                   text::detail::is_bounded_array_v<remove_cv_ref_t<R_>>>
+        struct to_range
+        {
+            template<typename R>
+            static constexpr auto call(R && r)
+            {
+                static_assert(std::is_same_v<R, R_>);
+                using T = remove_cv_ref_t<R>;
+                if constexpr (std::is_pointer_v<T>) {
+                    return BOOST_PARSER_SUBRANGE(r, null_sentinel_t{});
+                } else {
+                    auto const first = std::begin(r);
+                    auto last = std::end(r);
+                    constexpr auto n = std::extent_v<T>;
+                    if (n && !r[n - 1])
+                        --last;
+                    return BOOST_PARSER_SUBRANGE(first, last);
+                }
+            }
+        };
+
+        template<typename R_>
+        struct to_range<R_, false>
+        {
+            template<typename R>
+            static constexpr R && call(R && r)
+            {
+                return (R &&) r;
+            }
+        };
+
         struct phony
         {};
 
@@ -107,25 +141,8 @@ namespace boost::parser {
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
     {
-        using T = detail::remove_cv_ref_t<R>;
-        if constexpr (std::is_pointer_v<T>) {
-            return detail::search_repack_shim(
-                BOOST_PARSER_SUBRANGE(r, null_sentinel_t{}),
-                parser,
-                skip,
-                trace_mode);
-        } else if constexpr (detail::text::detail::is_bounded_array_v<T>) {
-            auto const first = std::begin(r);
-            auto last = std::end(r);
-            constexpr auto n = std::extent_v<T>;
-            if (n && !r[n - 1])
-                --last;
-            return detail::search_repack_shim(
-                BOOST_PARSER_SUBRANGE(first, last), parser, skip, trace_mode);
-        } else {
-            return detail::search_repack_shim(
-                (R &&) r, parser, skip, trace_mode);
-        }
+        return detail::search_repack_shim(
+            detail::to_range<R>::call((R &&) r), parser, skip, trace_mode);
     }
 
     /** Returns a subrange to the first match for parser `parser` in `[first,
@@ -496,7 +513,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_search_all_view<
-                    R,
+                    decltype(to_range<R>::call(std::declval<R>())),
                     Parser,
                     GlobalState,
                     ErrorHandler,
@@ -510,27 +527,8 @@ namespace boost::parser {
                 trace trace_mode = trace::off) const
             // clang-format on
             {
-                using T = remove_cv_ref_t<R>;
-                if constexpr (std::is_pointer_v<T>) {
-                    return search_all_view(
-                        BOOST_PARSER_SUBRANGE(r, null_sentinel_t{}),
-                        parser,
-                        skip,
-                        trace_mode);
-                } else if constexpr (text::detail::is_bounded_array_v<T>) {
-                    auto const first = std::begin(r);
-                    auto last = std::end(r);
-                    constexpr auto n = std::extent_v<T>;
-                    if (n && !r[n - 1])
-                        --last;
-                    return search_all_view(
-                        BOOST_PARSER_SUBRANGE(first, last),
-                        parser,
-                        skip,
-                        trace_mode);
-                } else {
-                    return search_all_view((R &&) r, parser, skip, trace_mode);
-                }
+                return search_all_view(
+                    to_range<R>::call((R &&) r), parser, skip, trace_mode);
             }
 
             template<
@@ -542,7 +540,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_search_all_view<
-                    R,
+                    decltype(to_range<R>::call(std::declval<R>())),
                     Parser,
                     GlobalState,
                     ErrorHandler,
@@ -618,27 +616,8 @@ namespace boost::parser {
                 parser_interface<SkipParser> const & skip,
                 trace trace_mode = trace::off) const
             {
-                using T = remove_cv_ref_t<R>;
-                if constexpr (std::is_pointer_v<T>) {
-                    return search_all_view(
-                        BOOST_PARSER_SUBRANGE(r, null_sentinel_t{}),
-                        parser,
-                        skip,
-                        trace_mode);
-                } else if constexpr (text::detail::is_bounded_array_v<T>) {
-                    auto const first = std::begin(r);
-                    auto last = std::end(r);
-                    constexpr auto n = std::extent_v<T>;
-                    if (n && !r[n - 1])
-                        --last;
-                    return search_all_view(
-                        BOOST_PARSER_SUBRANGE(first, last),
-                        parser,
-                        skip,
-                        trace_mode);
-                } else {
-                    return search_all_view((R &&) r, parser, skip, trace_mode);
-                }
+                return search_all_view(
+                    to_range<R>::call((R &&) r), parser, skip, trace_mode);
             }
 
 #endif
