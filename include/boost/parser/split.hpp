@@ -23,9 +23,6 @@ namespace boost::parser {
         : detail::stl_interfaces::view_interface<
               split_view<V, Parser, GlobalState, ErrorHandler, SkipParser>>
     {
-        using I = detail::iterator_t<V>;
-        using S = detail::sentinel_t<V>;
-
         constexpr split_view() = default;
         constexpr split_view(
             V base,
@@ -73,13 +70,19 @@ namespace boost::parser {
         {};
 
         template<bool Const>
-        struct iterator : detail::stl_interfaces::proxy_iterator_interface<
-                              iterator<Const>,
-                              std::forward_iterator_tag,
-                              BOOST_PARSER_SUBRANGE<I>>
+        struct iterator
+            : detail::stl_interfaces::proxy_iterator_interface<
+                  iterator<Const>,
+                  std::forward_iterator_tag,
+                  BOOST_PARSER_SUBRANGE<
+                      detail::iterator_t<detail::maybe_const<Const, V>>>>
         {
+            using I = detail::iterator_t<detail::maybe_const<Const, V>>;
+            using S = detail::sentinel_t<detail::maybe_const<Const, V>>;
+
             constexpr iterator() = default;
-            constexpr iterator(split_view const * parent) :
+            constexpr iterator(
+                detail::maybe_const<Const, split_view> * parent) :
                 parent_(parent),
                 r_(parent_->base_.begin(), parent_->base_.end()),
                 curr_(r_.begin(), r_.begin()),
@@ -126,7 +129,7 @@ namespace boost::parser {
             using base_type::operator++;
 
         private:
-            split_view const * parent_;
+            detail::maybe_const<Const, split_view> * parent_;
             BOOST_PARSER_SUBRANGE<I, S> r_;
             BOOST_PARSER_SUBRANGE<I> curr_;
             I next_it_;

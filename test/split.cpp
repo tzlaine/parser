@@ -133,6 +133,18 @@ TEST(split, split_)
         }
         EXPECT_EQ(count, 6);
     }
+    {
+        char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
+        auto const r = str | bp::split(bp::lit("XYZ"));
+        int count = 0;
+        int const offsets[] = {0, 0, 3, 3, 6, 8, 11, 16, 19, 19, 22, 22};
+        for (auto subrange : r) {
+            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
+            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            ++count;
+        }
+        EXPECT_EQ(count, 6);
+    }
 }
 
 TEST(split, split_unicode)

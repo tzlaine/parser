@@ -8,6 +8,9 @@
 namespace boost::parser {
 
     namespace detail {
+        template<bool Const, typename T>
+        using maybe_const = std::conditional_t<Const, const T, T>;
+
         template<
             typename R_,
             bool = std::is_pointer_v<remove_cv_ref_t<R_>> ||
@@ -261,9 +264,6 @@ namespace boost::parser {
         : detail::stl_interfaces::view_interface<
               search_all_view<V, Parser, GlobalState, ErrorHandler, SkipParser>>
     {
-        using I = detail::iterator_t<V>;
-        using S = detail::sentinel_t<V>;
-
         constexpr search_all_view() = default;
         constexpr search_all_view(
             V base,
@@ -311,13 +311,19 @@ namespace boost::parser {
         {};
 
         template<bool Const>
-        struct iterator : detail::stl_interfaces::proxy_iterator_interface<
-                              iterator<Const>,
-                              std::forward_iterator_tag,
-                              BOOST_PARSER_SUBRANGE<I>>
+        struct iterator
+            : detail::stl_interfaces::proxy_iterator_interface<
+                  iterator<Const>,
+                  std::forward_iterator_tag,
+                  BOOST_PARSER_SUBRANGE<
+                      detail::iterator_t<detail::maybe_const<Const, V>>>>
         {
+            using I = detail::iterator_t<detail::maybe_const<Const, V>>;
+            using S = detail::sentinel_t<detail::maybe_const<Const, V>>;
+
             constexpr iterator() = default;
-            constexpr iterator(search_all_view const * parent) :
+            constexpr iterator(
+                detail::maybe_const<Const, search_all_view> * parent) :
                 parent_(parent),
                 r_(parent_->base_.begin(), parent_->base_.end()),
                 curr_(r_.begin(), r_.begin()),
@@ -358,7 +364,7 @@ namespace boost::parser {
             using base_type::operator++;
 
         private:
-            search_all_view const * parent_;
+            detail::maybe_const<Const, search_all_view> * parent_;
             BOOST_PARSER_SUBRANGE<I, S> r_;
             BOOST_PARSER_SUBRANGE<I> curr_;
             I next_it_;
