@@ -1067,6 +1067,15 @@ namespace boost { namespace parser {
     namespace detail {
 #endif
 
+        template<typename T, bool = std::is_pointer_v<T>>
+        constexpr bool is_code_unit_pointer_v = false;
+        template<typename T>
+        constexpr bool is_code_unit_pointer_v<T, true> =
+            is_parsable_code_unit_v<std::remove_pointer_t<T>>;
+
+        template<typename T>
+        constexpr bool is_range_like = is_range<T> || is_code_unit_pointer_v<T>;
+
         template<typename I>
         constexpr bool is_char8_iter_v =
 #if defined(__cpp_char8_t)
