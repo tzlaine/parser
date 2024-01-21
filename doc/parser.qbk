@@ -86,6 +86,9 @@
 [def _split_               [globalref boost::parser::split `boost::parser::split`]]
 [def _split_v_             [classref boost::parser::split_view `boost::parser::split_view`]]
 [def _split_vs_            [classref boost::parser::split_view `boost::parser::split_view`s]]
+[def _replace_             [globalref boost::parser::replace `boost::parser::replace`]]
+[def _replace_v_           [classref boost::parser::replace_view `boost::parser::replace_view`]]
+[def _replace_vs_          [classref boost::parser::replace_view `boost::parser::replace_view`s]]
 
 
 [def _std_str_             `std::string`]
