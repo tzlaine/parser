@@ -995,7 +995,7 @@ namespace boost { namespace parser {
         using range_value_t = std::ranges::range_value_t<T>;
 
         template<typename T>
-        constexpr bool is_parsable_code_unit_v = parsable_code_unit<T>;
+        constexpr bool is_parsable_code_unit_v = code_unit<T>;
 
 #else
 
@@ -1066,6 +1066,15 @@ namespace boost { namespace parser {
 
     namespace detail {
 #endif
+
+        template<typename T, bool = std::is_pointer_v<T>>
+        constexpr bool is_code_unit_pointer_v = false;
+        template<typename T>
+        constexpr bool is_code_unit_pointer_v<T, true> =
+            is_parsable_code_unit_v<std::remove_pointer_t<T>>;
+
+        template<typename T>
+        constexpr bool is_range_like = is_range<T> || is_code_unit_pointer_v<T>;
 
         template<typename I>
         constexpr bool is_char8_iter_v =
