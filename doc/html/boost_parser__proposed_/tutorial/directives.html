@@ -29,7 +29,7 @@
 <p>
         The directives that are second order parsers are technically directives,
         but since they are also used to create parsers, it is more useful just to
-        focus on that. The directives <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25013.html" title="Function template repeat">repeat()</a></code>
+        focus on that. The directives <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25061.html" title="Function template repeat">repeat()</a></code>
         and <code class="computeroutput"><a class="link" href="../../boost/parser/if_.html" title="Function template if_">if_()</a></code> were already described in
         the section on parsers; we won't say more about them here.
       </p>
@@ -69,8 +69,8 @@
         <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a><span class="special">&lt;</span><span class="identifier">I</span><span class="special">&gt;</span></code>,
         where <code class="computeroutput"><span class="identifier">I</span></code> is the type of the
         iterator used within the parse. Note that this may not be the same as the
-        iterator type passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>.
-        For instance, when parsing UTF-8, the iterator passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>
+        iterator type passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>.
+        For instance, when parsing UTF-8, the iterator passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>
         may be <code class="computeroutput"><span class="identifier">char8_t</span> <span class="keyword">const</span>
         <span class="special">*</span></code>, but within the parse it will be
         a UTF-8 to UTF-32 transcoding (converting) iterator. Just like <code class="computeroutput"><a class="link" href="../../boost/parser/omit.html" title="Global omit">omit[]</a></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/raw.html" title="Global raw">raw[]</a></code>
@@ -190,7 +190,7 @@
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/skip.html" title="Global skip">skip[]</a></code> is like the inverse of <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>. It enables skipping in the
         parse, even if it was not enabled before. For example, within a call to
-        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code> that uses a skipper, let's
+        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code> that uses a skipper, let's
         say we have these parsers in use:
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
@@ -201,14 +201,14 @@
         The use of <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code> disables skipping, but then
         the use of <code class="computeroutput"><a class="link" href="../../boost/parser/skip.html" title="Global skip">skip[]</a></code> turns it back on. The net
         result is that the first occurrence of <code class="computeroutput"><span class="identifier">one_or_more</span></code>
-        will use the skipper passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>;
+        will use the skipper passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>;
         the second will not.
       </p>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/skip.html" title="Global skip">skip[]</a></code> has another use. You can parameterize
         skip with a different parser to change the skipper just within the scope
-        of the directive. Let's say we passed <code class="computeroutput"><a class="link" href="../../boost/parser/ascii/space.html" title="Global space">ascii::space</a></code> to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>,
-        and we're using these parsers somewhere within that <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>
+        of the directive. Let's say we passed <code class="computeroutput"><a class="link" href="../../boost/parser/ascii/space.html" title="Global space">ascii::space</a></code> to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>,
+        and we're using these parsers somewhere within that <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>
         call:
       </p>
 <pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
@@ -217,7 +217,7 @@
 </pre>
 <p>
         The first occurrence of <code class="computeroutput"><span class="identifier">zero_or_more</span></code>
-        will use the skipper passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25361.html" title="Function template parse">parse()</a></code>,
+        will use the skipper passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25409.html" title="Function template parse">parse()</a></code>,
         which is <code class="computeroutput"><a class="link" href="../../boost/parser/ascii/space.html" title="Global space">ascii::space</a></code>;
         the second will use <code class="computeroutput"><a class="link" href="../../boost/parser/ws.html" title="Global ws">ws</a></code>
         as its skipper.
