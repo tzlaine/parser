@@ -217,7 +217,8 @@ TEST(replace, replace)
     }
 }
 
-#if defined(__cpp_char8_t)
+// MSVC produces hard errors here, so ill_formed does not work.
+#if defined(__cpp_char8_t) && !defined(_MSC_VER)
 char const empty_str[] = "";
 
 template<typename T>
