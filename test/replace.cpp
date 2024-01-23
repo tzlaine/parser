@@ -24,10 +24,10 @@ namespace deduction {
     auto const parser = bp::char_;
     auto const skip = bp::ws;
 
-    auto deduced_1 = bp::replace_view(str, parser, skip, "foo"s, bp::trace::on);
-    auto deduced_2 = bp::replace_view(str, parser, skip, "foo"s);
-    auto deduced_3 = bp::replace_view(str, parser, "foo"s, bp::trace::on);
-    auto deduced_4 = bp::replace_view(str, parser, "foo"s);
+    auto deduced_1 = bp::replace_view(str, parser, skip, "foo", bp::trace::on);
+    auto deduced_2 = bp::replace_view(str, parser, skip, "foo");
+    auto deduced_3 = bp::replace_view(str, parser, "foo", bp::trace::on);
+    auto deduced_4 = bp::replace_view(str, parser, "foo");
 }
 #endif
 
@@ -120,6 +120,9 @@ TEST(replace, replace)
         }
         EXPECT_EQ(count, 4);
     }
+#if !defined(__GNUC__) || 12 <= __GNUC__
+    // Older GCCs don't like the use of temporaries like the
+    // std::string("foo") below.
     {
         char const str[] = "aaXYZbaabaXYZ";
         auto r = str | bp::replace(
@@ -133,6 +136,7 @@ TEST(replace, replace)
         }
         EXPECT_EQ(count, 4);
     }
+#endif
     {
         char const str[] = "aaXYZbaabaXYZ";
         auto r = str | bp::replace(bp::lit("XYZ"), "foo");
@@ -414,6 +418,9 @@ TEST(replace, join_compat)
         }
         EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
     }
+#if !defined(__GNUC__) || 12 <= __GNUC__
+    // Older GCCs don't like the use of temporaries like the
+    // std::string("foo") below.
     {
         auto rng = std::string("XYZXYZaaXYZbaabaXYZXYZ") |
                    bp::replace(bp::lit("XYZ"), "foo") | std::views::join;
@@ -423,6 +430,7 @@ TEST(replace, join_compat)
         }
         EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
     }
+#endif
 }
 #endif
 
