@@ -14,6 +14,8 @@
 
 #include <list>
 
+// TODO: Document that replace{,_view} are not supported in MSVC in C++17 mode.
+#if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
 
 namespace bp = boost::parser;
 
@@ -448,3 +450,5 @@ TEST(replace, doc_examples)
         assert(count == 6);
     }
 }
+
+#endif

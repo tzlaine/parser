@@ -3,6 +3,8 @@
 
 #include <boost/parser/search.hpp>
 
+#if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
+
 
 namespace boost::parser {
 
@@ -739,6 +741,8 @@ constexpr bool std::ranges::enable_borrowed_range<boost::parser::replace_view<
     ErrorHandler,
     SkipParser>> =
     enable_borrowed_range<V> && enable_borrowed_range<ReplacementV>;
+#endif
+
 #endif
 
 #endif
