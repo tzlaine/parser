@@ -993,6 +993,11 @@ namespace boost { namespace parser {
         using iter_reference_t = std::iter_reference_t<T>;
         template<typename T>
         using range_value_t = std::ranges::range_value_t<T>;
+        template<typename T>
+        using range_reference_t = std::ranges::range_reference_t<T>;
+        template<typename T>
+        using range_rvalue_reference_t =
+            std::ranges::range_rvalue_reference_t<T>;
 
         template<typename T>
         constexpr bool is_parsable_code_unit_v = code_unit<T>;
@@ -1010,7 +1015,14 @@ namespace boost { namespace parser {
         template<typename T>
         using iter_reference_t = decltype(*std::declval<T &>());
         template<typename T>
+        using iter_rvalue_reference_t =
+            decltype(std::move(*std::declval<T &>()));
+        template<typename T>
         using range_value_t = iter_value_t<iterator_t<T>>;
+        template<typename T>
+        using range_reference_t = iter_reference_t<iterator_t<T>>;
+        template<typename T>
+        using range_rvalue_reference_t = iter_rvalue_reference_t<iterator_t<T>>;
 
         template<typename T>
         using has_insert = decltype(std::declval<T &>().insert(

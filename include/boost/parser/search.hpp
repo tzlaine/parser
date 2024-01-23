@@ -4,6 +4,8 @@
 #include <boost/parser/parser.hpp>
 #include <boost/parser/transcode_view.hpp>
 
+#include <cstring>
+
 
 namespace boost::parser {
 
@@ -11,8 +13,22 @@ namespace boost::parser {
         template<bool Const, typename T>
         using maybe_const = std::conditional_t<Const, const T, T>;
 
+        inline constexpr text::format no_format = static_cast<text::format>(0);
+
+        template<text::format Format = text::format::utf8>
+        constexpr auto as_utf =
+            text::detail::as_utf_impl<text::utf8_view, text::format::utf8>{};
+        template<>
+        constexpr auto as_utf<text::format::utf16> =
+            text::detail::as_utf_impl<text::utf16_view, text::format::utf16>{};
+        template<>
+        constexpr auto as_utf<text::format::utf32> =
+            text::detail::as_utf_impl<text::utf32_view, text::format::utf32>{};
+
         template<
             typename R_,
+            bool ToCommonRange = false,
+            text::format OtherRangeFormat = no_format,
             bool = std::is_pointer_v<remove_cv_ref_t<R_>> ||
                    text::detail::is_bounded_array_v<remove_cv_ref_t<R_>>>
         struct to_range
@@ -23,20 +39,43 @@ namespace boost::parser {
                 static_assert(std::is_same_v<R, R_>);
                 using T = remove_cv_ref_t<R>;
                 if constexpr (std::is_pointer_v<T>) {
-                    return BOOST_PARSER_SUBRANGE(r, null_sentinel_t{});
-                } else {
+                    if constexpr (OtherRangeFormat == no_format) {
+                        if constexpr (ToCommonRange)
+                            return BOOST_PARSER_SUBRANGE(r, r + std::strlen(r));
+                        else
+                            return BOOST_PARSER_SUBRANGE(r, null_sentinel_t{});
+                    } else {
+                        if constexpr (ToCommonRange) {
+                            return BOOST_PARSER_SUBRANGE(
+                                       r, r + std::strlen(r)) |
+                                   as_utf<OtherRangeFormat>;
+                        } else {
+                            return BOOST_PARSER_SUBRANGE(r, null_sentinel_t{}) |
+                                   as_utf<OtherRangeFormat>;
+                        }
+                    }
+                } else if constexpr (
+                    std::is_pointer_v<T> ||
+                    text::detail::is_bounded_array_v<T>) {
                     auto const first = std::begin(r);
                     auto last = std::end(r);
                     constexpr auto n = std::extent_v<T>;
                     if (n && !r[n - 1])
                         --last;
-                    return BOOST_PARSER_SUBRANGE(first, last);
+                    if constexpr (OtherRangeFormat == no_format) {
+                        return BOOST_PARSER_SUBRANGE(first, last);
+                    } else {
+                        return BOOST_PARSER_SUBRANGE(first, last) |
+                               as_utf<OtherRangeFormat>;
+                    }
+                } else {
+                    return (R &&) r | as_utf<OtherRangeFormat>;
                 }
             }
         };
 
-        template<typename R_>
-        struct to_range<R_, false>
+        template<typename R_, bool ToCommonRange>
+        struct to_range<R_, ToCommonRange, no_format, false>
         {
             template<typename R>
             static constexpr R && call(R && r)
@@ -270,13 +309,19 @@ namespace boost::parser {
             parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode = trace::off) :
-            base_(base), parser_(parser), skip_(skip), trace_mode_(trace_mode)
+            base_(std::move(base)),
+            parser_(parser),
+            skip_(skip),
+            trace_mode_(trace_mode)
         {}
         constexpr search_all_view(
             V base,
             parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
             trace trace_mode = trace::off) :
-            base_(base), parser_(parser), skip_(), trace_mode_(trace_mode)
+            base_(std::move(base)),
+            parser_(parser),
+            skip_(),
+            trace_mode_(trace_mode)
         {}
 
         constexpr V base() const &

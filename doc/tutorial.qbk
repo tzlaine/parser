@@ -2926,6 +2926,7 @@ _search_all_ creates _search_all_vs_.  _search_all_v_ is a `std::views`-style
 view.  It produces a range of subranges.  Each subrange it produces is the
 next match of the given parser in the parsed range.
 
+    namespace bp = boost::parser;
     auto r = "XYZaaXYZbaabaXYZXYZ" | bp::search_all(bp::lit("XYZ"));
     int count = 0;
     // Prints XYZ XYZ XYZ XYZ.
@@ -2941,9 +2942,9 @@ _search_all_: its parser produces no attributes; it accepts C-style strings as
 if they were ranges; and it knows how to get from the internally-used iterator
 type back to the given iterator type, in typical cases.
 
-_search_all_ can be called with, and and _search_all_v_ can be constructed
-with, a skip parser or not, and you can always pass _trace_ at the end of any
-of their overloads.
+_search_all_ can be called with, and _search_all_v_ can be constructed with, a
+skip parser or not, and you can always pass _trace_ at the end of any of their
+overloads.
 
 [heading _split_]
 
@@ -2956,6 +2957,7 @@ produced by _search_all_v_.  _split_v_ has very similar semantics to
 produce empty ranges between the beginning/end of the parsed range and an
 adjacent match, or between adjacent matches.
 
+    namespace bp = boost::parser;
     auto r = "XYZaaXYZbaabaXYZXYZ" | bp::split(bp::lit("XYZ"));
     int count = 0;
     // Prints '' 'aa' 'baaba' '' ''.
@@ -2967,13 +2969,96 @@ adjacent match, or between adjacent matches.
     assert(count == 5);
 
 All the details called out in the subsection on _search_ above apply to
-_search_all_: its parser produces no attributes; it accepts C-style strings as
-if they were ranges; and it knows how to get from the internally-used iterator
+_split_: its parser produces no attributes; it accepts C-style strings as if
+they were ranges; and it knows how to get from the internally-used iterator
 type back to the given iterator type, in typical cases.
 
-_search_all_ can be called with, and and _search_all_v_ can be constructed
-with, a skip parser or not, and you can always pass _trace_ at the end of any
-of their overloads.
+_split_ can be called with, and _split_v_ can be constructed with, a skip
+parser or not, and you can always pass _trace_ at the end of any of their
+overloads.
+
+[heading _replace_]
+
+_replace_ creates _replace_vs_.  _replace_v_ is a `std::views`-style view.  It
+produces a range of subranges from the parsed range `r` and the given
+replacement range `replacement`.  Wherever in the parsed range a match to the
+given parser `parser` is found, `replacement` is the subrange produced.  Each
+subrange of `r` that does not match `parser` is produced as a subrange as
+well.  The subranges are produced in the order in which they occur in `r`.
+Unlike _split_v_, _replace_v_ does not produce empty subranges, unless
+`replacement` is empty.
+
+    namespace bp = boost::parser;
+    auto rng = "XYZaaXYZbaabaXYZXYZ" | bp::replace(bp::lit("XYZ"), "foo");
+    int count = 0;
+    // Prints foo aa foo baaba foo foo.
+    for (auto subrange : rng) {
+        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+        ++count;
+    }
+    std::cout << "\n";
+    assert(count == 6);
+
+
+If the iterator types `Ir` and `Ireplacement` for the `r` and `replacement`
+ranges passed are identical (as in the example above), the iterator type for
+the subranges produced is `Ir`.  If they are different, an
+implementation-defined type is used for the iterator.  This type is the moral
+equivalent of a `std::variant<Ir, Ireplacement>`.  This works as long as `Ir`
+and `Ireplacement` are compatible.  To be compatible, they must have common
+reference, value, and rvalue reference types, as determined by
+`std::common_type_t`.  One advantage to this scheme is that the range of
+subranges represented by _replace_v_ is easily joined back into a single
+range.
+
+    namespace bp = boost::parser;
+    char const str[] = "XYZaaXYZbaabaXYZXYZ";
+    auto rng = str | bp::replace(bp::lit("XYZ"), "foo") | std::views::join;
+    std::string replace_result;
+    for (auto ch : rng) {
+        replace_result.push_back(ch);
+    }
+    assert(replace_result == "fooaafoobaabafoofoo");
+
+Note that we could not have written `std::string replace_result(r.begin(),
+r.end())`.  This is ill-formed because the `std::string` range constructor
+takes two iterators, but `decltype(rng.end())` is a sentinel type different
+from `decltype(rng.begin())`.
+
+Though the ranges `r` and `replacement` can both be C-style strings,
+_replace_v_ must know the end of `replacement` before it does any work.  This
+is because the subranges produced are all common ranges, and so if
+`replacement` is not, a common range must be formed from it.  If you expect to
+pass very long C-style strings to _replace_ and not pay to see the end until
+the range is used, don't.
+
+You may wonder what happens when you pass a UTF-N range for `r`, and a UTF-M
+range for `replacement`.  What happens in this case is silent transcoding of
+`replacement` from UTF-M to UTF-N by the _replace_ range adaptor.  This
+doesn't require memory allocation; _replace_ just slaps `|
+boost::parser::as_utfN` onto `replacement`.  However, since _Parser_ treats
+`char` sequences as unknown encoding, _replace_ will not transcode from `char`
+sequences.  So calls like this won't work:
+
+    char const str[] = "some text";
+    char const replacement_str[] = "some text";
+    using namespace bp = boost::parser;
+    auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8);
+
+Notice that this does not work, even though `char` and UTF-8 are the same
+size.  If `r` and `replacement` are both sequences of `char`, everything will
+work of course.  It's just mixing `char` and UTF-encoded sequences that does
+not work.
+
+All the details called out in the subsection on _search_ above apply to
+_replace_: its parser produces no attributes; it accepts C-style strings for
+the `r` and `replacement` parameters as if they were ranges; and it knows how
+to get from the internally-used iterator type back to the given iterator type,
+in typical cases.
+
+_replace_ can be called with, and _replace_v_ can be constructed with, a skip
+parser or not, and you can always pass _trace_ at the end of any of their
+overloads.
 
 [endsect]
 

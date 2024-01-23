@@ -29,13 +29,19 @@ namespace boost::parser {
             parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode = trace::off) :
-            base_(base), parser_(parser), skip_(skip), trace_mode_(trace_mode)
+            base_(std::move(base)),
+            parser_(parser),
+            skip_(skip),
+            trace_mode_(trace_mode)
         {}
         constexpr split_view(
             V base,
             parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
             trace trace_mode = trace::off) :
-            base_(base), parser_(parser), skip_(), trace_mode_(trace_mode)
+            base_(std::move(base)),
+            parser_(parser),
+            skip_(),
+            trace_mode_(trace_mode)
         {}
 
         constexpr V base() const &
