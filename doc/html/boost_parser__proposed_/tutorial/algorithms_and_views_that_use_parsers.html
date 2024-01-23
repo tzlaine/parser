@@ -50,7 +50,7 @@
         However, it often turns out you only need to find some subrange in the parsed
         sequence. In these cases, it would be nice to turn this into a proper algorithm
         in the pattern of the ones in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span></code>,
-        since that's more idiomatic. <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code>
+        since that's more idiomatic. <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code>
         is that algorithm. It has very similar semantics to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">search</span></code>,
         except that it searches not for a match to an exact subsequence, but to a
         match with the given parser. Like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">search</span><span class="special">()</span></code>, it returns a subrange (<code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">subrange</span></code>
@@ -62,19 +62,19 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">(</span><span class="identifier">result</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">result</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">-</span> <span class="identifier">result</span><span class="special">.</span><span class="identifier">begin</span><span class="special">())</span> <span class="special">==</span> <span class="string">"XYZ"</span><span class="special">);</span>
 </pre>
 <p>
-        Since <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code> returns a subrange, whatever
+        Since <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code> returns a subrange, whatever
         parser you give it produces no attribute. I wrote <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">)</span></code>
         above; if I had written <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">)</span></code> instead, the result (and lack of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
         construction) would not change.
       </p>
 <p>
-        As you can see above, one aspect of <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code>
+        As you can see above, one aspect of <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code>
         differs intentionally from the conventions of the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span></code>
         algorithms — it accepts C-style strings, treating them as if they
         were proper ranges.
       </p>
 <p>
-        Also, <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code> knows how to accommodate
+        Also, <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code> knows how to accommodate
         your iterator type. You can pass the C-style string <code class="computeroutput"><span class="string">"aaXYZq"</span></code>
         as in the example above, or <code class="computeroutput"><span class="string">"aaXYZq"</span>
         <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">as_utf32</span></code>,
@@ -92,7 +92,7 @@
         adaptors, this accommodation will operate correctly.
       </p>
 <p>
-        <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code> has multiple overloads.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code> has multiple overloads.
         You can pass a range or an iterator/sentinel pair, and you can pass a skip
         parser or not. That's four overloads. Also, all four overloads take an optional
         <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a></code>
@@ -111,7 +111,8 @@
         subranges. Each subrange it produces is the next match of the given parser
         in the parsed range.
       </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">search_all</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">));</span>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">search_all</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">));</span>
 <span class="keyword">int</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 <span class="comment">// Prints XYZ XYZ XYZ XYZ.</span>
 <span class="keyword">for</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">subrange</span> <span class="special">:</span> <span class="identifier">r</span><span class="special">)</span> <span class="special">{</span>
@@ -122,7 +123,7 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">count</span> <span class="special">==</span> <span class="number">4</span><span class="special">);</span>
 </pre>
 <p>
-        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code>
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code>
         above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/search_all.html" title="Global search_all">boost::parser::search_all</a></code>: its parser produces
         no attributes; it accepts C-style strings as if they were ranges; and it
         knows how to get from the internally-used iterator type back to the given
@@ -130,7 +131,7 @@
       </p>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/search_all.html" title="Global search_all">boost::parser::search_all</a></code>
-        can be called with, and and <code class="computeroutput"><a class="link" href="../../boost/parser/search_all_view.html" title="Struct template search_all_view">boost::parser::search_all_view</a></code> can be constructed
+        can be called with, and <code class="computeroutput"><a class="link" href="../../boost/parser/search_all_view.html" title="Struct template search_all_view">boost::parser::search_all_view</a></code> can be constructed
         with, a skip parser or not, and you can always pass <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a></code> at the end of any of their
         overloads.
       </p>
@@ -152,7 +153,8 @@
         ranges between the beginning/end of the parsed range and an adjacent match,
         or between adjacent matches.
       </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">split</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">));</span>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">split</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">));</span>
 <span class="keyword">int</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
 <span class="comment">// Prints '' 'aa' 'baaba' '' ''.</span>
 <span class="keyword">for</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">subrange</span> <span class="special">:</span> <span class="identifier">r</span><span class="special">)</span> <span class="special">{</span>
@@ -163,15 +165,125 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">count</span> <span class="special">==</span> <span class="number">5</span><span class="special">);</span>
 </pre>
 <p>
-        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm25944.html" title="Function template search">boost::parser::search()</a></code>
-        above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/search_all.html" title="Global search_all">boost::parser::search_all</a></code>: its parser produces
-        no attributes; it accepts C-style strings as if they were ranges; and it
-        knows how to get from the internally-used iterator type back to the given
-        iterator type, in typical cases.
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code>
+        above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/split.html" title="Global split">boost::parser::split</a></code>:
+        its parser produces no attributes; it accepts C-style strings as if they
+        were ranges; and it knows how to get from the internally-used iterator type
+        back to the given iterator type, in typical cases.
       </p>
 <p>
-        <code class="computeroutput"><a class="link" href="../../boost/parser/search_all.html" title="Global search_all">boost::parser::search_all</a></code>
-        can be called with, and and <code class="computeroutput"><a class="link" href="../../boost/parser/search_all_view.html" title="Struct template search_all_view">boost::parser::search_all_view</a></code> can be constructed
+        <code class="computeroutput"><a class="link" href="../../boost/parser/split.html" title="Global split">boost::parser::split</a></code>
+        can be called with, and <code class="computeroutput"><a class="link" href="../../boost/parser/split_view.html" title="Struct template split_view">boost::parser::split_view</a></code> can be constructed
+        with, a skip parser or not, and you can always pass <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a></code> at the end of any of their
+        overloads.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.algorithms_and_views_that_use_parsers.h3"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.algorithms_and_views_that_use_parsers._globalname_alt__boost__parser__replace___code__phrase_role__identifier__boost__phrase__phrase_role__special______phrase__phrase_role__identifier__parser__phrase__phrase_role__special______phrase__phrase_role__identifier__replace__phrase___code___globalname_"></a></span><a class="link" href="algorithms_and_views_that_use_parsers.html#boost_parser__proposed_.tutorial.algorithms_and_views_that_use_parsers._globalname_alt__boost__parser__replace___code__phrase_role__identifier__boost__phrase__phrase_role__special______phrase__phrase_role__identifier__parser__phrase__phrase_role__special______phrase__phrase_role__identifier__replace__phrase___code___globalname_">boost::parser::replace</a>
+      </h5>
+<p>
+        <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code>
+        creates <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_views</a></code>.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_view</a></code>
+        is a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">views</span></code>-style view. It produces a range of
+        subranges from the parsed range <code class="computeroutput"><span class="identifier">r</span></code>
+        and the given replacement range <code class="computeroutput"><span class="identifier">replacement</span></code>.
+        Wherever in the parsed range a match to the given parser <code class="computeroutput"><span class="identifier">parser</span></code>
+        is found, <code class="computeroutput"><span class="identifier">replacement</span></code> is
+        the subrange produced. Each subrange of <code class="computeroutput"><span class="identifier">r</span></code>
+        that does not match <code class="computeroutput"><span class="identifier">parser</span></code>
+        is produced as a subrange as well. The subranges are produced in the order
+        in which they occur in <code class="computeroutput"><span class="identifier">r</span></code>.
+        Unlike <code class="computeroutput"><a class="link" href="../../boost/parser/split_view.html" title="Struct template split_view">boost::parser::split_view</a></code>,
+        <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_view</a></code>
+        does not produce empty subranges, unless <code class="computeroutput"><span class="identifier">replacement</span></code>
+        is empty.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">rng</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">replace</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">),</span> <span class="string">"foo"</span><span class="special">);</span>
+<span class="keyword">int</span> <span class="identifier">count</span> <span class="special">=</span> <span class="number">0</span><span class="special">;</span>
+<span class="comment">// Prints foo aa foo baaba foo foo.</span>
+<span class="keyword">for</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">subrange</span> <span class="special">:</span> <span class="identifier">rng</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">(</span><span class="identifier">subrange</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">subrange</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">-</span> <span class="identifier">subrange</span><span class="special">.</span><span class="identifier">begin</span><span class="special">())</span> <span class="special">&lt;&lt;</span> <span class="string">" "</span><span class="special">;</span>
+    <span class="special">++</span><span class="identifier">count</span><span class="special">;</span>
+<span class="special">}</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="string">"\n"</span><span class="special">;</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">count</span> <span class="special">==</span> <span class="number">6</span><span class="special">);</span>
+</pre>
+<p>
+        If the iterator types <code class="computeroutput"><span class="identifier">Ir</span></code>
+        and <code class="computeroutput"><span class="identifier">Ireplacement</span></code> for the
+        <code class="computeroutput"><span class="identifier">r</span></code> and <code class="computeroutput"><span class="identifier">replacement</span></code>
+        ranges passed are identical (as in the example above), the iterator type
+        for the subranges produced is <code class="computeroutput"><span class="identifier">Ir</span></code>.
+        If they are different, an implementation-defined type is used for the iterator.
+        This type is the moral equivalent of a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Ir</span><span class="special">,</span> <span class="identifier">Ireplacement</span><span class="special">&gt;</span></code>. This works as long as <code class="computeroutput"><span class="identifier">Ir</span></code> and <code class="computeroutput"><span class="identifier">Ireplacement</span></code>
+        are compatible. To be compatible, they must have common reference, value,
+        and rvalue reference types, as determined by <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">common_type_t</span></code>.
+        One advantage to this scheme is that the range of subranges represented by
+        <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_view</a></code>
+        is easily joined back into a single range.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="identifier">str</span><span class="special">[]</span> <span class="special">=</span> <span class="string">"XYZaaXYZbaabaXYZXYZ"</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">rng</span> <span class="special">=</span> <span class="identifier">str</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">replace</span><span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">),</span> <span class="string">"foo"</span><span class="special">)</span> <span class="special">|</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">views</span><span class="special">::</span><span class="identifier">join</span><span class="special">;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">replace_result</span><span class="special">;</span>
+<span class="keyword">for</span> <span class="special">(</span><span class="keyword">auto</span> <span class="identifier">ch</span> <span class="special">:</span> <span class="identifier">rng</span><span class="special">)</span> <span class="special">{</span>
+    <span class="identifier">replace_result</span><span class="special">.</span><span class="identifier">push_back</span><span class="special">(</span><span class="identifier">ch</span><span class="special">);</span>
+<span class="special">}</span>
+<span class="identifier">assert</span><span class="special">(</span><span class="identifier">replace_result</span> <span class="special">==</span> <span class="string">"fooaafoobaabafoofoo"</span><span class="special">);</span>
+</pre>
+<p>
+        Note that we could not have written <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">replace_result</span><span class="special">(</span><span class="identifier">r</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">r</span><span class="special">.</span><span class="identifier">end</span><span class="special">())</span></code>.
+        This is ill-formed because the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+        range constructor takes two iterators, but <code class="computeroutput"><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">rng</span><span class="special">.</span><span class="identifier">end</span><span class="special">())</span></code>
+        is a sentinel type different from <code class="computeroutput"><span class="keyword">decltype</span><span class="special">(</span><span class="identifier">rng</span><span class="special">.</span><span class="identifier">begin</span><span class="special">())</span></code>.
+      </p>
+<p>
+        Though the ranges <code class="computeroutput"><span class="identifier">r</span></code> and
+        <code class="computeroutput"><span class="identifier">replacement</span></code> can both be C-style
+        strings, <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_view</a></code>
+        must know the end of <code class="computeroutput"><span class="identifier">replacement</span></code>
+        before it does any work. This is because the subranges produced are all common
+        ranges, and so if <code class="computeroutput"><span class="identifier">replacement</span></code>
+        is not, a common range must be formed from it. If you expect to pass very
+        long C-style strings to <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code> and not pay to see
+        the end until the range is used, don't.
+      </p>
+<p>
+        You may wonder what happens when you pass a UTF-N range for <code class="computeroutput"><span class="identifier">r</span></code>, and a UTF-M range for <code class="computeroutput"><span class="identifier">replacement</span></code>. What happens in this case
+        is silent transcoding of <code class="computeroutput"><span class="identifier">replacement</span></code>
+        from UTF-M to UTF-N by the <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code> range adaptor. This
+        doesn't require memory allocation; <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code> just slaps <code class="computeroutput"><span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utfN</span></code>
+        onto <code class="computeroutput"><span class="identifier">replacement</span></code>. However,
+        since Boost.Parser treats <code class="computeroutput"><span class="keyword">char</span></code>
+        sequences as unknown encoding, <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code> will not transcode
+        from <code class="computeroutput"><span class="keyword">char</span></code> sequences. So calls
+        like this won't work:
+      </p>
+<pre class="programlisting"><span class="keyword">char</span> <span class="keyword">const</span> <span class="identifier">str</span><span class="special">[]</span> <span class="special">=</span> <span class="string">"some text"</span><span class="special">;</span>
+<span class="keyword">char</span> <span class="keyword">const</span> <span class="identifier">replacement_str</span><span class="special">[]</span> <span class="special">=</span> <span class="string">"some text"</span><span class="special">;</span>
+<span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">r</span> <span class="special">=</span> <span class="identifier">empty_str</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">replace</span><span class="special">(</span><span class="identifier">parser</span><span class="special">,</span> <span class="identifier">replacement_str</span> <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">as_utf8</span><span class="special">);</span>
+</pre>
+<p>
+        Notice that this does not work, even though <code class="computeroutput"><span class="keyword">char</span></code>
+        and UTF-8 are the same size. If <code class="computeroutput"><span class="identifier">r</span></code>
+        and <code class="computeroutput"><span class="identifier">replacement</span></code> are both
+        sequences of <code class="computeroutput"><span class="keyword">char</span></code>, everything
+        will work of course. It's just mixing <code class="computeroutput"><span class="keyword">char</span></code>
+        and UTF-encoded sequences that does not work.
+      </p>
+<p>
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm26537.html" title="Function template search">boost::parser::search()</a></code>
+        above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code>:
+        its parser produces no attributes; it accepts C-style strings for the <code class="computeroutput"><span class="identifier">r</span></code> and <code class="computeroutput"><span class="identifier">replacement</span></code>
+        parameters as if they were ranges; and it knows how to get from the internally-used
+        iterator type back to the given iterator type, in typical cases.
+      </p>
+<p>
+        <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code>
+        can be called with, and <code class="computeroutput"><a class="link" href="../../boost/parser/replace_view.html" title="Struct template replace_view">boost::parser::replace_view</a></code> can be constructed
         with, a skip parser or not, and you can always pass <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a></code> at the end of any of their
         overloads.
       </p>
