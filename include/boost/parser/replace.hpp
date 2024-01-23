@@ -181,8 +181,9 @@ namespace boost::parser {
 #endif
     }
 
-    /** TODO
-        TODO */
+    /** Produces a range of subranges of a given range `base`.  Each subrange
+        is either a subrange of `base` that does not match the given parser
+        `parser`, or is the given replacement for a match, `replacement`. */
     template<
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::viewable_range V,
