@@ -24,8 +24,8 @@ namespace boost::parser {
                 return no_format;
 #if defined(__cpp_char8_t)
             } else if constexpr (std::is_same_v<value_t, char8_t>) {
-#endif
                 return format::utf8;
+#endif
             } else if constexpr (
                 std::is_same_v<value_t, char16_t>
 #ifdef _MSC_VER
