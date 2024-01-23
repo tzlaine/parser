@@ -375,7 +375,10 @@ TEST(replace, replace_unicode)
     }
 }
 
-#if BOOST_PARSER_USE_CONCEPTS
+// TODO: Document this.
+#if BOOST_PARSER_USE_CONCEPTS && !defined(__GNUC__) || 12 <= __GNUC__
+// Older GCCs don't like the use of temporaries like the std::string("foo")
+// below.  This causes | join to break.
 TEST(replace, join_compat)
 {
     {
@@ -418,9 +421,6 @@ TEST(replace, join_compat)
         }
         EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
     }
-#if !defined(__GNUC__) || 12 <= __GNUC__
-    // Older GCCs don't like the use of temporaries like the
-    // std::string("foo") below.
     {
         auto rng = std::string("XYZXYZaaXYZbaabaXYZXYZ") |
                    bp::replace(bp::lit("XYZ"), "foo") | std::views::join;
@@ -430,7 +430,6 @@ TEST(replace, join_compat)
         }
         EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
     }
-#endif
 }
 #endif
 
