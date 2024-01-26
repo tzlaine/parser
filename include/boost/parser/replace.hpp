@@ -8,8 +8,6 @@
 
 namespace boost::parser {
 
-    // TODO: transform_replace.
-
     namespace detail {
         template<typename T, bool = std::is_pointer_v<remove_cv_ref_t<T>>>
         constexpr auto range_value_type =
@@ -521,7 +519,7 @@ namespace boost::parser {
                  std::ranges::viewable_range<ReplacementR>) &&
                 // clang-format on
                 can_replace_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     decltype(to_range<
                              ReplacementR,
                              true,
@@ -567,7 +565,7 @@ namespace boost::parser {
                  std::ranges::viewable_range<ReplacementR>) &&
                 // clang-format on
                 can_replace_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     decltype(to_range<
                              ReplacementR,
                              true,

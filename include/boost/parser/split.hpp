@@ -262,7 +262,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_split_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     Parser,
                     GlobalState,
                     ErrorHandler,
@@ -289,7 +289,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_split_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     Parser,
                     GlobalState,
                     ErrorHandler,

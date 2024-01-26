@@ -3122,10 +3122,10 @@ range.
     }
     assert(replace_result == "fooaafoobaabafoofoo");
 
-Note that we could not have written `std::string replace_result(r.begin(),
+Note that we could *not* have written `std::string replace_result(r.begin(),
 r.end())`.  This is ill-formed because the `std::string` range constructor
-takes two iterators, but `decltype(rng.end())` is a sentinel type different
-from `decltype(rng.begin())`.
+takes two iterators of the same type, but `decltype(rng.end())` is a sentinel
+type different from `decltype(rng.begin())`.
 
 Though the ranges `r` and `replacement` can both be C-style strings,
 _replace_v_ must know the end of `replacement` before it does any work.  This
@@ -3145,12 +3145,11 @@ sequences.  So calls like this won't work:
     char const str[] = "some text";
     char const replacement_str[] = "some text";
     using namespace bp = boost::parser;
-    auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8);
+    auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8); // Error: ill-formed!  Can't mix plain-char inputs and UTF replacements.
 
-Notice that this does not work, even though `char` and UTF-8 are the same
-size.  If `r` and `replacement` are both sequences of `char`, everything will
-work of course.  It's just mixing `char` and UTF-encoded sequences that does
-not work.
+This does not work, even though `char` and UTF-8 are the same size.  If `r`
+and `replacement` are both sequences of `char`, everything will work of
+course.  It's just mixing `char` and UTF-encoded sequences that does not work.
 
 All the details called out in the subsection on _search_ above apply to
 _replace_: its parser produces no attributes; it accepts C-style strings for
@@ -3161,6 +3160,60 @@ in typical cases.
 _replace_ can be called with, and _replace_v_ can be constructed with, a skip
 parser or not, and you can always pass _trace_ at the end of any of their
 overloads.
+
+[heading _trans_replace_]
+
+[important _trans_replace_ and _trans_replace_v_ are not available on MSVC in
+C++17 mode.]
+
+_trans_replace_ creates _trans_replace_vs_.  _trans_replace_v_ is a
+`std::views`-style view.  It produces a range of subranges from the parsed
+range `r` and the given invocable `f`.  Wherever in the parsed range a match
+to the given parser `parser` is found, let `parser`'s attribute be `attr`;
+`f(std::move(attr))` is the subrange produced.  Each subrange of `r` that does
+not match `parser` is produced as a subrange as well.  The subranges are
+produced in the order in which they occur in `r`.  Unlike _split_v_,
+_trans_replace_v_ does not produce empty subranges, unless
+`f(std::move(attr))` is empty.  Here is an example.
+
+     auto string_sum = [](std::vector<int> const & ints) {
+         return std::to_string(std::accumulate(ints.begin(), ints.end(), 0));
+     };
+
+     auto rng = "There are groups of [1, 2, 3, 4, 5] in the set." |
+                bp::transform_replace('[' >> bp::int_ % ',' >> ']', bp::ws, string_sum);
+     int count = 0;
+     // Prints "There are groups of 15 in the set".
+     for (auto subrange : rng) {
+         for (auto ch : subrange) {
+             std::cout << ch;
+         }
+         ++count;
+     }
+     std::cout << "\n";
+     assert(count == 3);
+
+Let the type `decltype(f(std::move(attr)))` be `Replacement`.  `Replacement`
+must be a range, and must be compatible with `r`.  See the description of
+_replace_v_'s iterator compatibility requirements in the section above for
+details.
+
+Just like _replace_ and _replace_v_, _trans_replace_ and _trans_replace_v_ do
+silent transcoding of the result to the appropriate UTF, if applicable.  If
+both `r` and `f(std::move(attr))` are ranges of `char`, or are both the same
+UTF, no transcoding occurs.  If one of `r` and `f(std::move(attr))` is a range
+of `char` and the other is some UTF, the program is ill-formed.
+
+_trans_replace_v_ will move each attribute into `f`; `f` may move from the
+argument or copy it as desired.  `f` may return an lvalue reference.  If it
+does so, the address of the reference will be taken and stored within
+_trans_replace_v_.  Otherwise, the value returned by `f` is moved into
+_trans_replace_v_.  In either case, the value type of _trans_replace_v_ is
+always a subrange.
+
+_trans_replace_ can be called with, and _trans_replace_v_ can be constructed
+with, a skip parser or not, and you can always pass _trace_ at the end of any
+of their overloads.
 
 [endsect]
 

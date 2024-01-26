@@ -140,7 +140,7 @@ TEST(replace, replace)
 #endif
     {
         char const str[] = "aaXYZbaabaXYZ";
-        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
+        const auto r = str | bp::replace(bp::lit("XYZ"), "foo");
         int count = 0;
         std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
         for (auto subrange : r) {
@@ -385,8 +385,8 @@ TEST(replace, join_compat)
     {
         char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
         auto rng = str | bp::as_utf32 |
-                 bp::replace(bp::lit("XYZ"), "foo" | bp::as_utf8) |
-                 std::views::join;
+                   bp::replace(bp::lit("XYZ"), "foo" | bp::as_utf8) |
+                   std::views::join;
         std::string replace_result;
         for (auto ch : rng) {
             static_assert(std::is_same_v<decltype(ch), char32_t>);

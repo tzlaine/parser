@@ -1852,6 +1852,99 @@ TEST(parser, lexeme)
             }
         }
     }
+
+    {
+        auto const parser = string("abc");
+
+        // Follows the parser used in transform_replace().
+        auto before = [&](auto & ctx) {};
+        auto after = [&](auto & ctx) {};
+        auto const search_parser =
+            omit[*(char_ - parser)] >>
+            -lexeme[eps[before] >> skip[parser] >> eps[after]];
+
+        {
+            std::string str = "abc";
+            std::optional<std::string> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, "abc");
+
+            {
+                std::string str = "abc";
+                auto first = detail::text::detail::begin(str);
+                auto last = detail::text::detail::end(str);
+                auto const result =
+                    prefix_parse(first, last, search_parser, char_(' '));
+                static_assert(std::is_same_v<
+                              decltype(result),
+                              std::optional<std::optional<std::string>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, "abc");
+            }
+        }
+        {
+            std::string str = " abc";
+            std::optional<std::string> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, "abc");
+
+            {
+                std::string str = " abc";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(std::is_same_v<
+                              decltype(result),
+                              std::optional<std::optional<std::string>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, "abc");
+            }
+        }
+    }
+
+    {
+        auto const parser = int_ % ',';
+
+        // Follows the parser used in transform_replace().
+        auto before = [&](auto & ctx) {};
+        auto after = [&](auto & ctx) {};
+        auto const search_parser =
+            omit[*(char_ - parser)] >>
+            -lexeme[eps[before] >> skip[parser] >> eps[after]];
+
+        {
+            std::string str = "1, 2, 4";
+            std::optional<std::vector<int>> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, std::vector<int>({1, 2, 4}));
+
+            {
+                std::string str = "1, 2, 4";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(
+                    std::is_same_v<
+                        decltype(result),
+                        std::optional<std::optional<std::vector<int>>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, std::vector<int>({1, 2, 4}));
+            }
+        }
+        {
+            std::string str = " 1, 2, 4";
+            std::optional<std::vector<int>> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, std::vector<int>({1, 2, 4}));
+
+            {
+                std::string str = " 1, 2, 4";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(
+                    std::is_same_v<
+                        decltype(result),
+                        std::optional<std::optional<std::vector<int>>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, std::vector<int>({1, 2, 4}));
+            }
+        }
+    }
 }
 
 TEST(parser, skip)
