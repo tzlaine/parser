@@ -1881,7 +1881,6 @@ namespace boost { namespace parser {
             } else if constexpr (is_constructible_from_tuple_v<
                                      just_t,
                                      just_u>) {
-                static_assert(sizeof(T) && false); // TODO
                 t = detail::make_from_tuple<just_t>(std::move(u));
             } else {
                 static_assert(
