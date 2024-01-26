@@ -13,7 +13,7 @@ namespace boost::parser {
         template<bool Const, typename T>
         using maybe_const = std::conditional_t<Const, const T, T>;
 
-        inline constexpr text::format no_format = static_cast<text::format>(0);
+        inline constexpr text::format no_format = text::format::none;
 
         template<text::format Format = text::format::utf8>
         constexpr auto as_utf =
