@@ -501,9 +501,9 @@ stack that leads to your mistake is a far better user experience than sifting
 through compiler diagnostics.  See the _rationale_ section for a more detailed
 explanation.]
 
-[heading __no_case_func_]
+[heading _no_case_func_]
 
-__no_case_func_ returns `true` if the current parse context is inside one or
+_no_case_func_ returns `true` if the current parse context is inside one or
 more (possibly nested) _no_case_ directives.
 
 [endsect]
