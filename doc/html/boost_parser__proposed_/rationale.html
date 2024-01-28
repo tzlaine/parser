@@ -354,6 +354,65 @@ auto parser = -(bp::char_ % ',');
       For this not to be a problem, I need to be able to understand the rules, so
       I can express my intent, and not be surprised.
     </p>
+<h4>
+<a name="boost_parser__proposed_.rationale.h5"></a>
+      <span class="phrase"><a name="boost_parser__proposed_.rationale.out_parameter_attributes_passed_to__functionname_alt__boost__parser__parse___code__phrase_role__identifier__parse__phrase__phrase_role__special______phrase___code___functionname__are_cleared_on_parse_failure"></a></span><a class="link" href="rationale.html#boost_parser__proposed_.rationale.out_parameter_attributes_passed_to__functionname_alt__boost__parser__parse___code__phrase_role__identifier__parse__phrase__phrase_role__special______phrase___code___functionname__are_cleared_on_parse_failure">Out-parameter
+      attributes passed to parse()
+      are cleared on parse failure</a>
+    </h4>
+<p>
+      At the end of a call to any of the <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
+      overloads that takes an attribute out-param (including variants like <code class="computeroutput"><a class="link" href="../boost/parser/callback_parse_idm26187.html" title="Function template callback_parse">callback_parse()</a></code>, etc.), the parse either succeeds
+      or fails. If the call fails, the attribute is explicitly "cleared"
+      by assigning its default-constructed value.
+    </p>
+<p>
+      This is done because it's the less bad of two options. Consider the other option
+      first.
+    </p>
+<pre class="programlisting">// Without explicit clearing.
+namespace bp = boost::parser;
+std::vector&lt;int&gt; result;
+auto b = bp::parse("3 4 c", +bp::int_, bp::ws, result);
+assert(!b);
+assert(result == std::vector&lt;int&gt;({3, 4}));
+</pre>
+<p>
+      This is odd — the parse failed, but the out-param has partial results
+      in it anyway. This happens because the parser <code class="computeroutput">+bp::int_</code> only fails
+      if it cannot match at <code class="computeroutput">bp::int_</code> at least once. Above, it matches
+      it twice, meaning that it succeeds (if it had failed, it would have cleared
+      its attribute). It does not know that there is nothing after it that could
+      continue the parse, nor that it is being used in to do a full parse. So, the
+      over-all parse fails, but the part of the parse that fills in the out-param
+      attribute does not know do clear its attribute.
+    </p>
+<p>
+      This is why the explicit clearing behavior happens at the end of <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>. This is not without its downsides,
+      though. Consider this.
+    </p>
+<pre class="programlisting">// With explicit clearing.
+namespace bp = boost::parser;
+std::string str = "-42";
+int i = 3;
+bool b = parse(str, bp::uint_, i);
+assert(!b);
+assert(i == 0);
+</pre>
+<p>
+      Here, the explicit clearing replaces the previous value of <code class="computeroutput">3</code>,
+      even though the parser never touched the value! Destroying users' variables'
+      state without need may seem like a bad idea, but consider the alternative —
+      In the previous example, we had spurious values left in the out-param attribute.
+      Here, without clearing, we would have had a value left in the out-param attribute,
+      not because it was a partial result of the parse, but because the parse never
+      touched it. This is certain to be confusing, or at least surprising, behavior.
+      I deemed it better to make the failed parse case consistent, to reduce confusion.
+      The out-param attribute of type <code class="computeroutput">A</code> is always equal to <code class="computeroutput">A()</code>
+      if the parser fails. It is equal to whatever the parser sets it to —
+      or its previous value, if the parser does not mutate it — if the parse
+      succeeds.
+    </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

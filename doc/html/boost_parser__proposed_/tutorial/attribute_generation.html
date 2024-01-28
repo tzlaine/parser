@@ -45,7 +45,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -214,7 +214,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm25561.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm25630.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -779,7 +779,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25510.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25579.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -793,7 +793,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25510.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25579.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1071,6 +1071,29 @@
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.attribute_generation.h5"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.attribute_generation.another_special_case___code__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__string__phrase___code__assignment"></a></span><a class="link" href="attribute_generation.html#boost_parser__proposed_.tutorial.attribute_generation.another_special_case___code__phrase_role__identifier__std__phrase__phrase_role__special______phrase__phrase_role__identifier__string__phrase___code__assignment">Another
+        special case: <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> assignment</a>
+      </h5>
+<p>
+        <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code> can be assigned from a <code class="computeroutput"><span class="keyword">char</span></code>. This is dumb. But, we're stuck with
+        it. When you write a parser with a <code class="computeroutput"><span class="keyword">char</span></code>
+        attribute, and you try to parse it into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
+        you've almost certainly made a mistake. More importantly, if you write this:
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">result</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">b</span> <span class="special">=</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"3"</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">int_</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">,</span> <span class="identifier">result</span><span class="special">);</span>
+</pre>
+<p>
+        ... you are even more likely to have made a mistake. Though this should work,
+        because the assignment in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span> <span class="identifier">s</span><span class="special">;</span> <span class="identifier">s</span>
+        <span class="special">=</span> <span class="number">3.6</span><span class="special">;</span></code> is well-formed, Boost.Parser forbids it.
+        If you write parsing code like the snippet above, you will get a static assertion.
+        If you really do want to assign a <code class="computeroutput"><span class="keyword">float</span></code>
+        or whatever to a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>, do it in a semantic action.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.h6"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.attribute_generation.examples_of_attributes_generated_by_sequence_and_alternative_parsers"></a></span><a class="link" href="attribute_generation.html#boost_parser__proposed_.tutorial.attribute_generation.examples_of_attributes_generated_by_sequence_and_alternative_parsers">Examples
         of attributes generated by sequence and alternative parsers</a>
       </h5>
@@ -1375,7 +1398,7 @@
 </table></div>
 </div>
 <br class="table-break"><h5>
-<a name="boost_parser__proposed_.tutorial.attribute_generation.h6"></a>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.h7"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.attribute_generation.controlling_attribute_generation_with__globalname_alt__boost__parser__merge___code__phrase_role__identifier__merge__phrase__phrase_role__special______phrase___code___globalname__and__globalname_alt__boost__parser__separate___code__phrase_role__identifier__separate__phrase__phrase_role__special______phrase___code___globalname_"></a></span><a class="link" href="attribute_generation.html#boost_parser__proposed_.tutorial.attribute_generation.controlling_attribute_generation_with__globalname_alt__boost__parser__merge___code__phrase_role__identifier__merge__phrase__phrase_role__special______phrase___code___globalname__and__globalname_alt__boost__parser__separate___code__phrase_role__identifier__separate__phrase__phrase_role__special______phrase___code___globalname_">Controlling
         attribute generation with merge[]
         and separate[]</a>
@@ -1454,7 +1477,7 @@
         produces the attribute <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">,</span> <span class="keyword">char32_t</span><span class="special">&gt;</span></code>.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.attribute_generation.h7"></a>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.h8"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.attribute_generation._globalname_alt__boost__parser__merge___code__phrase_role__identifier__merge__phrase__phrase_role__special______phrase___code___globalname__and__globalname_alt__boost__parser__separate___code__phrase_role__identifier__separate__phrase__phrase_role__special______phrase___code___globalname__in_more_detail"></a></span><a class="link" href="attribute_generation.html#boost_parser__proposed_.tutorial.attribute_generation._globalname_alt__boost__parser__merge___code__phrase_role__identifier__merge__phrase__phrase_role__special______phrase___code___globalname__and__globalname_alt__boost__parser__separate___code__phrase_role__identifier__separate__phrase__phrase_role__special______phrase___code___globalname__in_more_detail">merge[] and separate[]
         in more detail</a>
       </h5>
@@ -1483,7 +1506,7 @@
         of a sequence parser.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.attribute_generation.h8"></a>
+<a name="boost_parser__proposed_.tutorial.attribute_generation.h9"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.attribute_generation.other_directives_that_affect_attribute_generation"></a></span><a class="link" href="attribute_generation.html#boost_parser__proposed_.tutorial.attribute_generation.other_directives_that_affect_attribute_generation">Other
         directives that affect attribute generation</a>
       </h5>

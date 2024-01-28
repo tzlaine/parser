@@ -57,7 +57,7 @@
         the attribute type</a>
       </h5>
 <p>
-        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code>
+        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
         is flexible in what types it will accept as attribute out-parameters.
       </p>
 <p>
@@ -80,9 +80,10 @@
 <p>
         First, let's see <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>
         used to nail down attribute flexibility. Every rule has a specific attribute
-        type. If one is not specified, the rule has no attribute. The fact that the
-        attribute is a specific type allows you to remove attribute flexibility.
-        For instance, say we have a rule defined like this:
+        type, provided as a template parameter. If one is not specified, the rule
+        has no attribute. The fact that the attribute is a specific type allows you
+        to remove attribute flexibility. For instance, say we have a rule defined
+        like this:
       </p>
 <p>
 </p>
@@ -93,8 +94,8 @@
 <p>
       </p>
 <p>
-        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code>,
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
+        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>,
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
       </p>
 <p>
 </p>
@@ -103,7 +104,7 @@
 <p>
       </p>
 <p>
-        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
+        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
         it must be exactly <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>:
       </p>
 <pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">vec_result</span><span class="special">;</span>
@@ -144,8 +145,8 @@
 </pre>
 <p>
         Where <code class="computeroutput"><span class="identifier">attribute_out_param</span></code>
-        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code>.
-        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25858.html" title="Function template parse">parse()</a></code>
+        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>.
+        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
         is too.
       </p>
 <p>
