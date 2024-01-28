@@ -701,7 +701,7 @@ namespace boost::parser::detail { namespace text {
     namespace detail {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<class R, template<class> class View>
-        concept can_utf_view = requires { View(std::declval<R>()); };
+        concept can_utf_view = requires(R && r) { View((R &&)r); };
 #else
         template<class R, class View>
         using can_utf_view_expr = decltype(View(std::declval<R>()));

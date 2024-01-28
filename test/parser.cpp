@@ -21,6 +21,172 @@
 
 using namespace boost::parser;
 
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS && defined(_MSC_VER)
+#include <algorithm>
+
+TEST(parser, msvc_string_view)
+{
+    std::string_view sv = "text";
+    std::wstring_view wsv = L"text";
+
+    {
+        auto r = detail::text::as_utf8(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf8(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf8;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf8;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+
+    {
+        auto r = detail::text::as_utf16(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf16(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf16;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf16;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+
+    {
+        auto r = detail::text::as_utf32(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf32(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf32;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf32;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+}
+
+TEST(parser, msvc_string)
+{
+    std::string sv = "text";
+    std::wstring wsv = L"text";
+
+    {
+        auto r = detail::text::as_utf8(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf8(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf8;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf8;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+
+    {
+        auto r = detail::text::as_utf16(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf16(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf16;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf16;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+
+    {
+        auto r = detail::text::as_utf32(sv);
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = detail::text::as_utf32(wsv);
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+    {
+        auto r = sv | detail::text::as_utf32;
+        std::string str = "    ";
+        std::ranges::copy(r, str.begin());
+        EXPECT_EQ(str, sv);
+    }
+    {
+        auto r = wsv | detail::text::as_utf32;
+        std::wstring wstr = L"    ";
+        std::ranges::copy(r, wstr.begin());
+        EXPECT_EQ(wstr, wsv);
+    }
+}
+#endif
+
 #if TEST_BOOST_OPTIONAL
 template<typename T>
 constexpr bool boost::parser::enable_optional<boost::optional<T>> = true;
