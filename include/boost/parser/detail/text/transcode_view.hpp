@@ -8,6 +8,7 @@
 
 #include <boost/parser/detail/text/transcode_algorithm.hpp>
 #include <boost/parser/detail/text/transcode_iterator.hpp>
+#include <boost/parser/detail/text/detail/all_t.hpp>
 
 #include <boost/parser/detail/stl_interfaces/view_interface.hpp>
 #include <boost/parser/detail/stl_interfaces/view_adaptor.hpp>
@@ -386,11 +387,11 @@ namespace boost::parser::detail { namespace text {
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<class R>
-    char8_view(R &&) -> char8_view<std::views::all_t<R>>;
+    char8_view(R &&) -> char8_view<detail::all_t<R>>;
     template<class R>
-    char16_view(R &&) -> char16_view<std::views::all_t<R>>;
+    char16_view(R &&) -> char16_view<detail::all_t<R>>;
     template<class R>
-    char32_view(R &&) -> char32_view<std::views::all_t<R>>;
+    char32_view(R &&) -> char32_view<detail::all_t<R>>;
 #endif
 
 #endif
@@ -481,10 +482,8 @@ namespace boost::parser::detail { namespace text {
       constexpr auto end() const { return code_units().end(); }
     };
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<class R>
-    unpacking_view(R &&) -> unpacking_view<std::views::all_t<R>>;
-#endif
+    unpacking_view(R &&) -> unpacking_view<detail::all_t<R>>;
     // clang-format on
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
@@ -675,13 +674,13 @@ namespace boost::parser::detail { namespace text {
         {}
     };
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if !BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD
     template<class R>
-    utf8_view(R &&) -> utf8_view<std::views::all_t<R>>;
+    utf8_view(R &&) -> utf8_view<detail::all_t<R>>;
     template<class R>
-    utf16_view(R &&) -> utf16_view<std::views::all_t<R>>;
+    utf16_view(R &&) -> utf16_view<detail::all_t<R>>;
     template<class R>
-    utf32_view(R &&) -> utf32_view<std::views::all_t<R>>;
+    utf32_view(R &&) -> utf32_view<detail::all_t<R>>;
 #endif
 
 #endif
@@ -702,7 +701,7 @@ namespace boost::parser::detail { namespace text {
     namespace detail {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<class R, template<class> class View>
-        concept can_utf_view = requires { View(std::declval<R>()); };
+        concept can_utf_view = requires(R && r) { View((R &&)r); };
 #else
         template<class R, class View>
         using can_utf_view_expr = decltype(View(std::declval<R>()));

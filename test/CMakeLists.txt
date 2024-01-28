@@ -46,6 +46,7 @@ macro(add_test_executable name)
     add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
 endmacro()
 
+add_test_executable(all_t)
 add_test_executable(search)
 add_test_executable(split)
 add_test_executable(replace)

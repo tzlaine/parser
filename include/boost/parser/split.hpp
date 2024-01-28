@@ -153,7 +153,6 @@ namespace boost::parser {
     };
 
     // deduction guides
-#if BOOST_PARSER_USE_CONCEPTS
     template<
         typename V,
         typename Parser,
@@ -166,7 +165,7 @@ namespace boost::parser {
         parser_interface<SkipParser>,
         trace)
         -> split_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -183,7 +182,7 @@ namespace boost::parser {
         parser_interface<Parser, GlobalState, ErrorHandler>,
         parser_interface<SkipParser>)
         -> split_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -197,7 +196,7 @@ namespace boost::parser {
     split_view(
         V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
         -> split_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -210,39 +209,11 @@ namespace boost::parser {
         typename ErrorHandler>
     split_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
         -> split_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
             parser_interface<eps_parser<detail::phony>>>;
-#else
-    template<
-        typename V,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    split_view(
-        V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
-        -> split_view<
-            V,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-
-    template<
-        typename V,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    split_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
-        -> split_view<
-            V,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-#endif
 
     namespace detail {
         template<

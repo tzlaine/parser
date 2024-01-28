@@ -13,7 +13,7 @@ namespace boost::parser {
         template<bool Const, typename T>
         using maybe_const = std::conditional_t<Const, const T, T>;
 
-        inline constexpr text::format no_format = static_cast<text::format>(0);
+        inline constexpr text::format no_format = text::format::none;
 
         template<text::format Format = text::format::utf8>
         constexpr auto as_utf =
@@ -54,9 +54,7 @@ namespace boost::parser {
                                    as_utf<OtherRangeFormat>;
                         }
                     }
-                } else if constexpr (
-                    std::is_pointer_v<T> ||
-                    text::detail::is_bounded_array_v<T>) {
+                } else if constexpr (text::detail::is_bounded_array_v<T>) {
                     auto const first = std::begin(r);
                     auto last = std::end(r);
                     constexpr auto n = std::extent_v<T>;
@@ -426,7 +424,6 @@ namespace boost::parser {
     };
 
     // deduction guides
-#if BOOST_PARSER_USE_CONCEPTS
     template<
         typename V,
         typename Parser,
@@ -439,7 +436,7 @@ namespace boost::parser {
         parser_interface<SkipParser>,
         trace)
         -> search_all_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -456,7 +453,7 @@ namespace boost::parser {
         parser_interface<Parser, GlobalState, ErrorHandler>,
         parser_interface<SkipParser>)
         -> search_all_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -470,7 +467,7 @@ namespace boost::parser {
     search_all_view(
         V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
         -> search_all_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -483,39 +480,11 @@ namespace boost::parser {
         typename ErrorHandler>
     search_all_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
         -> search_all_view<
-            std::views::all_t<V>,
+            detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
             parser_interface<eps_parser<detail::phony>>>;
-#else
-    template<
-        typename V,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    search_all_view(
-        V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
-        -> search_all_view<
-            V,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-
-    template<
-        typename V,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    search_all_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
-        -> search_all_view<
-            V,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-#endif
 
     namespace detail {
         template<

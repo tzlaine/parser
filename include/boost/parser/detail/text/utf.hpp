@@ -16,7 +16,7 @@
 namespace boost::parser::detail { namespace text {
 
     /** The Unicode Transformation Formats. */
-    enum class format { utf8 = 1, utf16 = 2, utf32 = 4 };
+    enum class format { none = 0, utf8 = 1, utf16 = 2, utf32 = 4 };
 
     namespace detail {
         template<typename T>
