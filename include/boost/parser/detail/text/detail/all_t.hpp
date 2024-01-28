@@ -19,8 +19,8 @@ namespace boost::parser::detail::text::detail {
 
     template<typename T>
     using iterator_ = decltype(text::detail::begin(std::declval<T &>()));
-    template<typename Range>
-    using sentinel_ = decltype(text::detail::end(std::declval<Range>()));
+    template<typename T>
+    using sentinel_ = decltype(text::detail::end(std::declval<T &>()));
 
     template<typename T>
     constexpr bool range_ =

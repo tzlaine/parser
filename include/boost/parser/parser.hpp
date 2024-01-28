@@ -1009,7 +1009,7 @@ namespace boost { namespace parser {
             decltype(detail::text::detail::begin(std::declval<T &>()));
         template<typename Range>
         using sentinel_t =
-            decltype(detail::text::detail::end(std::declval<Range>()));
+            decltype(detail::text::detail::end(std::declval<Range &>()));
         template<typename T>
         using iter_value_t = typename std::iterator_traits<T>::value_type;
         template<typename T>
