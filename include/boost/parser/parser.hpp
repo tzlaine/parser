@@ -1859,6 +1859,15 @@ namespace boost { namespace parser {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
             if constexpr (is_move_assignable_v<just_u, just_t>) {
+                static_assert(
+                    (!std::is_same_v<just_t, std::string> ||
+                     !std::is_arithmetic_v<just_u>),
+                    "std::string is assignable from a char.  Due to implicit "
+                    "conversions among arithmetic types, any arithmetic type "
+                    "(like int or double) is assignable to std::string.  This "
+                    "is almost certainly not what you meant to write, so "
+                    "Boost.Parser disallows it.  If you want to do this, write "
+                    "a semantic action and do it explicitly.");
                 t = std::move(u);
             } else if constexpr (
                 !is_tuple<just_t>::value && is_tuple<just_u>::value &&

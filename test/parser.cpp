@@ -189,6 +189,15 @@ TEST(parser, basic)
         EXPECT_EQ(c, boost::none);
     }
 #endif
+    {
+        constexpr auto parser = *(char_ - "str") >> *string("str");
+        std::string str = "somethingstrstrstr";
+        auto result = boost::parser::parse(str, parser);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(
+            *result,
+            std::vector<std::string>({"something", "str", "str", "str"}));
+    }
 }
 
 TEST(parser, int_uint)
