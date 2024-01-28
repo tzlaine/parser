@@ -18,7 +18,7 @@ jobs:
 
     - name: Build
       continue-on-error: true
-      run: PYTHONPATH=${{github.workspace}}/pcpp:$PYTHONPATH python3 ${{github.workspace}}/pcpp/bin/pcpp -I ${{github.workspace}}/include --passthru-defines --passthru-comments --line-directive -o ${{github.workspace}}/onebig.hpp ${{github.workspace}}/include/boost/parser/split.hpp ${{github.workspace}}/include/boost/parser/transcode_view.hpp
+      run: PYTHONPATH=${{github.workspace}}/pcpp:$PYTHONPATH python3 ${{github.workspace}}/pcpp/bin/pcpp -I ${{github.workspace}}/include --passthru-defines --passthru-comments --line-directive -o ${{github.workspace}}/onebig.hpp ${{github.workspace}}/include/boost/parser/split.hpp ${{github.workspace}}/include/boost/parser/replace.hpp ${{github.workspace}}/include/boost/parser/transcode_view.hpp
 
     - name: Deploy
       working-directory: ${{github.workspace}}
