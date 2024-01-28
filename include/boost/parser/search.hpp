@@ -54,9 +54,7 @@ namespace boost::parser {
                                    as_utf<OtherRangeFormat>;
                         }
                     }
-                } else if constexpr (
-                    std::is_pointer_v<T> ||
-                    text::detail::is_bounded_array_v<T>) {
+                } else if constexpr (text::detail::is_bounded_array_v<T>) {
                     auto const first = std::begin(r);
                     auto last = std::end(r);
                     constexpr auto n = std::extent_v<T>;
