@@ -33,12 +33,19 @@ namespace boost::parser::detail::text::detail {
     template<typename T>
     constexpr bool container_ = is_detected_v<has_insert_, T>;
 
+    template<typename T>
+    constexpr bool is_std_array_v = false;
+    template<typename T, size_t N>
+    constexpr bool is_std_array_v<std::array<T, N>> = false;
+
     template<typename R>
     constexpr bool view =
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(__cpp_lib_concepts)
         std::ranges::view<R>
 #else
-        range_<R> && !container_<R>
+        range_<R> && !container_<R> &&
+        !std::is_array_v<std::remove_reference_t<R>> &&
+        !is_std_array_v<std::remove_reference_t<R>>
 #endif
         ;
 
