@@ -34,7 +34,13 @@ namespace boost::parser::detail::text::detail {
     constexpr bool container_ = is_detected_v<has_insert_, T>;
 
     template<typename R>
-    constexpr bool view = range_<R> && !container_<R>;
+    constexpr bool view =
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(__cpp_lib_concepts)
+        std::ranges::view<R>
+#else
+        range_<R> && !container_<R>
+#endif
+        ;
 
     template<
         typename R,
@@ -98,12 +104,13 @@ namespace boost::parser::detail::text::detail {
         template<typename R, typename Enable = std::enable_if_t<range_<R>>>
         [[nodiscard]] constexpr auto operator()(R && r) const
         {
-            if constexpr (view<remove_cv_ref_t<R>>)
+            using T = remove_cv_ref_t<R>;
+            if constexpr (view<T>)
                 return (R &&) r;
             else if constexpr (can_ref_view<R>)
-                return ref_view((R &&) r);
+                return ref_view(r);
             else
-                return owning_view((R &&) r);
+                return owning_view<T>(std::move(r));
         }
     };
 
