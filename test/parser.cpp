@@ -218,7 +218,7 @@ TEST(parser, int_uint)
         std::string str = "-42";
         int i = 3;
         EXPECT_FALSE(parse(str, uint_, i));
-        EXPECT_EQ(i, 3);
+        EXPECT_EQ(i, 0);
     }
     {
         std::string str = "42";
@@ -819,8 +819,7 @@ TEST(parser, raw)
             std::string const str = "z";
             range_t r;
             EXPECT_FALSE(parse(str, parser, r));
-            EXPECT_EQ(r.begin(), str.begin());
-            EXPECT_EQ(r.end(), str.begin());
+            EXPECT_EQ(r.begin(), r.end());
         }
         {
             std::string const str = "z";
@@ -1097,7 +1096,7 @@ TEST(parser, delimited)
             {
                 std::vector<std::string> chars;
                 EXPECT_FALSE(parse(str, parser, chars));
-                EXPECT_EQ(chars, std::vector<std::string>({"yay"}));
+                EXPECT_EQ(chars, std::vector<std::string>{});
             }
             {
                 std::vector<std::string> chars;

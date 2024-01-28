@@ -475,7 +475,7 @@ TEST(parser, uint_)
         char const * str = "-42";
         unsigned int i = 3;
         EXPECT_FALSE(parse(str, uint_, i));
-        EXPECT_EQ(i, 3);
+        EXPECT_EQ(i, 0);
     }
     {
         char const * str = "42";
@@ -2004,4 +2004,13 @@ TEST(parser, attr_out_param_compat)
         assert(bp::get(result, 0_c) == std::vector<char>({'r', (char)0xc3, (char)0xb4, 'l', 'e'}));
         assert(bp::get(result, 1_c) == "foo");
     }
+}
+
+TEST(parser, github_issue_78)
+{
+    namespace bp = boost::parser;
+    std::vector<int> result;
+    auto b = bp::parse("3 4 c", +bp::int_, bp::ws, result);
+    EXPECT_FALSE(b);
+    EXPECT_TRUE(result.empty());
 }
