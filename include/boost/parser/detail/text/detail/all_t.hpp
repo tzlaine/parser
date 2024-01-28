@@ -54,12 +54,18 @@ namespace boost::parser::detail::text::detail {
         typename Enable = std::enable_if_t<range_<R> && std::is_object_v<R>>>
     struct ref_view : stl_interfaces::view_interface<ref_view<R>>
     {
+    private:
+        static void rvalue_poison(R &);
+        static void rvalue_poison(R &&) = delete;
+
+    public:
         template<
             typename T,
             typename Enable2 = std::enable_if_t<
                 !std::
                     is_same_v<remove_cv_ref_t<T>, remove_cv_ref_t<ref_view>> &&
-                std::is_convertible_v<T, R &>>>
+                std::is_convertible_v<T, R &>>,
+            typename Enable3 = decltype(rvalue_poison(std::declval<T>()))>
         constexpr ref_view(T && t) :
             r_(std::addressof(static_cast<R &>((T &&) t)))
         {}
