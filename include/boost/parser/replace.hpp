@@ -386,7 +386,6 @@ namespace boost::parser {
     };
 
     // deduction guides
-#if BOOST_PARSER_USE_CONCEPTS
     template<
         typename V,
         typename ReplacementV,
@@ -401,8 +400,8 @@ namespace boost::parser {
         ReplacementV &&,
         trace)
         -> replace_view<
-            std::views::all_t<V>,
-            std::views::all_t<ReplacementV>,
+            detail::text::detail::all_t<V>,
+            detail::text::detail::all_t<ReplacementV>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -421,8 +420,8 @@ namespace boost::parser {
         parser_interface<SkipParser>,
         ReplacementV &&)
         -> replace_view<
-            std::views::all_t<V>,
-            std::views::all_t<ReplacementV>,
+            detail::text::detail::all_t<V>,
+            detail::text::detail::all_t<ReplacementV>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -440,8 +439,8 @@ namespace boost::parser {
         ReplacementV &&,
         trace)
         -> replace_view<
-            std::views::all_t<V>,
-            std::views::all_t<ReplacementV>,
+            detail::text::detail::all_t<V>,
+            detail::text::detail::all_t<ReplacementV>,
             Parser,
             GlobalState,
             ErrorHandler,
@@ -458,50 +457,12 @@ namespace boost::parser {
         parser_interface<Parser, GlobalState, ErrorHandler>,
         ReplacementV &&)
         -> replace_view<
-            std::views::all_t<V>,
-            std::views::all_t<ReplacementV>,
+            detail::text::detail::all_t<V>,
+            detail::text::detail::all_t<ReplacementV>,
             Parser,
             GlobalState,
             ErrorHandler,
             parser_interface<eps_parser<detail::phony>>>;
-#else
-    template<
-        typename V,
-        typename ReplacementV,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    replace_view(
-        V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
-        ReplacementV &&,
-        trace)
-        -> replace_view<
-            V,
-            ReplacementV,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-
-    template<
-        typename V,
-        typename ReplacementV,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler>
-    replace_view(
-        V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
-        ReplacementV &&)
-        -> replace_view<
-            V,
-            ReplacementV,
-            Parser,
-            GlobalState,
-            ErrorHandler,
-            parser_interface<eps_parser<detail::phony>>>;
-#endif
 
     namespace detail {
         template<
