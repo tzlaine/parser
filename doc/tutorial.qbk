@@ -526,7 +526,8 @@ things:
   declared the tag type and used it all in one go; you can also use a
   previously declared tag type.
 
-* The second template parameter is the attribute type of the parser.
+* The second template parameter is the attribute type of the parser.  If you
+  don't provide this, the rule will have no attribute.
 
 * This rule object itself is called `doubles`.
 
@@ -2457,10 +2458,10 @@ this to be ill-formed in C++.  Fortunately, _rs_ help you address both these
 concerns.
 
 First, let's see _rs_ used to nail down attribute flexibility.  Every rule has
-a specific attribute type.  If one is not specified, the rule has no
-attribute.  The fact that the attribute is a specific type allows you to
-remove attribute flexibility.  For instance, say we have a rule defined like
-this:
+a specific attribute type, provided as a template parameter.  If one is not
+specified, the rule has no attribute.  The fact that the attribute is a
+specific type allows you to remove attribute flexibility.  For instance, say
+we have a rule defined like this:
 
 [rule_intro_rule_definition]
 
