@@ -10,6 +10,7 @@
 #include <boost/parser/detail/text/detail/begin_end.hpp>
 #include <boost/parser/detail/detection.hpp>
 
+#include <array>
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
 #include <ranges>
 #endif
