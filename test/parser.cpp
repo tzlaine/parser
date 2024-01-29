@@ -1808,7 +1808,7 @@ TEST(parser, combined_seq_and_or)
             std::string str = "abc";
             tuple<char, char, char> chars;
             EXPECT_TRUE(parse(str, parser, chars));
-            EXPECT_EQ(chars, tup('c', '\0', '\0')); // TODO: Document this behavior.
+            EXPECT_EQ(chars, tup('c', '\0', '\0'));
         }
 
         {

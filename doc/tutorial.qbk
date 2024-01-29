@@ -2367,6 +2367,45 @@ using a _ui_, and writing its attribute into a `double`.  In general, you can
 swap any type `T` out of the attribute, as long as the swap would not result
 in some ill-formed assignment within the parse.
 
+Here is another example that also produces surprising results, for a different
+reason.
+
+    namespace bp = boost::parser;
+    constexpr auto parser = bp::char_('a') >> bp::char_('b') >> bp::char_('c') |
+                            bp::char_('x') >> bp::char_('y') >> bp::char_('z');
+    std::string str = "abc";
+    bp::tuple<char, char, char> chars;
+    bool b = bp::parse(str, parser, chars);
+    assert(b);
+    assert(chars == bp::tuple('c', '\0', '\0'));
+
+This looks wrong, but is expected behavior.  At every stage of the parse that
+produces an attribute, _Parser_ tries to assign that attribute to some part of
+the out-param attribute provided to _p_, if there is one.  Note that
+`_ATTR_np_(parser)` is `std::string`, because each sequence parser is three
+`char_` parsers in a row, which forms a `std::string`; there are two such
+alternatives, so the overall attribute is also `std::string`.  During the
+parse, when the first parser `bp::char_('a')` matches the input, it produces
+the attribute `'a'` and needs to assign it to its destination.  Some logic
+inside the sequence parser indicates that this `'a'` contributes to the value
+in the `0`th position in the result tuple, if the result is being written into
+a tuple.  Here, we passed a `bp::tuple<char, char, char>`, so it writes `'a'`
+into the first element.  Each subsequent `char_` parser does the same thing,
+and writes over the first element.  If we had passed a `std::string` as the
+out-param instead, the logic would have seen that the out-param attribute is a
+string, and would have appended `'a'` to it.  Then each subsequent parser
+would have appended to the string.
+
+_Parser_ never looks at the arity of the tuple passed to _p_ to see if there
+are too many or too few elements in it, compared to the expected attribute for
+the parser.  In this case, there are two extra elements that are never
+touched.  If there had been too few elements in the tuple, you would have seen
+a compilation error.  The reason that _Parser_ never does this kind of
+type-checking up front is that the loose assignment logic is spread out among
+the individual parsers; the top-level parse can determine what the expected
+attribute is, but not whether a passed attribute of another type is a suitable
+stand-in.
+
 [heading Unicode versus non-Unicode parsing]
 
 A call to _p_ either considers the entire input to be in a UTF format (UTF-8,
