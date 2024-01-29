@@ -102,6 +102,88 @@
         API</a>). If you do not set one, <code class="computeroutput"><a class="link" href="../../boost/parser/default_error_handler.html" title="Struct default_error_handler">default_error_handler</a></code> will
         be used.
       </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h1"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.how_diagnostics_are_generated"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.how_diagnostics_are_generated">How
+        diagnostics are generated</a>
+      </h5>
+<p>
+        Boost.Parser only generates error messages like the ones in this page at
+        failed expectation points, like <code class="computeroutput">a &gt; b</code>, where you have successfully
+        parsed <code class="computeroutput">a</code>, but then cannot successfully parse <code class="computeroutput">b</code>.
+        This may seem limited to you. It's actually the best that we can do.
+      </p>
+<p>
+        In order for error handling to happen other than at expectation points, we
+        have to know that there is no further processing that might take place. This
+        is true because Boost.Parser has <code class="computeroutput">P1 | P2 | ... | Pn</code> parsers
+        ("<code class="computeroutput">or_parser</code>s"). If any one of these parsers <code class="computeroutput">Pi</code>
+        fails to match, it is not allowed to fail the parse — the next one
+        (<code class="computeroutput">Pi+1</code>) might match. If we get to the end of the alternatives
+        of the or_parser and <code class="computeroutput">Pn</code> fails, we still cannot fail the top-level
+        parse, because the <code class="computeroutput">or_parser</code> might be a subparser within a parent
+        <code class="computeroutput">or_parser</code>.
+      </p>
+<p>
+        Ok, so what might we do? Perhaps we could at least indicate when we ran into
+        end-of-input. But we cannot, for exactly the same reason already stated.
+        For any parser <code class="computeroutput">P</code>, reaching end-of-input is a failure for <code class="computeroutput">P</code>,
+        but not necessarily for the whole parse.
+      </p>
+<p>
+        Perhaps we could record the farthest point ever reached during the parse,
+        and report that at the top level, if the top level parser fails. That would
+        be little help without knowing which parser was active when we reached that
+        point. This would require some sort of repeated memory allocation, since
+        in Boost.Parser the progress point of the parser is stored exclusively on
+        the stack — by the time we fail the top-level parse, all those far-reaching
+        stack frames are long gone. Not the best.
+      </p>
+<p>
+        Worse still, knowing how far you got in the parse and which parser was active
+        is not very useful. Consider this.
+      </p>
+<pre class="programlisting">namespace bp = boost::parser;
+auto a_b = bp::char_('a') &gt;&gt; bp::char_('b');
+auto c_b = bp::char_('c') &gt;&gt; bp::char_('b');
+auto result = bp::parse("acb", a_b | c_b);
+</pre>
+<p>
+        If we reported the farthest-reaching parser and it's position, it would be
+        the <code class="computeroutput">a_b</code> parser, at position <code class="computeroutput">"bc"</code> in the
+        input. Is this really enlightening? Was the error in the input putting the
+        <code class="computeroutput">'a'</code> at the beginning or putting the <code class="computeroutput">'c'</code> in the
+        middle? If you point the user at <code class="computeroutput">a_b</code> as the parser that failed,
+        and never mention <code class="computeroutput">c_b</code>, you are potentially just steering them
+        in the wrong direction.
+      </p>
+<p>
+        All error messages must come from failed expectation points. Consider parsing
+        JSON. If you open a list with <code class="computeroutput">'['</code>, you know that you're parsing
+        a list, and if the list is ill-formed, you'll get an error message saying
+        so. If you open an object with <code class="computeroutput">'{'</code>, the same thing is possible
+        — when missing the matching <code class="computeroutput">'}'</code>, you can tell the user,
+        "That's not an object", and this is useful feedback. The same thing
+        with a partially parsed number, etc. If the JSON parser does not build in
+        expectations like matched braces and brackets, how can Boost.Parser know
+        that a missing <code class="computeroutput">'}'</code> is really a problem, and that no later parser
+        will match the input even without the <code class="computeroutput">'}'</code>?
+      </p>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          The bottom line is that you should build expectation points into your parsers
+          using <code class="computeroutput">operator&gt;</code> as much as possible.
+        </p></td></tr>
+</table></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h2"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.using_error_handlers_in_semantic_actions"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.using_error_handlers_in_semantic_actions">Using
+        error handlers in semantic actions</a>
+      </h5>
 <p>
         You can get access to the error handler within any semantic action by calling
         <code class="computeroutput">_error_handler(ctx)</code> (see <a class="link" href="the_parse_context.html" title="The Parse Context">The
@@ -164,13 +246,13 @@
 }
 </pre>
 <h5>
-<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h1"></a>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h3"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging._functionname_alt__boost__parser___report_error___code__phrase_role__identifier___report_error__phrase__phrase_role__special______phrase___code___functionname__and__functionname_alt__boost__parser___report_warning___code__phrase_role__identifier___report_warning__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging._functionname_alt__boost__parser___report_error___code__phrase_role__identifier___report_error__phrase__phrase_role__special______phrase___code___functionname__and__functionname_alt__boost__parser___report_warning___code__phrase_role__identifier___report_warning__phrase__phrase_role__special______phrase___code___functionname_">_report_error() and _report_warning()</a>
       </h5>
 <p>
         There are also some convenience functions that make the above code a little
-        less verbose, <code class="computeroutput"><a class="link" href="../../boost/parser/report_error_idm25492.html" title="Function template _report_error">_report_error()</a></code>
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/report_warning_idm25504.html" title="Function template _report_warning">_report_warning()</a></code>:
+        less verbose, <code class="computeroutput"><a class="link" href="../../boost/parser/report_error_idm25784.html" title="Function template _report_error">_report_error()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/report_warning_idm25796.html" title="Function template _report_warning">_report_warning()</a></code>:
       </p>
 <pre class="programlisting">[](auto &amp; ctx) {
     // Assume we have a std::vector of open tags, and another
@@ -206,7 +288,7 @@
         and <code class="computeroutput"><a class="link" href="../../header/boost/parser/error_handling_hpp.html" title="Header &lt;boost/parser/error_handling.hpp&gt;">error_handling.hpp</a></code>.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h2"></a>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h4"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.creating_your_own_error_handler"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.creating_your_own_error_handler">Creating
         your own error handler</a>
       </h5>
@@ -328,7 +410,7 @@
   ^
 </pre>
 <h5>
-<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h3"></a>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h5"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.fixing_ill_formed_code"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.fixing_ill_formed_code">Fixing
         ill-formed code</a>
       </h5>
@@ -336,7 +418,7 @@
         Sometimes, during the writing of a parser, you make a simple mistake that
         is diagnosed horrifyingly, due to the high number of template instantiations
         between the line you just wrote and the point of use (usually, the call to
-        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>). By "sometimes",
+        <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code>). By "sometimes",
         I mean "almost always and many, many times". Boost.Parser has a
         workaround for situations like this. The workaround is to make the ill-formed
         code well-formed in as many circumstances as possible, and then do a runtime
@@ -354,7 +436,7 @@
         you can turn off the use of this technique entirely by defining <code class="computeroutput">BOOST_PARSER_NO_RUNTIME_ASSERTIONS</code>.
       </p>
 <h5>
-<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h4"></a>
+<a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.h6"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.error_handling_and_debugging.runtime_debugging"></a></span><a class="link" href="error_handling_and_debugging.html#boost_parser__proposed_.tutorial.error_handling_and_debugging.runtime_debugging">Runtime
         debugging</a>
       </h5>
@@ -363,14 +445,14 @@
         nearly impossible to debug simply by looking at the parser's code. Stepping
         through the parse in a debugger is even worse. To provide a reasonable chance
         of debugging your parsers, Boost.Parser has a trace mode that you can turn
-        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
-        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm26187.html" title="Function template callback_parse">callback_parse()</a></code>:
+        on simply by providing an extra parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code>
+        or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm26479.html" title="Function template callback_parse">callback_parse()</a></code>:
       </p>
 <pre class="programlisting">boost::parser::parse(input, parser, boost::parser::trace::on);
 </pre>
 <p>
-        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm26187.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
+        Every overload of <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code>
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm26479.html" title="Function template callback_parse">callback_parse()</a></code> takes this final parameter,
         which is defaulted to <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a>::off</code>.
       </p>
 <p>

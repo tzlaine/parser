@@ -361,8 +361,8 @@ auto parser = -(bp::char_ % ',');
       are cleared on parse failure</a>
     </h4>
 <p>
-      At the end of a call to any of the <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>
-      overloads that takes an attribute out-param (including variants like <code class="computeroutput"><a class="link" href="../boost/parser/callback_parse_idm26187.html" title="Function template callback_parse">callback_parse()</a></code>, etc.), the parse either succeeds
+      At the end of a call to any of the <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code>
+      overloads that takes an attribute out-param (including variants like <code class="computeroutput"><a class="link" href="../boost/parser/callback_parse_idm26479.html" title="Function template callback_parse">callback_parse()</a></code>, etc.), the parse either succeeds
       or fails. If the call fails, the attribute is explicitly "cleared"
       by assigning its default-constructed value.
     </p>
@@ -388,7 +388,7 @@ assert(result == std::vector&lt;int&gt;({3, 4}));
       attribute does not know do clear its attribute.
     </p>
 <p>
-      This is why the explicit clearing behavior happens at the end of <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code>. This is not without its downsides,
+      This is why the explicit clearing behavior happens at the end of <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code>. This is not without its downsides,
       though. Consider this.
     </p>
 <pre class="programlisting">// With explicit clearing.

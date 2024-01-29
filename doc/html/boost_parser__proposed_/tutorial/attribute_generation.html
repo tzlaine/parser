@@ -45,7 +45,7 @@
           Within semantic actions, asking for the attribute of a non-attribute-producing
           parser (using <code class="computeroutput"><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>)
           will yield a value of the special type <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">none</span></code>.
-          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm25927.html" title="Function template parse">parse()</a></code> in a form that returns
+          When calling <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26219.html" title="Function template parse">parse()</a></code> in a form that returns
           the attribute parsed, when there is no attribute, simply returns <code class="computeroutput"><span class="keyword">bool</span></code>; this indicates the success of failure
           of the parse.
         </p></td></tr>
@@ -214,7 +214,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm25630.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm25922.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">x</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -779,7 +779,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25579.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25871.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -793,7 +793,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25579.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm25871.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1503,7 +1503,21 @@
 <p>
         The rules for <code class="computeroutput"><a class="link" href="../../boost/parser/merge.html" title="Global merge">merge[]</a></code> and <code class="computeroutput"><a class="link" href="../../boost/parser/separate.html" title="Global separate">separate[]</a></code>
         overrule the steps of the algorithm described above for combining the attributes
-        of a sequence parser.
+        of a sequence parser. Consider an example.
+      </p>
+<pre class="programlisting"><span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+<span class="keyword">constexpr</span> <span class="keyword">auto</span> <span class="identifier">parser</span> <span class="special">=</span>
+    <span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">merge</span><span class="special">[(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"abc"</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">char_</span><span class="special">)</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"ghi"</span><span class="special">)];</span>
+</pre>
+<p>
+        You might think that <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">parser</span><span class="special">)</span></code> would be <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">tuple</span><span class="special">&lt;</span><span class="keyword">char</span><span class="special">,</span>
+        <span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span><span class="special">&gt;</span></code>.
+        It is not. The parser above does not even compile. Since we created a merge
+        group above, we disabled the default behavior in which the <code class="computeroutput"><span class="identifier">char_</span></code> parsers would have collapsed into
+        the <code class="computeroutput"><span class="identifier">string</span></code> parser that preceded
+        them. Since they are all treated as separate entities, and since they have
+        different attribute types, the use of <code class="computeroutput"><a class="link" href="../../boost/parser/merge.html" title="Global merge">merge[]</a></code>
+        is an error.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.attribute_generation.h9"></a>
