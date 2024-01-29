@@ -201,6 +201,48 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        digit_parser const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<hex_digit_subranges> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<control_subranges> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<punct_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<lower_case_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<upper_case_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<typename Context, typename Expected, typename AttributeType>
     void print_parser(
         Context const & context,
@@ -222,17 +264,10 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    template<typename Context>
+    template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,
-        ws_parser<true> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void print_parser(
-        Context const & context,
-        ws_parser<false> const & parser,
+        ws_parser<NewlinesOnly, NoNewlines> const & parser,
         std::ostream & os,
         int components = 0);
 

@@ -1155,7 +1155,7 @@ the input they match unless otherwise stated in the table below.]
     [[ _ws_ ]
      [ Matches a single whitespace code point (see note), according to the Unicode White_Space property. ]
      [ None. ]
-     [ Prefer this over _space_, even when parsing ASCII; it is no less efficient to use _ws_, and it makes it easier to switch to Unicode mode later.  For more info, see the [@https://www.unicode.org/Public/UCD/latest/ucd/PropList.txt Unicode properties].  _ws_ may consume one code point or two.  It only consumes two code points when it matches `"\r\n"`. ]]
+     [ For more info, see the [@https://www.unicode.org/Public/UCD/latest/ucd/PropList.txt Unicode properties].  _ws_ may consume one code point or two.  It only consumes two code points when it matches `"\r\n"`. ]]
 
     [[ _eol_ ]
      [ Matches a single newline (see note), following the "hard" line breaks in the Unicode line breaking algorithm. ]
@@ -1202,65 +1202,40 @@ the input they match unless otherwise stated in the table below.]
      [ `char` ]
      [ Similar to _ch_, but with a fixed `char` attribute type; _cu_ has all the same call operator overloads as _ch_, though they are not repeated here, for brevity.  Even though the name "`cu`" suggests that this parser match at the code unit level, it does not.  The name refers to the attribute type generated, much like the names _i_ versus _ui_. ]]
 
-    [[ `_alnum_` ]
-     [ Matches a single code point for which `std::alnum()` is `true`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
-
-    [[ `_alpha_` ]
-     [ Matches a single code point for which `std::isalpha()` is `true`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
-
     [[ `_blank_` ]
-     [ Matches a single code point for which `std::isblank()` is `true`. ]
+     [ Equivalent to `_ws_ - _eol_`. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
-    [[ `_cntrl_` ]
-     [ Matches a single code point for which `std::iscntrl()` is `true`. ]
+    [[ `_control_` ]
+     [ Matches a single control-character code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
     [[ `_digit_` ]
-     [ Matches a single code point for which `std::isdigit()` is `true`. ]
+     [ Matches a single deimal digit code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
-
-    [[ `_graph_` ]
-     [ Matches a single code point for which `std::isgraph()` is `true`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
-
-    [[ `_print_` ]
-     [ Matches a single code point for which `std::isprint()` is `true`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
     [[ `_punct_` ]
-     [ Matches a single code point for which `std::ispunct()` is `true`. ]
+     [ Matches a single punctuation code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
-    [[ `_space_` ]
-     [ Matches a single code point for which `std::isspace()` is `true`. ]
+    [[ `_hex_digit_` ]
+     [ Matches a single hexidecimal digit code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
-
-    [[ `_xdigit_` ]
-     [ Matches a single code point for which `std::isxdigit()` is `true`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
     [[ `_lower_` ]
-     [ Matches a single code point for which `std::islower()` is `true`. ]
+     [ Matches a single lower-case code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
     [[ `_upper_` ]
-     [ Matches a single code point for which `std::isupper()` is `true`. ]
+     [ Matches a single upper-case code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     [ Intended for parsing of ASCII only.  The results will be wrong for many, many cases if used for Unicode parsing. ]]
+     []]
 
     [[ _lit_np_`(c)`]
      [ Matches exactly the given code point `c`. ]
@@ -1600,15 +1575,15 @@ use the skipper passed to _p_; the second will not.
 
 _skip_ has another use.  You can parameterize skip with a different parser to
 change the skipper just within the scope of the directive.  Let's say we
-passed _space_ to _p_, and we're using these parsers somewhere within that
-_p_ call:
+passed _ws_ to _p_, and we're using these parsers somewhere within that _p_
+call:
 
     namespace bp = boost::parser;
     auto const zero_or_more = *bp::char_;
-    auto const skip_both_ways = zero_or_more >> bp::skip(bp::ws)[zero_or_more];
+    auto const skip_both_ways = zero_or_more >> bp::skip(bp::blank)[zero_or_more];
 
 The first occurrence of `zero_or_more` will use the skipper passed to _p_,
-which is _space_; the second will use _ws_ as its skipper.
+which is _ws_; the second will use _blank_ as its skipper.
 
 [heading _merge_ and _sep_]
 

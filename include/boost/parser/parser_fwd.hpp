@@ -124,6 +124,30 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept;
 
         struct skip_skipper;
+
+        struct char_subrange
+        {
+            char32_t lo_;
+            char32_t hi_;
+        };
+
+        template<typename Tag>
+        constexpr char_subrange char_subranges[] = {{}};
+
+        struct hex_digit_subranges
+        {};
+        struct control_subranges
+        {};
+
+        template<typename Tag>
+        constexpr uint32_t char_set[] = {0};
+
+        struct punct_chars
+        {};
+        struct lower_case_chars
+        {};
+        struct upper_case_chars
+        {};
     }
 
     /** Repeats the application of another parser `p` of type `Parser`,
@@ -293,6 +317,14 @@ namespace boost { namespace parser {
     template<typename Attribute>
     struct attr_parser;
 
+    /** A tag type that can be passed as the first parameter to `char_()` when
+        the second parameter is a sorted, random access sequence that can be
+        matched using a binary search.*/
+    struct sorted_t
+    {};
+
+    inline constexpr sorted_t sorted;
+
     /** Matches a single code point.  If `AttributeType` is not `void`,
         `AttributeType` is the attribute type produced; otherwise, the
         attribute type is the decayed type of the matched code point.  The
@@ -302,16 +334,38 @@ namespace boost { namespace parser {
     template<typename Expected, typename AttributeType = void>
     struct char_parser;
 
+    /** Matches a single code point that is equal to one of the code points
+        associated with tag type `Tag`.  This is used to create sets of
+        characters for matching Unicode character classes like punctuation or
+        lower case.  Attribute type is the attribute type of the character
+        being matched. */
+    template<typename Tag>
+    struct char_set_parser;
+
+    /** Matches a single code point that falls into one of the subranges of
+        code points associated with tag type `Tag`.  This is used to create
+        sets of characters for matching Unicode character classes like hex
+        digits or control characters.  Attribute type is the attribute type of
+        the character being matched. */
+    template<typename Tag>
+    struct char_subrange_parser;
+
+    /** Matches a single decimal digit code point, using the Unicode character
+        class Hex_Digit.  Attribute type is the attribute type of the
+        character being matched. */
+    struct digit_parser;
+
     /** Maches a particular string, delimited by an iterator sentinel pair;
         produces no attribute. */
     template<typename StrIter, typename StrSentinel>
     struct string_parser;
 
-    /** Maches an end-of-line (`NewlinesOnly == true`) or whitespace
-        (`NewlinesOnly == false`) code point, based on the Unicode definitions
-        of each (also matches the two code points `"\r\n"`).  Produces no
+    /** Maches an end-of-line (`NewlinesOnly == true`), whitespace
+        (`NewlinesOnly == false`), or (`NoNewlines == true`) blank (whitespace
+        but not newline) code point, based on the Unicode definitions of each
+        (also matches the two code points `"\r\n"`).  Produces no
         attribute. */
-    template<bool NewlinesOnly>
+    template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser;
 
     /** Maches the strings "true" and "false", producing an attribute of
