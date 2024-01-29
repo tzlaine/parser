@@ -14,7 +14,6 @@
 
 #include <list>
 
-// TODO: Document that replace{,_view} are not supported in MSVC in C++17 mode.
 #if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
 
 namespace bp = boost::parser;
@@ -378,7 +377,6 @@ TEST(replace, replace_unicode)
     }
 }
 
-// TODO: Document this.
 #if BOOST_PARSER_USE_CONCEPTS && (!defined(__GNUC__) || 12 <= __GNUC__)
 // Older GCCs don't like the use of temporaries like the std::string("foo")
 // below.  This causes | join to break.
