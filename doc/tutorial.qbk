@@ -2095,7 +2095,19 @@ whether they are inside or outside the _sep_ directive; you force each
 subparser to have a separate attribute.
 
 The rules for _merge_ and _sep_ overrule the steps of the algorithm described
-above for combining the attributes of a sequence parser.
+above for combining the attributes of a sequence parser.  Consider an example.
+
+    namespace bp = boost::parser;
+    constexpr auto parser =
+        bp::char_ >> bp::merge[(bp::string("abc") >> bp::char_ >> bp::char_) >> bp::string("ghi")];
+
+You might think that `_ATTR_np_(parser)` would be `bp::tuple<char,
+std::string>`.  It is not.  The parser above does not even compile.  Since we
+created a merge group above, we disabled the default behavior in which the
+`char_` parsers would have collapsed into the `string` parser that preceded
+them.  Since they are all treated as separate entities, and since they have
+different attribute types, the use of _merge_ is an error.
+
 
 [heading Other directives that affect attribute generation]
 

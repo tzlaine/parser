@@ -208,8 +208,7 @@ TEST(merge_separate, merge_)
                 *result, detail::hl::make_tuple('z', std::string("abcdefghi")));
         }
     }
-#if 0 // TODO: Document that this does not work, and why (flattening), and how
-      // making a rule for the parethesized part is a fix.
+#if 0 // Intentionally ill-formed.
     {
         constexpr auto parser =
             char_ >> merge[(string("abc") >> char_ >> char_) >> string("ghi")];
