@@ -3036,6 +3036,8 @@ overloads.
 
 [heading _replace_]
 
+[important _replace_ and _replace_v_ are not available on MSVC in C++17 mode.]
+
 _replace_ creates _replace_vs_.  _replace_v_ is a `std::views`-style view.  It
 produces a range of subranges from the parsed range `r` and the given
 replacement range `replacement`.  Wherever in the parsed range a match to the
