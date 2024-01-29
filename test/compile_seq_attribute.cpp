@@ -219,6 +219,12 @@ void compile_seq_attribute()
         static_assert(
             std::is_same_v<attr_t, std::optional<std::vector<std::string>>>);
     }
+    {
+        constexpr auto parser = *(char_ >> eps) >> eps >> *string("str");
+        using attr_t = decltype(prefix_parse(first, last, parser));
+        static_assert(
+            std::is_same_v<attr_t, std::optional<std::vector<std::string>>>);
+    }
 #if 0 // TODO: Fix!  This should be identical to the case just above, but isn't.
     {
         constexpr auto parser = *char_ >> eps >> *string("str");
