@@ -7,28 +7,30 @@
 <link rel="home" href="../../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../../../reference.html" title="Reference">
 <link rel="prev" href="../../../BOOST_PARSER_DEFINE_RULES.html" title="Macro BOOST_PARSER_DEFINE_RULES">
-<link rel="next" href="../../../boost/parser/null_sentinel_t.html" title="Type definition null_sentinel_t">
+<link rel="next" href="../../../boost/parser/sorted_t.html" title="Struct sorted_t">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/null_sentinel_t.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/sorted_t.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="header.boost.parser.parser_fwd_hpp"></a>Header &lt;<a href="../../../../../boost/parser/parser_fwd.hpp" target="_top">boost/parser/parser_fwd.hpp</a>&gt;</h3></div></div></div>
 <pre class="synopsis"><span class="keyword">namespace</span> <span class="identifier">boost</span> <span class="special">{</span>
   <span class="keyword">namespace</span> <span class="identifier">parser</span> <span class="special">{</span>
+    <span class="keyword">struct</span> <a class="link" href="../../../boost/parser/sorted_t.html" title="Struct sorted_t">sorted_t</a><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a class="link" href="../../../boost/parser/null_sentinel_t.html" title="Type definition null_sentinel_t"><span class="identifier">null_sentinel_t</span></a><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_attribute"></a><span class="identifier">no_attribute</span><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_local_state"></a><span class="identifier">no_local_state</span><span class="special">;</span>
     <span class="keyword">typedef</span> <span class="emphasis"><em><span class="identifier">unspecified</span></em></span> <a name="boost.parser.no_params"></a><span class="identifier">no_params</span><span class="special">;</span>
 
     <span class="keyword">constexpr</span> <span class="keyword">bool</span> <a class="link" href="../../../boost/parser/enable_optional.html" title="Global enable_optional">enable_optional</a><span class="special">;</span>
+    <span class="keyword">constexpr</span> <a class="link" href="../../../boost/parser/sorted_t.html" title="Struct sorted_t">sorted_t</a> <a class="link" href="../../../boost/parser/sorted.html" title="Global sorted">sorted</a><span class="special">;</span>
     <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Context<span class="special">&gt;</span> 
-      <span class="keyword">void</span> <a class="link" href="../../../boost/parser/report_error_idm26632.html" title="Function template _report_error"><span class="identifier">_report_error</span></a><span class="special">(</span><span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span><span class="special">;</span>
+      <span class="keyword">void</span> <a class="link" href="../../../boost/parser/report_error_idm26591.html" title="Function template _report_error"><span class="identifier">_report_error</span></a><span class="special">(</span><span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span><span class="special">;</span>
     <span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> Iter<span class="special">,</span> <span class="keyword">typename</span> Context<span class="special">&gt;</span> 
-      <span class="keyword">void</span> <a class="link" href="../../../boost/parser/report_warning_idm26647.html" title="Function template _report_warning"><span class="identifier">_report_warning</span></a><span class="special">(</span><span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span><span class="special">;</span>
+      <span class="keyword">void</span> <a class="link" href="../../../boost/parser/report_warning_idm26606.html" title="Function template _report_warning"><span class="identifier">_report_warning</span></a><span class="special">(</span><span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">,</span> <span class="identifier">Iter</span><span class="special">)</span><span class="special">;</span>
   <span class="special">}</span>
 <span class="special">}</span></pre>
 </div>
@@ -39,7 +41,7 @@
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/null_sentinel_t.html"><img src="../../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="../../../BOOST_PARSER_DEFINE_RULES.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../../../reference.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../../../boost/parser/sorted_t.html"><img src="../../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>
