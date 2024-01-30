@@ -1,3 +1,8 @@
+// Copyright (C) 2024 T. Zachary Laine
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_PARSER_PARSER_HPP
 #define BOOST_PARSER_PARSER_HPP
 
@@ -8,6 +13,7 @@
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/numeric.hpp>
 #include <boost/parser/detail/case_fold.hpp>
+#include <boost/parser/detail/unicode_char_sets.hpp>
 #include <boost/parser/detail/pp_for_each.hpp>
 #include <boost/parser/detail/printing.hpp>
 
@@ -1516,12 +1522,29 @@ namespace boost { namespace parser {
             int last_idx_;
         };
 
-        template<typename Iter, typename Sentinel>
+        template<>
+        inline constexpr char_subrange char_subranges<hex_digit_subranges>[] = {
+            {U'0', U'9'},
+            {U'A', U'F'},
+            {U'a', U'f'},
+            {U'\uff10', U'\uff19'},
+            {U'\uff21', U'\uff26'},
+            {U'\uff41', U'\uff46'}};
+
+        template<>
+        inline constexpr char_subrange char_subranges<control_subranges>[] = {
+            {U'\u0000', U'\u001f'}, {U'\u007f', U'\u009f'}};
+
+        template<typename Iter, typename Sentinel, bool SortedUTF32>
         struct char_range
         {
             template<typename T, typename Context>
             bool contains(T c_, Context const & context) const
             {
+                if constexpr (SortedUTF32) {
+                    return std::binary_search(chars_.begin(), chars_.end(), c_);
+                }
+
                 if (context.no_case_depth_) {
                     case_fold_array_t folded;
                     auto folded_last = detail::case_fold(c_, folded.begin());
@@ -1563,20 +1586,21 @@ namespace boost { namespace parser {
             BOOST_PARSER_SUBRANGE<Iter, Sentinel> chars_;
         };
 
-        template<typename Iter, typename Sentinel>
+        template<bool SortedUTF32, typename Iter, typename Sentinel>
         constexpr auto make_char_range(Iter first, Sentinel last)
         {
-            return char_range<Iter, Sentinel>{
+            return char_range<Iter, Sentinel, SortedUTF32>{
                 BOOST_PARSER_SUBRANGE<Iter, Sentinel>{first, last}};
         }
 
-        template<typename R>
+        template<bool SortedUTF32, typename R>
         constexpr auto make_char_range(R && r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return detail::make_char_range(r, text::null_sentinel);
+                return detail::make_char_range<SortedUTF32>(
+                    r, text::null_sentinel);
             } else {
-                return detail::make_char_range(r.begin(), r.end());
+                return detail::make_char_range<SortedUTF32>(r.begin(), r.end());
             }
         }
 
@@ -1676,45 +1700,6 @@ namespace boost { namespace parser {
         {
             return false;
         }
-
-        enum class ascii_char_class_t {
-            alnum,
-            alpha,
-            blank,
-            cntrl,
-            digit,
-            graph,
-            print,
-            punct,
-            space,
-            xdigit,
-            lower,
-            upper
-        };
-
-        template<ascii_char_class_t CharClass>
-        struct ascii_char_class
-        {
-            template<typename T, typename Context>
-            bool contains(T c, Context const &) const
-            {
-                switch (CharClass) {
-                case ascii_char_class_t::alnum: return std::isalnum(c);
-                case ascii_char_class_t::alpha: return std::isalpha(c);
-                case ascii_char_class_t::blank: return std::isblank(c);
-                case ascii_char_class_t::cntrl: return std::iscntrl(c);
-                case ascii_char_class_t::digit: return std::isdigit(c);
-                case ascii_char_class_t::graph: return std::isgraph(c);
-                case ascii_char_class_t::print: return std::isprint(c);
-                case ascii_char_class_t::punct: return std::ispunct(c);
-                case ascii_char_class_t::space: return std::isspace(c);
-                case ascii_char_class_t::xdigit: return std::isxdigit(c);
-                case ascii_char_class_t::lower: return std::islower(c);
-                case ascii_char_class_t::upper: return std::isupper(c);
-                }
-                return false;
-            }
-        };
 
         template<typename Container, typename T>
         using insertable = decltype(std::declval<Container &>().insert(
@@ -5883,12 +5868,10 @@ namespace boost { namespace parser {
 
         /** Returns a `parser_interface` containing a `char_parser` that
             matches one of the values in `r`.  If the character being matched
-            during the parse is a 4-byte value, the elements of `r` are
+            during the parse is a `char32_t` value, the elements of `r` are
             transcoded from their presumed encoding to UTF-32 during the
             comparison.  Otherwise, the character begin matched is directly
-            compared to the elements of `r`.  The presumed encoding of `r` is
-            considered UTF-8, UTF-16, or UTF-32, if the size of the elements
-            of `r` are 1-, 2- or 4-bytes in size, respectively. */
+            compared to the elements of `r`. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
 #else
@@ -5909,13 +5892,349 @@ namespace boost { namespace parser {
                 (detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_(char-set)(char-set)'.  Quit it!'"));
-            auto chars = detail::make_char_range(r);
+            auto chars = detail::make_char_range<false>(r);
+            using char_range_t = decltype(chars);
+            using char_parser_t = char_parser<char_range_t, AttributeType>;
+            return parser_interface(char_parser_t(chars));
+        }
+
+        /** Returns a `parser_interface` containing a `char_parser` that
+            matches one of the values in `r`.  `r` must be a sorted,
+            random-access sequence of `char32_t`.  The character begin matched
+            is directly compared to the elements of `r`.  The match is found
+            via binary search.  No case folding is performed. */
+        // clang-format off
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+        requires std::same_as<std::ranges::range_value_t<R>, char32_t>
+#else
+        template<
+            typename R,
+            typename Enable = std::enable_if_t<
+                detail::is_parsable_range_like_v<R> &&
+                std::is_same_v<detail::range_value_t<R>, char32_t>>>
+#endif
+        constexpr auto operator()(sorted_t, R && r) const noexcept
+        // clang-format on
+        {
+            BOOST_PARSER_ASSERT(
+                ((!std::is_rvalue_reference_v<R &&> ||
+                  !detail::is_range<detail::remove_cv_ref_t<R>>) &&
+                     "It looks like you tried to pass an rvalue range to "
+                     "char_().  Don't do that, or you'll end up with dangling "
+                     "references."));
+            BOOST_PARSER_ASSERT(
+                (detail::is_nope_v<Expected> &&
+                 "If you're seeing this, you tried to chain calls on char_, "
+                 "like 'char_(char-set)(char-set)'.  Quit it!'"));
+            auto chars = detail::make_char_range<true>(r);
             using char_range_t = decltype(chars);
             using char_parser_t = char_parser<char_range_t, AttributeType>;
             return parser_interface(char_parser_t(chars));
         }
 
         Expected expected_;
+    };
+
+    struct digit_parser
+    {
+        constexpr digit_parser() {}
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+            attribute_t<decltype(*first)> const x = *first;
+            char32_t const x_cmp = x;
+            if (x_cmp < U'\x0100' && (x_cmp < U'0' || U'9' < x_cmp)) {
+                success = false;
+                return;
+            }
+            char32_t const * it = std::upper_bound(
+                std::begin(zero_cps) + 1, std::end(zero_cps), x);
+            if (it == std::begin(zero_cps) || x_cmp < *(it - 1) ||
+                *(it - 1) + 9 < x_cmp) {
+                success = false;
+                return;
+            }
+            detail::assign(retval, x);
+            ++first;
+        }
+
+        // Produced from
+        // https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp, using
+        // "[:nt=De:]" for the Input field.
+        static constexpr char32_t zero_cps[] = {
+            U'\u0030',     // U+0030 DIGIT ZERO
+            U'\u0660',     // U+0660 ARABIC-INDIC DIGIT ZERO
+            U'\u06F0',     // U+06F0 EXTENDED ARABIC-INDIC DIGIT ZERO
+            U'\u07C0',     // U+07C0 NKO DIGIT ZERO
+            U'\u0966',     // U+0966 DEVANAGARI DIGIT ZERO
+            U'\u09E6',     // U+09E6 BENGALI DIGIT ZERO
+            U'\u0A66',     // U+0A66 GURMUKHI DIGIT ZERO
+            U'\u0AE6',     // U+0AE6 GUJARATI DIGIT ZERO
+            U'\u0B66',     // U+0B66 ORIYA DIGIT ZERO
+            U'\u0BE6',     // U+0BE6 TAMIL DIGIT ZERO
+            U'\u0C66',     // U+0C66 TELUGU DIGIT ZERO
+            U'\u0CE6',     // U+0CE6 KANNADA DIGIT ZERO
+            U'\u0D66',     // U+0D66 MALAYALAM DIGIT ZERO
+            U'\u0DE6',     // U+0DE6 SINHALA LITH DIGIT ZERO
+            U'\u0E50',     // U+0E50 THAI DIGIT ZERO
+            U'\u0ED0',     // U+0ED0 LAO DIGIT ZERO
+            U'\u0F20',     // U+0F20 TIBETAN DIGIT ZERO
+            U'\u1040',     // U+1040 MYANMAR DIGIT ZERO
+            U'\u1090',     // U+1090 MYANMAR SHAN DIGIT ZERO
+            U'\u17E0',     // U+17E0 KHMER DIGIT ZERO
+            U'\u1810',     // U+1810 MONGOLIAN DIGIT ZERO
+            U'\u1946',     // U+1946 LIMBU DIGIT ZERO
+            U'\u19D0',     // U+19D0 NEW TAI LUE DIGIT ZERO
+            U'\u1A80',     // U+1A80 TAI THAM HORA DIGIT ZERO
+            U'\u1A90',     // U+1A90 TAI THAM THAM DIGIT ZERO
+            U'\u1B50',     // U+1B50 BALINESE DIGIT ZERO
+            U'\u1BB0',     // U+1BB0 SUNDANESE DIGIT ZERO
+            U'\u1C40',     // U+1C40 LEPCHA DIGIT ZERO
+            U'\u1C50',     // U+1C50 OL CHIKI DIGIT ZERO
+            U'\uA620',     // U+A620 VAI DIGIT ZERO
+            U'\uA8D0',     // U+A8D0 SAURASHTRA DIGIT ZERO
+            U'\uA900',     // U+A900 KAYAH LI DIGIT ZERO
+            U'\uA9D0',     // U+A9D0 JAVANESE DIGIT ZERO
+            U'\uA9F0',     // U+A9F0 MYANMAR TAI LAING DIGIT ZERO
+            U'\uAA50',     // U+AA50 CHAM DIGIT ZERO
+            U'\uABF0',     // U+ABF0 MEETEI MAYEK DIGIT ZERO
+            U'\uFF10',     // U+FF10 FULLWIDTH DIGIT ZERO
+            U'\U000104A0', // U+104A0 OSMANYA DIGIT ZERO
+            U'\U00010D30', // U+10D30 HANIFI ROHINGYA DIGIT ZERO
+            U'\U00011066', // U+11066 BRAHMI DIGIT ZERO
+            U'\U000110F0', // U+110F0 SORA SOMPENG DIGIT ZERO
+            U'\U00011136', // U+11136 CHAKMA DIGIT ZERO
+            U'\U000111D0', // U+111D0 SHARADA DIGIT ZERO
+            U'\U000112F0', // U+112F0 KHUDAWADI DIGIT ZERO
+            U'\U00011450', // U+11450 NEWA DIGIT ZERO
+            U'\U000114D0', // U+114D0 TIRHUTA DIGIT ZERO
+            U'\U00011650', // U+11650 MODI DIGIT ZERO
+            U'\U000116C0', // U+116C0 TAKRI DIGIT ZERO
+            U'\U00011730', // U+11730 AHOM DIGIT ZERO
+            U'\U000118E0', // U+118E0 WARANG CITI DIGIT ZERO
+            U'\U00011950', // U+11950 DIVES AKURU DIGIT ZERO
+            U'\U00011C50', // U+11C50 BHAIKSUKI DIGIT ZERO
+            U'\U00011D50', // U+11D50 MASARAM GONDI DIGIT ZERO
+            U'\U00011DA0', // U+11DA0 GUNJALA GONDI DIGIT ZERO
+            U'\U00011F50', // U+11F50 KAWI DIGIT ZERO
+            U'\U00016A60', // U+16A60 MRO DIGIT ZERO
+            U'\U00016AC0', // U+16AC0 TANGSA DIGIT ZERO
+            U'\U00016B50', // U+16B50 PAHAWH HMONG DIGIT ZERO
+            U'\U0001D7CE', // U+1D7CE MATHEMATICAL BOLD DIGIT ZERO
+            U'\U0001D7D8', // U+1D7D8 MATHEMATICAL DOUBLE-STRUCK DIGIT ZERO
+            U'\U0001D7E2', // U+1D7E2 MATHEMATICAL SANS-SERIF DIGIT ZERO
+            U'\U0001D7EC', // U+1D7EC MATHEMATICAL SANS-SERIF BOLD DIGIT ZERO
+            U'\U0001D7F6', // U+1D7F6 MATHEMATICAL MONOSPACE DIGIT ZERO
+            U'\U0001E140', // U+1E140 NYIAKENG PUACHUE HMONG DIGIT ZERO
+            U'\U0001E2F0', // U+1E2F0 WANCHO DIGIT ZERO
+            U'\U0001E4F0', // U+1E4F0 NAG MUNDARI DIGIT ZERO
+            U'\U0001E950', // U+1E950 ADLAM DIGIT ZERO
+            U'\U0001FBF0'  // U+1FBF0 SEGMENTED DIGIT ZERO
+        };
+    };
+
+    template<typename Tag>
+    struct char_set_parser
+    {
+        BOOST_PARSER_ALGO_CONSTEXPR char_set_parser()
+        {
+            auto const & chars = detail::char_set<Tag>;
+            auto const first = std::begin(chars);
+            auto const last = std::end(chars);
+            auto it = std::upper_bound(first, last, 0x100);
+            if (it != last)
+                one_byte_offset_ = it - first;
+        }
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+
+            auto const & chars = detail::char_set<Tag>;
+            attribute_t<decltype(*first)> const x = *first;
+            uint32_t const x_cmp = x;
+            if (x_cmp < U'\x0100') {
+                uint32_t const * it = std::lower_bound(
+                    std::begin(chars),
+                    std::begin(chars) + one_byte_offset_,
+                    x_cmp);
+                if (it != std::end(chars) && *it == x_cmp) {
+                    detail::assign(retval, x_cmp);
+                    ++first;
+                } else {
+                    success = false;
+                }
+                return;
+            }
+
+            uint32_t const * it = std::lower_bound(
+                std::begin(chars) + one_byte_offset_, std::end(chars), x_cmp);
+            if (it != std::end(chars) && *it == x_cmp) {
+                detail::assign(retval, x_cmp);
+                ++first;
+                return;
+            }
+
+            success = false;
+        }
+
+        int one_byte_offset_ = 0;
+    };
+
+    template<typename Tag>
+    struct char_subrange_parser
+    {
+        constexpr char_subrange_parser() {}
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+            attribute_t<decltype(*first)> const x = *first;
+            char32_t const x_cmp = x;
+            success = false;
+            for (auto subrange : detail::char_subranges<Tag>) {
+                if (subrange.lo_ <= x_cmp && x_cmp <= subrange.hi_) {
+                    success = true;
+                    detail::assign(retval, x);
+                    ++first;
+                    return;
+                }
+            }
+        }
     };
 
     /** The literal code point parser.  The produced attribute is the type of
@@ -5926,12 +6245,12 @@ namespace boost { namespace parser {
         hi]`, or a set of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
-    /** The literal code point parser.  It produces a 32-bit unsigned integer
-        attribute.  This parser can be used to create code point parsers that
-        match one or more specific code point values, by calling it with: a
-        single value comparable to a code point; a set of code point values in
-        a string; a closed range of code point values `[lo, hi]`, or a set
-        of code point values passed as a range. */
+    /** The literal code point parser.  It produces a `char32_t` attribute.
+        This parser can be used to create code point parsers that match one or
+        more specific code point values, by calling it with: a single value
+        comparable to a code point; a set of code point values in a string; a
+        closed range of code point values `[lo, hi]`, or a set of code point
+        values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
     /** The literal code unit parser.  It produces a `char` attribute.  This
@@ -6093,10 +6412,12 @@ namespace boost { namespace parser {
         return omit[parser::string(str)];
     }
 
-    template<bool NewlinesOnly>
+    template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser
     {
         constexpr ws_parser() {}
+
+        static_assert(!NewlinesOnly || !NoNewlines);
 
         template<
             bool UseCallbacks,
@@ -6160,6 +6481,22 @@ namespace boost { namespace parser {
                     return;
                 }
                 success = false;
+            } else if constexpr (NoNewlines) {
+                if (x == 0x0020) { // space
+                    ++first;
+                    return;
+                }
+                if (x == 0x0009) { // tab
+                    ++first;
+                    return;
+                }
+                if (x == 0x00a0 || x == 0x1680 ||
+                    (0x2000 <= x && x <= 0x200a) || x == 0x202F ||
+                    x == 0x205F || x == 0x3000) {
+                    ++first;
+                    return;
+                }
+                success = false;
             } else {
                 if (x == 0x0020 || x == 0x000a) { // space, lf
                     ++first;
@@ -6189,76 +6526,57 @@ namespace boost { namespace parser {
     /** The end-of-line parser.  This matches "\r\n", or any one of the line
         break code points from the Unicode Line Break Algorithm, described in
         https://unicode.org/reports/tr14.  Produces no attribute. */
-    inline constexpr parser_interface<ws_parser<true>> eol;
+    inline constexpr parser_interface<ws_parser<true, false>> eol;
 
     /** The whitespace parser.  This matches "\r\n", or any one of the Unicode
         code points with the White_Space property, as defined in
         https://www.unicode.org/Public/UCD/latest/ucd/PropList.txt.  Produces
         no attribute. */
-    inline constexpr parser_interface<ws_parser<false>> ws;
+    inline constexpr parser_interface<ws_parser<false, false>> ws;
 
-    namespace ascii {
+    /** The whitespace parser that does not match end-of-line.  This matches
+        any one of the Unicode code points with the White_Space property, as
+        defined in https://www.unicode.org/Public/UCD/latest/ucd/PropList.txt,
+        except for the ones matched by `eol`.  Produces no attribute. */
+    inline constexpr parser_interface<ws_parser<false, true>> blank;
 
-        /** Matches the characters for which `std::isalnum()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::alnum>>>
-            alnum;
+    /** The decimal digit parser.  Matches the full set of Unicode decimal
+        digits; in other words, all Unicode code points with the "Nd"
+        character property.  Note that this covers all Unicode scripts, only a
+        few of which are Latin. */
+    inline constexpr parser_interface<digit_parser> digit;
 
-        /** Matches the characters for which `std::alpha()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::alpha>>>
-            alpha;
+    /** The hexidecimal digit parser.  Matches the full set of Unicode
+        hexidecimal digits (upper or lower case); in other words, all Unicode
+        code points with the "Hex_Digit" character property. */
+    inline constexpr parser_interface<
+        char_subrange_parser<detail::hex_digit_subranges>>
+        hex_digit;
 
-        /** Matches the characters for which `std::isblank()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::blank>>>
-            blank;
+    /** The control character parser.  Matches the all Unicode code points
+        with the "Cc" ("control character") character property. */
+    inline constexpr parser_interface<
+        char_subrange_parser<detail::control_subranges>>
+        control;
 
-        /** Matches the characters for which `std::iscntrl()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::cntrl>>>
-            cntrl;
-
-        /** Matches the characters for which `std::isdigit()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::digit>>>
-            digit;
-
-        /** Matches the characters for which `std::isgraph()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::graph>>>
-            graph;
-
-        /** Matches the characters for which `std::isprint()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::print>>>
-            print;
-
-        /** Matches the characters for which `std::ispunct()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::punct>>>
+    /** The punctuation character parser.  Matches the full set of Unicode
+        punctuation clases (specifically, "Pc", "Pd", "Pe", "Pf", "Pi", "Ps",
+        and "Po"). */
+    inline BOOST_PARSER_ALGO_CONSTEXPR
+        parser_interface<char_set_parser<detail::punct_chars>>
             punct;
 
-        /** Matches the characters for which `std::isspace()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::space>>>
-            space;
-
-        /** Matches the characters for which `std::isxdigit()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::xdigit>>>
-            xdigit;
-
-        /** Matches the characters for which `std::islower()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::lower>>>
+    /** The lower case character parser.  Matches the full set of Unicode
+        lower case code points (class "Ll"). */
+    inline BOOST_PARSER_ALGO_CONSTEXPR
+        parser_interface<char_set_parser<detail::lower_case_chars>>
             lower;
 
-        /** Matches the characters for which `std::isupper()` is true. */
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::upper>>>
+    /** The lower case character parser.  Matches the full set of Unicode
+        lower case code points (class "Lu"). */
+    inline BOOST_PARSER_ALGO_CONSTEXPR
+        parser_interface<char_set_parser<detail::upper_case_chars>>
             upper;
-    }
 
     struct bool_parser
     {
@@ -8077,13 +8395,13 @@ namespace boost { namespace parser {
         constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
         {
             // This code chokes older GCCs.  I can't figure out why, and this
-            // is an optional check, so I'm disabling it for those GCCS.
+            // is an optional check, so I'm disabling it for those GCCs.
 #if !defined(__GNUC__) || 13 <= __GNUC__
             using context_t = parse_context<
                 char const *,
                 char const *,
                 default_error_handler>;
-            using skipper_t = parser_interface<ws_parser<false>>;
+            using skipper_t = parser_interface<ws_parser<false, false>>;
             using use_parser_t = dummy_use_parser_t<
                 false,
                 char const *,

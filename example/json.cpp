@@ -227,13 +227,13 @@ namespace json {
     // As indicated above, we want to match the specific formats JSON allows,
     // and then re-parse the resulting matched range within the semantic
     // action.
-    auto const number_def = bp::raw
-        [bp::lexeme
-             [-bp::char_('-') >>
-              (bp::char_('1', '9') >> *bp::ascii::digit | bp::char_('0')) >>
-              -(bp::char_('.') >> +bp::ascii::digit) >>
-              -(bp::char_("eE") >> -bp::char_("+-") >> +bp::ascii::digit)]]
-        [parse_double];
+    auto const number_def =
+        bp::raw[bp::lexeme
+                    [-bp::char_('-') >>
+                     (bp::char_('1', '9') >> *bp::digit | bp::char_('0')) >>
+                     -(bp::char_('.') >> +bp::digit) >>
+                     -(bp::char_("eE") >> -bp::char_("+-") >> +bp::digit)]]
+               [parse_double];
 
     // Note how, in the next three parsers, we turn off backtracking by using
     // > instead of >>, once we know that there is no backtracking alternative

@@ -172,13 +172,13 @@ namespace json {
         }
     };
 
-    auto const number_def = bp::raw
-        [bp::lexeme
-             [-bp::char_('-') >>
-              (bp::char_('1', '9') >> *bp::ascii::digit | bp::char_('0')) >>
-              -(bp::char_('.') >> +bp::ascii::digit) >>
-              -(bp::char_("eE") >> -bp::char_("+-") >> +bp::ascii::digit)]]
-        [parse_double];
+    auto const number_def =
+        bp::raw[bp::lexeme
+                    [-bp::char_('-') >>
+                     (bp::char_('1', '9') >> *bp::digit | bp::char_('0')) >>
+                     -(bp::char_('.') >> +bp::digit) >>
+                     -(bp::char_("eE") >> -bp::char_("+-") >> +bp::digit)]]
+               [parse_double];
 
     // The object_element_key parser is exactly the same as the string parser.
     // Note that we did *not* use string here, though; we used string_def.  If

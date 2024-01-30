@@ -313,21 +313,52 @@ int main()
 
     std::cout << "\n\n"
               << "----------------------------------------\n"
-              << "| ascii character classes               |\n"
+              << "| blank                                 |\n"
               << "----------------------------------------\n";
 
-    PARSE(ascii::alnum);
-    PARSE(ascii::alpha);
-    PARSE(ascii::blank);
-    PARSE(ascii::cntrl);
-    PARSE(ascii::digit);
-    PARSE(ascii::graph);
-    PARSE(ascii::print);
-    PARSE(ascii::punct);
-    PARSE(ascii::space);
-    PARSE(ascii::xdigit);
-    PARSE(ascii::lower);
-    PARSE(ascii::upper);
+    PARSE(blank);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| digit                                 |\n"
+              << "----------------------------------------\n";
+
+    PARSE(digit);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| control                               |\n"
+              << "----------------------------------------\n";
+
+    PARSE(control);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| punct                                 |\n"
+              << "----------------------------------------\n";
+
+    PARSE(punct);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| lower                                 |\n"
+              << "----------------------------------------\n";
+
+    PARSE(lower);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| upper                                 |\n"
+              << "----------------------------------------\n";
+
+    PARSE(upper);
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| hex_digit                             |\n"
+              << "----------------------------------------\n";
+
+    PARSE(hex_digit);
 
     std::cout << "\n\n"
               << "----------------------------------------\n"

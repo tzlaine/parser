@@ -62,6 +62,12 @@
 
 #endif
 
+#if defined(__cpp_lib_constexpr_algorithms)
+#    define BOOST_PARSER_ALGO_CONSTEXPR constexpr
+#else
+#    define BOOST_PARSER_ALGO_CONSTEXPR
+#endif
+
 #if defined(__cpp_lib_concepts) && !defined(BOOST_PARSER_DISABLE_CONCEPTS)
 #    define BOOST_PARSER_USE_CONCEPTS 1
 #else

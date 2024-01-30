@@ -500,13 +500,13 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Context, typename Iter, typename Sentinel>
-    struct char_print_parser_impl<Context, char_range<Iter, Sentinel>>
+    template<typename Context, typename Iter, typename Sentinel, bool B>
+    struct char_print_parser_impl<Context, char_range<Iter, Sentinel, B>>
     {
         static void call(
             Context const & context,
             std::ostream & os,
-            char_range<Iter, Sentinel> expected)
+            char_range<Iter, Sentinel, B> expected)
         {
             os << "\"";
             auto const r = expected.chars_ | text::as_utf8;
@@ -524,68 +524,78 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        if (std::is_same_v<
-                Expected,
-                ascii_char_class<ascii_char_class_t::alnum>>) {
-            os << "ascii::alnum";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::alpha>>) {
-            os << "ascii::alpha";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::blank>>) {
-            os << "ascii::blank";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::cntrl>>) {
-            os << "ascii::cntrl";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::digit>>) {
-            os << "ascii::digit";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::graph>>) {
-            os << "ascii::graph";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::print>>) {
-            os << "ascii::print";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::punct>>) {
-            os << "ascii::punct";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::space>>) {
-            os << "ascii::space";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::xdigit>>) {
-            os << "ascii::xdigit";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::lower>>) {
-            os << "ascii::lower";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::upper>>) {
-            os << "ascii::upper";
-        } else {
-            if (std::is_same_v<AttributeType, uint32_t>)
-                os << "cp";
-            else if (std::is_same_v<AttributeType, char>)
-                os << "cu";
-            else
-                os << "char_";
-            if constexpr (!is_nope_v<Expected>) {
-                os << "(";
-                char_print_parser_impl<Context, Expected>::call(
-                    context, os, parser.expected_);
-                os << ")";
-            }
+        if (std::is_same_v<AttributeType, uint32_t>)
+            os << "cp";
+        else if (std::is_same_v<AttributeType, char>)
+            os << "cu";
+        else
+            os << "char_";
+        if constexpr (!is_nope_v<Expected>) {
+            os << "(";
+            char_print_parser_impl<Context, Expected>::call(
+                context, os, parser.expected_);
+            os << ")";
         }
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        digit_parser const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "digit";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<hex_digit_subranges> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "hex_digit";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<control_subranges> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "control";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<punct_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "punct";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<lower_case_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "lower";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<upper_case_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "upper";
     }
 
     template<typename Context, typename Expected, typename AttributeType>
@@ -636,24 +646,19 @@ namespace boost { namespace parser { namespace detail {
         os << "\"";
     }
 
-    template<typename Context>
+    template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,
-        ws_parser<true> const & parser,
+        ws_parser<NewlinesOnly, NoNewlines> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "eol";
-    }
-
-    template<typename Context>
-    void print_parser(
-        Context const & context,
-        ws_parser<false> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "ws";
+        if constexpr (NoNewlines)
+            os << "blank";
+        else if constexpr (NewlinesOnly)
+            os << "eol";
+        else
+            os << "ws";
     }
 
     template<typename Context>
