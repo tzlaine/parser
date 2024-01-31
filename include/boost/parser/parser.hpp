@@ -1523,17 +1523,23 @@ namespace boost { namespace parser {
         };
 
         template<>
-        inline constexpr char_subrange char_subranges<hex_digit_subranges>[] = {
-            {U'0', U'9'},
-            {U'A', U'F'},
-            {U'a', U'f'},
-            {U'\uff10', U'\uff19'},
-            {U'\uff21', U'\uff26'},
-            {U'\uff41', U'\uff46'}};
+        struct char_subranges<hex_digit_subranges>
+        {
+            static constexpr char_subrange ranges[] = {
+                {U'0', U'9'},
+                {U'A', U'F'},
+                {U'a', U'f'},
+                {U'\uff10', U'\uff19'},
+                {U'\uff21', U'\uff26'},
+                {U'\uff41', U'\uff46'}};
+        };
 
         template<>
-        inline constexpr char_subrange char_subranges<control_subranges>[] = {
-            {U'\u0000', U'\u001f'}, {U'\u007f', U'\u009f'}};
+        struct char_subranges<control_subranges>
+        {
+            static constexpr char_subrange ranges[] = {
+                {U'\u0000', U'\u001f'}, {U'\u007f', U'\u009f'}};
+        };
 
         template<typename Iter, typename Sentinel, bool SortedUTF32>
         struct char_range
@@ -6084,7 +6090,7 @@ namespace boost { namespace parser {
     {
         BOOST_PARSER_ALGO_CONSTEXPR char_set_parser()
         {
-            auto const & chars = detail::char_set<Tag>;
+            auto const & chars = detail::char_set<Tag>::chars;
             auto const first = std::begin(chars);
             auto const last = std::end(chars);
             auto it = std::upper_bound(first, last, 0x100);
@@ -6140,7 +6146,7 @@ namespace boost { namespace parser {
                 return;
             }
 
-            auto const & chars = detail::char_set<Tag>;
+            auto const & chars = detail::char_set<Tag>::chars;
             attribute_t<decltype(*first)> const x = *first;
             uint32_t const x_cmp = x;
             if (x_cmp < U'\x0100') {
@@ -6226,7 +6232,7 @@ namespace boost { namespace parser {
             attribute_t<decltype(*first)> const x = *first;
             char32_t const x_cmp = x;
             success = false;
-            for (auto subrange : detail::char_subranges<Tag>) {
+            for (auto subrange : detail::char_subranges<Tag>::ranges) {
                 if (subrange.lo_ <= x_cmp && x_cmp <= subrange.hi_) {
                     success = true;
                     detail::assign(retval, x);
