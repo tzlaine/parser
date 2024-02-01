@@ -132,7 +132,8 @@ namespace boost { namespace parser {
         };
 
         template<typename Tag>
-        constexpr char_subrange char_subranges[] = {{}};
+        struct char_subranges
+        {};
 
         struct hex_digit_subranges
         {};
@@ -140,7 +141,8 @@ namespace boost { namespace parser {
         {};
 
         template<typename Tag>
-        constexpr uint32_t char_set[] = {0};
+        struct char_set
+        {};
 
         struct punct_chars
         {};

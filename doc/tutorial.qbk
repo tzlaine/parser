@@ -192,15 +192,6 @@ character.
 
 [trivial_skipper_example]
 
-[tip Even though there is another parser `ascii::space` that we could have
-used here, and even though we know we're in a non-Unicode parsing context here
-from the `std::string` input, I did not use `ascii::space`.  The `ascii::`
-namespace parsers exist mostly to aid porting from Boost.Spirit.  They are
-inherently dangerous in a Unicode environment, since they use the `std::is*()`
-functions (like `std::isspace()`).  `ws` is correct, plus it is written in
-such a way that it matches the ASCII subset of values first, meaning it is no
-less efficient to use for parsing ASCII than `ascii::space`.]
-
 The skip parser, or /skipper/, is run between the subparsers within the
 parser passed to _p_.  In this case, the skipper is run before the first
 `double` is parsed, before any subsequent comma or `double` is parsed, and at
@@ -1714,7 +1705,7 @@ or evaluation of a parse predicate, and
     [[ _eoi_ ]             [ None. ]                     []]
     [[ `_attr_np_(x)` ]    [ `decltype(_RES_np_(x))` ][]]
     [[ _ch_ ]              [ The code point type in Unicode parsing, or `char` in non-Unicode parsing; see below. ]
-     [Includes all the `_p` _udls_ that take a single character, and all parsers in the `boost::parser::ascii` namespace.]]
+     [Includes all the `_p` _udls_ that take a single character, and all character class parsers like `control` and `lower`.]]
     [[ _cp_ ]              [ `char32_t` ]                []]
     [[ _cu_ ]              [ `char` ]                    []]
     [[ `_lit_np_(x)`]      [ None. ]
@@ -3631,7 +3622,7 @@ we cannot print, because it has no stream insertion operation.  In that case,
 [teletype]``
         [begin raw[lexeme[ >> ...]]; input="null"]
           [begin lexeme[-char_('-') >> char_('1', '9') >> ... | ... >> ...]; input="null"]
-            [begin -char_('-') >> char_('1', '9') >> *ascii::digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
+            [begin -char_('-') >> char_('1', '9') >> *digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
               [begin -char_('-'); input="null"]
                 [begin char_('-'); input="null"]
                   no match
@@ -3639,20 +3630,20 @@ we cannot print, because it has no stream insertion operation.  In that case,
                 matched ""
                 attribute: <<empty>>
               [end -char_('-'); input="null"]
-              [begin char_('1', '9') >> *ascii::digit | char_('0'); input="null"]
-                [begin char_('1', '9') >> *ascii::digit; input="null"]
+              [begin char_('1', '9') >> *digit | char_('0'); input="null"]
+                [begin char_('1', '9') >> *digit; input="null"]
                   [begin char_('1', '9'); input="null"]
                     no match
                   [end char_('1', '9'); input="null"]
                   no match
-                [end char_('1', '9') >> *ascii::digit; input="null"]
+                [end char_('1', '9') >> *digit; input="null"]
                 [begin char_('0'); input="null"]
                   no match
                 [end char_('0'); input="null"]
                 no match
-              [end char_('1', '9') >> *ascii::digit | char_('0'); input="null"]
+              [end char_('1', '9') >> *digit | char_('0'); input="null"]
               no match
-            [end -char_('-') >> char_('1', '9') >> *ascii::digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
+            [end -char_('-') >> char_('1', '9') >> *digit | char_('0') >> -(char_('.') >> ...) >> -( >> ...); input="null"]
             no match
           [end lexeme[-char_('-') >> char_('1', '9') >> ... | ... >> ...]; input="null"]
           no match
@@ -3788,9 +3779,7 @@ if you just start with Unicode and stick with it.
 
 Starting with Unicode support and UTF-8 input will allow you to properly
 handle unexpected input, like non-ASCII languages (that's most of them), with
-no additional effort on your part.  For instance, matching whitespace is a
-little funky in the general (meaning Unicode) case, and only matching the
-ones in the ASCII range is an unnecessary limitation.
+no additional effort on your part.
 
 [heading Write rules, and test them in isolation]
 
@@ -3799,19 +3788,6 @@ corners, and then use it to build larger rules or parsers.  This allows you to
 get better coverage with less work, since exercising all the code paths of
 your rules, one by one, keeps the combinatorial number of paths through your
 code manageable.
-
-[heading Don't rely on the `boost::parser::ascii` parsers]
-
-These are broken for many use cases, because they use the implementations from
-the C library (e.g. `isalnum()`).  Those implementations do not work for
-non-ASCII values, *even though they take `int` parameters*.  A general
-implementation of each of these is also difficult even in Unicode parsing,
-because the meaning of many of them is contextual.  For example, whether a
-code point is lower case or not can depend on where it is within the text
-you're parsing, and can depend on the language you're parsing.  You're better
-off naming the specific code points or ranges of code points you want to
-match.  The `boost::parser::ascii` parsers are included for ASCII-only users,
-and for those porting parsers from Spirit.
 
 [heading If your parser takes end-user input, give rules names that you would want an end-user to see]
 

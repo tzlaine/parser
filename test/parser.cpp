@@ -963,6 +963,18 @@ TEST(parser, repeat)
             }
         }
     }
+    {
+        constexpr auto parser = *char_ >> eps >> *string("str");
+        auto result = parse("abcdefg", parser);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, std::vector<std::string>({"abcdefg"}));
+    }
+    {
+        constexpr auto parser = *(char_ - "str") >> eps >> *string("str");
+        auto result = parse("abcdefgstrstr", parser);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, std::vector<std::string>({"abcdefg", "str", "str"}));
+    }
 }
 
 TEST(parser, raw)
