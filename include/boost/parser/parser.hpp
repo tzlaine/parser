@@ -3359,6 +3359,17 @@ namespace boost { namespace parser {
         using combined_combining_t = decltype(detail::make_combined_combining(
             std::declval<CombiningGroups1>(),
             std::declval<CombiningGroups2>()));
+
+        enum class merge_kind { second_pass_detect, singleton, merged, group };
+
+        template<merge_kind Kind>
+        struct merge_kind_t
+        {
+            static constexpr merge_kind kind = Kind;
+        };
+
+        template<merge_kind Kind>
+        static constexpr auto merge_wrap = merge_kind_t<Kind>{};
     }
 
     template<
@@ -3377,22 +3388,6 @@ namespace boost { namespace parser {
         static constexpr auto true_ = std::true_type{};
         static constexpr auto false_ = std::false_type{};
 
-        enum class merge_kind
-        {
-            singleton,
-            merged,
-            group
-        };
-
-        template<merge_kind Kind>
-        struct merge_kind_t
-        {
-            static constexpr merge_kind kind = Kind;
-        };
-
-        template<merge_kind Kind>
-        static constexpr auto wrap = merge_kind_t<Kind>{};
-
         struct combine
         {
             template<typename T, typename U>
@@ -3400,6 +3395,8 @@ namespace boost { namespace parser {
                 T result_merging_indices_and_prev_group, U x_and_group) const
             {
                 using namespace literals;
+                using detail::merge_wrap;
+                using detail::merge_kind;
 
                 auto x = parser::get(x_and_group, 0_c);
                 auto group = parser::get(x_and_group, 1_c);
@@ -3437,7 +3434,8 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             detail::hl::append(result, x),
                             detail::hl::append(
-                                merging, wrap<merge_kind::singleton>),
+                                merging,
+                                merge_wrap<merge_kind::second_pass_detect>),
                             detail::hl::append(
                                 indices, detail::hl::size(result)),
                             group);
@@ -3446,28 +3444,25 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             result,
                             detail::hl::append(
-                                merging, wrap<merge_kind::singleton>),
+                                merging,
+                                merge_wrap<merge_kind::second_pass_detect>),
                             detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)),
                             prev_group);
                     }
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
                     // tuple<nope> >> T -> tuple<T>
+                    constexpr auto merge =
+                        0 < decltype(group)::value
+                            ? merge_kind::group
+                            : (decltype(group)::value == -1
+                                   ? merge_kind::singleton
+                                   : merge_kind::second_pass_detect);
                     return detail::hl::make_tuple(
                         detail::hl::append(detail::hl::drop_back(result), x),
-                        detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
+                        detail::hl::append(merging, merge_wrap<merge>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
-                        group);
-                } else if constexpr (
-                    decltype(group)::value == -1 ||
-                    decltype(group)::value != decltype(prev_group)::value) {
-                    return detail::hl::make_tuple(
-                        detail::hl::append(result, x),
-                        detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
-                        detail::hl::append(indices, detail::hl::size(result)),
                         group);
                 } else if constexpr (0 < decltype(group)::value) {
                     if constexpr (
@@ -3475,7 +3470,7 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             result,
                             detail::hl::append(
-                                merging, wrap<merge_kind::group>),
+                                merging, merge_wrap<merge_kind::group>),
                             detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)),
                             group);
@@ -3483,11 +3478,22 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             detail::hl::append(result, x),
                             detail::hl::append(
-                                merging, wrap<merge_kind::group>),
+                                merging, merge_wrap<merge_kind::group>),
                             detail::hl::append(
                                 indices, detail::hl::size(result)),
                             group);
                     }
+                } else if constexpr (
+                    decltype(group)::value == -1 ||
+                    decltype(group)::value != decltype(prev_group)::value) {
+                    constexpr auto merge = decltype(group)::value == -1
+                                               ? merge_kind::singleton
+                                               : merge_kind::second_pass_detect;
+                    return detail::hl::make_tuple(
+                        detail::hl::append(result, x),
+                        detail::hl::append(merging, merge_wrap<merge>),
+                        detail::hl::append(indices, detail::hl::size(result)),
+                        group);
                 } else if constexpr (
                     detail::is_char_type_v<result_back_type> &&
                     (detail::is_char_type_v<x_type> ||
@@ -3500,8 +3506,8 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             detail::hl::append(
                                 detail::hl::drop_front(merging),
-                                wrap<merge_kind::merged>),
-                            wrap<merge_kind::merged>),
+                                merge_wrap<merge_kind::second_pass_detect>),
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -3515,7 +3521,9 @@ namespace boost { namespace parser {
                     // C<T> >> optional<T> -> C<T>
                     return detail::hl::make_tuple(
                         result,
-                        detail::hl::append(merging, wrap<merge_kind::merged>),
+                        detail::hl::append(
+                            merging,
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -3532,8 +3540,8 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             detail::hl::append(
                                 detail::hl::drop_front(merging),
-                                wrap<merge_kind::merged>),
-                            wrap<merge_kind::singleton>),
+                                merge_wrap<merge_kind::second_pass_detect>),
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -3542,9 +3550,53 @@ namespace boost { namespace parser {
                     return detail::hl::make_tuple(
                         detail::hl::append(result, x),
                         detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
+                            merging, merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(indices, detail::hl::size(result)),
                         group);
+                }
+            }
+        };
+
+        struct find_merged
+        {
+            template<typename T, typename U>
+            auto operator()(
+                T final_types_and_result, U x_index_and_prev_merged) const
+            {
+                using namespace literals;
+                using detail::merge_wrap;
+                using detail::merge_kind;
+
+                auto final_types = parser::get(final_types_and_result, 0_c);
+                auto result = parser::get(final_types_and_result, 1_c);
+
+                auto x_type_wrapper = parser::get(x_index_and_prev_merged, 0_c);
+                auto index = parser::get(x_index_and_prev_merged, 1_c);
+                auto prev_merged = parser::get(x_index_and_prev_merged, 2_c);
+
+                auto type_at_index_wrapper = parser::get(final_types, index);
+                using x_type = typename decltype(x_type_wrapper)::type;
+                using type_at_index =
+                    typename decltype(type_at_index_wrapper)::type;
+                if constexpr (
+                    decltype(prev_merged)::kind ==
+                    merge_kind::second_pass_detect) {
+                    if constexpr (
+                        !std::is_same_v<x_type, type_at_index> &&
+                        container<type_at_index>) {
+                        return detail::hl::make_tuple(
+                            final_types,
+                            detail::hl::append(
+                                result, merge_wrap<merge_kind::merged>));
+                    } else {
+                        return detail::hl::make_tuple(
+                            final_types,
+                            detail::hl::append(
+                                result, merge_wrap<merge_kind::singleton>));
+                    }
+                } else {
+                    return detail::hl::make_tuple(
+                        final_types, detail::hl::append(result, prev_merged));
                 }
             }
         };
@@ -3553,10 +3605,14 @@ namespace boost { namespace parser {
         static constexpr auto
         merging_from_group(integral_constant<long long, I>)
         {
+            using detail::merge_wrap;
+            using detail::merge_kind;
             if constexpr (0 < I)
-                return wrap<merge_kind::group>;
+                return merge_wrap<merge_kind::group>;
+            else if constexpr (I == -1)
+                return merge_wrap<merge_kind::singleton>;
             else
-                return wrap<merge_kind::singleton>;
+                return merge_wrap<merge_kind::second_pass_detect>;
         }
 
         // Returns the tuple of values produced by this parser, and the
@@ -3621,9 +3677,19 @@ namespace boost { namespace parser {
                 result_type_wrapped, detail::unwrap{}));
 
             using indices = decltype(parser::get(combined_types{}, 2_c));
+            using first_pass_merged =
+                decltype(parser::get(combined_types{}, 1_c));
+
+            constexpr auto find_merged_start =
+                detail::hl::make_tuple(result_type_wrapped, tuple<>{});
+            using merged = decltype(detail::hl::fold_left(
+                detail::hl::zip(
+                    all_types_wrapped{}, indices{}, first_pass_merged{}),
+                find_merged_start,
+                find_merged{}));
 
             return detail::hl::make_tuple(
-                result_type{}, indices{}, parser::get(combined_types{}, 1_c));
+                result_type{}, indices{}, parser::get(merged{}, 1_c));
         }
 
 #endif
@@ -3830,6 +3896,9 @@ namespace boost { namespace parser {
             Indices const & indices,
             Merged const & merged) const
         {
+            using detail::merge_wrap;
+            using detail::merge_kind;
+
             static_assert(
                 detail::is_tuple<Attribute>{} || std::is_aggregate_v<Attribute>,
                 "");
