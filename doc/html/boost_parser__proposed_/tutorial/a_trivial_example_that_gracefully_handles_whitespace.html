@@ -23,8 +23,8 @@
         Let's modify the trivial parser we just saw to ignore any spaces it might
         find among the <code class="computeroutput"><span class="keyword">double</span></code>s and commas.
         To skip whitespace wherever we find it, we can pass a <span class="emphasis"><em>skip parser</em></span>
-        to our call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26171.html" title="Function template parse">parse()</a></code> (we don't need to touch
-        the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26171.html" title="Function template parse">parse()</a></code>).
+        to our call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code> (we don't need to touch
+        the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>).
         Here, we use <code class="computeroutput"><span class="identifier">ws</span></code>, which matches
         any Unicode whitespace character.
       </p>
@@ -59,28 +59,9 @@
 </pre>
 <p>
       </p>
-<div class="tip"><table border="0" summary="Tip">
-<tr>
-<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../images/tip.png"></td>
-<th align="left">Tip</th>
-</tr>
-<tr><td align="left" valign="top"><p>
-          Even though there is another parser <code class="computeroutput"><span class="identifier">ascii</span><span class="special">::</span><span class="identifier">space</span></code>
-          that we could have used here, and even though we know we're in a non-Unicode
-          parsing context here from the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
-          input, I did not use <code class="computeroutput"><span class="identifier">ascii</span><span class="special">::</span><span class="identifier">space</span></code>.
-          The <code class="computeroutput"><span class="identifier">ascii</span><span class="special">::</span></code>
-          namespace parsers exist mostly to aid porting from Boost.Spirit. They are
-          inherently dangerous in a Unicode environment, since they use the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">is</span><span class="special">*()</span></code>
-          functions (like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">isspace</span><span class="special">()</span></code>).
-          <code class="computeroutput"><span class="identifier">ws</span></code> is correct, plus it
-          is written in such a way that it matches the ASCII subset of values first,
-          meaning it is no less efficient to use for parsing ASCII than <code class="computeroutput"><span class="identifier">ascii</span><span class="special">::</span><span class="identifier">space</span></code>.
-        </p></td></tr>
-</table></div>
 <p>
         The skip parser, or <span class="emphasis"><em>skipper</em></span>, is run between the subparsers
-        within the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26171.html" title="Function template parse">parse()</a></code>.
+        within the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>.
         In this case, the skipper is run before the first <code class="computeroutput"><span class="keyword">double</span></code>
         is parsed, before any subsequent comma or <code class="computeroutput"><span class="keyword">double</span></code>
         is parsed, and at the end. So, the strings <code class="computeroutput"><span class="string">"3.6,5.9"</span></code>
@@ -90,7 +71,7 @@
 <p>
         Skipping is an important concept in Boost.Parser. You can skip anything,
         not just whitespace; there are lots of other things you might want to skip.
-        The skipper you pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26171.html" title="Function template parse">parse()</a></code>
+        The skipper you pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>
         can be an arbitrary parser. For example, if you write a parser for a scripting
         language, you can write a skipper to skip whitespace, inline comments, and
         end-of-line comments.
