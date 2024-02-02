@@ -1650,6 +1650,91 @@ TEST(parser, delimited)
             EXPECT_EQ(*chars, std::vector<std::string>({"yay", "yay", "yay"}));
         }
     }
+
+    {
+        constexpr auto yay = string("yay") % ',';
+        constexpr auto aww = string("aww") % ',';
+        constexpr auto parser = yay >> ',' >> aww;
+
+        {
+            std::string str = "yay, yay, yay, aww, aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(
+                *result,
+                (tuple<std::vector<std::string>, std::vector<std::string>>(
+                    std::vector<std::string>({"yay", "yay", "yay"}),
+                    std::vector<std::string>({"aww", "aww"}))));
+        }
+        {
+            std::string str = "yay, yay, yay , aww, aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(
+                *result,
+                (tuple<std::vector<std::string>, std::vector<std::string>>(
+                    std::vector<std::string>({"yay", "yay", "yay"}),
+                    std::vector<std::string>({"aww", "aww"}))));
+        }
+    }
+
+    {
+        constexpr auto yay = string("yay") % ',';
+        constexpr auto aww = string("aww") % ',';
+        constexpr auto parser = raw[yay] >> ',' >> raw[aww];
+
+        {
+            std::string str = "yay, yay, yay, aww, aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            auto subrange_0 = boost::parser::get(*result, llong<0>{});
+            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            EXPECT_EQ(subrange_0.begin(), str.begin());
+            EXPECT_EQ(subrange_0.end(), str.begin() + 13);
+            EXPECT_EQ(subrange_1.begin(), str.begin() + 15);
+            EXPECT_EQ(subrange_1.end(), str.begin() + 23);
+        }
+        {
+            std::string str = "yay, yay, yay , aww, aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            auto subrange_0 = boost::parser::get(*result, llong<0>{});
+            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            EXPECT_EQ(subrange_0.begin(), str.begin());
+            EXPECT_EQ(subrange_0.end(), str.begin() + 13);
+            EXPECT_EQ(subrange_1.begin(), str.begin() + 16);
+            EXPECT_EQ(subrange_1.end(), str.begin() + 24);
+        }
+    }
+
+    {
+        constexpr auto yay = *string("yay");
+        constexpr auto aww = *string("aww");
+        constexpr auto parser = raw[yay] >> ',' >> raw[aww];
+
+        {
+            std::string str = "yay yay yay, aww aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            auto subrange_0 = boost::parser::get(*result, llong<0>{});
+            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            EXPECT_EQ(subrange_0.begin(), str.begin());
+            EXPECT_EQ(subrange_0.end(), str.begin() + 11);
+            EXPECT_EQ(subrange_1.begin(), str.begin() + 13);
+            EXPECT_EQ(subrange_1.end(), str.begin() + 20);
+        }
+        {
+            std::string str = "yay yay yay , aww aww";
+            auto result = parse(str, parser, ws);
+            EXPECT_TRUE(result);
+            auto subrange_0 = boost::parser::get(*result, llong<0>{});
+            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            EXPECT_EQ(subrange_0.begin(), str.begin());
+            EXPECT_EQ(subrange_0.end(), str.begin() + 11);
+            EXPECT_EQ(subrange_1.begin(), str.begin() + 14);
+            EXPECT_EQ(subrange_1.end(), str.begin() + 21);
+        }
+    }
 }
 
 TEST(parser, lexeme)
