@@ -325,6 +325,8 @@ namespace boost::parser::detail { namespace text {
 
         if (detail::next(first2) == last2) {
             auto const it = parser::detail::text::find(first1, last1, *first2);
+            if (it == last1)
+                return {it, it};
             return {it, detail::next(it)};
         }
 

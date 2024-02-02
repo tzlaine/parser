@@ -125,9 +125,10 @@ TEST(no_case, match_any_within_string)
         EXPECT_TRUE(*result == U's');
     }
     {
+        // Non-Unicode parsing fails to match, since 'ß' is not treated as a
+        // single character.
         auto const result = parse("s", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 's');
+        EXPECT_FALSE(result);
     }
     {
         auto const result = parse(U"S", _trasse_p);
@@ -136,8 +137,7 @@ TEST(no_case, match_any_within_string)
     }
     {
         auto const result = parse("S", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'S');
+        EXPECT_FALSE(result);
     }
     {
         auto const result = parse(U"t", _trasse_p);
@@ -158,6 +158,10 @@ TEST(no_case, match_any_within_string)
         auto const result = parse("T", _trasse_p);
         EXPECT_TRUE(result);
         EXPECT_EQ(*result, 'T');
+    }
+    {
+        auto const result = parse("X", _trasse_p);
+        EXPECT_FALSE(result);
     }
 }
 
@@ -303,6 +307,51 @@ TEST(no_case, detail_no_case_iter)
         }
         EXPECT_EQ(folded, "sss");
         EXPECT_TRUE(first.base() == detail::text::null_sentinel);
+    }
+    {
+        auto const street = U"Straße";
+        std::string folded;
+        auto const first_const =
+            detail::no_case_iter(street, detail::text::null_sentinel);
+        auto first = first_const;
+        while (first != detail::text::null_sentinel) {
+            folded.push_back(*first);
+            ++first;
+        }
+        EXPECT_EQ(folded, "strasse");
+        EXPECT_TRUE(first.base() == detail::text::null_sentinel);
+
+        first = first_const;
+        std::u32string_view const sv = U"strasse";
+        auto mismatches = detail::text::mismatch(
+            first, detail::text::null_sentinel, sv.begin(), sv.end());
+        EXPECT_TRUE(mismatches.first == detail::text::null_sentinel);
+        EXPECT_TRUE(mismatches.second == sv.end());
+
+        {
+            first = first_const;
+            auto search_result = detail::text::search(
+                first, detail::text::null_sentinel, sv.begin(), sv.end());
+            EXPECT_TRUE(search_result.begin() == first);
+            EXPECT_TRUE(search_result.end() == detail::text::null_sentinel);
+        }
+
+        {
+            first = first_const;
+            auto search_result = detail::text::search(
+                sv.begin(), sv.end(), first, detail::text::null_sentinel);
+            EXPECT_TRUE(search_result.begin() == sv.begin());
+            EXPECT_TRUE(search_result.end() == sv.end());
+        }
+
+        {
+            detail::case_fold_array_t folded_char;
+            auto folded_last = detail::case_fold('X', folded_char.begin());
+            auto search_result = detail::text::search(
+                sv.begin(), sv.end(), folded_char.begin(), folded_last);
+            EXPECT_TRUE(search_result.begin() == sv.end());
+            EXPECT_TRUE(search_result.end() == sv.end());
+        }
     }
 }
 
