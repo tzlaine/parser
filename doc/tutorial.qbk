@@ -1013,6 +1013,14 @@ input.  This means that `parser_3` is equivalent to _e_ by itself.
 [note For this reason, writing `_e_ | p` for any parser p is considered a bug.
 Debug builds will assert when `_e_ | p` is encountered. ]
 
+[warning This kind of error is very common when _e_ is involved, and also very
+easy to detect.  However, it is possible to write `P1 >> P2`, where `P1` is a
+prefix of `P2`, such as `int_ | int >> int_`, or `repeat(4)[hex_digit] |
+repeat(8)[hex_digit]`.  This is almost certainly an error, but is impossible
+to detect in the general case _emdash_ remember that _rs_ can be separately
+compiled, and consider a pair of rules whose associated `_def` parsers are
+`int_` and `int_ >> int_`, respectively.]
+
 [endsect]
 
 [section The Parsers And Their Uses]
