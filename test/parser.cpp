@@ -2612,6 +2612,26 @@ TEST(parser, github_issue_52)
     }
 }
 
+namespace issue_90 { namespace parser {
+    const auto string =
+        '"' >> boost::parser::lexeme[*(boost::parser::char_ - '"')] > '"';
+    const auto specifier = string > ':' > string;
+}}
+
+TEST(parser, github_issue_90)
+{
+    using namespace issue_90;
+    namespace bp = boost::parser;
+
+    std::string input = R"( "dd" : "2" )";
+    std::pair<std::string, std::string> result;
+
+    auto b = bp::parse(input, parser::specifier, bp::ws, result);
+    EXPECT_TRUE(b);
+    EXPECT_EQ(result.first, "dd");
+    EXPECT_EQ(result.second, "2");
+}
+
 TEST(parser, no_need_for_sprit_2_hold_directive)
 {
     namespace bp = boost::parser;
