@@ -56,12 +56,6 @@ This library targets submission to Boost.
 
 Online docs: https://tzlaine.github.io/parser
 
-You can try master/HEAD on Compiler Explorer, as a unified header.  Just
-`#include` it like this:
-```c++
-#include <https://raw.githubusercontent.com/tzlaine/parser/single_header/include/boost/parser/parser_unified.hpp>
-```
-
 Master status:
 
 ![example workflow](https://github.com/tzlaine/parser/actions/workflows/ubuntu-20.04.yml/badge.svg?branch=master)
