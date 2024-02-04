@@ -1479,7 +1479,8 @@ namespace boost { namespace parser {
             char32_t operator*() const { return folded_[idx_]; }
             no_case_iter & operator++()
             {
-                if (last_idx_ <= ++idx_) {
+                ++idx_;
+                if (last_idx_ <= idx_) {
                     ++it_;
                     fold();
                 }
@@ -1508,6 +1509,7 @@ namespace boost { namespace parser {
                 idx_ = 0;
                 if (it_ == last_) {
                     folded_[0] = 0;
+                    last_idx_ = 1;
                     return;
                 }
                 auto const folded_last =

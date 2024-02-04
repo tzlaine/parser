@@ -943,23 +943,23 @@ namespace boost::parser::detail { namespace text {
 #else
         template<typename I>
 #endif
-        friend constexpr auto operator==(I it, null_sentinel_t)
+        friend constexpr bool operator==(I it, null_sentinel_t)
         {
             return *it == detail::iter_value_t<I>{};
         }
 #if !defined(__cpp_impl_three_way_comparison)
         template<typename I>
-        friend constexpr auto operator==(null_sentinel_t, I it)
+        friend constexpr bool operator==(null_sentinel_t, I it)
         {
             return *it == detail::iter_value_t<I>{};
         }
         template<typename I>
-        friend constexpr auto operator!=(I it, null_sentinel_t)
+        friend constexpr bool operator!=(I it, null_sentinel_t)
         {
             return *it != detail::iter_value_t<I>{};
         }
         template<typename I>
-        friend constexpr auto operator!=(null_sentinel_t, I it)
+        friend constexpr bool operator!=(null_sentinel_t, I it)
         {
             return *it != detail::iter_value_t<I>{};
         }

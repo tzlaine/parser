@@ -31,9 +31,16 @@ namespace boost { namespace parser {
     template<typename T>
     constexpr bool enable_optional = false;
 
+    /** A variable template that indicates that type `T` is an variant-like
+        type. */
+    template<typename T>
+    constexpr bool enable_variant = false;
+
 #ifndef BOOST_PARSER_DOXYGEN
     template<typename T>
     constexpr bool enable_optional<std::optional<T>> = true;
+    template<typename... Ts>
+    constexpr bool enable_variant<std::variant<Ts...>> = true;
 #endif
 
     namespace detail {

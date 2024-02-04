@@ -109,11 +109,11 @@ TEST(replace, replace)
         EXPECT_EQ(count, 3);
     }
     {
-        char const str[] = "aaXYZbaabaXYZ";
+        char const str[] = "a a XYZ baa ba XYZ";
         auto r =
             str | bp::replace(bp::lit("XYZ"), bp::ws, "foo", bp::trace::off);
         int count = 0;
-        std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
+        std::string_view const strs[] = {"a a ", "foo", " baa ba ", "foo"};
         for (auto subrange : r) {
             std::string str(subrange.begin(), subrange.end());
             EXPECT_EQ(str, strs[count]);
