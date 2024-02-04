@@ -2392,6 +2392,63 @@ the individual parsers; the top-level parse can determine what the expected
 attribute is, but not whether a passed attribute of another type is a suitable
 stand-in.
 
+[heading Compatibility of `variant` attribute out-parameters]
+
+The use of a variant in an out-param is compatible if the default attribute
+can be assigned to the `variant`.  No other work is done to make the
+assignment compatible.  For instance, this will work as you'd expect:
+
+    namespace bp = boost::parser;
+    std::variant<int, double> v;
+    auto b = bp::parse("42", bp::int_, v);
+    assert(b);
+    assert(v.index() == 0);
+    assert(std::get<0>(v) == 42);
+
+Again, this works because `v = 42` is well-formed.  However, other kinds of
+substitutions will not work.  In particular, the _bp_tup_ to aggregate or
+aggregate to _bp_tup_ transformations will not work.  Here's an example.
+
+    struct key_value
+    {
+        int key;
+        double value;
+    };
+
+    namespace bp = boost::parser;
+    std::variant<key_value, double> kv_or_d;
+    key_value kv;
+    bp::parse("42 13.0", bp::int_ >> bp::double_, kv);      // Ok.
+    bp::parse("42 13.0", bp::int_ >> bp::double_, kv_or_d); // Error: ill-formed!
+
+In this case, it would be easy for _Parser_ to look at the alternative types
+covered by the variant, and do a conversion.  However, there are many cases in
+which there is no obviously correct variant alternative type, or in which the
+user might expect one variant alternative type and get another.  Consider a
+couple of cases.
+
+    struct i_d { int i; double d; };
+    struct d_i { double d; int i; };
+    using v1 = std::variant<i_d, d_i>;
+
+    struct i_s { int i; short s; };
+    struct d_d { double d1; double d2; };
+    using v2 = std::variant<i_s, d_d>;
+
+    using tup_t = boost::parser::tuple<short, short>;
+
+If we have a parser that produces a `tup_t`, and we have a `v1` attribute
+out-param, the correct variant alternative type clearly does not exist
+_emdash_ this case is ambiguous, and anyone can see that neither variant
+alternative is a better match.  If we were assigning a `tup_t` to `v2`, it's
+even worse.  The same ambiguity exists, but to the user, `i_s` is clearly
+"closer" than `d_d`.
+
+So, _Parser_ only does assignment.  If some parser `P` generates a default
+attribute that is not assignable to a variant alternative that you want to
+assign it to, you can just create a _r_ that creates either an exact variant
+alternative type, or the variant itself, and use `P` as your rule's parser.
+
 [heading Unicode versus non-Unicode parsing]
 
 A call to _p_ either considers the entire input to be in a UTF format (UTF-8,

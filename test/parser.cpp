@@ -2688,3 +2688,20 @@ TEST(parser, string_view_doc_example)
     static_assert(std::is_same_v<decltype(sv2), std::optional<std::string_view>>);
 }
 #endif
+
+TEST(parser, variant_compat_example)
+{
+    struct key_value
+    {
+        int key;
+        double value;
+    };
+
+    namespace bp = boost::parser;
+    std::variant<key_value, double> kv_or_d;
+    key_value kv;
+    bp::parse("42 13.0", bp::int_ >> bp::double_, kv);      // Ok.
+#if 0
+    bp::parse("42 13.0", bp::int_ >> bp::double_, kv_or_d); // Error: ill-formed!
+#endif
+}
