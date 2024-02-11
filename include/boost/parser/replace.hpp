@@ -699,8 +699,8 @@ constexpr bool std::ranges::enable_borrowed_range<boost::parser::replace_view<
     Parser,
     GlobalState,
     ErrorHandler,
-    SkipParser>> =
-    enable_borrowed_range<V> && enable_borrowed_range<ReplacementV>;
+    SkipParser>> = std::ranges::enable_borrowed_range<V> &&
+    std::ranges::enable_borrowed_range<ReplacementV>;
 #endif
 
 #endif

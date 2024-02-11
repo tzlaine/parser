@@ -667,7 +667,7 @@ template<
 constexpr bool std::ranges::enable_borrowed_range<
     boost::parser::
         search_all_view<V, Parser, GlobalState, ErrorHandler, SkipParser>> =
-    enable_borrowed_range<V>;
+    std::ranges::enable_borrowed_range<V>;
 #endif
 
 #endif

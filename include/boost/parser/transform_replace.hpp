@@ -10,6 +10,10 @@ namespace boost::parser {
 
     namespace detail {
 
+        template<typename F>
+        constexpr bool tidy_func = std::is_trivially_copyable_v<F> &&
+                                   sizeof(F) <= sizeof(void *) * 2;
+
         template<typename I, typename S, typename Parser>
         using attr_type = decltype(std::declval<Parser const &>().call(
             std::bool_constant<false>{},
@@ -342,7 +346,7 @@ namespace boost::parser {
               ErrorHandler,
               SkipParser>>
     {
-        //private:
+    private:
         using attr_t = detail::range_attr_t<V, Parser>;
         using replacement_range = std::invoke_result_t<F &, attr_t>;
 
@@ -813,8 +817,7 @@ namespace boost::parser {
 #endif
 }
 
-// TODO: Conditional borrowability.
-#if 0 // BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 template<
     typename V,
     typename F,
@@ -822,14 +825,16 @@ template<
     typename GlobalState,
     typename ErrorHandler,
     typename SkipParser>
-constexpr bool std::ranges::enable_borrowed_range<boost::parser::replace_view<
-    V,
-    F,
-    Parser,
-    GlobalState,
-    ErrorHandler,
-    SkipParser>> =
-    enable_borrowed_range<V> && enable_borrowed_range<F>;
+constexpr bool
+    std::ranges::enable_borrowed_range<boost::parser::transform_replace_view<
+        V,
+        F,
+        Parser,
+        GlobalState,
+        ErrorHandler,
+        SkipParser>> = std::ranges::enable_borrowed_range<V> &&
+                       (std::ranges::enable_borrowed_range<F> ||
+                        boost::parser::detail::tidy_func<F>);
 #endif
 
 #endif
