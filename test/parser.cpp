@@ -2818,3 +2818,33 @@ TEST(parser, variant_compat_example)
     bp::parse("42 13.0", bp::int_ >> bp::double_, kv_or_d); // Error: ill-formed!
 #endif
 }
+
+
+namespace rule_construction_example {
+    struct type_t
+    {
+        type_t() = default;
+        explicit type_t(double x) : x_(x) {}
+        // etc.
+
+        double x_;
+    };
+
+    namespace bp = boost::parser;
+
+    auto doubles_to_type = [](auto & ctx) {
+        using namespace bp::literals;
+        _val(ctx) = type_t(_attr(ctx)[0_c] * _attr(ctx)[1_c]);
+    };
+
+    bp::rule<struct type_tag, type_t> type = "type";
+    auto const type_def = (bp::double_ >> bp::double_)[doubles_to_type];
+    BOOST_PARSER_DEFINE_RULES(type);
+}
+
+TEST(parser, rule_example)
+{
+    namespace bp = boost::parser;
+    using namespace rule_construction_example;
+    EXPECT_TRUE(bp::parse("3 4", type, bp::ws));
+}

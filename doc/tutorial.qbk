@@ -2640,6 +2640,44 @@ attribute flexibility we want across our code:
 Now we have one of each, and we did not have to copy any parsing logic that
 would have to be maintained in two places.
 
+Sometimes, you need to create a rule to enforce a certain attribute type, but
+the rule's attribute is not constructible from its parser's attribute.  When
+that happens, you'll need to write a semantic action.
+
+    struct type_t
+    {
+        type_t() = default;
+        explicit type_t(double x) : x_(x) {}
+        // etc.
+
+        double x_;
+    };
+
+    namespace bp = boost::parser;
+
+    auto doubles_to_type = [](auto & ctx) {
+        using namespace bp::literals;
+        _val(ctx) = type_t(_attr(ctx)[0_c] * _attr(ctx)[1_c]);
+    };
+
+    bp::rule<struct type_tag, type_t> type = "type";
+    auto const type_def = (bp::double_ >> bp::double_)[doubles_to_type];
+    BOOST_PARSER_DEFINE_RULES(type);
+
+For a rule `R` and its parser `P`, we do not need to write such a semantic
+action if:
+
+- `_ATTR_np_(R)` is an aggregate, and `_ATTR_np_(P)` is a compatible tuple;
+
+- `_ATTR_np_(R)` is a tuple, and `_ATTR_np_(P)` is a compatible aggregate;
+
+- `_ATTR_np_(R)` is a non-aggregate class type `C`, and `_ATTR_np_(P)` is a
+  tuple whose elements can be used to construct `C`; or
+
+- `_ATTR_np_(R)` and `_ATTR_np_(P)` are compatible types.
+
+The notion of "compatible" is defined in _p_api_.
+
 [heading Creating a parser for better diagnostics]
 
 Each _r_ has associated diagnostic text that _Parser_ can use for failures of
