@@ -518,11 +518,9 @@ namespace boost::parser::detail { namespace text {
         }
 
     public:
-        constexpr utf_view()
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-            requires std::default_initializable<V>
+        constexpr utf_view() requires std::default_initializable<V> = default;
 #endif
-        = default;
         constexpr utf_view(V base) : base_{std::move(base)} {}
 
         constexpr V base() const &

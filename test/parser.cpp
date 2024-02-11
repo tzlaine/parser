@@ -1852,6 +1852,99 @@ TEST(parser, lexeme)
             }
         }
     }
+
+    {
+        auto const parser = string("abc");
+
+        // Follows the parser used in transform_replace().
+        auto before = [&](auto & ctx) {};
+        auto after = [&](auto & ctx) {};
+        auto const search_parser =
+            omit[*(char_ - parser)] >>
+            -lexeme[eps[before] >> skip[parser] >> eps[after]];
+
+        {
+            std::string str = "abc";
+            std::optional<std::string> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, "abc");
+
+            {
+                std::string str = "abc";
+                auto first = detail::text::detail::begin(str);
+                auto last = detail::text::detail::end(str);
+                auto const result =
+                    prefix_parse(first, last, search_parser, char_(' '));
+                static_assert(std::is_same_v<
+                              decltype(result),
+                              std::optional<std::optional<std::string>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, "abc");
+            }
+        }
+        {
+            std::string str = " abc";
+            std::optional<std::string> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, "abc");
+
+            {
+                std::string str = " abc";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(std::is_same_v<
+                              decltype(result),
+                              std::optional<std::optional<std::string>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, "abc");
+            }
+        }
+    }
+
+    {
+        auto const parser = int_ % ',';
+
+        // Follows the parser used in transform_replace().
+        auto before = [&](auto & ctx) {};
+        auto after = [&](auto & ctx) {};
+        auto const search_parser =
+            omit[*(char_ - parser)] >>
+            -lexeme[eps[before] >> skip[parser] >> eps[after]];
+
+        {
+            std::string str = "1, 2, 4";
+            std::optional<std::vector<int>> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, std::vector<int>({1, 2, 4}));
+
+            {
+                std::string str = "1, 2, 4";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(
+                    std::is_same_v<
+                        decltype(result),
+                        std::optional<std::optional<std::vector<int>>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, std::vector<int>({1, 2, 4}));
+            }
+        }
+        {
+            std::string str = " 1, 2, 4";
+            std::optional<std::vector<int>> result;
+            EXPECT_TRUE(parse(str, search_parser, char_(' '), result));
+            EXPECT_EQ(*result, std::vector<int>({1, 2, 4}));
+
+            {
+                std::string str = " 1, 2, 4";
+                auto const result = parse(str, search_parser, char_(' '));
+                static_assert(
+                    std::is_same_v<
+                        decltype(result),
+                        std::optional<std::optional<std::vector<int>>> const>);
+                EXPECT_TRUE(result);
+                EXPECT_EQ(**result, std::vector<int>({1, 2, 4}));
+            }
+        }
+    }
 }
 
 TEST(parser, skip)
@@ -2612,6 +2705,26 @@ TEST(parser, github_issue_52)
     }
 }
 
+namespace issue_90 { namespace parser {
+    const auto string =
+        '"' >> boost::parser::lexeme[*(boost::parser::char_ - '"')] > '"';
+    const auto specifier = string > ':' > string;
+}}
+
+TEST(parser, github_issue_90)
+{
+    using namespace issue_90;
+    namespace bp = boost::parser;
+
+    std::string input = R"( "dd" : "2" )";
+    std::pair<std::string, std::string> result;
+
+    auto b = bp::parse(input, parser::specifier, bp::ws, result);
+    EXPECT_TRUE(b);
+    EXPECT_EQ(result.first, "dd");
+    EXPECT_EQ(result.second, "2");
+}
+
 TEST(parser, no_need_for_sprit_2_hold_directive)
 {
     namespace bp = boost::parser;
@@ -2704,4 +2817,35 @@ TEST(parser, variant_compat_example)
 #if 0
     bp::parse("42 13.0", bp::int_ >> bp::double_, kv_or_d); // Error: ill-formed!
 #endif
+}
+
+
+namespace rule_construction_example {
+    struct type_t
+    {
+        type_t() = default;
+        explicit type_t(double x) : x_(x) {}
+        // etc.
+
+        double x_;
+    };
+
+    namespace bp = boost::parser;
+
+    auto doubles_to_type = [](auto & ctx) {
+        _val(ctx) = type_t(
+            bp::get(_attr(ctx), bp::llong<0>{}) *
+            bp::get(_attr(ctx), bp::llong<1>{}));
+    };
+
+    bp::rule<struct type_tag, type_t> type = "type";
+    auto const type_def = (bp::double_ >> bp::double_)[doubles_to_type];
+    BOOST_PARSER_DEFINE_RULES(type);
+}
+
+TEST(parser, rule_example)
+{
+    namespace bp = boost::parser;
+    using namespace rule_construction_example;
+    EXPECT_TRUE(bp::parse("3 4", type, bp::ws));
 }

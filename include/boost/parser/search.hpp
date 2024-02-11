@@ -82,6 +82,9 @@ namespace boost::parser {
             }
         };
 
+        template<typename R>
+        using to_range_t = decltype(to_range<R>::call(std::declval<R>()));
+
         struct phony
         {};
 
@@ -533,7 +536,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_search_all_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     Parser,
                     GlobalState,
                     ErrorHandler,
@@ -560,7 +563,7 @@ namespace boost::parser {
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
                 can_search_all_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     Parser,
                     GlobalState,
                     ErrorHandler,
@@ -664,7 +667,7 @@ template<
 constexpr bool std::ranges::enable_borrowed_range<
     boost::parser::
         search_all_view<V, Parser, GlobalState, ErrorHandler, SkipParser>> =
-    enable_borrowed_range<V>;
+    std::ranges::enable_borrowed_range<V>;
 #endif
 
 #endif

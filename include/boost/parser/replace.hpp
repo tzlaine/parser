@@ -8,8 +8,6 @@
 
 namespace boost::parser {
 
-    // TODO: transform_replace.
-
     namespace detail {
         template<typename T, bool = std::is_pointer_v<remove_cv_ref_t<T>>>
         constexpr auto range_value_type =
@@ -21,39 +19,51 @@ namespace boost::parser {
         template<typename T>
         constexpr text::format range_utf_format()
         {
-            using value_t = typename decltype(range_value_type<T>)::type;
-            if constexpr (std::is_same_v<value_t, char>) {
-                return no_format;
-#if defined(__cpp_char8_t)
-            } else if constexpr (std::is_same_v<value_t, char8_t>) {
+#if !BOOST_PARSER_USE_CONCEPTS
+            // Special case: the metafunctions above will not detect char8_t
+            // in C++17 mode, since it does not exit yet!  So, we need to
+            // detect utf8_view in particular, and know that its use implies
+            // format::utf8.
+            if constexpr (is_utf8_view<T>{}) {
                 return format::utf8;
-#endif
-            } else if constexpr (
-                std::is_same_v<value_t, char16_t>
-#ifdef _MSC_VER
-                || std::is_same_v<T, wchar_t>
-#endif
-            ) {
-                return format::utf16;
-            } else if constexpr (
-                std::is_same_v<value_t, char32_t>
-#ifndef _MSC_VER
-                || std::is_same_v<T, wchar_t>
-#endif
-            ) {
-                return format::utf32;
             } else {
-                static_assert(
-                    sizeof(T) && false,
-                    "Looks like you're trying to pass a range to replace or "
-                    "transform_replace that has a non-character type for its "
-                    "value type.  This is not supported.");
+#endif
+                using value_t = typename decltype(range_value_type<T>)::type;
+                if constexpr (std::is_same_v<value_t, char>) {
+                    return no_format;
+#if defined(__cpp_char8_t)
+                } else if constexpr (std::is_same_v<value_t, char8_t>) {
+                    return format::utf8;
+#endif
+                } else if constexpr (
+                    std::is_same_v<value_t, char16_t>
+#ifdef _MSC_VER
+                    || std::is_same_v<T, wchar_t>
+#endif
+                ) {
+                    return format::utf16;
+                } else if constexpr (
+                    std::is_same_v<value_t, char32_t>
+#ifndef _MSC_VER
+                    || std::is_same_v<T, wchar_t>
+#endif
+                ) {
+                    return format::utf32;
+                } else {
+                    static_assert(
+                        sizeof(T) && false,
+                        "Looks like you're trying to pass a range to replace "
+                        "or transform_replace that has a non-character type "
+                        "for its value type.  This is not supported.");
+                }
+#if !BOOST_PARSER_USE_CONCEPTS
             }
+#endif
         }
 
         template<typename T>
         constexpr text::format
-            range_utf_format_v = detail::range_utf_format<T>();
+            range_utf_format_v = detail::range_utf_format<remove_cv_ref_t<T>>();
 
         template<typename V1, typename V2>
         using concat_reference_t =
@@ -521,7 +531,7 @@ namespace boost::parser {
                  std::ranges::viewable_range<ReplacementR>) &&
                 // clang-format on
                 can_replace_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     decltype(to_range<
                              ReplacementR,
                              true,
@@ -567,7 +577,7 @@ namespace boost::parser {
                  std::ranges::viewable_range<ReplacementR>) &&
                 // clang-format on
                 can_replace_view<
-                    decltype(to_range<R>::call(std::declval<R>())),
+                    to_range_t<R>,
                     decltype(to_range<
                              ReplacementR,
                              true,
@@ -701,8 +711,8 @@ constexpr bool std::ranges::enable_borrowed_range<boost::parser::replace_view<
     Parser,
     GlobalState,
     ErrorHandler,
-    SkipParser>> =
-    enable_borrowed_range<V> && enable_borrowed_range<ReplacementV>;
+    SkipParser>> = std::ranges::enable_borrowed_range<V> &&
+    std::ranges::enable_borrowed_range<ReplacementV>;
 #endif
 
 #endif

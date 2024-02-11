@@ -251,6 +251,18 @@ There are lots of functions like `_attr()` that can be used to access the
 state in the parse context.  We'll cover more of them later on.  _parse_ctx_
 defines what exactly the parse context is and how it works.
 
+Note that you can't write an unadorned lambda directly as a semantic action.
+Otherwise, the compile will see two `'['` characters and think it's about to
+parse an attribute.  Parentheses fix this:
+
+    p[([](auto & ctx){/*...*/})]
+
+Before you do this, note that the lambdas that you write as semantic actions
+are almost always generic (having an `auto & ctx` parameter), and so are very
+frequently re-usable.  Most semantic action lambdas you write should be
+written out-of-line, and given a good name.  Even when they are not reused,
+named lambdas keep your parsers smaller and easier to read.
+
 [endsect]
 
 [section Parsing to Find Subranges]
@@ -1453,9 +1465,9 @@ could use this parser for the digits at the end:
 
 A directive is an element of your parser that doesn't have any meaning by
 itself.  Some are second-order parsers that need a first-order parser to do
-the actual parsing.  Others influence the parse in some way.  Lexically, you
-can spot a directive by its use of `[]`.  Non-directives never use `[]`, and
-directives always do.
+the actual parsing.  Others influence the parse in some way.  You can often
+spot a directive lexically by its use of `[]`; directives always `[]`.
+Non-directives might, but only when attaching a semantic action.
 
 The directives that are second order parsers are technically directives, but
 since they are also used to create parsers, it is more useful just to focus on
@@ -2628,6 +2640,44 @@ attribute flexibility we want across our code:
 Now we have one of each, and we did not have to copy any parsing logic that
 would have to be maintained in two places.
 
+Sometimes, you need to create a rule to enforce a certain attribute type, but
+the rule's attribute is not constructible from its parser's attribute.  When
+that happens, you'll need to write a semantic action.
+
+    struct type_t
+    {
+        type_t() = default;
+        explicit type_t(double x) : x_(x) {}
+        // etc.
+
+        double x_;
+    };
+
+    namespace bp = boost::parser;
+
+    auto doubles_to_type = [](auto & ctx) {
+        using namespace bp::literals;
+        _val(ctx) = type_t(_attr(ctx)[0_c] * _attr(ctx)[1_c]);
+    };
+
+    bp::rule<struct type_tag, type_t> type = "type";
+    auto const type_def = (bp::double_ >> bp::double_)[doubles_to_type];
+    BOOST_PARSER_DEFINE_RULES(type);
+
+For a rule `R` and its parser `P`, we do not need to write such a semantic
+action if:
+
+- `_ATTR_np_(R)` is an aggregate, and `_ATTR_np_(P)` is a compatible tuple;
+
+- `_ATTR_np_(R)` is a tuple, and `_ATTR_np_(P)` is a compatible aggregate;
+
+- `_ATTR_np_(R)` is a non-aggregate class type `C`, and `_ATTR_np_(P)` is a
+  tuple whose elements can be used to construct `C`; or
+
+- `_ATTR_np_(R)` and `_ATTR_np_(P)` are compatible types.
+
+The notion of "compatible" is defined in _p_api_.
+
 [heading Creating a parser for better diagnostics]
 
 Each _r_ has associated diagnostic text that _Parser_ can use for failures of
@@ -3122,10 +3172,10 @@ range.
     }
     assert(replace_result == "fooaafoobaabafoofoo");
 
-Note that we could not have written `std::string replace_result(r.begin(),
+Note that we could *not* have written `std::string replace_result(r.begin(),
 r.end())`.  This is ill-formed because the `std::string` range constructor
-takes two iterators, but `decltype(rng.end())` is a sentinel type different
-from `decltype(rng.begin())`.
+takes two iterators of the same type, but `decltype(rng.end())` is a sentinel
+type different from `decltype(rng.begin())`.
 
 Though the ranges `r` and `replacement` can both be C-style strings,
 _replace_v_ must know the end of `replacement` before it does any work.  This
@@ -3145,12 +3195,11 @@ sequences.  So calls like this won't work:
     char const str[] = "some text";
     char const replacement_str[] = "some text";
     using namespace bp = boost::parser;
-    auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8);
+    auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8); // Error: ill-formed!  Can't mix plain-char inputs and UTF replacements.
 
-Notice that this does not work, even though `char` and UTF-8 are the same
-size.  If `r` and `replacement` are both sequences of `char`, everything will
-work of course.  It's just mixing `char` and UTF-encoded sequences that does
-not work.
+This does not work, even though `char` and UTF-8 are the same size.  If `r`
+and `replacement` are both sequences of `char`, everything will work of
+course.  It's just mixing `char` and UTF-encoded sequences that does not work.
 
 All the details called out in the subsection on _search_ above apply to
 _replace_: its parser produces no attributes; it accepts C-style strings for
@@ -3161,6 +3210,67 @@ in typical cases.
 _replace_ can be called with, and _replace_v_ can be constructed with, a skip
 parser or not, and you can always pass _trace_ at the end of any of their
 overloads.
+
+[heading _trans_replace_]
+
+[important _trans_replace_ and _trans_replace_v_ are not available on MSVC in
+C++17 mode.]
+
+[important _trans_replace_ and _trans_replace_v_ are not available on GCC in
+C++20 mode before GCC 12.]
+
+_trans_replace_ creates _trans_replace_vs_.  _trans_replace_v_ is a
+`std::views`-style view.  It produces a range of subranges from the parsed
+range `r` and the given invocable `f`.  Wherever in the parsed range a match
+to the given parser `parser` is found, let `parser`'s attribute be `attr`;
+`f(std::move(attr))` is the subrange produced.  Each subrange of `r` that does
+not match `parser` is produced as a subrange as well.  The subranges are
+produced in the order in which they occur in `r`.  Unlike _split_v_,
+_trans_replace_v_ does not produce empty subranges, unless
+`f(std::move(attr))` is empty.  Here is an example.
+
+     auto string_sum = [](std::vector<int> const & ints) {
+         return std::to_string(std::accumulate(ints.begin(), ints.end(), 0));
+     };
+
+     auto rng = "There are groups of [1, 2, 3, 4, 5] in the set." |
+                bp::transform_replace('[' >> bp::int_ % ',' >> ']', bp::ws, string_sum);
+     int count = 0;
+     // Prints "There are groups of 15 in the set".
+     for (auto subrange : rng) {
+         for (auto ch : subrange) {
+             std::cout << ch;
+         }
+         ++count;
+     }
+     std::cout << "\n";
+     assert(count == 3);
+
+Let the type `decltype(f(std::move(attr)))` be `Replacement`.  `Replacement`
+must be a range, and must be compatible with `r`.  See the description of
+_replace_v_'s iterator compatibility requirements in the section above for
+details.
+
+As with _replace_, _trans_replace_ can be flattened from a view of subranges
+into a view of elements by piping it to `std::views::join`.  See the section
+on _replace_ above for an example.
+
+Just like _replace_ and _replace_v_, _trans_replace_ and _trans_replace_v_ do
+silent transcoding of the result to the appropriate UTF, if applicable.  If
+both `r` and `f(std::move(attr))` are ranges of `char`, or are both the same
+UTF, no transcoding occurs.  If one of `r` and `f(std::move(attr))` is a range
+of `char` and the other is some UTF, the program is ill-formed.
+
+_trans_replace_v_ will move each attribute into `f`; `f` may move from the
+argument or copy it as desired.  `f` may return an lvalue reference.  If it
+does so, the address of the reference will be taken and stored within
+_trans_replace_v_.  Otherwise, the value returned by `f` is moved into
+_trans_replace_v_.  In either case, the value type of _trans_replace_v_ is
+always a subrange.
+
+_trans_replace_ can be called with, and _trans_replace_v_ can be constructed
+with, a skip parser or not, and you can always pass _trace_ at the end of any
+of their overloads.
 
 [endsect]
 

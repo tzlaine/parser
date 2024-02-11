@@ -1807,8 +1807,8 @@ namespace boost { namespace parser {
         }
 
         template<typename Container>
-        constexpr void move_back(
-            Container & c, std::optional<Container> & x, bool gen_attrs)
+        constexpr void
+        move_back(Container & c, std::optional<Container> && x, bool gen_attrs)
         {
             if (!gen_attrs || !x)
                 return;
@@ -1824,7 +1824,10 @@ namespace boost { namespace parser {
             detail::move_back_impl(c, std::move(*x));
         }
 
-        template<typename Container, typename T>
+        template<
+            typename Container,
+            typename T,
+            typename Enable = std::enable_if_t<!std::is_same_v<Container, T>>>
         constexpr void
         move_back(Container & c, std::optional<T> && x, bool gen_attrs)
         {
@@ -2892,6 +2895,7 @@ namespace boost { namespace parser {
                             success);
                         if (!success) {
                             success = true;
+                            first = prev_first;
                             break;
                         }
                     }
@@ -3998,11 +4002,18 @@ namespace boost { namespace parser {
                         }
                         return;
                     }
-                    if constexpr (out_container) {
+                    using just_x = attr_t;
+                    using just_out = detail::remove_cv_ref_t<decltype(out)>;
+                    if constexpr (
+                        (!out_container ||
+                         !std::is_same_v<just_x, just_out>) &&
+                        std::is_assignable_v<just_out &, just_x &&> &&
+                        (!std::is_same_v<just_out, std::string> ||
+                         !std::is_integral_v<just_x>)) {
+                        detail::assign(out, std::move(x));
+                    } else {
                         detail::move_back(
                             out, std::move(x), detail::gen_attrs(flags));
-                    } else {
-                        detail::assign(out, std::move(x));
                     }
                 }
             };

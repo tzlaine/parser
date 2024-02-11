@@ -89,6 +89,9 @@
 [def _replace_             [globalref boost::parser::replace `boost::parser::replace`]]
 [def _replace_v_           [classref boost::parser::replace_view `boost::parser::replace_view`]]
 [def _replace_vs_          [classref boost::parser::replace_view `boost::parser::replace_view`s]]
+[def _trans_replace_       [globalref boost::parser::transform_replace `boost::parser::transform_replace`]]
+[def _trans_replace_v_     [classref boost::parser::transform_replace_view `boost::parser::transform_replace_view`]]
+[def _trans_replace_vs_    [classref boost::parser::transform_replace_view `boost::parser::transform_replace_view`s]]
 
 
 [def _std_str_             `std::string`]

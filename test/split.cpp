@@ -189,7 +189,7 @@ TEST(split, split_unicode)
     {
         char const str_[] = "aaXYZbaabaXYZ";
         auto str = str_ | bp::as_utf8;
-        auto r = str | bp::split(bp::lit("XYZ"), bp::trace::off);
+        const auto r = str | bp::split(bp::lit("XYZ"), bp::trace::off);
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
