@@ -2833,8 +2833,9 @@ namespace rule_construction_example {
     namespace bp = boost::parser;
 
     auto doubles_to_type = [](auto & ctx) {
-        using namespace bp::literals;
-        _val(ctx) = type_t(_attr(ctx)[0_c] * _attr(ctx)[1_c]);
+        _val(ctx) = type_t(
+            bp::get(_attr(ctx), bp::llong<0>{}) *
+            bp::get(_attr(ctx), bp::llong<1>{}));
     };
 
     bp::rule<struct type_tag, type_t> type = "type";
