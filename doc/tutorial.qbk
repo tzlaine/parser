@@ -3213,6 +3213,10 @@ must be a range, and must be compatible with `r`.  See the description of
 _replace_v_'s iterator compatibility requirements in the section above for
 details.
 
+As with _replace_, _trans_replace_ can be flattened from a view of subranges
+into a view of elements by piping it to `std::views::join`.  See the section
+on _replace_ above for an example.
+
 Just like _replace_ and _replace_v_, _trans_replace_ and _trans_replace_v_ do
 silent transcoding of the result to the appropriate UTF, if applicable.  If
 both `r` and `f(std::move(attr))` are ranges of `char`, or are both the same
