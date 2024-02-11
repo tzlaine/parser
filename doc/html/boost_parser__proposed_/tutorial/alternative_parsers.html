@@ -63,6 +63,25 @@
           <span class="identifier">p</span></code> is encountered.
         </p></td></tr>
 </table></div>
+<div class="warning"><table border="0" summary="Warning">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Warning]" src="../../images/warning.png"></td>
+<th align="left">Warning</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          This kind of error is very common when <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code> is involved, and also
+          very easy to detect. However, it is possible to write <code class="computeroutput"><span class="identifier">P1</span>
+          <span class="special">&gt;&gt;</span> <span class="identifier">P2</span></code>,
+          where <code class="computeroutput"><span class="identifier">P1</span></code> is a prefix of
+          <code class="computeroutput"><span class="identifier">P2</span></code>, such as <code class="computeroutput"><span class="identifier">int_</span> <span class="special">|</span> <span class="keyword">int</span> <span class="special">&gt;&gt;</span> <span class="identifier">int_</span></code>, or <code class="computeroutput"><span class="identifier">repeat</span><span class="special">(</span><span class="number">4</span><span class="special">)[</span><span class="identifier">hex_digit</span><span class="special">]</span>
+          <span class="special">|</span> <span class="identifier">repeat</span><span class="special">(</span><span class="number">8</span><span class="special">)[</span><span class="identifier">hex_digit</span><span class="special">]</span></code>.
+          This is almost certainly an error, but is impossible to detect in the general
+          case — remember that <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code> can be separately compiled,
+          and consider a pair of rules whose associated <code class="computeroutput"><span class="identifier">_def</span></code>
+          parsers are <code class="computeroutput"><span class="identifier">int_</span></code> and <code class="computeroutput"><span class="identifier">int_</span> <span class="special">&gt;&gt;</span>
+          <span class="identifier">int_</span></code>, respectively.
+        </p></td></tr>
+</table></div>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

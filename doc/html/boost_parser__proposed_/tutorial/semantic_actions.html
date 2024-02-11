@@ -105,6 +105,22 @@ You entered:
         Parse Context</a> defines what exactly the parse context is and how it
         works.
       </p>
+<p>
+        Note that you can't write an unadorned lambda directly as a semantic action.
+        Otherwise, the compile will see two <code class="computeroutput"><span class="char">'['</span></code>
+        characters and think it's about to parse an attribute. Parentheses fix this:
+      </p>
+<pre class="programlisting"><span class="identifier">p</span><span class="special">[([](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">){/*...*/})]</span>
+</pre>
+<p>
+        Before you do this, note that the lambdas that you write as semantic actions
+        are almost always generic (having an <code class="computeroutput"><span class="keyword">auto</span>
+        <span class="special">&amp;</span> <span class="identifier">ctx</span></code>
+        parameter), and so are very frequently re-usable. Most semantic action lambdas
+        you write should be written out-of-line, and given a good name. Even when
+        they are not reused, named lambdas keep your parsers smaller and easier to
+        read.
+      </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

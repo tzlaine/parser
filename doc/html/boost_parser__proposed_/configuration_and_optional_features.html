@@ -56,24 +56,30 @@
       Boost.Parser automatically treats aggregate <code class="computeroutput"><span class="keyword">struct</span></code>s
       as if they were tuples in many cases. There is some metaprogramming logic that
       makes this work, and this logic has a hard limit on the size of a <code class="computeroutput"><span class="keyword">struct</span></code> that it can operate on. There is a configuration
-      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm21640.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
+      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm22559.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
       that you can adjust if the default value is too small. Note that turning this
       value up significantly can significantly increase compile times. Also, MSVC
       seems to have a hard time with large values; I successfully set this value
       to <code class="computeroutput"><span class="number">50</span></code> on MSVC, but <code class="computeroutput"><span class="number">100</span></code> broke the MSVC build entirely.
     </p>
 <p>
-      Boost.Parser uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code> internally. There is no way to change
-      this. However, when Boost.Parser generates values as a result of the parse
-      (see <a class="link" href="tutorial/attribute_generation.html" title="Attribute Generation">Attribute
-      Generation</a>), it can place them into other implementations of optional,
-      if you tell it to do so. You tell it a template is usable as an optional by
-      specializing the <code class="computeroutput"><span class="identifier">enable_optional</span></code>
-      template. For instance, here is how you would tell Boost.Parser that <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>
+      Boost.Parser uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span></code> and <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">variant</span></code>
+      internally. There is no way to change this. However, when Boost.Parser generates
+      values as a result of the parse (see <a class="link" href="tutorial/attribute_generation.html" title="Attribute Generation">Attribute
+      Generation</a>), it can place them into other implementations of optional
+      and/or variant, if you tell it to do so. You tell it which templates are usable
+      as an optional or variant by specializing the associated variable template.
+      For instance, here is how you would tell Boost.Parser that <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span></code>
       is an optional-type:
     </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span> <span class="identifier">T</span><span class="special">&gt;</span>
 <span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">enable_optional</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">T</span><span class="special">&gt;&gt;</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
+</pre>
+<p>
+      Here's how you would do the same thing for <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant2</span><span class="special">::</span><span class="identifier">variant</span></code>:
+    </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span><span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Ts</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="keyword">bool</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">enable_variant</span><span class="special">&lt;</span><span class="identifier">boost</span><span class="special">::</span><span class="identifier">variant2</span><span class="special">::</span><span class="identifier">variant</span><span class="special">&lt;</span><span class="identifier">Ts</span><span class="special">...&gt;&gt;</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
 </pre>
 <p>
       The requirements on a template used as an optional are pretty simple, since
@@ -81,6 +87,24 @@
       to assign to <code class="computeroutput"><span class="identifier">O</span></code>, and <code class="computeroutput"><span class="identifier">O</span></code> must have an <code class="computeroutput"><span class="keyword">operator</span><span class="special">*</span></code> that returns the stored value, or a (possibly
       cv-qualified) reference to the stored value.
     </p>
+<p>
+      For variants, the requirement is even simpler; the variant type only needs
+      to be assignable.
+    </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        The only thing affected by <code class="computeroutput"><span class="identifier">enable_variant</span></code>
+        is printing. If your variant template can be printed with just <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">cout</span>
+        <span class="special">&lt;&lt;</span> <span class="identifier">v</span></code>
+        (where <code class="computeroutput"><span class="identifier">v</span></code> is a variant, obviously),
+        then you don't need to define <code class="computeroutput"><span class="identifier">enable_variant</span></code>
+        for your variant template.
+      </p></td></tr>
+</table></div>
 <p>
       Boost.Parser uses <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">subrange</span></code> extensively. However, there is no
       C++17 equivalent. So, there is a <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">subrange</span></code>

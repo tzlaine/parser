@@ -57,7 +57,7 @@
         the attribute type</a>
       </h5>
 <p>
-        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>
+        We saw in the previous section how <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
         is flexible in what types it will accept as attribute out-parameters.
       </p>
 <p>
@@ -94,8 +94,8 @@
 <p>
       </p>
 <p>
-        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>,
-        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
+        You can then use it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>,
+        and <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code> will return a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>:
       </p>
 <p>
 </p>
@@ -104,7 +104,7 @@
 <p>
       </p>
 <p>
-        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
+        If you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code> with an attribute out-parameter,
         it must be exactly <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span></code>:
       </p>
 <pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;</span> <span class="identifier">vec_result</span><span class="special">;</span>
@@ -145,8 +145,8 @@
 </pre>
 <p>
         Where <code class="computeroutput"><span class="identifier">attribute_out_param</span></code>
-        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>.
-        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm26128.html" title="Function template parse">parse()</a></code>
+        is the attribute out-parameter we pass to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>.
+        If that final move assignment is ill-formed, the call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
         is too.
       </p>
 <p>
@@ -172,6 +172,63 @@
 <p>
         Now we have one of each, and we did not have to copy any parsing logic that
         would have to be maintained in two places.
+      </p>
+<p>
+        Sometimes, you need to create a rule to enforce a certain attribute type,
+        but the rule's attribute is not constructible from its parser's attribute.
+        When that happens, you'll need to write a semantic action.
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">type_t</span>
+<span class="special">{</span>
+    <span class="identifier">type_t</span><span class="special">()</span> <span class="special">=</span> <span class="keyword">default</span><span class="special">;</span>
+    <span class="keyword">explicit</span> <span class="identifier">type_t</span><span class="special">(</span><span class="keyword">double</span> <span class="identifier">x</span><span class="special">)</span> <span class="special">:</span> <span class="identifier">x_</span><span class="special">(</span><span class="identifier">x</span><span class="special">)</span> <span class="special">{}</span>
+    <span class="comment">// etc.</span>
+
+    <span class="keyword">double</span> <span class="identifier">x_</span><span class="special">;</span>
+<span class="special">};</span>
+
+<span class="keyword">namespace</span> <span class="identifier">bp</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">;</span>
+
+<span class="keyword">auto</span> <span class="identifier">doubles_to_type</span> <span class="special">=</span> <span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
+    <span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">literals</span><span class="special">;</span>
+    <span class="identifier">_val</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="identifier">type_t</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)[</span><span class="number">0</span><span class="identifier">_c</span><span class="special">]</span> <span class="special">*</span> <span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)[</span><span class="number">1</span><span class="identifier">_c</span><span class="special">]);</span>
+<span class="special">};</span>
+
+<span class="identifier">bp</span><span class="special">::</span><span class="identifier">rule</span><span class="special">&lt;</span><span class="keyword">struct</span> <span class="identifier">type_tag</span><span class="special">,</span> <span class="identifier">type_t</span><span class="special">&gt;</span> <span class="identifier">type</span> <span class="special">=</span> <span class="string">"type"</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">type_def</span> <span class="special">=</span> <span class="special">(</span><span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">double_</span><span class="special">)[</span><span class="identifier">doubles_to_type</span><span class="special">];</span>
+<span class="identifier">BOOST_PARSER_DEFINE_RULES</span><span class="special">(</span><span class="identifier">type</span><span class="special">);</span>
+</pre>
+<p>
+        For a rule <code class="computeroutput"><span class="identifier">R</span></code> and its parser
+        <code class="computeroutput"><span class="identifier">P</span></code>, we do not need to write
+        such a semantic action if:
+      </p>
+<p>
+        - <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code> is an
+        aggregate, and <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">P</span><span class="special">)</span></code>
+        is a compatible tuple;
+      </p>
+<p>
+        - <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code> is a
+        tuple, and <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">P</span><span class="special">)</span></code> is a
+        compatible aggregate;
+      </p>
+<p>
+        - <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code> is a
+        non-aggregate class type <code class="computeroutput"><span class="identifier">C</span></code>,
+        and <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">P</span><span class="special">)</span></code> is a
+        tuple whose elements can be used to construct <code class="computeroutput"><span class="identifier">C</span></code>;
+        or
+      </p>
+<p>
+        - <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code> and
+        <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">P</span><span class="special">)</span></code> are
+        compatible types.
+      </p>
+<p>
+        The notion of "compatible" is defined in <a class="link" href="the__parse____api.html" title="The parse() API">The
+        <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+        API</a>.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.more_about_rules.h1"></a>
