@@ -251,6 +251,18 @@ There are lots of functions like `_attr()` that can be used to access the
 state in the parse context.  We'll cover more of them later on.  _parse_ctx_
 defines what exactly the parse context is and how it works.
 
+Note that you can't write an unadorned lambda directly as a semantic action.
+Otherwise, the compile will see two `'['` characters and think it's about to
+parse an attribute.  Parentheses fix this:
+
+    p[([](auto & ctx){/*...*/})]
+
+Before you do this, note that the lambdas that you write as semantic actions
+are almost always generic (having an `auto & ctx` parameter), and so are very
+frequently re-usable.  Most semantic action lambdas you write should be
+written out-of-line, and given a good name.  Even when they are not reused,
+named lambdas keep your parsers smaller and easier to read.
+
 [endsect]
 
 [section Parsing to Find Subranges]
@@ -1453,9 +1465,9 @@ could use this parser for the digits at the end:
 
 A directive is an element of your parser that doesn't have any meaning by
 itself.  Some are second-order parsers that need a first-order parser to do
-the actual parsing.  Others influence the parse in some way.  Lexically, you
-can spot a directive by its use of `[]`.  Non-directives never use `[]`, and
-directives always do.
+the actual parsing.  Others influence the parse in some way.  You can often
+spot a directive lexically by its use of `[]`; directives always `[]`.
+Non-directives might, but only when attaching a semantic action.
 
 The directives that are second order parsers are technically directives, but
 since they are also used to create parsers, it is more useful just to focus on
