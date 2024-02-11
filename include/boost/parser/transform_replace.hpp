@@ -3,7 +3,8 @@
 
 #include <boost/parser/replace.hpp>
 
-#if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
+#if (!defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS) &&                       \
+    (!defined(__GNUC__) || 12 <= __GNUC__ || !BOOST_PARSER_USE_CONCEPTS)
 
 
 namespace boost::parser {
@@ -814,7 +815,6 @@ namespace boost::parser {
         detail::transform_replace_impl>
         transform_replace = detail::transform_replace_impl{};
 
-#endif
 }
 
 #if BOOST_PARSER_USE_CONCEPTS
@@ -835,6 +835,8 @@ constexpr bool
         SkipParser>> = std::ranges::enable_borrowed_range<V> &&
                        (std::ranges::enable_borrowed_range<F> ||
                         boost::parser::detail::tidy_func<F>);
+#endif
+
 #endif
 
 #endif

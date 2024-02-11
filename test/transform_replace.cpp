@@ -14,7 +14,8 @@
 
 #include <list>
 
-#if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
+#if (!defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS) &&                       \
+    (!defined(__GNUC__) || 12 <= __GNUC__ || !BOOST_PARSER_USE_CONCEPTS)
 
 namespace bp = boost::parser;
 
