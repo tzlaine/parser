@@ -14,8 +14,7 @@
 #else
 // This is now hard-coded to use the pre-C++20 code path.  There are a bunch
 // of really odd compile errorswith Clang+libstdc++ I can't be bothered to
-// address right now.  (The latest version of Boost.Text might fix these
-// errors, but there's also no pre-C++20 code path in that version of Text.)
+// address right now.
 #    define BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS 0
 #endif
 
