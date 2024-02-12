@@ -131,7 +131,8 @@ namespace boost::parser::detail::text::detail {
 
     constexpr all_impl all;
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS &&                                   \
+    (!defined(__GNUC__) || 12 <= __GNUC__)
     template<typename R>
     using all_t = std::views::all_t<R>;
 #else

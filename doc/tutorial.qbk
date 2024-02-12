@@ -3216,9 +3216,6 @@ overloads.
 [important _trans_replace_ and _trans_replace_v_ are not available on MSVC in
 C++17 mode.]
 
-[important _trans_replace_ and _trans_replace_v_ are not available on GCC in
-C++20 mode before GCC 12.]
-
 _trans_replace_ creates _trans_replace_vs_.  _trans_replace_v_ is a
 `std::views`-style view.  It produces a range of subranges from the parsed
 range `r` and the given invocable `f`.  Wherever in the parsed range a match

@@ -44,13 +44,27 @@ namespace boost::parser::detail { namespace text {
         using iterator_to_tag_t = decltype(iterator_to_tag<I>());
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if defined(__GNUC__) && __GNUC__ < 12
+        // This uses the final version of viewable_range.  Older GCCs use a
+        // different one that breaks, so we use this on instead of the one
+        // from std::ranges::.  It's missing the !initializer_list part.
+        template<typename T>
+        concept viewable_range = std::ranges::range<T> &&
+            ((std::ranges::view<std::remove_cvref_t<T>> &&
+              std::constructible_from<std::remove_cvref_t<T>, T>) ||
+             (!std::ranges::view<std::remove_cvref_t<T>> &&
+              (std::is_lvalue_reference_v<T> ||
+               std::movable<std::remove_reference_t<T>>)));
+#else
+        template<typename T>
+        concept viewable_range = std::ranges::viewable_range<T>;
+#endif
+
         template<class T>
         using with_reference = T &;
         template<typename T>
         concept can_reference = requires { typename with_reference<T>; };
-#endif
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<class Char>
         struct cast_to_charn {
             constexpr Char operator()(Char c) const { return c; }
@@ -265,7 +279,7 @@ namespace boost::parser::detail { namespace text {
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD
     template<class R, auto F>
-    project_view(R &&) -> project_view<std::views::all_t<R>, F>;
+    project_view(R &&) -> project_view<detail::all_t<R>, F>;
 #endif
 
     namespace detail {
@@ -281,7 +295,7 @@ namespace boost::parser::detail { namespace text {
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             template<class R>
-                requires std::ranges::viewable_range<R> &&
+                requires viewable_range<R> &&
                          std::ranges::input_range<R> &&
                          std::regular_invocable<decltype(F)&, std::ranges::range_reference_t<R>> &&
                          detail::can_reference<std::invoke_result_t<decltype(F)&, std::ranges::range_reference_t<R>>>
@@ -402,7 +416,7 @@ namespace boost::parser::detail { namespace text {
         {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             template<class R>
-            requires (std::ranges::viewable_range<R> &&
+            requires (viewable_range<R> &&
                       std::ranges::input_range<R> &&
                       std::convertible_to<std::ranges::range_reference_t<R>, format_to_type_t<Format>>) ||
                      utf_pointer<std::remove_cvref_t<R>>
@@ -606,7 +620,7 @@ namespace boost::parser::detail { namespace text {
 #if BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD
 
     template<format Format, class R>
-    utf_view(R &&) -> utf_view<Format, std::views::all_t<R>>;
+    utf_view(R &&) -> utf_view<Format, detail::all_t<R>>;
 
     template<class V>
     using utf8_view = utf_view<format::utf8, V>;
@@ -757,7 +771,7 @@ namespace boost::parser::detail { namespace text {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             template<class R>
                 requires is_utf_view<std::remove_cvref_t<R>> ||
-                         (std::ranges::viewable_range<R> &&
+                         (viewable_range<R> &&
                           can_utf_view<unpacked_range<R>, View>) ||
                          utf_pointer<std::remove_cvref_t<R>>
 #else
