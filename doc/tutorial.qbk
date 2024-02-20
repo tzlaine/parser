@@ -3014,6 +3014,10 @@ similar.
 
 [section Algorithms and Views That Use Parsers]
 
+Unless otherwise noted, all the algorithms and views are constrained very much
+like the way the _p_ overloads are.  The kinds of ranges, parsers, etc., that
+they accept are the same.
+
 [heading _search_]
 
 As shown in _p_api_, the two patterns of parsing in _Parser_ are whole-parse
@@ -3183,6 +3187,11 @@ is because the subranges produced are all common ranges, and so if
 `replacement` is not, a common range must be formed from it.  If you expect to
 pass very long C-style strings to _replace_ and not pay to see the end until
 the range is used, don't.
+
+`ReplacementV` is constrained almost exactly the same as `V`.  `V` must model
+`parsable_range` and `std::ranges::viewable_range`.  `ReplacementV` is the
+same, except that it can also be a `std::ranges::input_range`, whereas `V`
+must be a `std::ranges::forward_range`.
 
 You may wonder what happens when you pass a UTF-N range for `r`, and a UTF-M
 range for `replacement`.  What happens in this case is silent transcoding of
