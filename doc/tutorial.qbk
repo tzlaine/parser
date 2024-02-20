@@ -3145,15 +3145,16 @@ Unlike _split_v_, _replace_v_ does not produce empty subranges, unless
 `replacement` is empty.
 
     namespace bp = boost::parser;
-    auto rng = "XYZaaXYZbaabaXYZXYZ" | bp::replace(bp::lit("XYZ"), "foo");
+    auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+    auto rng = "My credit card number is 1234-5678-9012-3456." | bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX");
     int count = 0;
-    // Prints foo aa foo baaba foo foo.
+    // Prints My credit card number is XXXX-XXXX-XXXX-XXXX.
     for (auto subrange : rng) {
-        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin());
         ++count;
     }
     std::cout << "\n";
-    assert(count == 6);
+    assert(count == 3);
 
 
 If the iterator types `Ir` and `Ireplacement` for the `r` and `replacement`
@@ -3168,13 +3169,13 @@ subranges represented by _replace_v_ is easily joined back into a single
 range.
 
     namespace bp = boost::parser;
-    char const str[] = "XYZaaXYZbaabaXYZXYZ";
-    auto rng = str | bp::replace(bp::lit("XYZ"), "foo") | std::views::join;
+    auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+    auto rng = "My credit card number is 1234-5678-9012-3456." | bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX") | std::views::join;
     std::string replace_result;
     for (auto ch : rng) {
         replace_result.push_back(ch);
     }
-    assert(replace_result == "fooaafoobaabafoofoo");
+    assert(replace_result == "My credit card number is XXXX-XXXX-XXXX-XXXX.");
 
 Note that we could *not* have written `std::string replace_result(r.begin(),
 r.end())`.  This is ill-formed because the `std::string` range constructor
