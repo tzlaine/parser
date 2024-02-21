@@ -28,9 +28,9 @@ endif()
 ##################################################
 include(dependencies)
 
-find_package(PythonInterp)
-if (PYTHONINTERP_FOUND)
-    message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
+find_package(Python3 COMPONENTS Interpreter)
+if (Python3_Interpreter_FOUND)
+    message("-- Found Python ${Python3_VERSION} (${Python3_EXECUTABLE})")
 endif ()
 
 
