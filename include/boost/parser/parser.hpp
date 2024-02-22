@@ -3205,13 +3205,10 @@ namespace boost { namespace parser {
                                &done](auto const & parser) {
                 if (done)
                     return;
-                if (detail::gen_attrs(flags)) {
+                if (detail::gen_attrs(flags))
                     use_parser(parser, retval);
-                    if (!success)
-                        detail::assign(retval, Attribute());
-                } else {
+                else
                     use_parser(parser);
-                }
                 if (success)
                     done = true;
                 else
@@ -3914,10 +3911,11 @@ namespace boost { namespace parser {
                                last,
                                &context,
                                &skip,
-                               flags,
+                               flags_ = flags,
                                &success,
                                &retval](auto const &
                                             parser_index_merged_and_backtrack) {
+                auto flags = flags_;
                 using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...

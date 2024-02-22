@@ -2167,6 +2167,13 @@ TEST(parser, combined_seq_and_or)
             EXPECT_EQ(chars, "xyz");
         }
     }
+
+    {
+        constexpr auto parser = int_ >> -(lit('a') | 'b');
+        auto result = parse("34b", parser);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 34);
+    }
 }
 
 TEST(parser, eol_)
