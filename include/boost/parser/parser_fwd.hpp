@@ -342,12 +342,17 @@ namespace boost { namespace parser {
         character being matched. */
     struct digit_parser;
 
-    /** Maches a particular string, delimited by an iterator sentinel pair;
+    /** Matches a particular string, delimited by an iterator sentinel pair;
         produces no attribute. */
     template<typename StrIter, typename StrSentinel>
     struct string_parser;
 
-    /** Maches an end-of-line (`NewlinesOnly == true`), whitespace
+    /** Matches a string delimited by quotation marks; produces a
+        `std::string` attribute. */
+    template<typename Quotes = detail::nope, typename Escapes = detail::nope>
+    struct quoted_string_parser;
+
+    /** Matches an end-of-line (`NewlinesOnly == true`), whitespace
         (`NewlinesOnly == false`), or (`NoNewlines == true`) blank (whitespace
         but not newline) code point, based on the Unicode definitions of each
         (also matches the two code points `"\r\n"`).  Produces no
@@ -355,7 +360,7 @@ namespace boost { namespace parser {
     template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser;
 
-    /** Maches the strings "true" and "false", producing an attribute of
+    /** Matches the strings "true" and "false", producing an attribute of
         `true` or `false`, respectively, and fails on any other input. */
     struct bool_parser;
 

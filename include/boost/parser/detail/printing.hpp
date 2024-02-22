@@ -278,6 +278,13 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+    template<typename Context, typename Quotes, typename Escapes>
+    void print_parser(
+        Context const & context,
+        quoted_string_parser<Quotes, Escapes> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,

@@ -1709,7 +1709,8 @@ namespace boost { namespace parser {
                         return text::find(cps.begin(), cps.end(), c_) !=
                                cps.end();
                     } else {
-                        using element_type = decltype(*chars_.begin());
+                        using element_type =
+                            remove_cv_ref_t<decltype(*chars_.begin())>;
                         element_type const c = c_;
                         return text::find(chars_.begin(), chars_.end(), c) !=
                                chars_.end();
@@ -1730,11 +1731,12 @@ namespace boost { namespace parser {
         template<bool SortedUTF32, typename R>
         constexpr auto make_char_range(R && r) noexcept
         {
-            if constexpr (std::is_pointer_v<std::decay_t<R>>) {
+            if constexpr (std::is_pointer_v<remove_cv_ref_t<R>>) {
                 return detail::make_char_range<SortedUTF32>(
                     r, text::null_sentinel);
             } else {
-                return detail::make_char_range<SortedUTF32>(r.begin(), r.end());
+                return detail::make_char_range<SortedUTF32>(
+                    text::detail::begin(r), text::detail::end(r));
             }
         }
 
@@ -6969,6 +6971,319 @@ namespace boost { namespace parser {
     {
         return parser_interface{string_parser(str)};
     }
+
+    template<typename Quotes, typename Escapes>
+    struct quoted_string_parser
+    {
+        constexpr quoted_string_parser() : chs_(), ch_('"') {}
+
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr quoted_string_parser(R && r) : chs_((R &&) r), ch_(0)
+        {
+            // TODO: This becomes ill-formed when
+            // BOOST_PARSER_NO_RUNTIME_ASSERTIONS is turned on.
+            BOOST_PARSER_ASSERT(r.begin() != r.end());
+        }
+
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr quoted_string_parser(R && r, Escapes escapes) :
+            chs_((R &&) r), escapes_(escapes), ch_(0)
+        {
+            BOOST_PARSER_ASSERT(r.begin() != r.end());
+        }
+
+        constexpr quoted_string_parser(char32_t cp) : chs_(), ch_(cp) {}
+
+        constexpr quoted_string_parser(char32_t cp, Escapes escapes) :
+            chs_(), escapes_(escapes), ch_(cp)
+        {}
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        std::string call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            std::string retval;
+            call(first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+
+            auto const prev_first = first;
+
+            auto append = [&retval,
+                           gen_attrs = detail::gen_attrs(flags)](auto & ctx) {
+                detail::move_back(retval, _attr(ctx), gen_attrs);
+            };
+
+            auto quote_ch = [&]() {
+                if constexpr (detail::is_nope_v<Quotes>) {
+                    detail::remove_cv_ref_t<decltype(*first)> curr = *first;
+                    if ((char32_t)curr == ch_)
+                        ++first;
+                    else
+                        success = false;
+                    return ch_;
+                } else {
+                    detail::remove_cv_ref_t<decltype(*first)> const ch = *first;
+                    bool found = false;
+                    if constexpr (std::
+                                      is_same_v<decltype(ch), char32_t const>) {
+                        auto r = chs_ | detail::text::as_utf32;
+                        found = detail::text::find(r.begin(), r.end(), ch) !=
+                                r.end();
+                    } else {
+                        found = detail::text::find(
+                                    chs_.begin(), chs_.end(), ch) != chs_.end();
+                    }
+                    if (found)
+                        ++first;
+                    else
+                        success = false;
+                    return ch;
+                }
+            };
+
+            auto const ch = quote_ch();
+            if (!success)
+                return;
+
+            decltype(ch) const backslash_and_delim[] = {'\\', ch};
+            auto const back_delim = char_(backslash_and_delim);
+
+            auto make_parser = [&]() {
+                if constexpr (detail::is_nope_v<Escapes>) {
+                    return *((lit('\\') >> back_delim) |
+                             (char_ - back_delim))[append] > ch;
+                } else {
+                    return *((lit('\\') >> back_delim)[append] |
+                             (lit('\\') >> parser_interface(escapes_))[append] |
+                             (char_ - back_delim)[append]) > ch;
+                }
+            };
+
+            auto const p = make_parser();
+            p.parser_.call(
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_skip(flags),
+                success);
+
+            if (!success) {
+                retval = Attribute();
+                first = prev_first;
+            }
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that uses `x` as its quotation marks. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<typename T>
+        // clang-format off
+        requires (!parsable_range_like<T>)
+#else
+        template<
+            typename T,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
+#endif
+        constexpr auto operator()(T x) const noexcept
+        // clang-format on
+        {
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like 'quoted_string('\"')('\\'')'.  Quit "
+                     "it!'"));
+            }
+            return parser_interface(quoted_string_parser(std::move(x)));
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that accepts any of the values in `r` as its quotation marks.  If
+            the input being matched during the parse is a a sequence of
+            `char32_t`, the elements of `r` are transcoded from their presumed
+            encoding to UTF-32 during the comparison.  Otherwise, the
+            character begin matched is directly compared to the elements of
+            `r`. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr auto operator()(R && r) const noexcept
+        {
+            BOOST_PARSER_ASSERT(((
+                !std::is_rvalue_reference_v<R &&> ||
+                !detail::is_range<detail::remove_cv_ref_t<
+                    R>>)&&"It looks like you tried to pass an rvalue range to "
+                          "quoted_string().  Don't do that, or you'll end up "
+                          "with dangling references."));
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like "
+                     "'quoted_string(char-range)(char-range)'.  Quit it!'"));
+            }
+            return parser_interface(
+                quoted_string_parser<decltype(BOOST_PARSER_SUBRANGE(
+                    detail::make_view_begin(r), detail::make_view_end(r)))>(
+                    BOOST_PARSER_SUBRANGE(
+                        detail::make_view_begin(r), detail::make_view_end(r))));
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that uses `x` as its quotation marks.  `symbols` provides a list
+            of strings that may appear after a backslash to form an escape
+            sequence, and what character(s) each escape sequence represents.
+            Note that `"\\"` and `"\ch"` are always valid escape sequences. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<typename T, typename U>
+        // clang-format off
+        requires (!parsable_range_like<T>)
+#else
+        template<
+            typename T,
+            typename U,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
+#endif
+        auto operator()(T x, symbols<U> const & escapes) const noexcept
+        // clang-format on
+        {
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like 'quoted_string('\"')('\\'')'.  Quit "
+                     "it!'"));
+            }
+            auto symbols = symbol_parser(escapes.parser_);
+            auto parser =
+                quoted_string_parser<detail::nope, decltype(symbols)>(
+                    char32_t(x), symbols);
+            return parser_interface(parser);
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that accepts any of the values in `r` as its quotation marks.  If
+            the input being matched during the parse is a a sequence of
+            `char32_t`, the elements of `r` are transcoded from their presumed
+            encoding to UTF-32 during the comparison.  Otherwise, the
+            character begin matched is directly compared to the elements of
+            `r`.  `symbols` provides a list of strings that may appear after a
+            backslash to form an escape sequence, and what character(s) each
+            escape sequence represents.  Note that `"\\"` and `"\ch"` are
+            always valid escape sequences. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R, typename T>
+#else
+        template<
+            typename R,
+            typename T,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        auto operator()(R && r, symbols<T> const & escapes) const noexcept
+        {
+            BOOST_PARSER_ASSERT(((
+                !std::is_rvalue_reference_v<R &&> ||
+                !detail::is_range<detail::remove_cv_ref_t<
+                    R>>)&&"It looks like you tried to pass an rvalue range to "
+                          "quoted_string().  Don't do that, or you'll end up "
+                          "with dangling references."));
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like "
+                     "'quoted_string(char-range)(char-range)'.  Quit it!'"));
+            }
+            auto symbols = symbol_parser(escapes.parser_);
+            auto quotes = BOOST_PARSER_SUBRANGE(
+                detail::make_view_begin(r), detail::make_view_end(r));
+            auto parser =
+                quoted_string_parser<decltype(quotes), decltype(symbols)>(
+                    quotes, symbols);
+            return parser_interface(parser);
+        }
+
+        Quotes chs_;
+        Escapes escapes_;
+        char32_t ch_;
+    };
+
+    /** Parses a string delimited by quotation marks.  This parser can be used
+        to create parsers that accept one or more specific quotation mark
+        characters.  By default, the quotation marks are `'"'`; an alternate
+        quotation mark can be specified by calling this parser with a single
+        character, or a range of characters.  If a range is specified, the
+        opening quote must be one of the characters specified, and the closing
+        quote must match the opening quote.  Quotation marks may appear within
+        the string if escaped with a backslash, and a pair of backslashes is
+        treated as a single escaped backslash; all other backslashes cause the
+        parse to fail, unless a symbol table is in use.  A symbol table can be
+        provided as a second parameter after the single character or range
+        described above.  The symbol table is used to recognize escape
+        sequences.  Each escape sequence is a backslash followed by a value in
+        the symbol table.  When using a symbol table, any backslash that is
+        not followed by another backslash, the opening quote character, or a
+        symbol from the symbol table will cause the parse to fail.  Skipping
+        is disabled during parsing of the entire quoted string, including the
+        quotation marks.  There is an expectation point before the closing
+        quotation mark.  Produces a `std::string` attribute. */
+    inline constexpr parser_interface<quoted_string_parser<>> quoted_string;
 
     /** Returns a parser that matches `str` that produces no attribute. */
 #if BOOST_PARSER_USE_CONCEPTS

@@ -41,6 +41,7 @@
 [import ../example/user_error_handler.cpp]
 [import ../test/parser.cpp]
 [import ../test/parser_rule.cpp]
+[import ../test/parser_quoted_string.cpp]
 
 [import ../include/boost/parser/concepts.hpp]
 [import ../include/boost/parser/error_handling_fwd.hpp]
@@ -217,6 +218,8 @@
 [def _hex_digit_           [globalref boost::parser::hex_digit `hex_digit`]]
 [def _lower_               [globalref boost::parser::lower `lower`]]
 [def _upper_               [globalref boost::parser::upper `upper`]]
+
+[def _quot_str_            [globalref boost::parser::quoted_string `quoted_string`]]
 
 [def _RES_                 ['[^RESOLVE]]`()`]
 [def _RES_np_              ['[^RESOLVE]]]

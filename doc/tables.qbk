@@ -38,6 +38,8 @@ itself be used as a parser; it must be called.  In the table below:
 
 * `p`, `p1`, `p2`, ... are parsers.
 
+* `escapes` is a _symbols_t_ object, where `T` is `char` or `char32_t`.
+
 [note The definition of `parsable_range_like` is:
 
 [parsable_range_like_concept]
@@ -326,6 +328,31 @@ the input they match unless otherwise stated in the table below.]
      [ _symbols_ is an associative container of key, value pairs.  Each key is a _std_str_ and each value has type `T`.  In the Unicode parsing path, the strings are considered to be UTF-8 encoded; in the non-Unicode path, no encoding is assumed.  _symbols_ Matches the longest prefix `pre` of the input that is equal to one of the keys `k`.  If the length `len` of `pre` is zero, and there is no zero-length key, it does not match the input.  If `len` is positive, the generated attribute is the value associated with `k`.]
      [ `T` ]
      [ Unlike the other entries in this table, _symbols_ is a type, not an object. ]]
+
+    [[ _quot_str_ ]
+     [ Matches `'"'`, followed by zero or more characters, followed by `'"'`. ]
+     [ _std_str_ ]
+     [ The result does not include the quotes.  A quote within the string can be written by escaping it with a backslash.  A backslash within the string can be written by writing two consecutive backslashes.  Any other use of a backslash will fail the parse.  Skipping is disabled while parsing the entire string, as if using _lexeme_. ]]
+
+    [[ `_quot_str_(c)` ]
+     [ Matches `c`, followed by zero or more characters, followed by `c`. ]
+     [ _std_str_ ]
+     [ The result does not include the `c` quotes.  A `c` within the string can be written by escaping it with a backslash.  A backslash within the string can be written by writing two consecutive backslashes.  Any other use of a backslash will fail the parse.  Skipping is disabled while parsing the entire string, as if using _lexeme_. ]]
+
+    [[ `_quot_str_(r)` ]
+     [ Matches some character `Q` in `r`, followed by zero or more characters, followed by `Q`. ]
+     [ _std_str_ ]
+     [ The result does not include the `Q` quotes.  A `Q` within the string can be written by escaping it with a backslash.  A backslash within the string can be written by writing two consecutive backslashes.  Any other use of a backslash will fail the parse.  Skipping is disabled while parsing the entire string, as if using _lexeme_. ]]
+
+    [[ `_quot_str_(c, symbols)` ]
+     [ Matches `c`, followed by zero or more characters, followed by `c`. ]
+     [ _std_str_ ]
+     [ The result does not include the `c` quotes.  A `c` within the string can be written by escaping it with a backslash.  A backslash within the string can be written by writing two consecutive backslashes.  A backslash followed by a successful match using `symbols` will be interpreted as the corresponding value produced by `symbols`.  Any other use of a backslash will fail the parse.  Skipping is disabled while parsing the entire string, as if using _lexeme_. ]]
+
+    [[ `_quot_str_(r, symbols)` ]
+     [ Matches some character `Q` in `r`, followed by zero or more characters, followed by `Q`. ]
+     [ _std_str_ ]
+     [ The result does not include the `Q` quotes.  A `Q` within the string can be written by escaping it with a backslash.  A backslash within the string can be written by writing two consecutive backslashes.  A backslash followed by a successful match using `symbols` will be interpreted as the corresponding value produced by `symbols`.  Any other use of a backslash will fail the parse.  Skipping is disabled while parsing the entire string, as if using _lexeme_. ]]
 ]
 
 [important All the character parsers, like _ch_, _cp_ and _cu_ produce either

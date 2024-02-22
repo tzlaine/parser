@@ -738,6 +738,106 @@ no sense.
 
 [endsect]
 
+[section Alternative Parsers]
+
+Frequently, you need to parse something that might have one of several forms.
+`operator|` is overloaded to form alternative parsers.  For example:
+
+    namespace bp = boost::parser;
+    auto const parser_1 = bp::int_ | bp::eps;
+
+`parser_1` matches an integer, or if that fails, it matches /epsilon/, the
+empty string.  This is equivalent to writing:
+
+    namespace bp = boost::parser;
+    auto const parser_2 = -bp::int_;
+
+However, neither `parser_1` nor `parser_2` is equivalent to writing this:
+
+    namespace bp = boost::parser;
+    auto const parser_3 = bp::eps | bp::int_; // Does not do what you think.
+
+The reason is that alternative parsers try each of their subparsers, one at a
+time, and stop on the first one that matches.  /Epsilon/ matches anything,
+since it is zero length and consumes no input.  It even matches the end of
+input.  This means that `parser_3` is equivalent to _e_ by itself.
+
+[note For this reason, writing `_e_ | p` for any parser p is considered a bug.
+Debug builds will assert when `_e_ | p` is encountered. ]
+
+[warning This kind of error is very common when _e_ is involved, and also very
+easy to detect.  However, it is possible to write `P1 >> P2`, where `P1` is a
+prefix of `P2`, such as `int_ | int >> int_`, or `repeat(4)[hex_digit] |
+repeat(8)[hex_digit]`.  This is almost certainly an error, but is impossible
+to detect in the general case _emdash_ remember that _rs_ can be separately
+compiled, and consider a pair of rules whose associated `_def` parsers are
+`int_` and `int_ >> int_`, respectively.]
+
+[endsect]
+
+[section Parsing Quoted Strings]
+
+It is very common to need to parse quoted strings.  Quoted strings are
+slightly tricky, though, when using a skipper (and you should be using a
+skipper 99% of the time).  You don't want to allow arbitrary whitespace in the
+middle of your strings, and you also don't want to remove all whitespace from
+your strings.  Both of these things will happen with the typical skipper,
+_ws_.
+
+So, here is how most people would write a quoted string parser:
+
+    namespace bp = boost::parser;
+    const auto string = bp::lexeme['"' >> *(bp::char_ - '"') > '"'];
+
+Some things to note:
+
+* the result is a string;
+
+* the quotes are not included in the result;
+
+* there is an expectation point before the close-quote;
+
+* the use of _lexeme_ disables skipping in the parser, and it must be written
+  around the quotes, not around the `operator*` expression; and
+
+* there's no way to write a quote in the middle of the string.
+
+This is a very common pattern.  I have written a quoted string parser like
+this dozens of times.  The parser above is the quick-and-dirty version.  A
+more robust version would be able to handle escaped quotes within the string,
+and then would immediately also need to support escaped escape characters.
+
+_Parser_ provides _quot_str_ to use in place of this very common pattern.  It
+supports quote- and escaped-character-escaping, using backslash as the escape
+character.
+
+[quoted_string_example_1_2]
+
+As common as this use case is, there are very similar use cases that it does
+not cover.  So, _quot_str_ has some options.  If you call it with a single
+character, it returns a _quot_str_ that uses that single character as the
+quote-character.
+
+[quoted_string_example_3]
+
+You can also supply a range of characters.  One of the characters from the
+range must quote the whole string; mismatches are not allowed.  Think of how
+Python allows you to quote a string with either `'"'` or `'\''`, but the same
+character must be used on both sides.
+
+[quoted_string_example_4]
+
+Another common thing to do in a quoted string parser is to recognize escape
+sequences.  If you have simple escape sequencecs that do not require any real
+parsing, like say the simple escape sequences from C++, you can provide a
+_symbols_ object as well.  The template parameter `T` to _symbols_t_ must be
+`char` or `char32_t`.  You don't need to include the escaped backslash or the
+escaped quote character, since those always work.
+
+[quoted_string_example_5]
+
+[endsect]
+
 [section Parsing In Detail]
 
 Now that you've seen some examples, let's see how parsing works in a bit more
@@ -1049,43 +1149,6 @@ Unicode or ASCII parsing, this will not matter to you at all.  If you do
 non-Unicode parsing of a character encoding that is not a subset of Unicode
 (EBCDIC, for instance), it could cause problems.  See the section on _unicode_
 for more information.]
-
-[endsect]
-
-[section Alternative Parsers]
-
-Frequently, you need to parse something that might have one of several forms.
-`operator|` is overloaded to form alternative parsers.  For example:
-
-    namespace bp = boost::parser;
-    auto const parser_1 = bp::int_ | bp::eps;
-
-`parser_1` matches an integer, or if that fails, it matches /epsilon/, the
-empty string.  This is equivalent to writing:
-
-    namespace bp = boost::parser;
-    auto const parser_2 = -bp::int_;
-
-However, neither `parser_1` nor `parser_2` is equivalent to writing this:
-
-    namespace bp = boost::parser;
-    auto const parser_3 = bp::eps | bp::int_; // Does not do what you think.
-
-The reason is that alternative parsers try each of their subparsers, one at a
-time, and stop on the first one that matches.  /Epsilon/ matches anything,
-since it is zero length and consumes no input.  It even matches the end of
-input.  This means that `parser_3` is equivalent to _e_ by itself.
-
-[note For this reason, writing `_e_ | p` for any parser p is considered a bug.
-Debug builds will assert when `_e_ | p` is encountered. ]
-
-[warning This kind of error is very common when _e_ is involved, and also very
-easy to detect.  However, it is possible to write `P1 >> P2`, where `P1` is a
-prefix of `P2`, such as `int_ | int >> int_`, or `repeat(4)[hex_digit] |
-repeat(8)[hex_digit]`.  This is almost certainly an error, but is impossible
-to detect in the general case _emdash_ remember that _rs_ can be separately
-compiled, and consider a pair of rules whose associated `_def` parsers are
-`int_` and `int_ >> int_`, respectively.]
 
 [endsect]
 
