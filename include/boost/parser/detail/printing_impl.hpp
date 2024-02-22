@@ -439,8 +439,7 @@ namespace boost { namespace parser { namespace detail {
     template<
         typename Context,
         typename ResolvedExpected,
-        bool Integral = std::is_integral<ResolvedExpected>{},
-        int SizeofExpected = sizeof(ResolvedExpected)>
+        bool Integral = std::is_integral<ResolvedExpected>{}>
     struct print_expected_char_impl
     {
         static void call(
@@ -452,13 +451,17 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Context, typename Expected>
-    struct print_expected_char_impl<Context, Expected, true, 4>
+    template<typename Context>
+    struct print_expected_char_impl<Context, char32_t, true>
     {
         static void
-        call(Context const & context, std::ostream & os, Expected expected)
+        call(Context const & context, std::ostream & os, char32_t expected)
         {
-            std::array<char32_t, 1> cps = {{(char32_t)expected}};
+            if (expected == '\'') {
+                os << "'\\''";
+                return;
+            }
+            std::array<char32_t, 1> cps = {{expected}};
             auto const r = cps | text::as_utf8;
             os << "'";
             for (auto c : r) {
@@ -644,6 +647,27 @@ namespace boost { namespace parser { namespace detail {
             detail::print_char(os, c);
         }
         os << "\"";
+    }
+
+    template<typename Context, typename I, typename S>
+    void print_parser(
+        Context const & context,
+        quoted_string_parser<I, S> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "quoted_string(";
+        if (parser.chs_.empty()) {
+            detail::print_expected_char_impl<Context, char32_t>::call(
+                context, os, parser.ch_);
+        } else {
+            os << '"';
+            for (auto c : parser.chs_ | text::as_utf8) {
+                detail::print_char(os, c);
+            }
+            os << '"';
+        }
+        os << ')';
     }
 
     template<typename Context, bool NewlinesOnly, bool NoNewlines>

@@ -6329,7 +6329,7 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The literal code point parser.  The produced attribute is the type of
+    /** The single code point parser.  The produced attribute is the type of
         the matched code point.  This parser can be used to create code point
         parsers that match one or more specific code point values, by calling
         it with: a single value comparable to a code point; a set of code
@@ -6337,7 +6337,7 @@ namespace boost { namespace parser {
         hi]`, or a set of code point values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
-    /** The literal code point parser.  It produces a `char32_t` attribute.
+    /** The single code point parser.  It produces a `char32_t` attribute.
         This parser can be used to create code point parsers that match one or
         more specific code point values, by calling it with: a single value
         comparable to a code point; a set of code point values in a string; a
@@ -6345,7 +6345,7 @@ namespace boost { namespace parser {
         values passed as a range. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
-    /** The literal code unit parser.  It produces a `char` attribute.  This
+    /** The single code unit parser.  It produces a `char` attribute.  This
         parser can be used to create code unit parsers that match one or more
         specific code unit values, by calling it with: a single value
         comparable to a code unit; a set of code unit values in a string; a
@@ -6492,6 +6492,251 @@ namespace boost { namespace parser {
     {
         return parser_interface{string_parser(str)};
     }
+
+    template<typename I, typename S>
+    struct quoted_string_parser
+    {
+        constexpr quoted_string_parser() : chs_(), ch_('"') {}
+
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr quoted_string_parser(R && r) :
+            chs_(detail::make_view_begin(r), detail::make_view_end(r)), ch_(0)
+        {}
+
+        constexpr quoted_string_parser(char32_t cp) : chs_(), ch_(cp)
+        {}
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        std::string call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            std::string retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+
+            auto const prev_first = first;
+
+            auto append = [&retval,
+                           gen_attrs = detail::gen_attrs(flags)](auto & ctx) {
+                detail::move_back(retval, _attr(ctx), gen_attrs);
+            };
+
+            if (chs_.empty()) {
+                auto const p =
+                    ch_ >> *((lit('\\') >> (char_('\\') | char_(ch_)) | char_) -
+                             ch_)[append] > ch_;
+                call_impl(
+                    p.parser_,
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            } else {
+                detail::remove_cv_ref_t<decltype(*first)> const ch = *first;
+                bool found = false;
+                if constexpr (std::is_same_v<decltype(ch), char32_t const>) {
+                    auto r = chs_ | detail::text::as_utf32;
+                    found =
+                        detail::text::find(r.begin(), r.end(), ch) == r.end();
+                } else {
+                    found = detail::text::find(chs_.begin(), chs_.end(), ch) ==
+                            chs_.end();
+                }
+                if (!found) {
+                    success = false;
+                    return;
+                }
+                ++first;
+
+                auto const p =
+                    *((lit('\\') >> (char_('\\') | char_(ch)) | char_) -
+                      ch)[append] > ch;
+
+                call_impl(
+                    p.parser_,
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval);
+            }
+
+            if (!success) {
+                retval = Attribute();
+                first = prev_first;
+            }
+        }
+
+        template<
+            typename Parser,
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call_impl(
+            Parser & parser,
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            parser.call(
+                use_cbs,
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_skip(flags),
+                success,
+                retval);
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that uses `x` as its quotation marks. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<typename T>
+        // clang-format off
+        requires (!parsable_range_like<T>)
+#else
+        template<
+            typename T,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
+#endif
+        constexpr auto operator()(T x) const noexcept
+        // clang-format on
+        {
+            BOOST_PARSER_ASSERT(
+                (chs_.empty() && ch_ == '"' &&
+                 "If you're seeing this, you tried to chain calls on "
+                 "quoted_string, like 'quoted_string('\"')('\\'')'.  Quit "
+                 "it!'"));
+            return parser_interface(quoted_string_parser(std::move(x)));
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that accepts any of the values in `r` as its quotation marks.  If
+            the input being matched during the parse is a a sequence of
+            `char32_t`, the elements of `r` are transcoded from their presumed
+            encoding to UTF-32 during the comparison.  Otherwise, the
+            character begin matched is directly compared to the elements of
+            `r`. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr auto operator()(R && r) const noexcept
+        {
+            BOOST_PARSER_ASSERT(((
+                !std::is_rvalue_reference_v<R &&> ||
+                !detail::is_range<detail::remove_cv_ref_t<
+                    R>>)&&"It looks like you tried to pass an rvalue range to "
+                          "quoted_string().  Don't do that, or you'll end up "
+                          "with dangling references."));
+            BOOST_PARSER_ASSERT(
+                (chs_.empty() && ch_ == '"' &&
+                 "If you're seeing this, you tried to chain calls on "
+                 "quoted_string, like 'quoted_string(char-range)(char-range)'. "
+                 " Quit it!'"));
+            return parser_interface(
+                quoted_string_parser<
+                    decltype(detail::make_view_begin(r)),
+                    decltype(detail::make_view_end(r))>((R &&) r));
+        }
+
+        BOOST_PARSER_SUBRANGE<I, S> chs_;
+        char32_t ch_;
+    };
+
+    /** Parses a string delimited by quotation marks.  This parser can be used
+        to create parsers that accept one or more specific quotation mark
+        characters.  By default, the quotation marks are `'"'`; an alternate
+        quotation mark can be specified by calling this parser with a single
+        character, or a range of characters.  If a range is specified, the
+        opening quote must be one of the characters specified, and the closing
+        quote must match the opening quote.  Quotation marks may appear within
+        the string if escaped with a backslash, and a pair of backslashes is
+        treated as a single escaped backslash; all other backslashes cuase the
+        parse to fail.  Skipping is disabled during parsing of the entire
+        quoted string, including the quotation marks.  There is an expectation
+        point before the closing qutation mark.  Produces a `std::string`
+        attribute. */
+    inline constexpr parser_interface<
+        quoted_string_parser<char const *, char const *>>
+        quoted_string;
+
+#if BOOST_PARSER_USE_CONCEPTS
+    template<parsable_range_like R>
+#else
+    template<typename R>
+#endif
+    quoted_string_parser(R r) -> quoted_string_parser<
+        decltype(detail::make_view_begin(r)),
+        decltype(detail::make_view_end(r))>;
+
+    quoted_string_parser(char32_t)
+        -> quoted_string_parser<char const *, char const *>;
 
     /** Returns a parser that matches `str` that produces no attribute. */
 #if BOOST_PARSER_USE_CONCEPTS
