@@ -3914,10 +3914,11 @@ namespace boost { namespace parser {
                                last,
                                &context,
                                &skip,
-                               flags,
+                               flags_ = flags,
                                &success,
                                &retval](auto const &
                                             parser_index_merged_and_backtrack) {
+                auto flags = flags_;
                 using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...
@@ -3968,6 +3969,9 @@ namespace boost { namespace parser {
                 constexpr bool out_container =
                     container<std::decay_t<decltype(out)>>;
                 constexpr bool attr_container = container<attr_t>;
+
+                if constexpr (detail::is_nope_v<attr_t>)
+                    flags = detail::disable_attrs(flags);
 
                 if constexpr (
                     (out_container == attr_container &&
