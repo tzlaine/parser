@@ -5364,8 +5364,7 @@ namespace boost { namespace parser {
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
-        parsing behavior rule `t`, using the parser `t_def`.  This macro is
-        only available when the Boost.Preprocessor headers are available. */
+        parsing behavior rule `t`, using the parser `t_def`. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
 
