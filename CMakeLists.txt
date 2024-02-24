@@ -8,10 +8,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CXX_STD 17 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
 message("-- Using -std=c++${CXX_STD}")
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    add_definitions(-g -Wall)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    add_definitions(-g -Wall)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_definitions(-Wall)
 endif ()
 
 ##################################################
