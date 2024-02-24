@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 project(parse)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -52,7 +52,7 @@ endif()
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
 if (Boost_FOUND)
-   target_include_directories(parser INTERFACE ${Boost_INCLUDE_DIRS})
+   target_link_libraries(parser INTERFACE Boost::headers)
 endif()
 
 ##################################################
