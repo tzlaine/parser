@@ -163,7 +163,8 @@ However, it does not suit user needs in some ways.
   rule.
 
 * Spirit X3 is missing many of the convenient interfaces to parsers that
-  Spirit 2 had.  For instance, you cannot add parameters to a parser.
+  Spirit 2 had.  For instance, you cannot add parameters to a parser (see
+  description of _locals_ in _more_about_rules_).
 
 * All versions of Spirit have Unicode support, but it is quite difficult to
   get working.
@@ -189,5 +190,74 @@ that have been retained in _Parser_.  Both libraries:
 
 * are built around a flexible parse context object that has state added to and
   removed from it during the parse (again, comparing to Spirit X3).
+
+[heading The Spirit X3 rule problem]
+
+Some readers have wanted a concrete example of my claim that Spirit X3's rules
+do not compose well.  Consider this program.
+
+    #include <boost/spirit/home/x3.hpp>
+
+    #include <iostream>
+    #include <set>
+    #include <string>
+    #include <vector>
+
+
+    namespace x3 = boost::spirit::x3;
+    using ints_type = x3::rule<class ints, std::vector<int>>;
+    BOOST_SPIRIT_DECLARE(ints_type);
+
+    x3::rule<class ints, std::vector<int>> ints = "ints";
+    constexpr auto ints_def = x3::int_ % ',';
+    BOOST_SPIRIT_DEFINE(ints);
+
+    #define FIXED_ATTRIBUTE 0
+
+
+    int main()
+    {
+        std::string input = "43, 42";
+        auto first = input.begin();
+        auto const last = input.end();
+    #if FIXED_ATTRIBUTE
+        std::vector<int> result;
+    #else
+        std::set<int> result;
+    #endif
+        bool success = x3::phrase_parse(first, last, ints, x3::space, result);
+        if (success) {
+            // We want this to print "43 42\n".
+            for (auto x : result) {
+                std::cout << x << ' ';
+            }
+            std::cout << "\n";
+        }
+
+        return 0;
+    }
+
+Defining `FIXED_ATTRIBUTE` to be `1` leads to a well-formed program that
+prints `"42 43\n"` instead of the desired result.  The problem here is that if
+you feed an attribute out-param to `x3::phrase_parse()`, you get the
+loose-match semantics that Spirit X3 and _Parser_ both do.  This is a problem,
+because the user explicitly asserted that the type of the `ints` rule's
+attribute should be `std::vector<int>`.  In my opinion, this code should be
+ill-formed with `FIXED_ATTRIBUTE == 1`.  To make it well-formed again, the
+user could use `ints_def` directly, since it does not specify an attribute
+type.
+
+When the user explicitly states that a type is some fixed `T`, a library
+should not ignore that.  As a user of X3, I was bitten by this in such a way
+that I considered X3 to be a nonviable option for my uses.  I ran into a
+problem that resulted from X3's ignoring one or more of my rules' attributes
+so that it made the parse produce the wrong result, and I could see no way to
+fix it.
+
+When a library provides wider use cases via genericity, we generally consider
+this a good thing.  If it is too loose in its semantics, we generally say that
+it is type-unsafe.  Using _rs_ to nail down type flexibility is one way
+_Parser_ tries to enable genericity where it is desired, and let the user turn
+it off where it is not.
 
 [endsect]
