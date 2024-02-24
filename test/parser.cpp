@@ -627,61 +627,63 @@ TEST(parser, star_and_plus_collapsing)
     }
 }
 
-TEST(parser, action)
-{
-    {{std::string str = "";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "");
-}
-{
-    std::string str = "b";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "b");
-}
-{
-    std::string str = "bb";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "bbbb");
-}
-}
-
+TEST(parser, action_)
 {
     {
         std::string str = "";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_FALSE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "");
+        {
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "");
+        }
+        {
+            str = "b";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "b");
+        }
+        {
+            str = "bb";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "bbbb");
+        }
     }
+
     {
-        std::string str = "b";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "b");
+        {
+            std::string str = "";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_FALSE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "");
+        }
+        {
+            std::string str = "b";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "b");
+        }
+        {
+            std::string str = "bb";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "bbbb");
+        }
     }
-    {
-        std::string str = "bb";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "bbbb");
-    }
-}
 }
 
 TEST(parser, star_as_string_or_vector)

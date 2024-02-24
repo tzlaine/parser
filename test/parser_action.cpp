@@ -14,31 +14,29 @@ constexpr rule<struct abc_def_tag, std::string> abc_def = "abc or def";
 constexpr auto abc_def_def = string("abc") | string("def");
 BOOST_PARSER_DEFINE_RULES(abc_def);
 
-auto const fail = [](auto & context) { _pass(context) = false; };
+auto const fail = [](auto & ctx) { _pass(ctx) = false; };
 constexpr rule<struct fail_abc_pass_def_tag, std::string> fail_abc_pass_def =
     "abc";
 constexpr auto fail_abc_pass_def_def = string("abc")[fail] | string("def");
 BOOST_PARSER_DEFINE_RULES(fail_abc_pass_def);
 
-auto const attr_to_val = [](auto & context) { _val(context) = _attr(context); };
+auto const attr_to_val = [](auto & ctx) { _val(ctx) = _attr(ctx); };
 constexpr rule<struct action_copy_abc_def_tag, std::string>
     action_copy_abc_def = "abc or def";
 constexpr auto action_copy_abc_def_def =
     string("abc")[attr_to_val] | string("def")[attr_to_val];
 BOOST_PARSER_DEFINE_RULES(action_copy_abc_def);
 
-auto const abc_value = [](auto & context) { _val(context) = "abc"; };
-auto const def_value = [](auto & context) { _val(context) = "def"; };
+auto const abc_value = [](auto & ctx) { _val(ctx) = "abc"; };
+auto const def_value = [](auto & ctx) { _val(ctx) = "def"; };
 constexpr rule<struct rev_abc_def_tag, std::string> rev_abc_def = "abc or def";
 constexpr auto rev_abc_def_def =
     string("abc")[def_value] | string("def")[abc_value];
 BOOST_PARSER_DEFINE_RULES(rev_abc_def);
 
-auto const append_attr = [](auto & context) {
-    _locals(context) += _attr(context);
-};
-auto const locals_to_val = [](auto & context) {
-    _val(context) = std::move(_locals(context));
+auto const append_attr = [](auto & ctx) { _locals(ctx) += _attr(ctx); };
+auto const locals_to_val = [](auto & ctx) {
+    _val(ctx) = std::move(_locals(ctx));
 };
 rule<struct locals_abc_def_tag, std::string, std::string> const locals_abc_def =
     "abc or def";
@@ -49,7 +47,7 @@ BOOST_PARSER_DEFINE_RULES(locals_abc_def);
 TEST(parser, side_effects)
 {
     int i = 0;
-    auto increment_i = [&i](auto & context) { ++i; };
+    auto increment_i = [&i](auto & ctx) { ++i; };
 
     using no_attribute_return = decltype(parse("xyz", char_('a')[increment_i]));
     static_assert(std::is_same_v<no_attribute_return, bool>);
