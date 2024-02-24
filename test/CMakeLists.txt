@@ -15,13 +15,11 @@ add_executable(
     compile_or_attribute.cpp
     compile_combining_groups.cpp
 )
-set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
 target_link_libraries(compile_tests parser)
 
 function(add_test_executable name)
     set(test_name "${PROJECT_NAME}-test-${name}")
     add_executable(${test_name} ${name}.cpp)
-    set_property(TARGET ${test_name} PROPERTY CXX_STANDARD ${CXX_STD})
     target_link_libraries(${test_name} parser gtest gtest_main ${link_flags})
     if (MSVC)
         target_compile_options(${test_name} PRIVATE /source-charset:utf-8 /bigobj)

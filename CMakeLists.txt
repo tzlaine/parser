@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(parse)
 
-##################################################
-# C++ standard version selection
-##################################################
-set(CXX_STD 17 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
-message("-- Using -std=c++${CXX_STD}")
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wall)
 endif ()
@@ -48,6 +42,7 @@ endif()
 ##################################################
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${PROJECT_SOURCE_DIR}/include)
+target_compile_features(parser INTERFACE cxx_std_17)
 if (Boost_FOUND)
    target_link_libraries(parser INTERFACE Boost::headers)
 endif()

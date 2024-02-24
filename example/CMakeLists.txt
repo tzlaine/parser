@@ -12,7 +12,6 @@ add_custom_target(run_examples COMMAND ${CMAKE_CTEST_COMMAND} -VV -C ${CMAKE_CFG
 macro(add_sample name)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} parser)
-    set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
     add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
