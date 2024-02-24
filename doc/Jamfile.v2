@@ -37,7 +37,7 @@ doxygen parser_reference
 
 }
 
-run_doxygen [ glob ../include/boost/parser/*.hpp ] : "Reference" ;
+run_doxygen [ glob ../include/boost/parser/*.hpp : ../include/boost/parser/concepts.hpp ] : "Reference" ;
 
 xml parser
     :
