@@ -411,6 +411,13 @@ namespace boost { namespace parser {
 
         inline nope global_nope;
 
+        template<typename T>
+        using parser_interface_tag_expr =
+            typename T::parser_interface_derivation_tag;
+        template<typename T>
+        constexpr bool derived_from_parser_interface_v =
+            is_detected_v<parser_interface_tag_expr, T>;
+
         template<typename T, bool AlwaysConst = false>
         using nope_or_pointer_t = std::conditional_t<
             std::is_same_v<std::remove_const_t<T>, nope>,
@@ -5137,6 +5144,8 @@ namespace boost { namespace parser {
         error_handler_type error_handler_;
 
 #endif
+
+        using parser_interface_derivation_tag = int;
     };
 
 
@@ -7547,7 +7556,9 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with_v<I, S>>>
+            detail::is_equality_comparable_with_v<I, S> &&
+            !detail::derived_from_parser_interface_v<
+                detail::remove_cv_ref_t<Attr>>>>
 #endif
     bool prefix_parse(
         I & first,
@@ -7555,6 +7566,12 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires (
+            !detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>>)
+    // clang-format on
+#endif
     {
         detail::attr_reset reset(attr);
         if constexpr (!detail::is_char8_iter_v<I>) {
@@ -7611,8 +7628,10 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Attr,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_range_like_v<R> &&
+            !detail::derived_from_parser_interface_v<
+                detail::remove_cv_ref_t<Attr>>>>
 #endif
     bool parse(
         R const & r,
@@ -7625,7 +7644,8 @@ namespace boost { namespace parser {
             ErrorHandler,
             std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
             std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
-            GlobalState>
+        GlobalState> &&
+        (!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>>)
     // clang-format on
 #endif
     {
