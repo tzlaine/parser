@@ -558,13 +558,16 @@ parser `doubles_def` work together.  The `_def` suffix is a naming convention
 that this macro relies on to work.  The tag type allows the rule parser,
 `doubles`, to call one of these overloads when used as a parser.
 
-[note In case you're curious about exactly what code is produced by the above
-use of _RULES_, it's two overloads of a function called `parse_rule()`.  The
-overloads each take a `struct doubles` parameter (to distinguish them from the
-other overloads of `parse_rule()` for other rules) and parse using
-`doubles_def`.  You will never need to call any overload of `parse_rule()`
-yourself; it is used internally by the parser that implements _rs_,
-`rule_parser`.]
+_RULES_ expands to two overloads of a function called `parse_rule()`.  In the
+case above, the overloads each take a `struct doubles` parameter (to
+distinguish them from the other overloads of `parse_rule()` for other rules)
+and parse using `doubles_def`.  You will never need to call any overload of
+`parse_rule()` yourself; it is used internally by the parser that implements
+_rs_, `rule_parser`.
+
+Here is the definition of the macro that is expanded for each rule:
+
+[define_rule_definition]
 
 Now that we have the `doubles` parser, we can use it like we might any other
 parser:
@@ -2545,8 +2548,6 @@ common use cases for _rs_.  Use a _r_ if you want to:
 
 * create a set of mutually-recursive parsers;
 
-* separately compile a parser; or
-
 * do callback parsing.
 
 Let's look at the use cases in detail.
@@ -2855,40 +2856,6 @@ Here we have a parser for a Javascript-value-like type `value_type`.
 strings, etc.  Since we need to be able to parse objects within arrays and
 vice versa, we need each of those two parsers to be able to refer to each
 other.
-
-[heading Separately compiled rules]
-
-_Parser_ is obviously very template-heavy.  However, the template parameters
-used in your in _Parser_ code are all known at the time you write your rules
-and parsers _emdash_ except for the range you're parsing.
-
-Therefore, if you know you're only going to parse with a single kind of range,
-you can declare a function that does the parsing, and put the implementation
-in a .cpp file.  I know.  A Boost author talking about putting code in
-non-header files is weird.  Let's see an example; first, we forward declare
-our parse function in a header.
-
-    // foo.h
-    bool balanced_parens(std::string_view str);
-
-Then we define the function, plus all the rules and parsers it uses, in an
-implementation file:
-
-    // foo.cpp
-    namespace {
-        namespace bp = boost::parser;
-        bp::rule<struct parens_tag> parens = "matched parentheses";
-        auto const parens_def = ('(' >> parens > ')') | bp::eps;
-        BOOST_PARSER_DEFINE_RULES(parens);
-    }
-    bool balanced_parens(std::string_view str)
-    {
-        namespace bp = boost::parser;
-        return bp::parse(str, bp::omit[parens], bp::ws);
-    }
-
-For large parsers, separate compilation can be a significant savings on build
-time.
 
 [heading Callback parsing]
 
@@ -4000,18 +3967,6 @@ Some things to note:
   used as a name anywhere per se.  In error messages, it works nicely, though.
   The error will be "Expected '"', '\', '/', 'b', 'f', 'n', 'r', or 't' here",
   which is pretty helpful.
-
-[heading Compile separately when you know the type of your input will not change]
-
-If your input type will not change (for instance, if you always parse from a
-`std::string` and nothing else), you can use separate compilation to keep from
-recompiling your parsing code over and over in every translation unit that
-includes it.  For instance, in the JSON callback parser example, there is a
-call to `json::parse()`, which is a template.  However, the function template
-is always instantiated with the same parameter: `json_callbacks`, a type
-defined in the example.  It would be possible to remove the template parameter
-from `json::parse()`, forward declare `json_callbacks` and `json::parse()`,
-and define them in a different implementation file.
 
 [heading Have a simple test that you can run to find ill-formed-code-as-asserts]
 

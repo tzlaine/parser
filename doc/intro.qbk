@@ -185,9 +185,6 @@ that have been retained in _Parser_.  Both libraries:
 * use approximately the same set of directives to influence the parse
   (e.g. `lexeme[]`);
 
-* provide loosely-coupled rules that are separately compilable (at least for
-  Spirit X3); and
-
 * are built around a flexible parse context object that has state added to and
   removed from it during the parse (again, comparing to Spirit X3).
 

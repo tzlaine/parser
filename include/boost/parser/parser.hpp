@@ -5310,7 +5310,8 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-#define BOOST_PARSER_DEFINE_IMPL(_, diagnostic_text_)                          \
+//[ define_rule_definition
+#define BOOST_PARSER_DEFINE_IMPL(_, rule_name_)                                \
     template<                                                                  \
         bool UseCallbacks,                                                     \
         typename Iter,                                                         \
@@ -5318,7 +5319,7 @@ namespace boost { namespace parser {
         typename Context,                                                      \
         typename SkipParser>                                                   \
     auto parse_rule(                                                           \
-        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
+        decltype(rule_name_)::parser_type::tag_type *,                         \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5327,7 +5328,7 @@ namespace boost { namespace parser {
         boost::parser::detail::flags flags,                                    \
         bool & success)                                                        \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
+        auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \
         return parser(use_cbs, first, last, context, skip, flags, success);    \
     }                                                                          \
                                                                                \
@@ -5339,7 +5340,7 @@ namespace boost { namespace parser {
         typename SkipParser,                                                   \
         typename Attribute>                                                    \
     void parse_rule(                                                           \
-        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
+        decltype(rule_name_)::parser_type::tag_type *,                         \
         std::bool_constant<UseCallbacks> use_cbs,                              \
         Iter & first,                                                          \
         Sentinel last,                                                         \
@@ -5349,7 +5350,7 @@ namespace boost { namespace parser {
         bool & success,                                                        \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
+        auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \
         using attr_t = decltype(parser(                                        \
             use_cbs, first, last, context, skip, flags, success));             \
         if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
@@ -5359,12 +5360,15 @@ namespace boost { namespace parser {
                 use_cbs, first, last, context, skip, flags, success, retval);  \
         }                                                                      \
     }
+//]
 
 #endif
 
     /** For each given token `t`, defines a pair of `parse_rule()` overloads,
         used internally within Boost.Parser.  Each such pair implements the
-        parsing behavior rule `t`, using the parser `t_def`. */
+        parsing behavior rule `t`, using the parser `t_def`.  This
+        implementation is in the form of a pair of function templates.  You
+        should therefore write this macro only at namespace scope. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
 
