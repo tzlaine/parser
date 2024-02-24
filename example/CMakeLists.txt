@@ -3,8 +3,6 @@
 # Distributed under the Boost Software License, Version 1.0. (See
 # accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
-include_directories(${CMAKE_HOME_DIRECTORY})
-
 include(CTest)
 
 enable_testing()
@@ -15,7 +13,7 @@ macro(add_sample name)
     add_executable(${name} ${name}.cpp)
     target_link_libraries(${name} parser)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
-    add_test(${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
+    add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
 add_sample(hello)

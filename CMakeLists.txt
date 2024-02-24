@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 project(parse)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 ##################################################
 # C++ standard version selection
@@ -24,7 +23,9 @@ endif()
 ##################################################
 # Dependencies
 ##################################################
-include(dependencies)
+find_package(Boost)
+# GoogleTest
+add_subdirectory(${PROJECT_SOURCE_DIR}/googletest-release-1.10.0)
 
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)
@@ -50,7 +51,7 @@ endif()
 # Parser sub-library
 ##################################################
 add_library(parser INTERFACE)
-target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(parser INTERFACE ${PROJECT_SOURCE_DIR}/include)
 if (Boost_FOUND)
    target_link_libraries(parser INTERFACE Boost::headers)
 endif()

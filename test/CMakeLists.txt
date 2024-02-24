@@ -1,5 +1,3 @@
-include_directories(${CMAKE_HOME_DIRECTORY})
-
 include(CTest)
 
 enable_testing()
