@@ -235,6 +235,7 @@
 
 [def _emdash_              \u2014]
 
+[include tables.qbk]
 [include intro.qbk]
 [include tutorial.qbk]
 [include examples.qbk]

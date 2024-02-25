@@ -258,3 +258,31 @@ _Parser_ tries to enable genericity where it is desired, and let the user turn
 it off where it is not.
 
 [endsect]
+
+[section Cheat Sheet]
+
+Here are all the tables containing the various _Parser_ parsers, examples,
+etc., all in one place.  These are repeated elsewhere in different sections of
+the tutorial.
+
+[heading The parsers]
+
+[table_parsers_and_their_semantics]
+
+[heading Operators defined on parsers]
+
+[table_combining_operations]
+
+[heading Attribute generation for certain parsers]
+
+[table_attribute_generation]
+
+[heading Attributes for operations on parsers]
+
+[table_attribute_combinations]
+
+[heading More attributes for operations on parsers]
+
+[table_seq_or_attribute_combinations]
+
+[endsect]
