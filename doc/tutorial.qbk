@@ -66,10 +66,9 @@ subparsers does.
 _Parser_ parsers each have an /attribute/ associated with them, or explicitly
 have no attribute.  An attribute is a value that the parser generates when it
 matches the input.  For instance, the parser _d_ generates a `double` when it
-matches the input.  Since it is not possible to write a type trait that
-returns the attribute type of a parser, we need notation for concisely
-communicating that relationship.  _ATTR_ is a notional macro that expands to
-the attribute type of the parser passed to it; `_ATTR_np_(_d_)` is `double`.
+matches the input.  _ATTR_ is a notional macro that expands to the attribute
+type of the parser passed to it; `_ATTR_np_(_d_)` is `double`.  This is
+similar to the _attr_ type trait.
 
 Next, we'll look at some simple programs that parse using _Parser_.  We'll
 start small and build up from there.
@@ -150,6 +149,10 @@ In fact, the return type of this call to _p_ is
 `std::optional<std::vector<double>>`.  Naturally, if the parse fails,
 `std::nullopt` is returned.  We'll look at how _Parser_ maps the type of the
 parser to the return type, or the filled in out-parameter's type, a bit later.
+
+[note There's a type trait that can tell you the attribute type for a parser,
+_attr_ (and an associated alias _attr_t_).  We'll discuss it more in the
+_attr_gen_ section.]
 
 If I run it in a shell, this is the result:
 
@@ -1325,6 +1328,30 @@ parse.]
 `std::semiregular`).  Within the _Parser_ code, attributes are assigned,
 moved, copy, and default constructed.  There is no support for move-only or
 non-default-constructible types.]
+
+[heading The attribute type trait, _attr_]
+
+You can use _attr_ (and the associated alias, _attr_t_) to determine the
+attribute a parser would have if it were passed to _p_.  Since at least one
+parser (_ch_) has a polymorphic attribute type, _attr_ also takes the type of
+the range being parsed.  If a parser produces no attribute, _attr_ will
+produce _n_, not `void`.
+
+If you want to feed an iterator/sentinel pair to _attr_, create a range from
+it like so:
+
+    constexpr auto parser = /* ... */;
+    auto first = /* ... */;
+    auto const last = /* ... */;
+
+    namespace bp = boost::parser;
+    // You can of course use std::ranges::subrange directly in C++20 and later.
+    using attr_type = bp::attribute_t<decltype(BOOST_PARSER_SUBRANGE(first, last)), decltype(parser)>;
+
+There is no single attribute type for any parser, since a parser can be placed
+within _omit_, which makes its attribute type _n_.  Therefore, _attr_ cannot
+tell you what attribute your parser will produce under all circumstances; it
+only tells you what it would produce if it were passed to _p_.
 
 [heading Parser attributes]
 

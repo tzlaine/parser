@@ -43,6 +43,20 @@ namespace boost { namespace parser {
     constexpr bool enable_variant<std::variant<Ts...>> = true;
 #endif
 
+    /** A type trait that evaluates to the attribute type for parser `Parser`
+        used to parse range `R`, as if by calling `parse(r, parser)`, using
+        some `R r` and `Parser parser`.  Note that this implies that pointers
+        to null-terminated strings are supported types for `R`.  The result is
+        not wrapped in a `std::optional` like the result of a call to
+        `parse()` would be.  If `Parser` produces no attribute, the result is
+        the no-attribute sentinel type `none`. */
+    template<typename R, typename Parser>
+    struct attribute;
+
+    /** An alias for `typename attribute<R, Parser>::type`. */
+    template<typename R, typename Parser>
+    using attribute_t = typename attribute<R, Parser>::type;
+
     namespace detail {
         template<typename T>
         constexpr bool is_optional_v = enable_optional<T>;

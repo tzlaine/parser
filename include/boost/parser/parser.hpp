@@ -373,6 +373,8 @@ namespace boost { namespace parser {
         template<typename T>
         using print_type = typename print_t<T>::type;
 
+        template<typename R, typename Parser>
+        struct attribute_impl;
 
         // Utility types.
 
@@ -1459,6 +1461,7 @@ namespace boost { namespace parser {
         }
 
         inline bool make_parse_result(nope &, bool success) { return success; }
+        inline bool make_parse_result(none &, bool success) { return success; }
 
         template<typename LoType, typename HiType>
         struct char_pair
@@ -2039,27 +2042,7 @@ namespace boost { namespace parser {
         // API implementations
 
         template<typename Iter, typename Sentinel, typename Parser>
-        auto has_attribute(Iter first, Sentinel last, Parser parser)
-        {
-            constexpr auto flags = detail::flags::gen_attrs;
-            using context = decltype(detail::make_context(
-                first,
-                last,
-                std::declval<bool &>(),
-                std::declval<int &>(),
-                parser.error_handler_,
-                parser.globals_,
-                std::declval<detail::symbol_table_tries_t &>()));
-            using attr_t = decltype(parser(
-                std::false_type{},
-                first,
-                last,
-                std::declval<context>(),
-                detail::null_parser{},
-                flags,
-                std::declval<bool &>()));
-            return std::integral_constant<bool, !is_nope_v<attr_t>>{};
-        }
+        auto has_attribute(Iter first, Sentinel last, Parser parser);
 
         template<typename BaseIter, typename Iter>
         struct scoped_base_assign
@@ -2151,14 +2134,9 @@ namespace boost { namespace parser {
             auto const flags =
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
-            using attr_t = decltype(parser(
-                std::false_type{},
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                flags,
-                success));
+            using attr_t = typename detail::attribute_impl<
+                BOOST_PARSER_SUBRANGE<std::remove_const_t<Iter>, Sentinel>,
+                Parser>::type;
             try {
                 attr_t attr_ = parser(
                     std::false_type{},
@@ -2317,8 +2295,9 @@ namespace boost { namespace parser {
                 Debug ? detail::enable_trace(detail::default_flags())
                       : detail::default_flags();
             detail::skip(first, last, skip, flags);
-            using attr_t = decltype(parser(
-                std::false_type{}, first, last, context, skip, flags, success));
+            using attr_t = typename detail::attribute_impl<
+                BOOST_PARSER_SUBRANGE<std::remove_const_t<Iter>, Sentinel>,
+                Parser>::type;
             try {
                 attr_t attr_ = parser(
                     std::false_type{},
@@ -5969,7 +5948,7 @@ namespace boost { namespace parser {
         constexpr char_parser(Expected expected) : expected_(expected) {}
 
         template<typename T>
-        using attribute_t = std::conditional_t<
+        using attribute_type = std::conditional_t<
             std::is_same_v<AttributeType, void>,
             std::decay_t<T>,
             AttributeType>;
@@ -5987,9 +5966,9 @@ namespace boost { namespace parser {
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6018,7 +5997,7 @@ namespace boost { namespace parser {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             if (detail::unequal(context, x, expected_)) {
                 success = false;
                 return;
@@ -6140,7 +6119,7 @@ namespace boost { namespace parser {
         constexpr digit_parser() {}
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
             bool UseCallbacks,
@@ -6155,9 +6134,9 @@ namespace boost { namespace parser {
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6186,7 +6165,7 @@ namespace boost { namespace parser {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             char32_t const x_cmp = x;
             if (x_cmp < U'\x0100' && (x_cmp < U'0' || U'9' < x_cmp)) {
                 success = false;
@@ -6292,7 +6271,7 @@ namespace boost { namespace parser {
         }
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
             bool UseCallbacks,
@@ -6307,9 +6286,9 @@ namespace boost { namespace parser {
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6340,7 +6319,7 @@ namespace boost { namespace parser {
             }
 
             auto const & chars = detail::char_set<Tag>::chars;
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             uint32_t const x_cmp = x;
             if (x_cmp < U'\x0100') {
                 uint32_t const * it = std::lower_bound(
@@ -6376,7 +6355,7 @@ namespace boost { namespace parser {
         constexpr char_subrange_parser() {}
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
             bool UseCallbacks,
@@ -6391,9 +6370,9 @@ namespace boost { namespace parser {
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6422,7 +6401,7 @@ namespace boost { namespace parser {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             char32_t const x_cmp = x;
             success = false;
             for (auto subrange : detail::char_subranges<Tag>::ranges) {
@@ -8385,6 +8364,61 @@ namespace boost { namespace parser {
             return parser::string(str);
         }
     }
+
+    namespace detail {
+        template<typename R, typename Parser>
+        struct attribute_impl
+        {
+            using parser_type = typename Parser::parser_type;
+            using global_state_type = typename Parser::global_state_type;
+            using error_handler_type = typename Parser::error_handler_type;
+
+            using iterator = detail::iterator_t<R>;
+            using sentinel = detail::sentinel_t<R>;
+
+            using context = decltype(detail::make_context(
+                std::declval<iterator>(),
+                std::declval<sentinel>(),
+                std::declval<bool &>(),
+                std::declval<int &>(),
+                std::declval<error_handler_type>(),
+                std::declval<global_state_type &>(),
+                std::declval<detail::symbol_table_tries_t &>()));
+            using type = decltype(std::declval<Parser>()(
+                std::false_type{},
+                std::declval<iterator &>(),
+                std::declval<sentinel>(),
+                std::declval<context>(),
+                detail::null_parser{},
+                detail::flags::gen_attrs,
+                std::declval<bool &>()));
+        };
+
+        template<typename Iter, typename Sentinel, typename Parser>
+        auto has_attribute(Iter first, Sentinel last, Parser parser)
+        {
+            using attr_t = typename attribute_impl<
+                BOOST_PARSER_SUBRANGE<Iter, Sentinel>,
+                Parser>::type;
+            return std::integral_constant<bool, !is_nope_v<attr_t>>{};
+        }
+
+        template<typename T>
+        constexpr wrapper<T> attr_wrapped_final;
+        template<>
+        inline constexpr wrapper<none> attr_wrapped_final<nope>;
+    }
+
+    template<typename R, typename Parser>
+    struct attribute
+    {
+        using initial_type = typename detail::attribute_impl<
+            decltype(detail::make_input_subrange(std::declval<R>())),
+            Parser>::type;
+        using type =
+            typename decltype(detail::attr_wrapped_final<initial_type>)::type;
+    };
+
 
     namespace detail {
         template<typename... Args>

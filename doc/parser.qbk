@@ -105,6 +105,9 @@
 [def _cbp_                 [funcref boost::parser::callback_parse `callback_parse()`]]
 [def _cbpp_                [funcref boost::parser::callback_prefix_parse `callback_prefix_parse()`]]
 
+[def _attr_                [classref boost::parser::attribute `attribute`]]
+[def _attr_t_              [classref boost::parser::attribute_t `attribute_t`]]
+
 [def _w_glb_               [funcref boost::parser::with_globals `with_globals()`]]
 [def _w_eh_                [funcref boost::parser::with_error_handler `with_error_handler()`]]
 

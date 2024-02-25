@@ -20,6 +20,11 @@ void compile_or_attribute()
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::optional<int>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<int>>);
     }
 
     // scalar | scalar
@@ -27,18 +32,33 @@ void compile_or_attribute()
         constexpr auto parser = char_ | char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<attr_t, std::optional<char>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      char>);
     }
     {
         constexpr auto parser = char_ | char_ | eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::optional<char>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<char>>);
     }
     {
         constexpr auto parser = int_ | char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::variant<int, char>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::variant<int, char>>);
     }
     {
         constexpr auto parser = int_ | char_ | eps;
@@ -46,6 +66,11 @@ void compile_or_attribute()
         static_assert(std::is_same_v<
                       attr_t,
                       std::optional<std::optional<std::variant<int, char>>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<std::variant<int, char>>>);
     }
 
     // -scalar | -scalar
@@ -54,12 +79,22 @@ void compile_or_attribute()
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::optional<char>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<char>>);
     }
     {
         constexpr auto parser = -char_ | -char_ | eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::optional<char>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<char>>);
     }
     {
         constexpr auto parser = -int_ | -char_;
@@ -69,6 +104,11 @@ void compile_or_attribute()
                 attr_t,
                 std::optional<
                     std::variant<std::optional<int>, std::optional<char>>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::variant<std::optional<int>, std::optional<char>>>);
     }
     {
         constexpr auto parser = -int_ | -char_ | eps;
@@ -78,6 +118,13 @@ void compile_or_attribute()
                 attr_t,
                 std::optional<std::optional<
                     std::variant<std::optional<int>, std::optional<char>>>>>);
+        static_assert(
+            std::is_same_v<
+                attribute_t<
+                    decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                    decltype(parser)>,
+                std::optional<
+                    std::variant<std::optional<int>, std::optional<char>>>>);
     }
 
     // seq<T> | seq<T>
@@ -85,18 +132,33 @@ void compile_or_attribute()
         constexpr auto parser = *char_ | *char_;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(std::is_same_v<attr_t, std::optional<std::string>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::string>);
     }
     {
         constexpr auto parser = *char_ | *char_ | eps;
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::optional<std::string>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<std::string>>);
     }
     {
         constexpr auto parser = *string("str") | *string("str");
         using attr_t = decltype(prefix_parse(first, last, parser));
         static_assert(
             std::is_same_v<attr_t, std::optional<std::vector<std::string>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::vector<std::string>>);
     }
     {
         constexpr auto parser = *string("str") | *string("str") | eps;
@@ -104,6 +166,11 @@ void compile_or_attribute()
         static_assert(std::is_same_v<
                       attr_t,
                       std::optional<std::optional<std::vector<std::string>>>>);
+        static_assert(std::is_same_v<
+                      attribute_t<
+                          decltype(BOOST_PARSER_SUBRANGE(first, last)),
+                          decltype(parser)>,
+                      std::optional<std::vector<std::string>>>);
     }
 
     // seq<T> | seq<U>
