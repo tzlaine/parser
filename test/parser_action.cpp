@@ -44,7 +44,7 @@ auto locals_abc_def_def = -string("abc")[append_attr] >>
                           -string("def")[append_attr] >> eps[locals_to_val];
 BOOST_PARSER_DEFINE_RULES(locals_abc_def);
 
-TEST(parser, side_effects)
+TEST(action, side_effects)
 {
     int i = 0;
     auto increment_i = [&i](auto & ctx) { ++i; };
@@ -73,7 +73,7 @@ TEST(parser, side_effects)
     }
 }
 
-TEST(parser, pass)
+TEST(action, pass)
 {
     {
         std::string const str = "xyz";
@@ -105,7 +105,7 @@ TEST(parser, pass)
     }
 }
 
-TEST(parser, val_attr)
+TEST(action, val_attr)
 {
     {
         std::string const str = "abc";
@@ -133,7 +133,7 @@ TEST(parser, val_attr)
     }
 }
 
-TEST(parser, locals)
+TEST(action, locals)
 {
     {
         std::string const str = "";
@@ -158,5 +158,62 @@ TEST(parser, locals)
         auto const result = parse(str, locals_abc_def);
         EXPECT_TRUE(result);
         EXPECT_EQ(*result, "def");
+    }
+}
+
+auto drop_result = [](auto & ctx) {};
+auto auto_assign = [](auto & ctx) { return _attr(ctx); };
+auto auto_assign_multi_string_1 = [](std::string const & str1,
+                                     std::string const & str2) {
+    return str1 + str2;
+};
+auto auto_assign_multi_string_2 = [](std::string && str1, std::string && str2) {
+    return str1 + str2;
+};
+
+constexpr rule<struct str_rule_1_tag, std::string> str_rule_1 = "str_rule_1";
+constexpr auto str_rule_1_def = +char_;
+BOOST_PARSER_DEFINE_RULES(str_rule_1);
+
+constexpr rule<struct str_rule_2_tag, std::string> str_rule_2 = "str_rule_2";
+constexpr auto str_rule_2_def = (+char_)[drop_result];
+BOOST_PARSER_DEFINE_RULES(str_rule_2);
+
+constexpr rule<struct str_rule_3_tag, std::string> str_rule_3 = "str_rule_3";
+constexpr auto str_rule_3_def = (+char_)[auto_assign];
+BOOST_PARSER_DEFINE_RULES(str_rule_3);
+
+constexpr rule<struct str_rule_6_tag, std::string> str_rule_6 = "str_rule_6";
+constexpr auto str_rule_6_def =
+    (+(char_ - ' ') >> ' ' >> +char_)[auto_assign_multi_string_1];
+BOOST_PARSER_DEFINE_RULES(str_rule_6);
+
+constexpr rule<struct str_rule_7_tag, std::string> str_rule_7 = "str_rule_7";
+constexpr auto str_rule_7_def =
+    (+(char_ - ' ') >> ' ' >> +char_)[auto_assign_multi_string_2];
+BOOST_PARSER_DEFINE_RULES(str_rule_7);
+
+TEST(action, alternate_invocables)
+{
+    {
+        auto result_1 = parse("some text", str_rule_1);
+        EXPECT_TRUE(result_1);
+        EXPECT_EQ(*result_1, "some text");
+
+        auto result_2 = parse("some text", str_rule_2);
+        EXPECT_TRUE(result_2);
+        EXPECT_EQ(*result_2, "");
+
+        auto result_3 = parse("some text", str_rule_3);
+        EXPECT_TRUE(result_3);
+        EXPECT_EQ(*result_3, "some text");
+
+        auto result_6 = parse("some text", str_rule_6);
+        EXPECT_TRUE(result_6);
+        EXPECT_EQ(*result_6, "sometext");
+
+        auto result_7 = parse("some text", str_rule_7);
+        EXPECT_TRUE(result_7);
+        EXPECT_EQ(*result_7, "sometext");
     }
 }

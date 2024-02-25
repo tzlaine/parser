@@ -263,6 +263,11 @@ frequently re-usable.  Most semantic action lambdas you write should be
 written out-of-line, and given a good name.  Even when they are not reused,
 named lambdas keep your parsers smaller and easier to read.
 
+[heading Semantic actions inside rules]
+
+There are some other forms for semantic actions, when they are used inside of
+_rs_.  See _more_about_rules_ for details.
+
 [endsect]
 
 [section Parsing to Find Subranges]
@@ -2976,6 +2981,67 @@ rewritten as:
 Using __p_ can prevent you from having to write a bunch of lambdas that get
 each get an argument out of the parse context using `_params_np_(ctx)[0_c]` or
 similar.
+
+[heading Special forms of semantic actions usable within a rule]
+
+Semantic actions in this tutorial are usually of the signature `void (auto &
+ctx)`.  That is, they take a context by reference, and return nothing.  If
+they were to return something, that something would just get dropped on the
+floor.
+
+It is a pretty common pattern to create a rule in order to get a certain kind
+of value out of a parser, when you don't normally get it automatically.  If I
+want to parse an `int`, _i_ does that, and the thing that I parsed is also the
+desired attribute.  If I parse an `int` followed by a `double`, I get a
+_bp_tup_ containing one of each.  But what if I don't want those two values,
+but some function of those two values?  I probably write something like this.
+
+    struct obj_t { /* ... */ };
+    obj_t to_obj(int i, double d) { /* ... */ }
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    auto make_obj = [](auto & ctx) {
+        using boost::hana::literals;
+        _val(ctx) = to_obj(_attr(ctx)[0_c], _attr(ctx)[1_c]);
+    };
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[make_obj];
+
+That's fine, if a little verbose.  However, you can also do this instead:
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    auto make_obj = [](auto & ctx) {
+        using boost::hana::literals;
+        return to_obj(_attr(ctx)[0_c], _attr(ctx)[1_c]);
+    };
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[make_obj];
+
+Above, we return the value from a semantic action, and the returned value
+gets assigned to `_val_np_(ctx)`.
+
+Finally, you can provide a function that takes the individual elements of the
+attribute (if it's a tuple), and returns the value to assign to
+`_val_np_(ctx)`:
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[to_obj];
+
+More formally, within a rule, the use of a semantic action is determined as
+follows.  Assume we have a function `APPLY` that calls a function with the
+elements of a tuple, like `std::apply`.  For some context `ctx`, semantic
+action `action`, and attribute `attr`, `action` is used like this:
+
+- `_val(ctx) = APPLY(action, std::move(attr))`, if that is well-formed, and
+  `attr` is a tuple of size 2 or larger;
+
+- otherwise, `_val(ctx) = action(ctx)`, if that is well-formed;
+
+- otherwise, `action(ctx)`.
+
+The first case does not pass the context to the action at all.  The last case
+is the normal use of semantic actions outside of rules.
 
 [endsect]
 

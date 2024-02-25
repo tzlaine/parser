@@ -58,6 +58,32 @@ namespace boost { namespace parser { namespace detail::hl {
     }
 
 
+    // apply
+
+    template<typename F, typename Tuple, std::size_t... I>
+    constexpr auto
+    apply_impl(F && f, Tuple && t, std::integer_sequence<std::size_t, I...>)
+        -> decltype(((F &&) f)(parser::get((Tuple &&) t, llong<I>{})...))
+    {
+        return ((F &&) f)(parser::get((Tuple &&) t, llong<I>{})...);
+    }
+    template<
+        typename F,
+        typename Tuple,
+        typename Enable = std::enable_if_t<detail::is_tuple<
+            std::remove_cv_t<std::remove_reference_t<Tuple>>>{}>>
+    constexpr auto apply(F && f, Tuple && t) -> decltype(hl::apply_impl(
+        (F &&) f,
+        (Tuple &&) t,
+        std::make_integer_sequence<std::size_t, tuple_size_<Tuple>>{}))
+    {
+        return hl::apply_impl(
+            (F &&) f,
+            (Tuple &&) t,
+            std::make_integer_sequence<std::size_t, tuple_size_<Tuple>>{});
+    }
+
+
     // for_each
 
     template<typename F, typename Tuple, std::size_t... I>

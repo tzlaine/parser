@@ -55,13 +55,13 @@ const auto degrees_symbol = bp::no_case[                 bp::lit("degrees") | bp
 const auto minutes_symbol = bp::no_case[ bp::lit('\'') | bp::lit("minutes") | bp::lit("min") | bp::lit('m') ];
 const auto seconds_symbol = bp::no_case[ bp::lit('"')  | bp::lit("seconds") | bp::lit("sec") | bp::lit('s') ];
 
-const auto uint_0_60_def   = bp::uint_   [( [](auto ctx) { _pass(ctx) = _attr(ctx) < 60U; _val(ctx) = _attr(ctx); } )];
-const auto double_0_60_def = bp::double_ [( [](auto ctx) { _pass(ctx) = _attr(ctx) < 60;  _val(ctx) = _attr(ctx); } )];
+const auto uint_0_60_def   = bp::uint_   [( [](auto & ctx) { _pass(ctx) = _attr(ctx) < 60U; _val(ctx) = _attr(ctx); } )];
+const auto double_0_60_def = bp::double_ [( [](auto & ctx) { _pass(ctx) = _attr(ctx) < 60;  _val(ctx) = _attr(ctx); } )];
 
 const auto decimal_degrees = bp::double_ >> -degrees_symbol;
 
 const auto degrees_decimal_minutes_def = (bp::uint_ >> -degrees_symbol
-                                       >> (double_0_60 - '.') >> -minutes_symbol) [( [](auto ctx) {
+                                       >> (double_0_60 - '.') >> -minutes_symbol) [( [](auto & ctx) {
   auto d = _attr(ctx)[0_c];
   auto m = _attr(ctx)[1_c];
   _val(ctx) = d + m/60.0;
@@ -69,7 +69,7 @@ const auto degrees_decimal_minutes_def = (bp::uint_ >> -degrees_symbol
 
 const auto degrees_minutes_seconds_def = (bp::uint_ >> -degrees_symbol
                                        >> uint_0_60 >> -minutes_symbol
-                                       >> (double_0_60 - '.') >> -seconds_symbol) [( [](auto ctx) {
+                                       >> (double_0_60 - '.') >> -seconds_symbol) [( [](auto & ctx) {
   auto d = _attr(ctx)[0_c];
   auto m = _attr(ctx)[1_c];
   auto s = _attr(ctx)[2_c];
@@ -83,14 +83,14 @@ const auto degrees_def = degrees_minutes_seconds
 const auto northsouth = bp::no_case[ bp::char_("ns") ];
 const auto eastwest   = bp::no_case[ bp::char_("ew") ];
 
-const auto latitude_def = (degrees >> northsouth) [( [](auto ctx) {
+const auto latitude_def = (degrees >> northsouth) [( [](auto & ctx) {
   auto d  = _attr(ctx)[0_c];
   auto ns = _attr(ctx)[1_c];
   _pass(ctx) = d <= 90;
   _val(ctx) = ns=='S' || ns=='s' ? -d : d;
 } )];
 
-const auto longitude_def = (degrees >> eastwest) [( [](auto ctx) {
+const auto longitude_def = (degrees >> eastwest) [( [](auto & ctx) {
   auto d  = _attr(ctx)[0_c];
   auto ew = _attr(ctx)[1_c];
   _pass(ctx) = d <= 180;
@@ -99,13 +99,13 @@ const auto longitude_def = (degrees >> eastwest) [( [](auto ctx) {
 
 const auto signed_degrees = bp::double_ >> -degrees_symbol;
 
-const auto signed_latitude_def  = signed_degrees [( [](auto ctx) { auto d = _attr(ctx); _pass(ctx) =  -90 <= d && d <=  90; _val(ctx) = _attr(ctx); } )];
-const auto signed_longitude_def = signed_degrees [( [](auto ctx) { auto d = _attr(ctx); _pass(ctx) = -180 <= d && d <= 180; _val(ctx) = _attr(ctx); } )];
+const auto signed_latitude_def  = signed_degrees [( [](auto & ctx) { auto d = _attr(ctx); _pass(ctx) =  -90 <= d && d <=  90; _val(ctx) = _attr(ctx); } )];
+const auto signed_longitude_def = signed_degrees [( [](auto & ctx) { auto d = _attr(ctx); _pass(ctx) = -180 <= d && d <= 180; _val(ctx) = _attr(ctx); } )];
 
-const auto latlon_def = ((latitude >> longitude) [( [](auto ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[1_c], _attr(ctx)[0_c]}; } )] )
-                      | ((longitude >> latitude) [( [](auto ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[0_c], _attr(ctx)[1_c]}; } )] )
+const auto latlon_def = ((latitude >> longitude) [( [](auto & ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[1_c], _attr(ctx)[0_c]}; } )] )
+                      | ((longitude >> latitude) [( [](auto & ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[0_c], _attr(ctx)[1_c]}; } )] )
                       | ((signed_longitude >> signed_latitude)
-                                                 [( [](auto ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[0_c], _attr(ctx)[1_c]}; } )] );
+                                                 [( [](auto & ctx) { _val(ctx) = g2d::Vector{_attr(ctx)[0_c], _attr(ctx)[1_c]}; } )] );
 
 BOOST_PARSER_DEFINE_RULES(uint_0_60);
 BOOST_PARSER_DEFINE_RULES(double_0_60);

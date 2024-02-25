@@ -462,13 +462,14 @@ namespace boost { namespace parser {
         typename ParamsTuple = no_params>
     struct callback_rule;
 
+#ifdef BOOST_PARSER_DOXYGEN
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         bottommost parser; multiple attributes will be stored within a
         `parser::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
         Returns `none` if the bottommost parser does produce an attribute. */
-    template<typename Context>
     decltype(auto) _val(Context const & context);
+#endif
 
     /** Returns a reference to the attribute or attributes already produced by
         the bottommost parser; multiple attributes will be stored within a

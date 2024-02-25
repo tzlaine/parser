@@ -2638,8 +2638,13 @@ namespace boost { namespace parser {
     }
 
 
+    // This constraint is only here to allow the alternate-call semantic
+    // action metaprogramming logic function on MSVC.
     template<typename Context>
-    decltype(auto) _val(Context const & context)
+    auto _val(Context const & context) -> std::conditional_t<
+        detail::is_nope_v<decltype(*context.val_)>,
+        none,
+        decltype(*context.val_)>
     {
         if constexpr (detail::is_nope_v<decltype(*context.val_)>)
             return none{};
@@ -4038,6 +4043,75 @@ namespace boost { namespace parser {
         ParserTuple parsers_;
     };
 
+    namespace detail {
+        // clang-format off
+        template<typename Action, typename Attribute>
+        using action_direct_call_expr =
+            decltype(std::declval<Action>()(std::declval<Attribute>()));
+        template<typename Action, typename Attribute>
+        using action_apply_call_expr =
+            decltype(hl::apply(std::declval<Action>(), std::declval<Attribute>()));
+        template<typename Action, typename Attribute, typename Context>
+        using action_assignable_to_val_direct_expr =
+            decltype(_val(std::declval<Context>()) =
+                     std::declval<Action>()(std::declval<Attribute>()));
+        template<typename Action, typename Attribute, typename Context>
+        using action_assignable_to_val_apply_expr =
+            decltype(_val(std::declval<Context>()) =
+                     hl::apply(std::declval<Action>(), std::declval<Attribute>()));
+        // clang-format on
+
+        template<typename Action, typename Attribute, typename Context>
+        constexpr auto action_assignable_to_val_direct()
+        {
+            if constexpr (is_nope_v<decltype(*std::declval<Context>().val_)>) {
+                return false;
+            } else if constexpr (!is_detected_v<
+                                     action_direct_call_expr,
+                                     Action,
+                                     Attribute>) {
+                return false;
+            } else if constexpr (std::is_same_v<
+                                     action_direct_call_expr<Action, Attribute>,
+                                     void>) {
+                return false;
+            } else {
+                return is_detected_v<
+                    action_assignable_to_val_direct_expr,
+                    Action,
+                    Attribute,
+                    Context>;
+            }
+        }
+
+        template<typename Action, typename Attribute, typename Context>
+        constexpr auto action_assignable_to_val_apply()
+        {
+            if constexpr (is_nope_v<decltype(*std::declval<Context>().val_)>) {
+                return false;
+            } else if constexpr (!is_tuple<remove_cv_ref_t<Attribute>>{}) {
+                return false;
+            } else if constexpr (tuple_size_<remove_cv_ref_t<Attribute>> < 2) {
+                return false;
+            } else if constexpr (!is_detected_v<
+                                     action_apply_call_expr,
+                                     Action,
+                                     Attribute>) {
+                return false;
+            } else if constexpr (std::is_same_v<
+                                     action_apply_call_expr<Action, Attribute>,
+                                     void>) {
+                return false;
+            } else {
+                return is_detected_v<
+                    action_assignable_to_val_apply_expr,
+                    Action,
+                    Attribute,
+                    Context>;
+            }
+        }
+    }
+
     template<typename Parser, typename Action>
     struct action_parser
     {
@@ -4090,11 +4164,38 @@ namespace boost { namespace parser {
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            BOOST_PARSER_SUBRANGE const where(initial_first, first);
-            if (success) {
+
+            if (!success)
+                return;
+
+            if constexpr (detail::action_assignable_to_val_apply<
+                              decltype(action_) &,
+                              decltype(attr),
+                              decltype(context)>()) {
+                _val(context) = detail::hl::apply(action_, std::move(attr));
+            } else {
+                BOOST_PARSER_SUBRANGE const where(initial_first, first);
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
-                action_(action_context);
+                if constexpr (detail::action_assignable_to_val_direct<
+                                  decltype(action_) &,
+                                  decltype(action_context) &,
+                                  decltype(action_context) &>()) {
+                    _val(action_context) = action_(action_context);
+                } else if constexpr (std::is_same_v<
+                                         decltype(action_(action_context)),
+                                         void>) {
+                    action_(action_context);
+                } else {
+                    // If you see an error here, it's because you are using an
+                    // invocable for a semantic action that returns a non-void
+                    // type Ret, but values fo type Ret is not assignable to
+                    // _val(ctx).  To fix this, only use this invocable within
+                    // a rule whose attribute type is assignable from Ret, or
+                    // remove the non-void return statement(s) from your
+                    // invocable.
+                    [[maybe_unused]] none n = action_(action_context);
+                }
             }
         }
 
