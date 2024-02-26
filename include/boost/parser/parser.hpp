@@ -6882,11 +6882,12 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            using extract =
-                detail_spirit_x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
-            success = extract::call(first, last, attr);
-            if (attr != detail::resolve(context, expected_))
+            auto const initial = first;
+            success =
+                detail::numeric::parse_int<false, Radix, MinDigits, MaxDigits>(
+                    first, last, attr);
+            if (first == initial || attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
                 detail::assign(retval, attr);
@@ -6993,11 +6994,11 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            using extract =
-                detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             auto const initial = first;
-            success = extract::call(first, last, attr);
+            success =
+                detail::numeric::parse_int<true, Radix, MinDigits, MaxDigits>(
+                    first, last, attr);
             if (first == initial || attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
@@ -7081,12 +7082,9 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            detail_spirit_x3::real_policies<T> policies;
-            using extract = detail_spirit_x3::
-                extract_real<T, detail_spirit_x3::real_policies<T>>;
             T attr = 0;
             auto const initial = first;
-            success = extract::parse(first, last, attr, policies);
+            success = detail::numeric::parse_real(first, last, attr);
             if (first == initial)
                 success = false;
             if (success)
