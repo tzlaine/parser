@@ -2043,25 +2043,28 @@ Let's look at the use cases in detail.
 [heading Fixing the attribute type]
 
 We saw in the previous section how _p_ is flexible in what types it will
-accept as attribute out-parameters.
+accept as attribute out-parameters.  Here's another example.
 
-That flexibility is a blessing and a curse.  For instance, say you wanted to
-use the parser `+_ch_` to parse a _std_str_, and capture the result in a
-_std_str_.  `+_ch_` generates an attribute of _std_vec_char_ when parsing a
-sequence of `char`, so you'd have to write the result into a vector first,
-including all the allocations that implies, and then you'd have to allocate
-space in a string, and copy the entire result.  Not great.  The flexibility of
-attribute out-parameters lets you avoid that.  On the other hand, if you want
-to parse your result into a _std_vec_char_, but *accidentally* pass a
-_std_str_, the code is well-formed.  Usually, we expect type mismatches like
-this to be ill-formed in C++.  Fortunately, _rs_ help you address both these
-concerns.
+    namespace bp = boost::parser;
+    auto result = bp::parse(input, bp::int % ',', result);
 
-First, let's see _rs_ used to nail down attribute flexibility.  Every rule has
-a specific attribute type, provided as a template parameter.  If one is not
-specified, the rule has no attribute.  The fact that the attribute is a
-specific type allows you to remove attribute flexibility.  For instance, say
-we have a rule defined like this:
+`result` can be one of many different types.  It could be `std::vector<int>`.
+It could be `std::set<long long>`.  It could be a lot of things.  Often, this
+is a very useful property; if you had to rewrite all of your parser logic
+because you changed the desired container in some part of your attribute from
+a `std::vector` to a `std::deque`, that would be annoying.  However, that
+flexibility comes at the cost of type checking.  If you want to write a parser
+that *always* produces exactly a `std::vector<unsigned int>` *and no other
+type*, you also probably want a compilation error if you accidentally pass
+that parser a `std::set<unsigned int>` attribute instead.  There is no way
+with a plain parser to enforce that its attribute type may only ever be a
+single, fixed type.
+
+Fortunately, _rs_ allow you to write a parser that has a fixed attribute type.
+Every rule has a specific attribute type, provided as a template parameter.
+If one is not specified, the rule has no attribute.  The fact that the
+attribute is a specific type allows you to remove attribute flexibility.  For
+instance, say we have a rule defined like this:
 
 [rule_intro_rule_definition]
 
@@ -2091,10 +2094,10 @@ If we wanted to use a `std::deque<double>` as the attribute type of our rule:
         bp::parse(input, doubles, bp::ws, deque_result); // Ok.
     }
 
-So, the attribute flexibility is still available, but only *within* the rule
-_emdash_ the parser `bp::double_ % ','` can parse into a `std::vector<double>`
-or a `std::deque<double>`, but the rule `doubles` must parse into only the
-exact attribute it was declared to generate.
+The take-away here is that the attribute flexibility is still available, but
+only *within* the rule _emdash_ the parser `bp::double_ % ','` can parse into
+a `std::vector<double>` or a `std::deque<double>`, but the rule `doubles` must
+parse into only the exact attribute it was declared to generate.
 
 The reason for this is that, inside the rule parsing implementation, there is
 code something like this:
