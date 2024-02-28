@@ -1209,6 +1209,8 @@ Unicode case folding).  In the non-Unicode code path, a full Unicode case
 folding is not done; instead, only the transformations of values less than
 `0x100` are done.  Examples:
 
+    #include <boost/parser/transcode_view.hpp> // For as_utfN.
+
     namespace bp = boost::parser;
     auto const street_parser = bp::string(u8"Tobias Straße");
     assert(!bp::parse("Tobias Strasse" | bp::as_utf32, street_parser));             // No match.
@@ -2953,6 +2955,10 @@ The other adaptors `as_utf8` and `as_utf16` are also provided for
 completeness, if you want to use them.  They each can transcode any sequence
 of character types.  A null-terminated string is considered a sequence of
 character type.
+
+[important The `as_utfN` adaptors are optional, so they don't come with
+`parser.hpp`.  To get access to them, `#include
+<boost/parser/transcode_view.hpp>`. ]
 
 [endsect]
 
