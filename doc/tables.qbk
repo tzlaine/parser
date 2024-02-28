@@ -123,7 +123,7 @@ the input they match unless otherwise stated in the table below.]
      []]
 
     [[ `_digit_` ]
-     [ Matches a single deimal digit code point. ]
+     [ Matches a single decimal digit code point. ]
      [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
      []]
 

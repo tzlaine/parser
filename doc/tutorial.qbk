@@ -729,7 +729,7 @@ consumes `"2"` and then `bp::ws` skips the subsequent space.  Since we've
 finished with `int_pair`'s match, its `_bp_tup_<int, int>` attribute is
 complete.  It's parent is `+int_pair`, so this tuple attribute is pushed onto
 the back of `+int_pair`'s attribute, which is a `std::vector<_bp_tup_<int,
-int>>`.  Control passes up to the parent if `int_pair`, `+int_pair`.  Since
+int>>`.  Control passes up to the parent of `int_pair`, `+int_pair`.  Since
 `+int_pair` is a one-or-more parser, it starts a new iteration; control passes
 to `int_pair` again.
 
@@ -996,9 +996,10 @@ parses, you need to call both functions. ]
 `.insert_for_next_parse()` does.  This allows you to chain additions with a
 convenient syntax, like this:
 
+```
     symbols<int> roman_numerals;
     roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
-
+```
 ]
 
 [important _symbols_ stores all its strings in UTF-32 internally.  If you do
@@ -1485,7 +1486,7 @@ if you write this:
     auto b = bp::parse("3", bp::int_, bp::ws, result);
 
 ... you are even more likely to have made a mistake.  Though this should work,
-because the assignment in `std::string s; s = 3.6;` is well-formed, _Parser_
+because the assignment in `std::string s; s = 3;` is well-formed, _Parser_
 forbids it.  If you write parsing code like the snippet above, you will get a
 static assertion.  If you really do want to assign a `float` or whatever to a
 _std_str_, do it in a semantic action.
@@ -1610,7 +1611,7 @@ common:
 
 * They each require forward iterability of the range to parse.
 
-* They each accept any range with an character element type.  This means that
+* They each accept any range with a character element type.  This means that
   they can each parse ranges of `char`, `wchar_t`, `char8_t`, `char16_t`, or
   `char32_t`.
 
@@ -3175,7 +3176,7 @@ was found.  That may of course not be located anywhere near
                 close_tag_msg,
                 ctx);
 
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            // Explicitly fail the parse.  Diagnostics do not affect parse success.
             _pass(ctx) = false;
         }
     }
@@ -3197,7 +3198,7 @@ less verbose, _report_error_ and _report_warning_:
                 "does not match close-tag \"" + _attr(ctx) + "\" here:";
             _report_error(ctx, close_tag_msg);
 
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            // Explicitly fail the parse.  Diagnostics do not affect parse success.
             _pass(ctx) = false;
         }
     }
