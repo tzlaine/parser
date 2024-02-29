@@ -2961,6 +2961,13 @@ character type.
 `parser.hpp`.  To get access to them, `#include
 <boost/parser/transcode_view.hpp>`. ]
 
+[heading (Lack of) normalization]
+
+One thing that _Parser_ does not handle for you is normalization; _Parser_ is
+completely normalization-agnostic.  Since all the parsers do their matching
+using equality comparisons of code points, you should make sure that your
+parsed range and your parsers all use the same normalization form.
+
 [endsect]
 
 [section Callback Parsing]
