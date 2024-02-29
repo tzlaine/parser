@@ -328,7 +328,11 @@ namespace boost::parser::detail { namespace text {
 #endif
     {
     public:
-        constexpr char8_view() requires std::default_initializable<V> = default;
+        constexpr char8_view()
+#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+            requires std::default_initializable<V>
+#endif
+        = default;
         constexpr char8_view(V base) :
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
             project_view<V, detail::cast_to_charn<char8_t>{}>{std::move(base)}
