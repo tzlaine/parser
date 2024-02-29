@@ -2568,6 +2568,42 @@ namespace boost::parser::detail { namespace text {
         };
     }
 
+    namespace detail {
+        struct iter_access
+        {
+            template<typename T>
+            static auto & buf(T & it)
+            {
+                return it.buf_;
+            }
+            template<typename T>
+            static auto & first_and_curr(T & it)
+            {
+                return it.first_and_curr_;
+            }
+            template<typename T>
+            static auto & buf_index(T & it)
+            {
+                return it.buf_index_;
+            }
+            template<typename T>
+            static auto & buf_last(T & it)
+            {
+                return it.buf_last_;
+            }
+            template<typename T>
+            static auto & to_increment(T & it)
+            {
+                return it.to_increment_;
+            }
+            template<typename T>
+            static auto & last(T & it)
+            {
+                return it.last_;
+            }
+        };
+    }
+
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
     template<
         format FromFormat,
@@ -2669,11 +2705,12 @@ namespace boost::parser::detail { namespace text {
         constexpr utf_iterator(
             utf_iterator<FromFormat, ToFormat, I2, S2, ErrorHandler> const &
                 other) :
-            buf_(other.buf_),
-            first_and_curr_(other.first_and_curr_),
-            buf_index_(other.buf_index_),
-            buf_last_(other.buf_last_),
-            last_(other.last_)
+            buf_(detail::iter_access::buf(other)),
+            first_and_curr_(detail::iter_access::first_and_curr(other)),
+            buf_index_(detail::iter_access::buf_index(other)),
+            buf_last_(detail::iter_access::buf_last(other)),
+            to_increment_(detail::iter_access::to_increment(other)),
+            last_(detail::iter_access::last(other))
         {}
 
 #if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
@@ -3227,23 +3264,7 @@ namespace boost::parser::detail { namespace text {
 
         [[no_unique_address]] S last_;
 
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-        template<
-            format FromFormat2,
-            format ToFormat2,
-            std::input_iterator I2,
-            std::sentinel_for<I2> S2,
-            transcoding_error_handler ErrorHandler2>
-        requires std::convertible_to<std::iter_value_t<I2>, detail::format_to_type_t<FromFormat2>>
-#else
-        template<
-            format FromFormat2,
-            format ToFormat2,
-            typename I2,
-            typename S2,
-            typename ErrorHandler2>
-#endif
-        friend class utf_iterator;
+        friend struct detail::iter_access;
     };
 
 }}

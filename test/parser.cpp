@@ -2858,3 +2858,27 @@ TEST(parser, rule_example)
     using namespace rule_construction_example;
     EXPECT_TRUE(bp::parse("3 4", type, bp::ws));
 }
+
+TEST(parser, utf_iterator_copy_ctor)
+{
+    namespace bp = boost::parser;
+
+    char mut_chars[] = "foo";
+    char const const_chars[] = "bar";
+
+    auto mut_view = mut_chars | bp::as_utf8;
+    auto const_view = const_chars | bp::as_utf8;
+
+    auto mut_it = mut_view.begin();
+    auto mut_last = mut_view.end();
+    auto const_it = const_view.begin();
+    auto const_last = const_view.begin();
+
+    const_it = mut_it;
+    const_last = mut_last;
+
+    std::string copy;
+    copy.resize(3);
+    std::copy(const_it, const_last, copy.begin());
+    EXPECT_EQ(copy, "foo");
+}
