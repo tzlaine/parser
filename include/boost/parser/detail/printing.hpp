@@ -560,50 +560,52 @@ namespace boost { namespace parser { namespace detail {
         typename Attribute>
     struct scoped_trace_t
     {
+        scoped_trace_t() : flags_(flags(0)) {}
+
         scoped_trace_t(
             Iter & first,
             Sentinel last,
             Context const & context,
             flags f,
             Attribute const & attr,
-            std::string name) :
-            initial_first_(first),
-            first_(first),
-            last_(last),
-            context_(context),
-            flags_(f),
-            attr_(attr),
-            name_(std::move(name))
+            std::string name)
         {
             if (!detail::do_trace(flags_))
                 return;
-            detail::trace_prefix(first_, last_, context_, name_);
+            initial_first_ = first;
+            first_ = &first;
+            last_ = last;
+            context_ = &context;
+            flags_ = f;
+            attr_ = &attr;
+            name_ = std::move(name);
+            detail::trace_prefix(*first_, last_, *context_, name_);
         }
 
         ~scoped_trace_t()
         {
             if (!detail::do_trace(flags_))
                 return;
-            detail::trace_indent(detail::_indent(context_));
-            if (*context_.pass_) {
+            detail::trace_indent(detail::_indent(*context_));
+            if (*context_->pass_) {
                 std::cout << "matched ";
-                detail::trace_input(std::cout, initial_first_, first_);
+                detail::trace_input(std::cout, initial_first_, *first_);
                 std::cout << "\n";
                 detail::print_attribute(
-                    detail::resolve(context_, attr_),
-                    detail::_indent(context_));
+                    detail::resolve(*context_, *attr_),
+                    detail::_indent(*context_));
             } else {
                 std::cout << "no match\n";
             }
-            detail::trace_suffix(first_, last_, context_, name_);
+            detail::trace_suffix(*first_, last_, *context_, name_);
         }
 
         Iter initial_first_;
-        Iter & first_;
+        Iter * first_;
         Sentinel last_;
-        Context const & context_;
+        Context const * context_;
         flags flags_;
-        Attribute const & attr_;
+        Attribute const * attr_;
         std::string name_;
     };
 
@@ -621,9 +623,10 @@ namespace boost { namespace parser { namespace detail {
         flags f,
         Attribute const & attr)
     {
+        if (!detail::do_trace(f))
+            return scoped_trace_t<Iter, Sentinel, Context, Attribute>();
         std::stringstream oss;
-        if (detail::do_trace(f))
-            detail::print_parser(context, parser, oss);
+        detail::print_parser(context, parser, oss);
         return scoped_trace_t<Iter, Sentinel, Context, Attribute>(
             first, last, context, f, attr, oss.str());
     }
