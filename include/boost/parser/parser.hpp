@@ -2844,7 +2844,7 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, min_); count != end;
                      ++count) {
                     detail::skip(first, last, skip, flags);
-                    attr_t attr;
+                    attr_t attr{};
                     parser_.call(
                         use_cbs,
                         first,
@@ -2892,7 +2892,7 @@ namespace boost { namespace parser {
                     }
 
                     detail::skip(first, last, skip, flags);
-                    attr_t attr;
+                    attr_t attr{};
                     parser_.call(
                         use_cbs,
                         first,
@@ -3154,7 +3154,7 @@ namespace boost { namespace parser {
             // nope if unwrapped_types is empty.
             using result_t = detail::to_hana_tuple_or_type_t<unwrapped_types>;
 
-            result_t retval;
+            result_t retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -3708,7 +3708,8 @@ namespace boost { namespace parser {
             auto temp_result = make_temp_result(
                 use_cbs, first, last, context, skip, flags, success);
 
-            std::decay_t<decltype(parser::get(temp_result, llong<0>{}))> retval;
+            std::decay_t<decltype(parser::get(temp_result, llong<0>{}))>
+                retval{};
 
             auto _ = detail::scoped_trace(
                 *this,
@@ -3820,7 +3821,7 @@ namespace boost { namespace parser {
                 0 < max_index_t::value && detail::is_constructible_from_tuple_v<
                                               Attribute,
                                               temp_result_attr_t>) {
-                temp_result_attr_t temp_retval;
+                temp_result_attr_t temp_retval{};
                 call_impl(
                     use_cbs,
                     first,
@@ -3841,7 +3842,7 @@ namespace boost { namespace parser {
                 }
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
-                tuple<Attribute> temp_retval;
+                tuple<Attribute> temp_retval{};
                 call_impl(
                     use_cbs,
                     first,
@@ -4702,7 +4703,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
+            T retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -5968,7 +5969,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_type<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6136,7 +6137,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_type<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6288,7 +6289,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_type<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6372,7 +6373,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_type<decltype(*first)> retval;
+            attribute_type<decltype(*first)> retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6773,7 +6774,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            bool retval;
+            bool retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6858,7 +6859,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
+            T retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -6970,7 +6971,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
+            T retval{};
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
@@ -7058,7 +7059,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
+            T retval = 0;
             call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }

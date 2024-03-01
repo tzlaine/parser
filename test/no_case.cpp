@@ -23,6 +23,9 @@ TEST(no_case, doc_example)
     auto const alpha_parser = bp::no_case[bp::char_('a', 'z')];
     assert(bp::parse("a" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
     assert(bp::parse("B" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+
+    (void)street_parser;
+    (void)alpha_parser;
 }
 
 

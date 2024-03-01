@@ -1998,6 +1998,7 @@ TEST(parser, attr_out_param_compat)
         using namespace bp::literals;
 
         assert(success);
+        (void)success;
         assert(bp::get(result, 0_c) == std::vector<int>({'r', U'ô', 'l', 'e'}));
         assert(bp::get(result, 1_c) == "foo");
     }
@@ -2015,6 +2016,7 @@ TEST(parser, attr_out_param_compat)
         using namespace bp::literals;
 
         assert(success);
+        (void)success;
         // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
         assert(bp::get(result, 0_c) == std::vector<char>({'r', (char)0xc3, (char)0xb4, 'l', 'e'}));
         assert(bp::get(result, 1_c) == "foo");
