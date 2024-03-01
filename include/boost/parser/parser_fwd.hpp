@@ -134,7 +134,11 @@ namespace boost { namespace parser {
         using symbol_table_tries_t =
             std::map<void *, any_copyable, std::less<void *>>;
 
-        template<typename Iter, typename Sentinel, typename ErrorHandler>
+        template<
+            bool DoTrace,
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler>
         inline auto make_context(
             Iter first,
             Sentinel last,

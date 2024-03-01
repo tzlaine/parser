@@ -20,7 +20,7 @@ namespace boost::parser {
             std::bool_constant<false>{},
             std::declval<I &>(),
             std::declval<S>(),
-            std::declval<parse_context<I, S, default_error_handler>>(),
+            std::declval<parse_context<false, I, S, default_error_handler>>(),
             ws,
             detail::default_flags(),
             std::declval<bool &>()));

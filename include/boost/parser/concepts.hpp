@@ -51,7 +51,7 @@ namespace boost { namespace parser {
         typename S,
         typename ErrorHandler,
         typename GlobalState>
-    using minimal_parse_context = decltype(detail::make_context(
+    using minimal_parse_context = decltype(detail::make_context<false>(
         std::declval<I>(),
         std::declval<S>(),
         std::declval<bool &>(),
