@@ -17,10 +17,10 @@ namespace boost::parser {
 
         template<typename I, typename S, typename Parser>
         using attr_type = decltype(std::declval<Parser const &>().call(
-            std::bool_constant<false>{},
             std::declval<I &>(),
             std::declval<S>(),
-            std::declval<parse_context<false, I, S, default_error_handler>>(),
+            std::declval<
+                parse_context<false, false, I, S, default_error_handler>>(),
             ws,
             detail::default_flags(),
             std::declval<bool &>()));

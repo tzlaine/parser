@@ -136,6 +136,7 @@ namespace boost { namespace parser {
 
         template<
             bool DoTrace,
+            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename ErrorHandler>

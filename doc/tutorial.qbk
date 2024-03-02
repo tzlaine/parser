@@ -3581,9 +3581,6 @@ As you can see, `opt_parser`'s only data member is the parser it adapts,
 
 First, let's look at the template and function parameters.
 
-* `UseCallbacks` is `true` only within a call to _cbp_ (or _cbpp_), and it is
-  deduced from the `use_cbs` function parameter.
-
 * `Iter & first` is the iterator.  It is taken as an out-param.  It is the
   responsibility of `call()` to advance `first` if and only if the parse
   succeeds.
