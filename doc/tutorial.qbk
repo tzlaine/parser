@@ -266,6 +266,10 @@ frequently re-usable.  Most semantic action lambdas you write should be
 written out-of-line, and given a good name.  Even when they are not reused,
 named lambdas keep your parsers smaller and easier to read.
 
+[important Attaching a semantic action to a parser removes its attribute.
+That is, `_ATTR_np_(p[a])` is always the special no-attribute type _n_,
+regardless of what type `_ATTR_np_(p)` is.]
+
 [heading Semantic actions inside rules]
 
 There are some other forms for semantic actions, when they are used inside of
