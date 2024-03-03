@@ -557,3 +557,85 @@ namespace more_about_rules_4 {
         return bp::parse(str, bp::omit[parens], bp::ws);
     }
 }
+
+// clang-format off
+namespace param_example {
+    //[ extended_param_yaml_example_rules
+    namespace bp = boost::parser;
+
+    // A type to represent the YAML parse context.
+    enum class context {
+        block_in,
+        block_out,
+        block_key,
+        flow_in,
+        flow_out,
+        flow_key
+    };
+
+    // A YAML value; no need to fill it in for this example.
+    struct value
+    {
+        // ...
+    };
+
+    // YAML [66], just stubbed in here.
+    auto const s_separate_in_line = bp::eps;
+
+    // YAML [137].
+    bp::rule<struct c_flow_seq_tag, value> c_flow_sequence = "c-flow-sequence";
+    // YAML [80].
+    bp::rule<struct s_separate_tag> s_separate = "s-separate";
+    // YAML [136].
+    bp::rule<struct in_flow_tag, value> in_flow = "in-flow";
+    // YAML [138]; just eps below.
+    bp::rule<struct ns_s_flow_seq_entries_tag, value> ns_s_flow_seq_entries =
+        "ns-s-flow-seq-entries";
+    // YAML [81]; just eps below.
+    bp::rule<struct s_separate_lines_tag> s_separate_lines = "s-separate-lines";
+
+    // Parser for YAML [137].
+    auto const c_flow_sequence_def =
+        '[' >>
+        -s_separate.with(bp::_p<0>, bp::_p<1>) >>
+        -in_flow.with(bp::_p<0>, bp::_p<1>) >>
+        ']';
+    // Parser for YAML [80].
+    auto const s_separate_def = bp::switch_(bp::_p<1>)
+        (context::block_out, s_separate_lines.with(bp::_p<0>))
+        (context::block_in, s_separate_lines.with(bp::_p<0>))
+        (context::flow_out, s_separate_lines.with(bp::_p<0>))
+        (context::flow_in, s_separate_lines.with(bp::_p<0>))
+        (context::block_key, s_separate_in_line)
+        (context::flow_key, s_separate_in_line);
+    // Parser for YAML [136].
+    auto const in_flow_def = bp::switch_(bp::_p<1>)
+        (context::flow_out, ns_s_flow_seq_entries.with(bp::_p<0>, context::flow_in))
+        (context::flow_in, ns_s_flow_seq_entries.with(bp::_p<0>, context::flow_in))
+        (context::block_out, ns_s_flow_seq_entries.with(bp::_p<0>, context::flow_key))
+        (context::flow_key, ns_s_flow_seq_entries.with(bp::_p<0>, context::flow_key));
+
+    auto const ns_s_flow_seq_entries_def = bp::eps;
+    auto const s_separate_lines_def = bp::eps;
+
+    BOOST_PARSER_DEFINE_RULES(
+        c_flow_sequence,
+        s_separate,
+        in_flow,
+        ns_s_flow_seq_entries,
+        s_separate_lines);
+//]
+}
+// clang-format on
+
+TEST(parser, extended_param_example)
+{
+    using namespace param_example;
+
+    //[ extended_param_yaml_example_use
+    auto const test_parser = c_flow_sequence.with(4, context::block_out);
+    auto result = bp::parse("[]", test_parser);
+    assert(result);
+    //]
+    (void)result;
+}

@@ -478,12 +478,14 @@ for now, here's how you might use it:
 _locals_ returns a reference to one or more values that are local to the
 current rule being parsed, if any.  If there are two or more local values,
 _locals_ returns a reference to a _bp_tup_.  Rules with locals are something
-we haven't gotten to yet, but here is how you use _locals_:
+we haven't gotten to yet (see _more_about_rules_), but for now all you need to
+know is that you can provide a template parameter (`LocalState`) to _r_, and
+the rule will default construct an object of that type for use within the
+rule.  You access it via _locals_:
 
     [](auto & ctx) {
         auto & local = _locals(ctx);
-        // Use local here.  If boost::parser::tuple aliases to hana::tuple, access
-        // its members like this:
+        // Use local here.  If 'local' is a hana::tuple, access its members like this:
         using namespace hana::literals;
         auto & first_element = local[0_c];
         auto & second_element = local[1_c];
@@ -495,12 +497,14 @@ returned.
 [heading _params_]
 
 _params_, like _locals_, applies to the current rule being used to parse, if
-any.  It also returns a reference to a single value, if the current rule has
-only one parameter, or a _bp_tup_ of multiple values if the current rule has
-multiple parameters.
+any (see _more_about_rules_).  It also returns a reference to a single value,
+if the current rule has only one parameter, or a _bp_tup_ of multiple values
+if the current rule has multiple parameters.  If there is no current rule, or
+the current rule has no parameters, a _n_ is returned.
 
-If there is no current rule, or the current rule has no parameters, a _n_ is
-returned.
+Unlike with _locals_, you *do not* provide a template parameter to _r_.
+Instead you call the _r_'s `with()` member function (again, see
+_more_about_rules_).
 
 [note _n_ is a type that is used as a return value in _Parser_ for parse
 context accessors.  _n_ is convertible to anything that has a default
@@ -2383,9 +2387,11 @@ semantics, is a lot easier to read, and is a lot less code.]
 [heading Locals]
 
 The _r_ template takes another template parameter we have not discussed yet.
-You can pass a third parameter to _r_, which will be available within semantic
-actions used in the rule as `_locals_np_(ctx)`.  This gives your rule some
-local state, if it needs it:
+You can pass a third parameter `LocalState` to _r_, which will be defaulted
+csontructed by the _r_, and made available within semantic actions used in the
+rule as `_locals_np_(ctx)`.  This gives your rule some local state, if it
+needs it.  The type of `LocalState` can be anything regular.  It could be a
+single value, a struct containing multiple values, or a tuple, among others.
 
     struct foo_locals
     {
@@ -2414,48 +2420,74 @@ write parsers that have to track state as they parse.
 
 [heading Parameters]
 
-Sometimes, it is convenient to parameterize parsers.  Consider this parsing
-rule from the _yaml_ spec:
+Sometimes, it is convenient to parameterize parsers.  Consider these parsing
+rules from the _yaml_ spec:
 
 [pre
-\[137\] c-flow-sequence(n,c) ::= “\[” s-separate(n,c)?
-                               ns-s-flow-seq-entries(n,in-flow(c))? “\]”
+\[80\]
+s-separate(n,BLOCK-OUT) ::= s-separate-lines(n)
+s-separate(n,BLOCK-IN)  ::= s-separate-lines(n)
+s-separate(n,FLOW-OUT)  ::= s-separate-lines(n)
+s-separate(n,FLOW-IN)   ::= s-separate-lines(n)
+s-separate(n,BLOCK-KEY) ::= s-separate-in-line
+s-separate(n,FLOW-KEY)  ::= s-separate-in-line
+
+\[136\]
+in-flow(n,FLOW-OUT)  ::= ns-s-flow-seq-entries(n,FLOW-IN)
+in-flow(n,FLOW-IN)   ::= ns-s-flow-seq-entries(n,FLOW-IN)
+in-flow(n,BLOCK-KEY) ::= ns-s-flow-seq-entries(n,FLOW-KEY)
+in-flow(n,FLOW-KEY)  ::= ns-s-flow-seq-entries(n,FLOW-KEY)
+
+\[137\]
+c-flow-sequence(n,c) ::= “\[” s-separate(n,c)? in-flow(c)? “\]”
+
 ]
 
-This YAML rule says that the parsing should proceed into two YAML subrules,
-both of which have these `n` and `c` parameters.  It is certainly possible to
+YAML [137] says that the parsing should proceed into two YAML subrules, both
+of which have these `n` and `c` parameters.  It is certainly possible to
 transliterate these YAML parsing rules to something that uses unparameterized
-_Parser_ _rs_, but it is quite painful to do so.
+_Parser_ _rs_, but it is quite painful to do so.  It is better to use a
+parameterized rule.
 
 You give parameters to a _r_ by calling its `with()` member.  The values you
 pass to `with()` are used to create a _bp_tup_ that is available in semantic
 actions attached to the rule, using `_params_np_(ctx)`.
 
-    namespace bp = boost::parser;
-
-    // Declare our rules.
-    bp::rule</* ... */> foo = "foo";
-    bp::rule</* ... */> bar = "bar";
-
-    // Get the first parameter for this rule.
-    auto first_param = [](auto & ctx) {
-        using namespace boost::hana::literals;
-        return _params(ctx)[0_c];
-    };
-    auto const foo_def = bp::repeat(first_param)[' '_l]; // Match ' ' the number of times indicated by the first parameter to foo.
-
-    // Assume that bar has a locals struct with a local_indent member, and
-    // that set_local_indent and local_indent are lambdas that respectively write
-    // and read _locals(ctx).local_indent.
-
-    // Parse an integer, and then pass that as a parameter to foo.
-    auto const bar_def = bp::int_[set_local_indent] >> foo.with(local_indent);
-
-    BOOST_PARSER_DEFINE_RULES(foo, bar);
-
 Passing parameters to _rs_ like this allows you to easily write parsers that
 change the way they parse depending on contextual data that they have already
 parsed.
+
+Here is an implementation of YAML [137].  It also implements the two YAML
+rules used directly by [137], rules [136] and [80].  The rules that *those*
+rules use are also represented below, but are implemented using only _e_, so
+that I don't have to repeat too much of the (very large) YAML spec.
+
+[extended_param_yaml_example_rules]
+
+YAML [137] (`c_flow_sequence`) parses a list.  The list may be empty, and must
+be surrounded by brackets, as you see here.  But, depending on the current
+YAML context (the `c` parameter to [137]), we may require certain spacing to
+be matched by `s-separate`, and how sub-parser `in-flow` behaves also depends
+on the current context.
+
+In `s_separate` above, we parse differently based on the value of `c`.  This
+is done above by using the value of the second parameter to `s_separate` in a
+switch-parser.  The second parameter is looked up by using __p_ as a parse
+argument.
+
+`in_flow` does something similar.  Note that `in_flow` calls its subrule by
+passing its first parameter, but using a fixed value for the second value.
+`s_separate` only passes its `n` parameter conditionally.  The point is that a
+rule can be used with and without `.with()`, and that you can pass constants
+or parse arguments to `.with()`.
+
+With those rules defined, we could write a unit test for YAML [137] like this:
+
+[extended_param_yaml_example_use]
+
+You could extend this with tests for different values of `n` and `c`.
+Obviously, in real tests, you parse actual contents inside the `"[]"`, if the
+other rules were implemented, like [138].
 
 [heading The __p_ variable template]
 
@@ -2470,6 +2502,10 @@ rewritten as:
 Using __p_ can prevent you from having to write a bunch of lambdas that get
 each get an argument out of the parse context using `_params_np_(ctx)[0_c]` or
 similar.
+
+Note that __p_ is a parse argument (see _parsers_uses_), meaning that it is an
+invocable that takes the context as its only parameter.  If you want to use it
+inside a semantic action, you have to call it.
 
 [heading Special forms of semantic actions usable within a rule]
 
