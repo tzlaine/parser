@@ -7042,7 +7042,7 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             BOOST_PARSER_ASSERT(
-                (!detail::is_nope_v<OrParser>,
+                (!detail::is_nope_v<OrParser> &&
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
