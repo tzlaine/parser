@@ -383,7 +383,7 @@ namespace boost::parser::detail { namespace text {
                    boost::parser::detail::text::continuation(*--retval)) {
                 ++backup;
             }
-            backup = std::distance(retval, it);
+            backup = (int)std::distance(retval, it);
 
             if (boost::parser::detail::text::continuation(*retval)) {
                 if (it != first)
@@ -396,7 +396,7 @@ namespace boost::parser::detail { namespace text {
                 ++*first_invalid;
             while (first_invalid &&
                    std::distance(retval, *first_invalid) < backup) {
-                backup -= std::distance(retval, *first_invalid);
+                backup -= (int)std::distance(retval, *first_invalid);
                 retval = *first_invalid;
                 first_invalid = end_of_invalid_utf8(retval);
                 if (first_invalid == retval)
@@ -3218,7 +3218,7 @@ namespace boost::parser::detail { namespace text {
                 auto it = encode_code_point(cp, buf_.begin());
                 buf_last_ = uint8_t(it - buf_.begin());
                 buf_index_ = buf_last_ - 1;
-                to_increment_ = std::distance(curr(), initial);
+                to_increment_ = (int)std::distance(curr(), initial);
             } else {
                 auto buf = buf_;
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
@@ -3254,15 +3254,15 @@ namespace boost::parser::detail { namespace text {
         constexpr I & curr() { return first_and_curr_.curr; }
         constexpr I curr() const { return first_and_curr_.curr; }
 
-        std::array<value_type, 4 / static_cast<int>(ToFormat)> buf_;
+        std::array<value_type, 4 / static_cast<int>(ToFormat)> buf_ = {};
 
-        detail::first_and_curr<I> first_and_curr_;
+        detail::first_and_curr<I> first_and_curr_ = {};
 
         uint8_t buf_index_ = 0;
         uint8_t buf_last_ = 0;
         uint8_t to_increment_ = 0;
 
-        [[no_unique_address]] S last_;
+        [[no_unique_address]] S last_ = {};
 
         friend struct detail::iter_access;
     };

@@ -499,11 +499,11 @@ namespace boost::parser {
             using base_type::operator++;
 
         private:
-            detail::maybe_const<Const, transform_replace_view> * parent_;
+            detail::maybe_const<Const, transform_replace_view> * parent_ = {};
             BOOST_PARSER_SUBRANGE<I, S> r_;
             BOOST_PARSER_SUBRANGE<I> curr_;
-            I next_it_;
-            bool in_match_;
+            I next_it_ = {};
+            bool in_match_ = {};
         };
 
         template<bool Const>

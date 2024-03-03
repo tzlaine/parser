@@ -226,7 +226,7 @@ namespace boost { namespace parser { namespace detail {
                 detail::print_parser(context, parser, os, components);
                 ++components;
                 ++i;
-                prev_group = group;
+                prev_group = (int)group;
             });
         if (prev_group && !printed_ellipsis)
             os << ']';

@@ -1563,7 +1563,7 @@ namespace boost { namespace parser {
                 }
                 auto const folded_last =
                     detail::case_fold(*it_, folded_.begin());
-                last_idx_ = folded_last - folded_.begin();
+                last_idx_ = int(folded_last - folded_.begin());
             }
 
             case_fold_array_t folded_;
@@ -4762,7 +4762,7 @@ namespace boost { namespace parser {
         using global_state_type = GlobalState;
         using error_handler_type = ErrorHandler;
 
-        constexpr parser_interface() {}
+        constexpr parser_interface() : parser_() {}
         constexpr parser_interface(parser_type p) : parser_(p) {}
         constexpr parser_interface(
             parser_type p, global_state_type gs, error_handler_type eh) :
@@ -6016,7 +6016,7 @@ namespace boost { namespace parser {
                 return;
             }
             char32_t const * it = std::upper_bound(
-                std::begin(zero_cps) + 1, std::end(zero_cps), x);
+                std::begin(zero_cps) + 1, std::end(zero_cps), x_cmp);
             if (it == std::begin(zero_cps) || x_cmp < *(it - 1) ||
                 *(it - 1) + 9 < x_cmp) {
                 success = false;
@@ -6109,9 +6109,12 @@ namespace boost { namespace parser {
             auto const & chars = detail::char_set<Tag>::chars;
             auto const first = std::begin(chars);
             auto const last = std::end(chars);
-            auto it = std::upper_bound(first, last, 0x100);
+            auto it = std::upper_bound(first, last, 0x100, [](auto x, auto y){
+                using common_t = std::common_type_t<decltype(x), decltype(x)>;
+                return (common_t)x < (common_t)y;
+            });
             if (it != last)
-                one_byte_offset_ = it - first;
+                one_byte_offset_ = int(it - first);
         }
 
         template<typename T>

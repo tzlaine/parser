@@ -293,7 +293,7 @@ TEST(no_case, detail_no_case_iter)
         auto first =
             detail::no_case_iter(mixed_sharp_s1, detail::text::null_sentinel);
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "sss");
@@ -305,7 +305,7 @@ TEST(no_case, detail_no_case_iter)
         auto first =
             detail::no_case_iter(mixed_sharp_s2, detail::text::null_sentinel);
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "sss");
@@ -318,7 +318,7 @@ TEST(no_case, detail_no_case_iter)
             detail::no_case_iter(street, detail::text::null_sentinel);
         auto first = first_const;
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "strasse");
