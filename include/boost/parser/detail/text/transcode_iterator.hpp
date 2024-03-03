@@ -2677,7 +2677,7 @@ namespace boost::parser::detail { namespace text {
 #if !BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
         template<
             typename J = I,
-            typename Enable = std::enable_if_t<is_bidirectional<J>>>
+            typename Enable = std::enable_if_t<!is_bidirectional<J>>>
 #endif
         constexpr utf_iterator(I it, S last)
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
