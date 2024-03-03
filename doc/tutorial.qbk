@@ -3543,6 +3543,29 @@ get better coverage with less work, since exercising all the code paths of
 your rules, one by one, keeps the combinatorial number of paths through your
 code manageable.
 
+[heading Prefer auto-generated attributes to semantic actions]
+
+There are multiple ways to get attributes out of a parser.  You can:
+
+* use whatever attribute the parser generates;
+* provide an attribute out-argument to _p_ for the parser to fill in;
+* use one or more semantic actions to assign attributes from the parser to
+  variables outside the parser;
+* use callback parsing to provide attributes via callback calls.
+
+All of these are fairly similar in how much effort they require, except for
+the semantic action method.  For the semantic action approach, you need to
+have values to fill in from your parser, and keep them in scope for the
+duration of the parse.
+
+It is much more straight forward, and leads to more reusable parsers, to have
+the parsers produce the attributes of the parse directly as a result of the
+parse.
+
+This does not mean that you should never use semantic actions.  They are
+sometimes necessary.  However, you should default to using the other
+non-semantic action methods, and only use semantic actions with a good reason.
+
 [heading If your parser takes end-user input, give rules names that you would want an end-user to see]
 
 A typical error message produced by _Parser_ will say something like,
