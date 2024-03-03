@@ -3499,7 +3499,9 @@ Some things to be aware of when looking at _Parser_ trace output:
 _Parser_ seldom allocates memory.  The exceptions to this are:
 
 * _symbols_ allocates memory for the symbol/attribute pairs it contains.  If
-  symbols are added during the parse, allocations must also occur then.
+  symbols are added during the parse, allocations must also occur then.  The
+  data structure used by _symbols_ is also a trie, which is a node-based tree.
+  So, lots of allocations are likely if you use _symbols_.
 
 * The error handlers that can take a file name allocate memory for the file
   name, if one is provided.
