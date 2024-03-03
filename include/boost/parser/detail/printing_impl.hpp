@@ -825,11 +825,12 @@ namespace boost { namespace parser { namespace detail {
         int components)
     {
         using namespace literals;
-
-        os << "("
-           << detail::resolve(
-                  context, parser::get(parser.parsers_, 0_c).pred_.value_)
-           << ", ";
+        os << "(";
+        detail::print(
+            os,
+            detail::resolve(
+                context, parser::get(parser.parsers_, 0_c).pred_.value_));
+        os << ", ";
         detail::print_parser(
             context, parser::get(parser.parsers_, 1_c), os, components);
         os << ")";
