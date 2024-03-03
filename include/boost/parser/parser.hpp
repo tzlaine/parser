@@ -2748,6 +2748,7 @@ namespace boost { namespace parser {
     /** A very large sentinel value used to represent pseudo-infinity. */
     int64_t const Inf = detail::unbounded;
 
+#ifndef BOOST_PARSER_DOXYGEN
     template<
         typename Parser,
         typename DelimiterParser,
@@ -2893,9 +2894,8 @@ namespace boost { namespace parser {
         MinType min_;
         MaxType max_;
     };
+#endif
 
-    /** A simplified `repeat_parser` that applies `parser` zero or more
-        times.  */
     template<typename Parser>
     struct zero_plus_parser : repeat_parser<Parser>
     {
@@ -2904,8 +2904,6 @@ namespace boost { namespace parser {
         {}
     };
 
-    /** A simplified `repeat_parser` that applies `parser` one or more
-        times.  */
     template<typename Parser>
     struct one_plus_parser : repeat_parser<Parser>
     {
@@ -2914,9 +2912,6 @@ namespace boost { namespace parser {
         {}
     };
 
-    /** A simplified `repeat_parser` that applies `parser` zero or more times,
-        with `delimiter_parser` applied before each application of `parser`
-        after the first.  */
     template<typename Parser, typename DelimiterParser>
     struct delimited_seq_parser : repeat_parser<Parser, DelimiterParser>
     {
@@ -3316,6 +3311,8 @@ namespace boost { namespace parser {
         static constexpr auto merge_wrap = merge_kind_t<Kind>{};
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<
         typename ParserTuple,
         typename BacktrackingTuple,
@@ -3326,8 +3323,6 @@ namespace boost { namespace parser {
         using combining_groups = CombiningGroups;
 
         constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
-
-#ifndef BOOST_PARSER_DOXYGEN
 
         static constexpr auto true_ = std::true_type{};
         static constexpr auto false_ = std::false_type{};
@@ -3631,8 +3626,6 @@ namespace boost { namespace parser {
                 result_type{}, indices{}, parser::get(merged{}, 1_c));
         }
 
-#endif
-
         template<
             typename Iter,
             typename Sentinel,
@@ -3801,8 +3794,6 @@ namespace boost { namespace parser {
                 first_ = first;
         }
 
-#ifndef BOOST_PARSER_DOXYGEN
-
         // Invokes each parser, placing the resulting values (if any) into
         // retval, using the index mapping in indices.  The case of a tuple
         // containing only a single value is handled elsewhere.
@@ -3943,10 +3934,10 @@ namespace boost { namespace parser {
         template<bool AllowBacktracking, typename Parser>
         constexpr auto append(parser_interface<Parser> parser) const noexcept;
 
-#endif
-
         ParserTuple parsers_;
     };
+
+#endif
 
     namespace detail {
         // clang-format off
@@ -4016,6 +4007,8 @@ namespace boost { namespace parser {
             }
         }
     }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Parser, typename Action>
     struct action_parser
@@ -4217,7 +4210,7 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(__cpp_lib_concepts)
     template<typename Parser>
     struct string_view_parser
     {
@@ -4752,6 +4745,7 @@ namespace boost { namespace parser {
         ParamsTuple params_;
     };
 
+#endif
 
     // Parser interface.
 
@@ -5097,7 +5091,6 @@ namespace boost { namespace parser {
         using parser_interface_derivation_tag = int;
     };
 
-
     /** Returns a `parser_interface` with the same parser and error handler,
         with `globals` added.  The resut of passing any non-top-level parser
         for the `parser` argument is undefined. */
@@ -5188,6 +5181,8 @@ namespace boost { namespace parser {
         }
     };
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<
         typename TagType,
         typename Attribute,
@@ -5265,8 +5260,6 @@ namespace boost { namespace parser {
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
-
-#ifndef BOOST_PARSER_DOXYGEN
 
 //[ define_rule_definition
 #define BOOST_PARSER_DEFINE_IMPL(_, rule_name_)                                \
@@ -5617,6 +5610,8 @@ namespace boost { namespace parser {
 
     // First order parsers.
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Predicate>
     struct eps_parser
     {
@@ -5688,10 +5683,14 @@ namespace boost { namespace parser {
         Predicate pred_;
     };
 
+#endif
+
     /** The epsilon parser.  This matches anything, and consumes no input.  If
         used with an optional predicate, like `eps(pred)`, it matches iff
         `pred(ctx)` evaluates to true, where `ctx` is the parser context. */
     inline constexpr parser_interface<eps_parser<detail::nope>> eps;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     struct eoi_parser
     {
@@ -5737,8 +5736,12 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The end-of-input parser.  It matches only the end of input. */
     inline constexpr parser_interface<eoi_parser> eoi;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Attribute>
     struct attr_parser
@@ -5785,6 +5788,8 @@ namespace boost { namespace parser {
         Attribute attr_;
     };
 
+#endif
+
     /** Returns an `attr_parser` which matches anything, and consumes no
         input, and which produces `a` as its attribute. */
     template<typename Attribute>
@@ -5792,6 +5797,8 @@ namespace boost { namespace parser {
     {
         return parser_interface{attr_parser<Attribute>{std::move(a)}};
     }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Expected, typename AttributeType>
     struct char_parser
@@ -6254,6 +6261,8 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The literal code point parser.  The produced attribute is the type of
         the matched code point.  This parser can be used to create code point
         parsers that match one or more specific code point values, by calling
@@ -6288,6 +6297,8 @@ namespace boost { namespace parser {
 
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename StrIter, typename StrSentinel>
     struct string_parser
@@ -6402,6 +6413,8 @@ namespace boost { namespace parser {
         decltype(detail::make_view_begin(r)),
         decltype(detail::make_view_end(r))>;
 
+#endif
+
     /** Returns a parser that matches `str` that produces the matched string
         as its attribute. */
 #if BOOST_PARSER_USE_CONCEPTS
@@ -6424,6 +6437,8 @@ namespace boost { namespace parser {
     {
         return omit[parser::string(str)];
     }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser
@@ -6532,6 +6547,8 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The end-of-line parser.  This matches "\r\n", or any one of the line
         break code points from the Unicode Line Break Algorithm, described in
         https://unicode.org/reports/tr14.  Produces no attribute. */
@@ -6586,6 +6603,8 @@ namespace boost { namespace parser {
     inline BOOST_PARSER_ALGO_CONSTEXPR
         parser_interface<char_set_parser<detail::upper_case_chars>>
             upper;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     struct bool_parser
     {
@@ -6652,9 +6671,13 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The Boolean parser.  Parses "true" and "false", producing attributes
         `true` and `false`, respectively, and fails on any other input. */
     inline constexpr parser_interface<bool_parser> bool_;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<
         typename T,
@@ -6733,6 +6756,8 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+#endif
+
     /** The binary unsigned integer parser.  Produces an `unsigned int`
         attribute.  To parse a particular value `x`, use `bin(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned int, 2>> bin;
@@ -6761,6 +6786,8 @@ namespace boost { namespace parser {
         attribute.  To parse a particular value `x`, use `ulong_long(x)`. */
     inline constexpr parser_interface<uint_parser<unsigned long long>>
         ulong_long;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<
         typename T,
@@ -6841,6 +6868,8 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+#endif
+
     /** The `short` parser.  Produces a `short` attribute.  To parse a
         particular value `x`, use `short_(x)`. */
     inline constexpr parser_interface<int_parser<short>> short_;
@@ -6856,6 +6885,8 @@ namespace boost { namespace parser {
     /** The `long long` parser.  Produces a `long long` attribute.  To parse a
         particular value `x`, use `long_long(x)`. */
     inline constexpr parser_interface<int_parser<long long>> long_long;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename T>
     struct float_parser
@@ -6907,6 +6938,8 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The `float` parser.  Produces a `float` attribute. */
     inline constexpr parser_interface<float_parser<float>> float_;
 
@@ -6954,6 +6987,8 @@ namespace boost { namespace parser {
             Value value_;
         };
     }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename SwitchValue, typename OrParser>
     struct switch_parser
@@ -7052,6 +7087,8 @@ namespace boost { namespace parser {
         SwitchValue switch_value_;
         OrParser or_parser_;
     };
+
+#endif
 
     /** Returns a `switch`-like parser.  The resulting parser uses the given
         value `x` to select one of the following value/parser pairs, and to
