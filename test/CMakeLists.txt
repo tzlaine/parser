@@ -4,7 +4,7 @@ include(CTest)
 
 enable_testing()
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} -j4 -C ${CMAKE_CFG_INTDIR})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -j4 -C ${CMAKE_CFG_INTDIR})
 
 ##################################################
 # Parser tests
