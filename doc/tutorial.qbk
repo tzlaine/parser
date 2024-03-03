@@ -1080,7 +1080,9 @@ This can also be a lambda.  For example:
 
 The operation that produces a value from a parse argument, which may be a
 value or a callable taking a parse context argument, is referred to as
-/resolving/ the parse argument.
+/resolving/ the parse argument.  If a parse argument `arg` can be called with
+the current context, then the resolved value of `arg` is `arg(ctx)`;
+otherwise, the resolved value is just `arg`.
 
 Some callable parsers take a /parse predicate/.  A parse predicate is not
 quite the same as a parse argument, because it must be a callable object, and
@@ -1099,6 +1101,9 @@ convertible to `bool`.  For example:
 This may of course be a lambda:
 
     [](auto & ctx) { return _attr(ctx) == 3; }
+
+The notional macro _RES_ expands to the result of resolving a parse argument
+or parse predicate.  You'll see it used in the rest of the documentation.
 
 An example of how parse arguments are used:
 

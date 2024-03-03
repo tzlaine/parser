@@ -18,7 +18,7 @@ itself be used as a parser; it must be called.  In the table below:
   "`char`");
 
 * _RES_ is a notional macro that expands to the resolution of parse argument
-  or evaluation of a parse predicate;
+  or evaluation of a parse predicate (see _parsers_uses_);
 
 * "`_RES_np_(pred) == true`" is a shorthand notation for "`_RES_np_(pred)` is
   contextually convertible to `bool` and `true`"; likewise for `false`;
@@ -406,7 +406,7 @@ This table summarizes the attributes generated for all _Parser_ parsers.  In
 the table below:
 
 * _RES_ is a notional macro that expands to the resolution of parse argument
-or evaluation of a parse predicate, and
+or evaluation of a parse predicate (see _parsers_uses_); and
 
 * `x` and `y` represent arbitrary objects.
 
