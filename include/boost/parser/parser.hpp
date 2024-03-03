@@ -843,7 +843,7 @@ namespace boost { namespace parser {
             template<typename Context>
             decltype(auto) operator()(Context const & context) const
             {
-                return parser::_params(context)[llong<I>{}];
+                return parser::get(parser::_params(context), llong<I>{});
             }
         };
 
