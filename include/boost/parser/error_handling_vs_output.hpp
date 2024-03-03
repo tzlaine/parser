@@ -28,8 +28,8 @@ namespace boost { namespace parser {
             protected:
                 int sync()
                 {
-                    output_debug_string(str().c_str());
-                    str(std::basic_string<CharT>()); // Clear the string buffer
+                    output_debug_string(this->str().c_str());
+                    this->str(std::basic_string<CharT>()); // Clear the string buffer
 
                     return 0;
                 }
@@ -40,7 +40,30 @@ namespace boost { namespace parser {
             template<>
             inline void basic_debugbuf<char>::output_debug_string(const char * text)
             {
-                ::OutputDebugStringA(text);
+                // from example in MSDN
+                // Save in-memory logging buffer to a log file on error.
+
+                std::wstring dest;
+                int convert_result = MultiByteToWideChar(CP_UTF8, 0, text, static_cast<int>(std::strlen(text)), nullptr, 0);
+                if (convert_result <= 0) {
+                    // cannot convert to wide-char -> use ANSI API
+                    ::OutputDebugStringA(text);
+                } else {
+                    dest.resize(convert_result + 10);
+                    convert_result = MultiByteToWideChar(
+                        CP_UTF8,
+                        0,
+                        text,
+                        static_cast<int>(std::strlen(text)),
+                        dest.data(),
+                        static_cast<int>(dest.size()));
+                    if (convert_result <= 0) {
+                        // cannot convert to wide-char -> use ANSI API
+                        ::OutputDebugStringA(text);
+                    } else {
+                        ::OutputDebugStringW(dest.c_str());
+                    }
+                }
             }
 
             template<>
@@ -59,7 +82,7 @@ namespace boost { namespace parser {
                 std::basic_ostream<CharT, TraitsT>(
                     new basic_debugbuf<CharT, TraitsT>())
             {}
-            ~basic_dostream() { delete rdbuf(); }
+            ~basic_dostream() { delete this->rdbuf(); }
         };
 
         typedef basic_dostream<char> dostream;
@@ -77,8 +100,12 @@ namespace boost { namespace parser {
         default-constructed callbacks. */
     struct vs_output_error_handler : stream_error_handler
     {
-        vs_output_error_handler() 
-        : stream_error_handler{"", impl::dbg::dostream, impl::dbg::dostream}
+        vs_output_error_handler(std::string_view filename) 
+        : stream_error_handler{filename, impl::dbg::cout, impl::dbg::cout}
+        {}
+
+        vs_output_error_handler(std::wstring_view filename) :
+            stream_error_handler{filename, impl::dbg::cout, impl::dbg::cout}
         {}
     };
 

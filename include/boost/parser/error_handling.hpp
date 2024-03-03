@@ -89,6 +89,7 @@ namespace boost { namespace parser {
         detail::trace_input(os, position.line_start, it, false, 1u << 31);
         if (it == last) {
             os << '\n' << underlining << "^\n";
+            os.rdbuf()->pubsync();
             return os;
         }
 
@@ -103,6 +104,7 @@ namespace boost { namespace parser {
         detail::trace_input(os, it, line_end, false, limit - i);
 
         os << '\n' << underlining << '\n';
+        os.rdbuf()->pubsync();
 
         return os;
     }
