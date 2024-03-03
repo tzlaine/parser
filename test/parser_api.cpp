@@ -1816,11 +1816,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             char const * str = "abc";
-            tuple<
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable>
-                chars;
+            tuple<std::any, std::any, std::any> chars;
             EXPECT_TRUE(parse(str, parser, chars));
         }
 

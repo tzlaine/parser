@@ -938,16 +938,16 @@ namespace boost { namespace parser {
             using trie_t = text::trie<std::vector<char32_t>, T>;
             symbol_table_tries_t & symbol_table_tries =
                 *context.symbol_table_tries_;
-            any_copyable & a = symbol_table_tries[(void *)&symbol_parser];
-            if (a.empty()) {
+            std::any & a = symbol_table_tries[(void *)&symbol_parser];
+            if (!a.has_value()) {
                 a = trie_t{};
-                trie_t & trie = a.cast<trie_t>();
+                trie_t & trie = *std::any_cast<trie_t>(&a);
                 for (auto const & e : symbol_parser.initial_elements()) {
                     trie.insert(e.first | text::as_utf32, e.second);
                 }
                 return trie;
             } else {
-                return a.cast<trie_t>();
+                return *std::any_cast<trie_t>(&a);
             }
         }
 

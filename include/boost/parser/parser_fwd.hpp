@@ -9,6 +9,7 @@
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
 
+#include <any>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -70,69 +71,8 @@ namespace boost { namespace parser {
             in_apply_parser = 1 << 3
         };
 
-        struct any_copyable
-        {
-            template<
-                typename T,
-                typename Enable = std::enable_if_t<!std::is_reference_v<T>>>
-            any_copyable(T && v) :
-                impl_(new holder<std::decay_t<T>>(std::move(v)))
-            {}
-            template<typename T>
-            any_copyable(T const & v) : impl_(new holder<T>(v))
-            {}
-
-            any_copyable() = default;
-            any_copyable(any_copyable const & other)
-            {
-                if (other.impl_)
-                    impl_ = other.impl_->clone();
-            }
-            any_copyable & operator=(any_copyable const & other)
-            {
-                any_copyable temp(other);
-                swap(temp);
-                return *this;
-            }
-            any_copyable(any_copyable &&) = default;
-            any_copyable & operator=(any_copyable &&) = default;
-
-            bool empty() const { return impl_.get() == nullptr; }
-
-            template<typename T>
-            T & cast() const
-            {
-                BOOST_PARSER_DEBUG_ASSERT(impl_);
-                BOOST_PARSER_DEBUG_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
-                return static_cast<holder<T> *>(impl_.get())->value_;
-            }
-
-            void swap(any_copyable & other) { std::swap(impl_, other.impl_); }
-
-        private:
-            struct holder_base
-            {
-                virtual ~holder_base() {}
-                virtual std::unique_ptr<holder_base> clone() const = 0;
-            };
-            template<typename T>
-            struct holder : holder_base
-            {
-                holder(T && v) : value_(std::move(v)) {}
-                holder(T const & v) : value_(v) {}
-                virtual ~holder() {}
-                virtual std::unique_ptr<holder_base> clone() const
-                {
-                    return std::unique_ptr<holder_base>(new holder<T>{value_});
-                }
-                T value_;
-            };
-
-            std::unique_ptr<holder_base> impl_;
-        };
-
         using symbol_table_tries_t =
-            std::map<void *, any_copyable, std::less<void *>>;
+            std::map<void *, std::any, std::less<void *>>;
 
         template<
             bool DoTrace,
