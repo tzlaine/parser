@@ -39,6 +39,7 @@
 [import ../example/parsing_into_a_class.cpp]
 [import ../example/struct_rule.cpp]
 [import ../example/user_error_handler.cpp]
+[import ../test/parser.cpp]
 [import ../test/parser_rule.cpp]
 
 [import ../include/boost/parser/concepts.hpp]
@@ -186,6 +187,7 @@
 [def _skip_                [globalref boost::parser::skip `skip[]`]]
 [def _merge_               [globalref boost::parser::merge `merge[]`]]
 [def _sep_                 [globalref boost::parser::separate `separate[]`]]
+[def _transform_           [globalref boost::parser::transform `transform(f)[]`]]
 
 [def _omit_np_             [globalref boost::parser::omit `omit`]]
 [def _raw_np_              [globalref boost::parser::raw `raw`]]
@@ -195,6 +197,7 @@
 [def _skip_np_             [globalref boost::parser::skip `skip`]]
 [def _merge_np_            [globalref boost::parser::merge `merge`]]
 [def _sep_np_              [globalref boost::parser::separate `separate`]]
+[def _transform_np_        [globalref boost::parser::transform `transform`]]
 
 [def _blank_               [globalref boost::parser::blank `blank`]]
 [def _control_             [globalref boost::parser::control `control`]]

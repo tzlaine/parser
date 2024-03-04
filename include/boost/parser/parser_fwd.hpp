@@ -188,6 +188,14 @@ namespace boost { namespace parser {
     template<typename Parser, typename Action>
     struct action_parser;
 
+    /** Applies the given parser `p` of type `Parser`.  The attribute produced
+        by `p` is passed to the fiven invocable `f` of type `F`.  `f` will
+        only be invoked if `p` succeeds and sttributes are currently being
+        generated.  The parse succeeds iff `p` succeeds.  The attribute
+        produced is the the result of the call to `f`. */
+    template<typename Parser, typename F>
+    struct transform_parser;
+
     /** Applies the given parser `p` of type `Parser`.  This parser produces
         no attribute, and suppresses the production of any attributes that
         would otherwise be produced by `p`.  The parse succeeds iff `p`

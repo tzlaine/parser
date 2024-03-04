@@ -851,6 +851,106 @@ TEST(parser, star_as_string_or_vector)
     }
 }
 
+TEST(parser, transform)
+{
+    int calls = 0;
+    auto by_value_str_sum = [&](std::string s) {
+        ++calls;
+        std::transform(
+            s.begin(), s.end(), s.begin(), [](auto ch) { return ch - '0'; });
+        return std::accumulate(s.begin(), s.end(), 0);
+    };
+    auto cref_str_sum = [&](std::string const & s) {
+        ++calls;
+        int retval = 0;
+        for (auto ch : s) {
+            retval += ch - '0';
+        }
+        return retval;
+    };
+    auto rv_ref_str_sum = [&](std::string && s) {
+        ++calls;
+        std::transform(
+            s.begin(), s.end(), s.begin(), [](auto ch) { return ch - '0'; });
+        return std::accumulate(s.begin(), s.end(), 0);
+    };
+    {
+        constexpr auto parser = +char_;
+        std::string str = "012345";
+        {
+            auto result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "012345");
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(by_value_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(cref_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(rv_ref_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+    }
+    {
+        constexpr auto parser = +char_;
+        std::string str = "012345";
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(by_value_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(cref_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(rv_ref_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+    }
+}
+
+TEST(parser, transform_doc_example)
+{
+    //[ transform_directive_example
+    auto str_sum = [&](std::string const & s) {
+        int retval = 0;
+        for (auto ch : s) {
+            retval += ch - '0';
+        }
+        return retval;
+    };
+
+    namespace bp = boost::parser;
+    constexpr auto parser = +bp::char_;
+    std::string str = "012345";
+
+    auto result = bp::parse(str, bp::transform(str_sum)[parser]);
+    assert(result);
+    assert(*result == 15);
+    static_assert(std::is_same_v<decltype(result), std::optional<int>>);
+    //]
+    (void)result;
+}
+
 TEST(parser, omit)
 {
     {

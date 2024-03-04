@@ -263,6 +263,17 @@ namespace boost { namespace parser { namespace detail {
         os << "]";
     }
 
+    template<typename Context, typename Parser, typename F>
+    void print_parser(
+        Context const & context,
+        transform_parser<Parser, F> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "transform(<<f>>)", parser.parser_, os, components);
+    }
+
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,
