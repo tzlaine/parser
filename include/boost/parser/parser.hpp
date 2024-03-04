@@ -6316,28 +6316,39 @@ namespace boost { namespace parser {
 
 #endif
 
-    /** The literal code point parser.  The produced attribute is the type of
-        the matched code point.  This parser can be used to create code point
-        parsers that match one or more specific code point values, by calling
-        it with: a single value comparable to a code point; a set of code
-        point values in a string; a closed range of code point values `[lo,
-        hi]`, or a set of code point values passed as a range. */
+    /** The single-character parser.  The produced attribute is the type of
+        the matched code point (`char` or `char32_t`).  Used as-is, `char_`
+        matches any code point.  `char_` can also can be used to create code
+        point parsers that match one or more specific code point values, by
+        calling it with: a single value comparable to a code point; a closed
+        range of code point values `[lo, hi]`, or a set of code point values
+        passed as a range.  When calling with a range, only the iterators that
+        bound the range are stored.  Make sure the range you pass outlives the
+        use of the resulting parser.  Note that a string literal is a range,
+        and that it outlives any parser it is used to construct. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
-    /** The literal code point parser.  It produces a `char32_t` attribute.
-        This parser can be used to create code point parsers that match one or
-        more specific code point values, by calling it with: a single value
-        comparable to a code point; a set of code point values in a string; a
-        closed range of code point values `[lo, hi]`, or a set of code point
-        values passed as a range. */
+    /** The code point parser.  It produces a `char32_t` attribute.  Used
+        as-is, `cp` matches any code point.  `cp` can also can be used to
+        create code point parsers that match one or more specific code point
+        values, by calling it with: a single value comparable to a code point;
+        a closed range of code point values `[lo, hi]`, or a set of code point
+        values passed as a range.  When calling with a range, only the
+        iterators that bound the range are stored.  Make sure the range you
+        pass outlives the use of the resulting parser.  Note that a string
+        literal is a range, and that it outlives any parser it is used to
+        construct. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
-    /** The literal code unit parser.  It produces a `char` attribute.  This
-        parser can be used to create code unit parsers that match one or more
-        specific code unit values, by calling it with: a single value
-        comparable to a code unit; a set of code unit values in a string; a
-        closed range of code unit values `[lo, hi]`, or a set of code unit
-        values passed as a range. */
+    /** The code unit parser.  It produces a `char` attribute.  Used as-is,
+        `cu` matches any code point.  `cu` can also can be used to create code
+        point parsers that match one or more specific code point values, by
+        calling it with: a single value comparable to a code point; a closed
+        range of code point values `[lo, hi]`, or a set of code point values
+        passed as a range.  When calling with a range, only the iterators that
+        bound the range are stored.  Make sure the range you pass outlives the
+        use of the resulting parser.  Note that a string literal is a range,
+        and that it outlives any parser it is used to construct. */
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
     /** Returns a literal code point parser that produces no attribute. */
