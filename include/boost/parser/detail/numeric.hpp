@@ -18,10 +18,15 @@
 #if defined(__cpp_lib_to_chars)
 #include <charconv>
 #define BOOST_PARSER_HAVE_STD_CHARCONV
+#define BOOST_PARSER_NUMERIC_NS std_charconv
 #elif __has_include(<boost/charconv.hpp>)
 #include <boost/charconv.hpp>
 #define BOOST_PARSER_HAVE_BOOST_CHARCONV
+#define BOOST_PARSER_NUMERIC_NS boost_charconv
+#else
+#define BOOST_PARSER_NUMERIC_NS spirit_parsers
 #endif
+
 #include <type_traits>
 #include <cmath>
 
@@ -999,85 +1004,87 @@ namespace boost::parser::detail::numeric {
                 std::remove_pointer_t<unpacked_iter<I, S>>>>,
             char>;
 
-    template<int MinDigits, int MaxDigits, typename I, typename S>
+    inline namespace BOOST_PARSER_NUMERIC_NS {
+
+        template<int MinDigits, int MaxDigits, typename I, typename S>
 #if defined(BOOST_PARSER_HAVE_CHARCONV)
-    constexpr bool use_charconv_int =
-        MinDigits == 1 && MaxDigits == -1 &&
-        common_range<I, S> && unpacks_to_chars<I, S>;
+        constexpr bool use_charconv_int =
+            MinDigits == 1 && MaxDigits == -1 &&
+            common_range<I, S> && unpacks_to_chars<I, S>;
 #else
-    constexpr bool use_charconv_int = false;
+        constexpr bool use_charconv_int = false;
 #endif
 
-    template<
-        bool Signed,
-        int Radix,
-        int MinDigits,
-        int MaxDigits,
-        typename I,
-        typename S,
-        typename T>
-    bool parse_int(I & first, S last, T & attr)
-    {
-        if constexpr (use_charconv_int<MinDigits, MaxDigits, I, S>) {
+        template<
+            bool Signed,
+            int Radix,
+            int MinDigits,
+            int MaxDigits,
+            typename I,
+            typename S,
+            typename T>
+        bool parse_int(I & first, S last, T & attr)
+        {
+            if constexpr (use_charconv_int<MinDigits, MaxDigits, I, S>) {
 #if defined(BOOST_PARSER_HAVE_CHARCONV)
-            auto unpacked = text::unpack_iterator_and_sentinel(first, last);
+                auto unpacked = text::unpack_iterator_and_sentinel(first, last);
 #if defined(BOOST_PARSER_HAVE_STD_CHARCONV)
-            std::from_chars_result const result = std::from_chars(
+                std::from_chars_result const result = std::from_chars(
 #else
-            charconv::from_chars_result const result = charconv::from_chars(
+                charconv::from_chars_result const result = charconv::from_chars(
 #endif
-                unpacked.first, unpacked.last, attr, Radix);
-            if (result.ec == std::errc()) {
-                first = unpacked.repack(result.ptr);
-                return true;
+                    unpacked.first, unpacked.last, attr, Radix);
+                if (result.ec == std::errc()) {
+                    first = unpacked.repack(result.ptr);
+                    return true;
+                }
+                return false;
+#endif
+            } else if constexpr (Signed) {
+                using extract = detail_spirit_x3::
+                    extract_int<T, Radix, MinDigits, MaxDigits>;
+                return extract::call(first, last, attr);
+            } else {
+                using extract = detail_spirit_x3::
+                    extract_uint<T, Radix, MinDigits, MaxDigits>;
+                return extract::call(first, last, attr);
             }
-            return false;
+        }
+
+        template<typename I, typename S>
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+        constexpr bool use_charconv_real =
+            common_range<I, S> && unpacks_to_chars<I, S>;
+#else
+        constexpr bool use_charconv_real = false;
 #endif
-        } else if constexpr (Signed) {
-            using extract =
-                detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
-            return extract::call(first, last, attr);
-        } else {
-            using extract =
-                detail_spirit_x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
-            return extract::call(first, last, attr);
+
+        template<typename I, typename S, typename T>
+        bool parse_real(I & first, S last, T & attr)
+        {
+            if constexpr (use_charconv_real<I, S>) {
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+                auto unpacked = text::unpack_iterator_and_sentinel(first, last);
+#if defined(BOOST_PARSER_HAVE_STD_CHARCONV)
+                std::from_chars_result const result = std::from_chars(
+#else
+                charconv::from_chars_result const result = charconv::from_chars(
+#endif
+                    unpacked.first, unpacked.last, attr);
+                if (result.ec == std::errc()) {
+                    first = unpacked.repack(result.ptr);
+                    return true;
+                }
+                return false;
+#endif
+            } else {
+                detail_spirit_x3::real_policies<T> policies;
+                using extract = detail_spirit_x3::
+                    extract_real<T, detail_spirit_x3::real_policies<T>>;
+                return extract::parse(first, last, attr, policies);
+            }
         }
     }
-
-    template<typename I, typename S>
-#if defined(BOOST_PARSER_HAVE_CHARCONV)
-    constexpr bool use_charconv_real =
-        common_range<I, S> && unpacks_to_chars<I, S>;
-#else
-    constexpr bool use_charconv_real = false;
-#endif
-
-    template<typename I, typename S, typename T>
-    bool parse_real(I & first, S last, T & attr)
-    {
-        if constexpr (use_charconv_real<I, S>) {
-#if defined(BOOST_PARSER_HAVE_CHARCONV)
-            auto unpacked = text::unpack_iterator_and_sentinel(first, last);
-#if defined(BOOST_PARSER_HAVE_STD_CHARCONV)
-            std::from_chars_result const result = std::from_chars(
-#else
-            charconv::from_chars_result const result = charconv::from_chars(
-#endif
-                unpacked.first, unpacked.last, attr);
-            if (result.ec == std::errc()) {
-                first = unpacked.repack(result.ptr);
-                return true;
-            }
-            return false;
-#endif
-        } else {
-            detail_spirit_x3::real_policies<T> policies;
-            using extract = detail_spirit_x3::
-                extract_real<T, detail_spirit_x3::real_policies<T>>;
-            return extract::parse(first, last, attr, policies);
-        }
-    }
-
 }
 
 #endif

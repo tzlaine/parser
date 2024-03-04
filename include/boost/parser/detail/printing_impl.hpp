@@ -10,25 +10,29 @@
 #endif
 #include <boost/type_index.hpp>
 #define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 1
+#define BOOST_PARSER_TYPE_NAME_NS boost_type_index
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 #else
 #include <typeinfo>
 #define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 0
+#define BOOST_PARSER_TYPE_NAME_NS std_typeinfo
 #endif
 
 
 namespace boost { namespace parser { namespace detail {
 
-    template<typename T>
-    auto type_name()
-    {
+    inline namespace BOOST_PARSER_TYPE_NAME_NS {
+        template<typename T>
+        auto type_name()
+        {
 #if BOOST_PARSER_HAVE_BOOST_TYPEINDEX
-        return typeindex::type_id<T>().pretty_name();
+            return typeindex::type_id<T>().pretty_name();
 #else
-        return typeid(T).name();
+            return typeid(T).name();
 #endif
+        }
     }
 
     template<typename Parser>
