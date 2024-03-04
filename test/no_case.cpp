@@ -168,6 +168,97 @@ TEST(no_case, match_any_within_string)
     }
 }
 
+TEST(no_case, symbol_table)
+{
+    // without mutation
+    {
+        symbols<int> const roman_numerals = {
+            {"I", 1}, {"V", 5}, {"X", 10}, {"L", 50}, {"C", 100}};
+        symbols<std::string> const named_strings = {
+            {"I", "1"}, {"V", "5"}, {"X", "10"}, {"L", "50"}, {"C", "100"}};
+
+        {
+            auto const result = parse("I", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 1);
+        }
+        {
+            auto const result = parse("i", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 1);
+        }
+        {
+            auto const result = parse("I", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "1");
+        }
+        {
+            auto const result = parse("i", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "1");
+        }
+
+        {
+            auto const result = parse("L", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+        }
+        {
+            auto const result = parse("l", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+        }
+        {
+            auto const result = parse("L", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "50");
+        }
+        {
+            auto const result = parse("l", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "50");
+        }
+    }
+    // with mutation
+    {
+        symbols<int> roman_numerals;
+        roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
+        auto const add_numeral = [&roman_numerals](auto & context) {
+            using namespace boost::parser::literals;
+            char chars[2] = {get(_attr(context), 0_c), 0};
+            roman_numerals.insert(context, chars, get(_attr(context), 1_c));
+        };
+        auto const numerals_parser = omit[roman_numerals] >>
+                                     (char_ >> int_)[add_numeral] >>
+                                     no_case[roman_numerals];
+
+        {
+            auto const result = parse("VL50L", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+            EXPECT_FALSE(parse("L", roman_numerals));
+        }
+        {
+            auto const result = parse("VL50l", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+            EXPECT_FALSE(parse("L", roman_numerals));
+        }
+        {
+            auto const result = parse("VC100C", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 100);
+            EXPECT_FALSE(parse("C", roman_numerals));
+        }
+        {
+            auto const result = parse("Vc100C", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 100);
+            EXPECT_FALSE(parse("C", roman_numerals));
+        }
+    }
+}
+
 constexpr auto capital_sharp_s = u8"ẞ"; // U+1E9E
 constexpr auto small_sharp_s = u8"ß";   // U+00DF
 constexpr auto double_s = u8"sS";       // U+0073 U+0073

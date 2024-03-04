@@ -72,7 +72,7 @@ namespace boost { namespace parser {
         };
 
         using symbol_table_tries_t =
-            std::map<void *, std::any, std::less<void *>>;
+            std::map<void *, std::pair<std::any, bool>, std::less<void *>>;
 
         template<
             bool DoTrace,

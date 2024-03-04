@@ -57,11 +57,9 @@ namespace boost::parser::detail {
                 return out;
             } else {
                 // Skip [0x41, 0x5a), handled above.
-                auto const first =
-                    detail::text::detail::begin(mapping_ranges) + 1;
+                auto const first = text::detail::begin(mapping_ranges) + 1;
                 // 7th entry starts with 0x100.
-                auto const last =
-                    detail::text::detail::begin(mapping_ranges) + 7;
+                auto const last = text::detail::begin(mapping_ranges) + 7;
                 if (auto out_opt = do_short_mapping(first, last, cp, out))
                     return *out_opt;
             }
@@ -71,8 +69,8 @@ namespace boost::parser::detail {
 
         // Single-cp-mapping path (next most common case).
         {
-            auto const first = detail::text::detail::begin(mapping_ranges);
-            auto const last = detail::text::detail::end(mapping_ranges);
+            auto const first = text::detail::begin(mapping_ranges);
+            auto const last = text::detail::end(mapping_ranges);
             if (auto out_opt = do_short_mapping(first, last, cp, out))
                 return *out_opt;
         }
@@ -95,8 +93,8 @@ namespace boost::parser::detail {
                 return std::copy(
                     it->mapping_,
                     std::find(
-                        detail::text::detail::begin(it->mapping_),
-                        detail::text::detail::end(it->mapping_),
+                        text::detail::begin(it->mapping_),
+                        text::detail::end(it->mapping_),
                         0),
                     out);
 #endif
@@ -106,7 +104,6 @@ namespace boost::parser::detail {
         *out++ = cp;
         return out;
     }
-
 }
 
 #endif

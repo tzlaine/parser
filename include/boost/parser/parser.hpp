@@ -18,7 +18,7 @@
 #include <boost/parser/detail/printing.hpp>
 
 #include <boost/parser/detail/text/algorithm.hpp>
-#include <boost/parser/detail/text/trie.hpp>
+#include <boost/parser/detail/text/trie_map.hpp>
 #include <boost/parser/detail/text/unpack.hpp>
 
 #include <type_traits>
@@ -931,26 +931,6 @@ namespace boost { namespace parser {
             return *context.callbacks_;
         }
 
-        template<typename Context, typename T>
-        decltype(auto) get_trie(
-            Context const & context, symbol_parser<T> const & symbol_parser)
-        {
-            using trie_t = text::trie<std::vector<char32_t>, T>;
-            symbol_table_tries_t & symbol_table_tries =
-                *context.symbol_table_tries_;
-            std::any & a = symbol_table_tries[(void *)&symbol_parser];
-            if (!a.has_value()) {
-                a = trie_t{};
-                trie_t & trie = *std::any_cast<trie_t>(&a);
-                for (auto const & e : symbol_parser.initial_elements()) {
-                    trie.insert(e.first | text::as_utf32, e.second);
-                }
-                return trie;
-            } else {
-                return *std::any_cast<trie_t>(&a);
-            }
-        }
-
 
         // Type traits.
 
@@ -1512,10 +1492,9 @@ namespace boost { namespace parser {
         using case_fold_array_t = std::array<char32_t, detail::longest_mapping>;
 
         template<typename I, typename S>
-        struct no_case_iter : stl_interfaces::iterator_interface<
+        struct no_case_iter : stl_interfaces::proxy_iterator_interface<
                                   no_case_iter<I, S>,
                                   std::forward_iterator_tag,
-                                  char32_t,
                                   char32_t>
         {
             no_case_iter() : it_(), last_(), idx_(0), last_idx_() {}
@@ -1545,10 +1524,9 @@ namespace boost { namespace parser {
                 return lhs.it_ == rhs.it_ && lhs.idx_ == rhs.idx_;
             }
 
-            using base_type = stl_interfaces::iterator_interface<
+            using base_type = stl_interfaces::proxy_iterator_interface<
                 no_case_iter<I, S>,
                 std::forward_iterator_tag,
-                char32_t,
                 char32_t>;
             using base_type::operator++;
 
@@ -1572,6 +1550,66 @@ namespace boost { namespace parser {
             int idx_;
             int last_idx_;
         };
+
+        template<typename V>
+        struct case_fold_view
+        {
+            using iterator =
+                no_case_iter<detail::iterator_t<V>, detail::sentinel_t<V>>;
+
+            case_fold_view(V base) : base_(std::move(base)) {}
+
+            iterator begin() const
+            {
+                return iterator(
+                    text::detail::begin(base_), text::detail::end(base_));
+            }
+            auto end() const { return text::detail::end(base_); }
+
+        private:
+            V base_;
+        };
+
+        template<typename Context, typename T>
+        auto get_trie(
+            Context const & context, symbol_parser<T> const & symbol_parser)
+        {
+            using trie_t = text::trie_map<std::vector<char32_t>, T>;
+            using result_type = std::pair<trie_t &, bool>;
+            symbol_table_tries_t & symbol_table_tries =
+                *context.symbol_table_tries_;
+
+            auto & [any, has_case_folded] =
+                symbol_table_tries[(void *)&symbol_parser];
+
+            bool const needs_case_folded = context.no_case_depth_;
+
+            if (!any.has_value()) {
+                any = trie_t{};
+                has_case_folded = false;
+                trie_t & trie = *std::any_cast<trie_t>(&any);
+                for (auto const & e : symbol_parser.initial_elements()) {
+                    trie.insert(e.first | text::as_utf32, e.second);
+                    if (needs_case_folded) {
+                        trie.insert(
+                            case_fold_view(e.first | text::as_utf32), e.second);
+                        has_case_folded = true;
+                    }
+                }
+                return result_type(trie, has_case_folded);
+            } else {
+                trie_t & trie = *std::any_cast<trie_t>(&any);
+                if (needs_case_folded && !has_case_folded) {
+                    trie_t new_trie = trie;
+                    for (auto && [key, value] : trie) {
+                        new_trie.insert(
+                            case_fold_view(key | text::as_utf32), value);
+                    }
+                    std::swap(new_trie, trie);
+                }
+                return result_type(trie, has_case_folded);
+             }
+        }
 
         template<>
         struct char_subranges<hex_digit_subranges>
@@ -4538,9 +4576,13 @@ namespace boost { namespace parser {
         parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            return trie_[str | detail::text::as_utf32];
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                return trie[detail::case_fold_view(
+                    str | detail::text::as_utf32)];
+            } else {
+                return trie[str | detail::text::as_utf32];
+            }
         }
 
         /** Inserts an entry consisting of a UTF-8 string `str` to match, and
@@ -4549,9 +4591,14 @@ namespace boost { namespace parser {
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            trie_.insert(str | detail::text::as_utf32, std::move(x));
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                trie.insert(
+                    detail::case_fold_view(str | detail::text::as_utf32),
+                    std::move(x));
+            } else {
+                trie.insert(str | detail::text::as_utf32, std::move(x));
+            }
         }
 
         /** Erases the entry whose UTF-8 match string is `str` from the copy
@@ -4559,9 +4606,13 @@ namespace boost { namespace parser {
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            trie_.erase(str | detail::text::as_utf32);
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                trie.erase(
+                    detail::case_fold_view(str | detail::text::as_utf32));
+            } else {
+                trie.erase(str | detail::text::as_utf32);
+            }
         }
 
         template<
@@ -4600,12 +4651,14 @@ namespace boost { namespace parser {
             [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            parser::detail::text::trie<std::vector<char32_t>, T> const & trie_ =
-                detail::get_trie(context, ref());
-            auto const lookup = trie_.longest_match(first, last);
+            auto [trie, _0] = detail::get_trie(context, ref());
+            auto const lookup = context.no_case_depth_
+                                    ? trie.longest_match(detail::case_fold_view(
+                                          BOOST_PARSER_SUBRANGE(first, last)))
+                                    : trie.longest_match(first, last);
             if (lookup.match) {
                 std::advance(first, lookup.size);
-                detail::assign(retval, T{*trie_[lookup]});
+                detail::assign(retval, T{*trie[lookup]});
             } else {
                 success = false;
             }
