@@ -1644,7 +1644,8 @@ common:
 * They each return a value contextually convertible to `bool`.
 
 * They each take at least a range to parse and a parser.  The "range to parse"
-  may be an iterator/sentinel pair or an single range-like object.
+  may be an iterator/sentinel pair or an single range-like object.  Note that
+  "range-like" includes null-terminated string pointers.
 
 * They each require forward iterability of the range to parse.
 
