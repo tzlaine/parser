@@ -316,7 +316,13 @@ namespace boost::parser {
     /** Produces a range of subranges of a given range `base`.  Each subrange
         is either a subrange of `base` that does not match the given parser
         `parser`, or is `f(*boost::parser::parse(match, parser))`, where `f`
-        is the given invocable and `match` is the matching subrange. */
+        is the given invocable and `match` is the matching subrange.
+
+        In addition to the template parameter constraints, `F` must be
+        invocable with the attribute type of `Parser`; `V` and the range type
+        produced by `F`, "`Rf`" must be ranges of `char`, or must have the
+        same UTF format; and `V` and `Rf` must meet the same compatibility
+        requirements as described in `std::ranges::join_view`. */
     template<
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::viewable_range V,

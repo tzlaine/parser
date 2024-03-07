@@ -2648,9 +2648,10 @@ namespace boost { namespace parser {
         };
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
 
     // This constraint is only here to allow the alternate-call semantic
-    // action metaprogramming logic function on MSVC.
+    // action metaprogramming logic to function on MSVC.
     template<typename Context>
     auto _val(Context const & context) -> std::conditional_t<
         detail::is_nope_v<decltype(*context.val_)>,
@@ -2772,6 +2773,8 @@ namespace boost { namespace parser {
         return context.error_handler_->diagnose(
             diagnostic_kind::warning, message, context);
     }
+
+#endif
 
     /** An invocable that returns the `I`th parameter to the bottommost rule.
         This is useful for forwarding parameters to sub-rules. */
@@ -6038,7 +6041,9 @@ namespace boost { namespace parser {
         }
 
         /** Returns a `parser_interface` containing a `char_parser` that
-            matches `x`. */
+            matches `x`.
+
+            \tparam T Constrained by `!parsable_range_like<T>`. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
         // clang-format off
@@ -6111,7 +6116,10 @@ namespace boost { namespace parser {
             matches one of the values in `r`.  `r` must be a sorted,
             random-access sequence of `char32_t`.  The character begin matched
             is directly compared to the elements of `r`.  The match is found
-            via binary search.  No case folding is performed. */
+            via binary search.  No case folding is performed.
+
+            \tparam R Additionally constrained by
+            `std::same_as<std::ranges::range_value_t<R>, char32_t>`. */
         // clang-format off
 #if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
@@ -7648,7 +7656,10 @@ namespace boost { namespace parser {
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  On success, `attr` will be assigned the value of the
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
@@ -7724,7 +7735,15 @@ namespace boost { namespace parser {
         to be considered successful.  On success, `attr` will be assigned the
         value of the attribute produced by `parser`.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
-        `std::cout`. */
+        `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`.
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -7755,7 +7774,7 @@ namespace boost { namespace parser {
             ErrorHandler,
             std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
             std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
-        GlobalState> &&
+            GlobalState> &&
         (!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>>)
     // clang-format on
 #endif
@@ -7773,7 +7792,10 @@ namespace boost { namespace parser {
     /** Parses `[first, last)` using `parser`.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
         `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
@@ -7826,7 +7848,15 @@ namespace boost { namespace parser {
         attribute produced by `parser` on parse success, and `std::nullopt` on
         parse failure.  The entire input range `r` must be consumed for the
         parse to be considered successful.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`.
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -7949,7 +7979,13 @@ namespace boost { namespace parser {
         the parse to be considered successful.  On success, `attr` will be
         assigned the value of the attribute produced by `parser`.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8058,7 +8094,13 @@ namespace boost { namespace parser {
         `std::nullopt` on parse failure.  The entire input range `r` must be
         consumed for the parse to be considered successful.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
-        `std::cout`. */
+        `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8170,7 +8212,13 @@ namespace boost { namespace parser {
         `Callbacks` is expected to be an invocable with the correct overloads
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8297,7 +8345,13 @@ namespace boost { namespace parser {
         `Callbacks` is expected to be an invocable with the correct overloads
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,

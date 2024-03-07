@@ -495,9 +495,13 @@ namespace boost { namespace parser {
 
     /** Report that the error described in `message` occurred at `location`,
         using the context's error handler. */
-    template<typename Iter, typename Context>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
     void _report_error(
-        Context const & context, std::string_view message, Iter location);
+        Context const & context, std::string_view message, I location);
 
     /** Report that the error described in `message` occurred at
         `_where(context).begin()`, using the context's error handler. */
@@ -506,9 +510,13 @@ namespace boost { namespace parser {
 
     /** Report that the warning described in `message` occurred at `location`,
         using the context's error handler. */
-    template<typename Iter, typename Context>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
     void _report_warning(
-        Context const & context, std::string_view message, Iter location);
+        Context const & context, std::string_view message, I location);
 
     /** Report that the warning described in `message` occurred at
         `_where(context).begin()`, using the context's error handler. */

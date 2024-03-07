@@ -24,7 +24,11 @@ namespace boost::parser {
 
 #else
 
-    /** A view that produces UTF-8 from an given sequence of UTF. */
+    /** A view that produces UTF-8 from an given sequence of UTF.
+
+        \tparam V Constrained by `std::ranges::view<V>`.  Additionally, the
+        value type of `V` must be `char`, `wchar_t`, `char8_t`, `char16_t`, or
+        `char32_t`. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
@@ -44,7 +48,11 @@ namespace boost::parser {
         {}
     };
 
-    /** A view that produces UTF-16 from an given sequence of UTF. */
+    /** A view that produces UTF-16 from an given sequence of UTF.
+
+        \tparam V Constrained by `std::ranges::view<V>`.  Additionally, the
+        value type of `V` must be `char`, `wchar_t`, `char8_t`, `char16_t`, or
+        `char32_t`. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>
@@ -64,7 +72,11 @@ namespace boost::parser {
         {}
     };
 
-    /** A view that produces UTF-32 from an given sequence of UTF. */
+    /** A view that produces UTF-32 from an given sequence of UTF.
+
+        \tparam V Constrained by `std::ranges::view<V>`.  Additionally, the
+        value type of `V` must be `char`, `wchar_t`, `char8_t`, `char16_t`, or
+        `char32_t`. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS || defined(BOOST_PARSER_DOXYGEN)
     template<detail::text::utf_range V>
         requires std::ranges::view<V>

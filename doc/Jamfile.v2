@@ -24,6 +24,7 @@ doxygen parser_reference
         # note that there is no detail::unspecified -- this is a hack to get all
         # the SFINAE code out of the API docs.
         <doxygen:param>"PREDEFINED=\"BOOST_PARSER_DOXYGEN=1\" \\
+                                   \"BOOST_PARSER_USE_CONCEPTS=1\" \\
                                    \"enable_if=detail::unspecified\""
         <doxygen:param>HIDE_UNDOC_MEMBERS=NO
         <doxygen:param>EXTRACT_PRIVATE=NO
