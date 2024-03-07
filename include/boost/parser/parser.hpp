@@ -1885,8 +1885,7 @@ namespace boost { namespace parser {
         }
 
         template<typename Container>
-        constexpr void
-        move_back(Container & c, Container & x, bool gen_attrs)
+        constexpr void move_back(Container & c, Container & x, bool gen_attrs)
         {
             if (!gen_attrs)
                 return;
@@ -4044,6 +4043,11 @@ namespace boost { namespace parser {
                     Context>;
             }
         }
+
+        template<typename Context, typename TagType>
+        constexpr bool in_recursion =
+            std::is_same_v<typename Context::rule_tag, TagType> &&
+            !std::is_same_v<typename Context::rule_tag, void>;
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -4750,7 +4754,11 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        auto call(
+        std::conditional_t<
+            detail::in_recursion<Context, tag_type>,
+            detail::nope,
+            attr_type>
+        call(
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4758,11 +4766,10 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            constexpr bool recursive_rule =
-                std::is_same_v<typename Context::rule_tag, tag_type> &&
-                !std::is_same_v<typename Context::rule_tag, void>;
+            constexpr bool in_recursion =
+                detail::in_recursion<Context, tag_type>;
 
-            if constexpr (recursive_rule)
+            if constexpr (in_recursion)
                 flags = detail::disable_attrs(flags);
 
             attr_type retval{};
@@ -4774,18 +4781,39 @@ namespace boost { namespace parser {
             [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, rule_context, flags, retval);
 
-            parse_rule(
-                tag_ptr,
-                first,
-                last,
-                rule_context,
-                skip,
-                flags,
-                success,
-                retval);
+            bool dont_assign = false;
+            if constexpr (in_recursion) {
+                // We have to use this out-arg overload for iterations >= 1 in
+                // recursive rules, since every iteration past the first is
+                // defined to return nope.
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    dont_assign,
+                    retval);
+            } else {
+                auto attr = parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    dont_assign);
+                if (success && !dont_assign) {
+                    if constexpr (!detail::is_nope_v<decltype(attr)>)
+                        detail::assign(retval, attr);
+                }
+            }
 
             if constexpr (
-                CanUseCallbacks && Context::use_callbacks && !recursive_rule) {
+                CanUseCallbacks && Context::use_callbacks && !in_recursion) {
                 if (!success)
                     return attr_type{};
 
@@ -4814,9 +4842,9 @@ namespace boost { namespace parser {
 
                 return attr_type{};
             } else {
-                if (!success && !recursive_rule)
+                if (!success && !in_recursion)
                     detail::assign(retval, attr_type());
-                if constexpr (recursive_rule)
+                if constexpr (in_recursion)
                     return detail::nope{};
                 else
                     return retval;
@@ -5374,17 +5402,34 @@ namespace boost { namespace parser {
         typename Sentinel,                                                     \
         typename Context,                                                      \
         typename SkipParser>                                                   \
-    auto parse_rule(                                                           \
+    decltype(rule_name_)::parser_type::attr_type parse_rule(                   \
         decltype(rule_name_)::parser_type::tag_type *,                         \
         Iter & first,                                                          \
         Sentinel last,                                                         \
         Context const & context,                                               \
         SkipParser const & skip,                                               \
         boost::parser::detail::flags flags,                                    \
-        bool & success)                                                        \
+        bool & success,                                                        \
+        bool & dont_assign)                                                    \
     {                                                                          \
         auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \
-        return parser(first, last, context, skip, flags, success);             \
+        using attr_t =                                                         \
+            decltype(parser(first, last, context, skip, flags, success));      \
+        using attr_type = decltype(rule_name_)::parser_type::attr_type;        \
+        if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
+            dont_assign = true;                                                \
+            parser(first, last, context, skip, flags, success);                \
+            return {};                                                         \
+        } else if constexpr (std::is_same_v<attr_type, attr_t>) {              \
+            return parser(first, last, context, skip, flags, success);         \
+        } else if constexpr (std::is_constructible_v<attr_type, attr_t>) {     \
+            return attr_type(                                                  \
+                parser(first, last, context, skip, flags, success));           \
+        } else {                                                               \
+            attr_type attr{};                                                  \
+            parser(first, last, context, skip, flags, success, attr);          \
+            return attr;                                                       \
+        }                                                                      \
     }                                                                          \
                                                                                \
     template<                                                                  \
@@ -5401,6 +5446,7 @@ namespace boost { namespace parser {
         SkipParser const & skip,                                               \
         boost::parser::detail::flags flags,                                    \
         bool & success,                                                        \
+        bool & dont_assign,                                                    \
         Attribute & retval)                                                    \
     {                                                                          \
         auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \

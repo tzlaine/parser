@@ -2978,3 +2978,40 @@ TEST(parser, utf_iterator_copy_ctor)
     std::copy(const_it, const_last, copy.begin());
     EXPECT_EQ(copy, "foo");
 }
+
+namespace github_issue_125_ {
+    namespace bp = boost::parser;
+    constexpr bp::
+        rule<struct replacement_field_rule, std::optional<unsigned short>>
+            replacement_field = "replacement_field";
+    constexpr auto replacement_field_def = bp::lit('{') >> -bp::ushort_;
+    BOOST_PARSER_DEFINE_RULES(replacement_field);
+}
+
+TEST(parser, github_issue_125)
+{
+    namespace bp = boost::parser;
+    using namespace github_issue_125_;
+
+    unsigned short integer_found = 99;
+    auto print_repl_field = [&](auto & ctx) {
+        const std::optional<unsigned short> & val = bp::_attr(ctx);
+        if (val)
+            integer_found = *val;
+        else
+            integer_found = 77;
+    };
+
+    {
+        integer_found = 99;
+        auto result = bp::parse("{9", replacement_field[print_repl_field]);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(integer_found, 9);
+    }
+    {
+        integer_found = 99;
+        auto result = bp::parse("{", replacement_field[print_repl_field]);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(integer_found, 77);
+    }
+}
