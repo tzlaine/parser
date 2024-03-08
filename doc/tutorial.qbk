@@ -429,13 +429,20 @@ _begin_ and _end_ return the beginning and end of the range that you passed to
 _p_, respectively.  _where_ returns a _v_ indicating the bounds of the input
 matched by the current parse.  _where_ can be useful if you just want to parse
 some text and return a result consisting of where certain elements are
-located, without producing any other attributes.
+located, without producing any other attributes.  _where_ can also be
+essential in tracking where things are located, to provide good diagnostics at
+a later point in the parse.  Think mismatched tags in XML; if you parse a
+close-tag at the end of an element, and it does not match the open-tag, you
+want to produce an error message that mentions or shows both tags.  Stashing
+`_where_np_(ctx).begin()` somewhere that is available to the close-tag parser
+will enable that.  See _eh_debugging_ for an example of this.
 
 [heading _error_handler_]
 
 _error_handler_ returns a reference to the error handler associated with the
-parser passed to _p_.  See _eh_debugging_ for more information on what you can
-do with the error handler.
+parser passed to _p_.  Using _error_handler_, you can generate errors and
+warnings from within your semantic actions.  See _eh_debugging_ for concrete
+examples.
 
 [heading Accessors for data that are only sometimes available]
 
@@ -457,22 +464,41 @@ being used to parse (if any), and is available even before the rule's parse is
 successful.  It can be used to set the current rule's attribute, even from a
 parser that is a subparser inside the rule.  Let's say we're writing a parser
 with a semantic action that is within a rule.  If we want to set the current
-rule's value to whatever this subparser parses, we would write this semantic
-action:
+rule's value to some function of subparser's attribute, we would write this
+semantic action:
 
-    [](auto & ctx) { _val(ctx) = _attr(ctx); }
+    [](auto & ctx) { _val(ctx) = some_function(_attr(ctx)); }
 
 If there is no current rule, or the current rule has no attribute, a _n_ is
 returned.
 
+You need to use _val_ in cases where the default attribute for a _r_'s parser
+is not directly compatible with the attribute type of the _r_.  In these
+cases, you'll need to write some code like the example above to compute the
+_r_'s attribute from the _r_'s parser's generated attribute.  For more info on
+_rs_, see the next page, and _more_about_rules_.
+
 [heading _globals_]
 
-_globals_ returns a reference to a user-supplied struct that contains whatever
-data you want to use during the parse.  We'll get into this more later, but
-for now, here's how you might use it:
+_globals_ returns a reference to a user-supplied object that contains whatever
+data you want to use during the parse.  The "globals" for a parse is an object
+_emdash_ typically a struct _emdash_ that you give to the top-level parser.
+Then you can use _globals_ to access it at any time during the parse.  We'll
+see how globals get associated with the top-level parser in _p_api_ later.  As
+an example, say that you have an early part of the parse that needs to record
+some black-listed values, and that later parts of the parse might need to
+parse values, failing the parse if they see the black-listed values.  In the
+early part of the parse, you could write something like this.
 
     [](auto & ctx) {
-        // black_list is some set of values that are not allowed.
+        // black_list is a std::unordered_set.
+        _globals(ctx).black_list.insert(_attr(ctx));
+    }
+
+Later in the parse, you could then use `black_list` to check values as they
+are parsed.
+
+    [](auto & ctx) {
         if (_globals(ctx).black_list.contains(_attr(ctx)))
             _pass(ctx) = false;
     }
@@ -523,7 +549,10 @@ explanation.]
 [heading _no_case_func_]
 
 _no_case_func_ returns `true` if the current parse context is inside one or
-more (possibly nested) _no_case_ directives.
+more (possibly nested) _no_case_ directives.  I don't have a use case for
+this, but if I didn't expose it, it would be the only thing in the context
+that you could not examine from inside a semantic action.  It was easy to add,
+so I did.
 
 [endsect]
 
