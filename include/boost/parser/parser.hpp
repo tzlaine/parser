@@ -3252,8 +3252,6 @@ namespace boost { namespace parser {
         using default_combining_t = decltype(detail::make_default_combining(
             std::declval<ParserTuple>()));
 
-        struct default_combine_t
-        {};
         struct merge_t
         {};
         struct separate_t
@@ -3308,10 +3306,7 @@ namespace boost { namespace parser {
         template<typename CombiningGroups, typename... Args>
         constexpr auto make_combining(tuple<Args...> parsers)
         {
-            if constexpr (std::is_same_v<CombiningGroups, default_combine_t>) {
-                return detail::make_default_combining_impl<0>(
-                    std::make_integer_sequence<int, sizeof...(Args)>());
-            } else if constexpr (std::is_same_v<CombiningGroups, merge_t>) {
+            if constexpr (std::is_same_v<CombiningGroups, merge_t>) {
                 detail::static_assert_merge_attributes(parsers);
                 return detail::make_default_combining_impl<1>(
                     std::make_integer_sequence<int, sizeof...(Args)>());
