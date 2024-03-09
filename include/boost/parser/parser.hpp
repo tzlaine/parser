@@ -3806,7 +3806,7 @@ namespace boost { namespace parser {
                     indices,
                     merged);
 
-                if (!success || !detail::gen_attrs(flags))
+                if (!success)
                     detail::assign(retval, Attribute());
             } else if constexpr (
                 0 < max_index_t::value && detail::is_constructible_from_tuple_v<
