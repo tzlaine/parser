@@ -370,6 +370,7 @@ namespace boost { namespace parser {
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
+
         template<typename T>
         using print_type = typename print_t<T>::type;
 
@@ -1322,6 +1323,16 @@ namespace boost { namespace parser {
             }
         }
 
+        template<typename Container, typename T>
+        void append(std::optional<Container> & c, T && x, bool gen_attrs)
+        {
+            if (!gen_attrs)
+                return;
+            if (!c)
+                c = Container();
+            return detail::append(*c, (T &&) x, gen_attrs);
+        }
+
         template<typename Container>
         void append(Container & c, nope &&, bool)
         {}
@@ -1346,6 +1357,20 @@ namespace boost { namespace parser {
             } else {
                 detail::insert(c, first, last);
             }
+        }
+
+        template<typename Container, typename Iter, typename Sentinel>
+        void append(
+            std::optional<Container> & c,
+            Iter first,
+            Sentinel last,
+            bool gen_attrs)
+        {
+            if (!gen_attrs)
+                return;
+            if (!c)
+                c = Container();
+            return detail::append(*c, first, last, gen_attrs);
         }
 
         template<typename Iter, typename Sentinel>
