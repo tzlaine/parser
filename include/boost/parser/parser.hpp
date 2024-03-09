@@ -3192,7 +3192,7 @@ namespace boost { namespace parser {
                 else
                     use_parser.first_ = prev_first;
             };
-            detail::hl::for_each(parsers_, try_parser);
+            detail::hl::for_each(parsers_, try_parser); // TODO: -> fold-expr
 
             if (!done)
                 success = false;
