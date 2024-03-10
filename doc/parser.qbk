@@ -69,6 +69,17 @@
 [def _cb_r_                [classref boost::parser::callback_rule `callback_rule`]]
 [def _cb_rs_               [classref boost::parser::callback_rules `callback_rule`s]]
 
+[def _skp_p_               [classref boost::parser::skip_parser `skip_parser`]]
+[def _xfm_p_               [classref boost::parser::transform_parser `tranform_parser`]]
+[def _noc_p_               [classref boost::parser::no_case_parser `no_case_parser`]]
+[def _sv_p_                [classref boost::parser::string_view_parser `string_view_parser`]]
+[def _raw_p_               [classref boost::parser::raw_parser `raw_parser`]]
+[def _omt_p_               [classref boost::parser::omit_parser `omit_parser`]]
+[def _rpt_p_               [classref boost::parser::repeat_parser `repeat_parser`]]
+[def _lex_p_               [classref boost::parser::lexeme_parser `lexeme_parser`]]
+[def _seq_p_               [classref boost::parser::seq_parser `seq_parser`]]
+[def _seq_ps_              [classref boost::parser::seq_parser `seq_parser`s]]
+
 [def _bp_tup_              [classref boost::parser::tuple `boost::parser::tuple`]]
 [def _bp_get_              [funcref boost::parser::get `boost::parser::get`]]
 [def _bh_tup_              `boost::hana::tuple`]

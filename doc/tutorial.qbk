@@ -1196,9 +1196,35 @@ Non-directives might, but only when attaching a semantic action.
 The directives that are second order parsers are technically directives, but
 since they are also used to create parsers, it is more useful just to focus on
 that.  The directives _rpt_ and _if_ were already described in the section on
-parsers; we won't say more about them here.
+parsers; we won't say much about them here.
 
-That leaves the directives that affect aspects of the parse:
+[heading Interaction with sequence parsers]
+
+Sequence and alternative parsers do not nest in most cases.  (Let's consider
+just sequence parsers to keep thinkgs simple, but all this logic applies to
+alternative parsers as well.)  `a >> b >> c` is the same as `(a >> b) >> c`
+and `a >> (b >> c)`, and they are each represented by a single _seq_p_ with
+three subparsers, `a`, `b`, and `c`.  However, if something prevents two
+_seq_ps_ from interacting directly, they *will* nest.  For instance, `lexeme[a
+>> b] >> c` is a _seq_p_ containing two parsers, `lexeme[a >> b]` and `c`.
+This is because _lexeme_ takes its given parser and wraps it in a _lex_p_.
+This in turn turns off the sequence parser combining logic, since both sides
+of the second `operator>>` in `lexeme[a >> b] >> c` are not _seq_ps_.
+Sequence parsers have several rules that govern what the overall attribute
+type of the parser is, based on the positions and attributes of it subparsers
+(see _attr_gen_).  Therefore, it's important to know which directives create a
+new parser (and what kind), and which ones do not; this is indicated for each
+directive below.
+
+[heading The directives]
+
+[heading _rpt_]
+
+See _parsers_uses_.  Creates a _rpt_p_.
+
+[heading _if_]
+
+See _parsers_uses_.  Creates a _seq_p_.
 
 [heading _omit_]
 
@@ -1212,6 +1238,8 @@ attribute.  Now say that you want to write a function that just counts how
 many times `p` can match a string (where the matches are non-overlapping).
 Instead of using `p` directly, and building all those attributes, or rewriting
 `p` without the attribute generation, use _omit_.
+
+Creates an _omt_p_.
 
 [heading _raw_]
 
@@ -1227,6 +1255,8 @@ iterator.  Just like _omit_, _raw_ causes all attribute-generation work within
 Similar to the re-use scenario for _omit_ above, _raw_ could be used to find
 the *locations* of all non-overlapping matches of `p` in a string.
 
+Creates a _raw_p_.
+
 [heading _string_view_]
 
 `_string_view_np_[p]` is very similar to `_raw_np_[p]`, except that it changes
@@ -1240,6 +1270,8 @@ Similar to the re-use scenario for _omit_ above, _string_view_ could be used
 to find the *locations* of all non-overlapping matches of `p` in a string.
 Whether _raw_ or _string_view_ is more natural to use to report the locations
 depends on your use case, but they are essentially the same.
+
+Creates a _sv_p_.
 
 [heading _no_case_]
 
@@ -1281,6 +1313,8 @@ sometimes expand a code point into multiple code points (e.g. case folding
 `"ẞ"` yields `"ss"`.  When such a multi-code point expansion occurs, the
 expanded code points are in the NFKC normalization form.]
 
+Creates a _noc_p_.
+
 [heading _lexeme_]
 
 `_lexeme_np_[p]` disables use of the skipper, if a skipper is being used,
@@ -1295,6 +1329,8 @@ _lexeme_:
 
 Without _lexeme_, our string parser would correctly match `"foo bar"`, but the
 generated attribute would be `"foobar"`.
+
+Creates a _lex_p_.
 
 [heading _skip_]
 
@@ -1322,10 +1358,16 @@ call:
 The first occurrence of `zero_or_more` will use the skipper passed to _p_,
 which is _ws_; the second will use _blank_ as its skipper.
 
+Creates a _skp_p_.
+
 [heading _merge_, _sep_, and _transform_]
 
 These directives influence the generation of attributes.  See _attr_gen_
 section for more details on them.
+
+_merge_ and _sep_ create a copy of the given _seq_p_.
+
+_transform_ creates a _xfm_p_.
 
 [endsect]
 
@@ -1630,6 +1672,24 @@ created a merge group above, we disabled the default behavior in which the
 them.  Since they are all treated as separate entities, and since they have
 different attribute types, the use of _merge_ is an error.
 
+Many directives create a new parser out of the parser they are given.  _merge_
+and _sep_ do not.  Since they operate only on sequence parsers, all they do is
+create a copy of the sequence parser they are given.  The _seq_p_ template has
+a template parameter `CombiningGroups`, and all _merge_ and _sep_ do is take a
+given _seq_p_ and create a copy of it with a different `CombiningGroups`
+template parameter.  This means that _merge_ and _sep_ are can be ignored in
+`operator>>` expressions much like parentheses are.  Consider an example.
+
+    namespace bp = boost::parser;
+    constexpr auto parser1 = bp::separate[bp::int_ >> bp::int_] >> bp::int_;
+    constexpr auto parser2 = bp::lexeme[bp::int_ >> ' ' >> bp::int_] >> bp::int_;
+
+Note that _sep_ is a no-op here; it's only being used this way for this
+example.  These parsers have different attribute types. `_ATTR_np_(parser1)`
+is `_bp_tup_(int, int, int)`.  `_ATTR_np_(parser2)` is `_bp_tup_(_bp_tup_(int,
+int), int)`.  This is because `bp::lexeme[]` wraps its given parser in a new
+parser.  _merge_ does not.  That's why, even though `parser1` and `parser2`
+look so structurally similar, they have different attributes.
 
 [heading _transform_]
 
