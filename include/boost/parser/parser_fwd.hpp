@@ -168,6 +168,17 @@ namespace boost { namespace parser {
     template<typename ParserTuple>
     struct or_parser;
 
+    /** Applies each parsers in `ParserTuple`, an any order, stopping after
+        all of them have matched the input.  The parse succeeds iff all the
+        parsers match, regardless of the order in which they do.  The
+        attribute produced is a `parser::tuple` containing the attributes of
+        the subparsers, in their order of the parsers' appearance in
+        `ParserTuple`, not the order of the parsers' matches.  It is an error
+        to specialize `perm_parser` with a `ParserTuple` template parameter
+        that includes an `eps_parser`. */
+    template<typename ParserTuple>
+    struct perm_parser;
+
     /** Applies each parser in `ParserTuple`, in order.  The parse succeeds
         iff all of the sub-parsers succeed.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in

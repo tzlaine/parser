@@ -956,6 +956,13 @@ namespace boost { namespace parser {
         constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
+        struct is_eps_p : std::false_type
+        {};
+        template<typename T>
+        struct is_eps_p<eps_parser<T>> : std::true_type
+        {};
+
+        template<typename T>
         struct is_unconditional_eps : std::false_type
         {};
         template<>
@@ -977,6 +984,13 @@ namespace boost { namespace parser {
         {};
         template<typename T>
         struct is_or_p<or_parser<T>> : std::true_type
+        {};
+
+        template<typename T>
+        struct is_perm_p : std::false_type
+        {};
+        template<typename T>
+        struct is_perm_p<perm_parser<T>> : std::true_type
         {};
 
         template<typename T>
@@ -3235,6 +3249,262 @@ namespace boost { namespace parser {
         ParserTuple parsers_;
     };
 
+    template<typename ParserTuple>
+    struct perm_parser
+    {
+        constexpr perm_parser(ParserTuple parsers) : parsers_(parsers) {}
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        struct use_parser_t
+        {
+            template<typename Parser>
+            auto operator()(Parser const & parser) const
+            {
+                detail::skip(first_, last_, skip_, flags_);
+                success_ = true; // In case someone earlier already failed...
+                return parser.call(
+                    first_,
+                    last_,
+                    context_,
+                    skip_,
+                    flags_,
+                    success_);
+            }
+
+            template<typename Parser, typename Attribute>
+            void operator()(Parser const & parser, Attribute & retval) const
+            {
+                detail::skip(first_, last_, skip_, flags_);
+                success_ = true; // In case someone earlier already failed...
+
+                detail::apply_parser(
+                    parser,
+                    first_,
+                    last_,
+                    context_,
+                    skip_,
+                    flags_,
+                    success_,
+                    retval);
+            }
+
+            Iter & first_;
+            Sentinel last_;
+            Context const & context_;
+            SkipParser const & skip_;
+            detail::flags flags_;
+            bool & success_;
+        };
+
+#endif
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            Iter & first_,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            Iter first = first_;
+
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
+            using result_t =
+                decltype(detail::hl::transform(parsers_, use_parser));
+            result_t retval{};
+
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first_, last, context, flags, retval);
+
+            call_impl(
+                first,
+                last,
+                context,
+                skip,
+                flags,
+                success,
+                retval,
+                std::make_integer_sequence<
+                    int,
+                    detail::tuple_size_<ParserTuple>>{});
+
+            if (success)
+                first_ = first;
+
+            return retval;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            Iter & first_,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first_, last, context, flags, retval);
+
+            Iter first = first_;
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
+            using result_t =
+                decltype(detail::hl::transform(parsers_, use_parser));
+
+            constexpr auto indices = std::
+                make_integer_sequence<int, detail::tuple_size_<ParserTuple>>{};
+
+            if constexpr (detail::is_optional_v<Attribute>) {
+                typename Attribute::value_type attr;
+                call(first, last, context, skip, flags, success, attr);
+                if (success)
+                    detail::assign(retval, std::move(attr));
+            } else if constexpr (
+                detail::is_tuple<Attribute>{} ||
+                detail::is_struct_compatible_v<Attribute, result_t>) {
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval,
+                    indices);
+
+                if (!success)
+                    detail::assign(retval, Attribute());
+            } else if constexpr (detail::is_constructible_from_tuple_v<
+                                     Attribute,
+                                     result_t>) {
+                result_t temp_retval{};
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval,
+                        detail::make_from_tuple<Attribute>(
+                            std::move(temp_retval)));
+                }
+            } else {
+#if 0 // TODO Seems incompatible with this parser.
+                // call_impl requires a tuple, so we must wrap this scalar.
+                tuple<Attribute> temp_retval{};
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval, std::move(detail::hl::front(temp_retval)));
+                }
+#else
+                static_assert(
+                    std::is_same_v<Attribute, void> && false,
+                    "It looks like you passed an attribute to this permutation "
+                    "parser that is not capable of taking the number, or the "
+                    "types of values compatible with the ones it produces.");
+#endif
+            }
+
+            if (success)
+                first_ = first;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename... Ts,
+            int... Is>
+        void call_impl(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            tuple<Ts...> & retval,
+            std::integer_sequence<int, Is...>) const
+        {
+            std::array<bool, sizeof...(Ts)> used_parsers = {{}};
+
+            // Use "parser" to fill in attribute "x", unless "parser" has
+            // previously been used.
+            auto parse_into = [&](int i, auto const & parser, auto & x) {
+                if (used_parsers[i])
+                    return false;
+                detail::skip(first, last, skip, flags);
+                parser.call(first, last, context, skip, flags, success, x);
+                if (success) {
+                    used_parsers[i] = true;
+                    return true;
+                }
+                success = true;
+                return false;
+            };
+            // Use one of the previously-unused parsers to parse one
+            // alternative.
+            auto parsed_one = [&](auto) {
+                return (
+                    parse_into(
+                        Is,
+                        parser::get(parsers_, llong<Is>{}),
+                        parser::get(retval, llong<Is>{})) ||
+                    ...);
+            };
+            success = (parsed_one(Is) && ...);
+
+            if (!success)
+                retval = tuple<Ts...>{};
+        }
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+        template<typename Parser>
+        constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
+        template<typename Parser>
+        constexpr auto append(parser_interface<Parser> parser) const noexcept;
+
+#endif
+
+        ParserTuple parsers_;
+    };
+
     namespace detail {
         template<int N, int... I>
         constexpr auto
@@ -5094,6 +5364,30 @@ namespace boost { namespace parser {
             }
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `perm_parser` containing `parser_` followed by `rhs.parser_`.  It
+            is an error to use `eps` (conditional or not) with this
+            operator. */
+        template<typename ParserType2>
+        constexpr auto
+        operator||(parser_interface<ParserType2> rhs) const noexcept
+        {
+            // If you're seeing this as a compile- or run-time failure, you've
+            // tried to put an eps parser in a permutation-parser, such as
+            // "eps || int_".
+            BOOST_PARSER_ASSERT(!detail::is_eps_p<parser_type>{});
+            BOOST_PARSER_ASSERT(!detail::is_eps_p<ParserType2>{});
+            if constexpr (detail::is_perm_p<parser_type>{}) {
+                return parser_.append(rhs);
+            } else if constexpr (detail::is_perm_p<ParserType2>{}) {
+                return rhs.parser_.prepend(*this);
+            } else {
+                return parser::parser_interface{
+                    perm_parser<tuple<parser_type, ParserType2>>{
+                        tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
+            }
+        }
+
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator|(char rhs) const noexcept;
@@ -5539,6 +5833,40 @@ namespace boost { namespace parser {
         } else {
             return parser_interface{or_parser<decltype(
                 detail::hl::append(parsers_, parser.parser_))>{
+                detail::hl::append(parsers_, parser.parser_)}};
+        }
+    }
+
+    template<typename ParserTuple>
+    template<typename Parser>
+    constexpr auto perm_parser<ParserTuple>::prepend(
+        parser_interface<Parser> parser) const noexcept
+    {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser in a permutation-parser, such as "eps ||
+        // int_".
+        BOOST_PARSER_ASSERT(!detail::is_eps_p<Parser>{});
+        return parser_interface{perm_parser<decltype(detail::hl::prepend(
+            parsers_, parser.parser_))>{
+            detail::hl::prepend(parsers_, parser.parser_)}};
+    }
+
+    template<typename ParserTuple>
+    template<typename Parser>
+    constexpr auto perm_parser<ParserTuple>::append(
+        parser_interface<Parser> parser) const noexcept
+    {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser in a permutation-parser, such as "int_
+        // || eps".
+        BOOST_PARSER_ASSERT(!detail::is_eps_p<Parser>{});
+        if constexpr (detail::is_perm_p<Parser>{}) {
+            return parser_interface{perm_parser<decltype(detail::hl::concat(
+                parsers_, parser.parser_.parsers_))>{
+                detail::hl::concat(parsers_, parser.parser_.parsers_)}};
+        } else {
+            return parser_interface{perm_parser<decltype(detail::hl::append(
+                parsers_, parser.parser_))>{
                 detail::hl::append(parsers_, parser.parser_)}};
         }
     }

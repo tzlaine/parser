@@ -49,19 +49,24 @@ Throughout the _Parser_ documentation, I will refer to "the call to _p_".
 Read this as "the call to any one of the functions described in _p_api_".
 That includes _pp_, _cbp_, and _cbpp_.
 
-There are a couple of special kinds of parsers that come up often in this
+There are some special kinds of parsers that come up often in this
 documentation.
 
-One is a /sequence parser/; you will see it created using `operator>>()`, as
+One is a /sequence parser/; you will see it created using `operator>>`, as
 in `p1 >> p2 >> p3`.  A sequence parser tries to match all of its subparsers
 to the input, one at a time, in order.  It matches the input iff all its
 subparsers do.
 
-The other is an /alternative parser/; you will see it created using
-`operator|()`, as in `p1 | p2 | p3`.  A alternative parser tries to match all
+Another is an /alternative parser/; you will see it created using
+`operator|`, as in `p1 | p2 | p3`.  An alternative parser tries to match all
 of its subparsers to the input, one at a time, in order; it stops after
 matching at most one subparser.  It matches the input iff one of its
 subparsers does.
+
+Finally, there is a /permutation parser/; it is created using `operator||`,
+as in `p1 || p2 || p3`.  A permutation parser tries to match all of its
+subparsers to the input, in any order.  So the parser `p1 || p2 || p3` is equivalent to `(p1 >> p2 >> p3) | (p1 >> p3 >> p2) | (p2 >> p1 >> p3) | (p2 >> p3 >> p1) | (p3 >> p1 >> p2) | (p3 >> p2 >> p1)`.  Hopefully its terseness is self-explanatory.  It matches the
+input iff all of its subparsers do, regardless of the order they match in.
 
 _Parser_ parsers each have an /attribute/ associated with them, or explicitly
 have no attribute.  An attribute is a value that the parser generates when it
@@ -86,7 +91,7 @@ and then we parse it:
 The expression `*bp::char_` is a parser-expression.  It uses one of the many
 parsers that _Parser_ provides: _ch_.  Like all _Parser_ parsers, it has
 certain operations defined on it.  In this case, `*bp::char_` is using an
-overloaded `operator*()` as the C++ version of a _kl_ operator.  Since C++ has
+overloaded `operator*` as the C++ version of a _kl_ operator.  Since C++ has
 no postfix unary `*` operator, we have to use the one we have, so it is used
 as a prefix.
 
@@ -126,16 +131,16 @@ just use that.  If we wanted to parse two `double`s in a row, we'd use:
 
     boost::parser::double_ >> boost::parser::double_
 
-`operator>>()` in this expression is the sequence-operator; read it as
-"followed by".  If we combine the sequence-operator with _kl_, we can get the
-parser we want by writing:
+`operator>>` in this expression is the sequence-operator; read it as "followed
+by".  If we combine the sequence-operator with _kl_, we can get the parser we
+want by writing:
 
     boost::parser::double_ >> *(',' >> boost::parser::double_)
 
 This is a parser that matches at least one `double` _emdash_ because of the
 first _d_ in the expression above _emdash_ followed by zero or more instances
 of a-comma-followed-by-a-`double`.  Notice that we can use `','` directly.
-Though it is not a parser, `operator>>()` and the other operators defined on
+Though it is not a parser, `operator>>` and the other operators defined on
 _Parser_ parsers have overloads that accept character/parser pairs of
 arguments; these operator overloads will create the right parser to recognize
 `','`.
@@ -947,7 +952,7 @@ Why do we need any of this, considering that we just used a literal `','` in
 our previous example?  The reason is that `'M'` is not used in an expression
 with another _Parser_ parser.  It is used within `*'M'_l[add_1000]`.  If we'd
 written `*'M'[add_1000]`, clearly that would be ill-formed; `char` has no
-`operator*()`, nor an `operator[]()`, associated with it.
+`operator*`, nor an `operator[]`, associated with it.
 
 [tip Any time you want to use a `char`, `char32_t`, or string literal in a
 _Parser_ parser, write it as-is if it is combined with a preexisting _Parser_
@@ -956,7 +961,7 @@ _lit_, or use the `_l` _udl_ suffix.]
 
 On to the next bit: `-hundreds[add]`.  By now, the use of the index operator
 should be pretty familiar; it associates the semantic action `add` with the
-parser `hundreds`.  The `operator-()` at the beginning is new.  It means that
+parser `hundreds`.  The `operator-` at the beginning is new.  It means that
 the parser it is applied to is optional.  You can read it as "zero or one".
 So, if `hundreds` is not successfully parsed after `*'M'[add_1000]`, nothing
 happens, because `hundreds` is allowed to be missing _emdash_ it's optional.
@@ -1050,7 +1055,7 @@ for more information.]
 [section Alternative Parsers]
 
 Frequently, you need to parse something that might have one of several forms.
-`operator|()` is overloaded to form alternative parsers.  For example:
+`operator|` is overloaded to form alternative parsers.  For example:
 
     namespace bp = boost::parser;
     auto const parser_1 = bp::int_ | bp::eps;
@@ -1198,23 +1203,23 @@ since they are also used to create parsers, it is more useful just to focus on
 that.  The directives _rpt_ and _if_ were already described in the section on
 parsers; we won't say much about them here.
 
-[heading Interaction with sequence parsers]
+[heading Interaction with sequence, alternative, and permutation parsers]
 
-Sequence and alternative parsers do not nest in most cases.  (Let's consider
-just sequence parsers to keep thinkgs simple, but all this logic applies to
-alternative parsers as well.)  `a >> b >> c` is the same as `(a >> b) >> c`
-and `a >> (b >> c)`, and they are each represented by a single _seq_p_ with
-three subparsers, `a`, `b`, and `c`.  However, if something prevents two
-_seq_ps_ from interacting directly, they *will* nest.  For instance, `lexeme[a
->> b] >> c` is a _seq_p_ containing two parsers, `lexeme[a >> b]` and `c`.
-This is because _lexeme_ takes its given parser and wraps it in a _lex_p_.
-This in turn turns off the sequence parser combining logic, since both sides
-of the second `operator>>` in `lexeme[a >> b] >> c` are not _seq_ps_.
-Sequence parsers have several rules that govern what the overall attribute
-type of the parser is, based on the positions and attributes of it subparsers
-(see _attr_gen_).  Therefore, it's important to know which directives create a
-new parser (and what kind), and which ones do not; this is indicated for each
-directive below.
+Sequence, alternative, and permutation parsers do not nest in most cases.
+(Let's consider just sequence parsers to keep thinkgs simple, but most of this
+logic applies to alternative parsers as well.)  `a >> b >> c` is the same as
+`(a >> b) >> c` and `a >> (b >> c)`, and they are each represented by a single
+_seq_p_ with three subparsers, `a`, `b`, and `c`.  However, if something
+prevents two _seq_ps_ from interacting directly, they *will* nest.  For
+instance, `lexeme[a >> b] >> c` is a _seq_p_ containing two parsers, `lexeme[a
+>> b]` and `c`.  This is because _lexeme_ takes its given parser and wraps it
+in a _lex_p_.  This in turn turns off the sequence parser combining logic,
+since both sides of the second `operator>>` in `lexeme[a >> b] >> c` are not
+_seq_ps_.  Sequence parsers have several rules that govern what the overall
+attribute type of the parser is, based on the positions and attributes of it
+subparsers (see _attr_gen_).  Therefore, it's important to know which
+directives create a new parser (and what kind), and which ones do not; this is
+indicated for each directive below.
 
 [heading The directives]
 
@@ -1261,10 +1266,9 @@ Creates a _raw_p_.
 
 `_string_view_np_[p]` is very similar to `_raw_np_[p]`, except that it changes
 the attribute of `p` to `std::basic_string_view<C>`, where `C` is the
-character type of the underlying sequence being parsed.  _string_view_
-requires that the underlying range being parsed is contiguous.  Since this can
-only be detected in C++20 and later, _string_view_ is not available in C++17
-mode.
+character type of the underlying range being parsed.  _string_view_ requires
+that the underlying range being parsed is contiguous.  Since this can only be
+detected in C++20 and later, _string_view_ is not available in C++17 mode.
 
 Similar to the re-use scenario for _omit_ above, _string_view_ could be used
 to find the *locations* of all non-overlapping matches of `p` in a string.
@@ -1374,9 +1378,9 @@ _transform_ creates a _xfm_p_.
 [section Combining Operations]
 
 Certain overloaded operators are defined for all parsers in _Parser_.  We've
-already seen some of them used in this tutorial, especially `operator>>()` and
-`operator|()`, which are used to form sequence parsers and alternative
-parsers, respectively.
+already seen some of them used in this tutorial, especially `operator>>`,
+`operator|`, and `operator||`, which are used to form sequence parsers,
+alternative parsers, and permutation parsers, respectively.
 
 [table_combining_operations]
 
@@ -2702,9 +2706,9 @@ they accept are the same.
 [heading _search_]
 
 As shown in _p_api_, the two patterns of parsing in _Parser_ are whole-parse
-and prefix-parse.  When you want to find something in the middle of the
-sequence being parsed, there's no `parse` API for that.  You can of course
-make a simple parser that skips everything before what you're looking for.
+and prefix-parse.  When you want to find something in the middle of the range
+being parsed, there's no `parse` API for that.  You can of course make a
+simple parser that skips everything before what you're looking for.
 
     namespace bp = boost::parser;
     constexpr auto parser = /* ... */;
@@ -2717,13 +2721,13 @@ write.  If you need to parse something from the middle in order to generate
 attributes, this is what you should use.
 
 However, it often turns out you only need to find some subrange in the parsed
-sequence.  In these cases, it would be nice to turn this into a proper
-algorithm in the pattern of the ones in `std::ranges`, since that's more
-idiomatic.  _search_ is that algorithm.  It has very similar semantics to
+range.  In these cases, it would be nice to turn this into a proper algorithm
+in the pattern of the ones in `std::ranges`, since that's more idiomatic.
+_search_ is that algorithm.  It has very similar semantics to
 `std::ranges::search`, except that it searches not for a match to an exact
-subsequence, but to a match with the given parser.  Like
-`std::ranges::search()`, it returns a subrange (`boost::parser::subrange` in
-C++17, `std::ranges::subrange` in C++20 and later).
+subrange, but to a match with the given parser.  Like `std::ranges::search()`,
+it returns a subrange (`boost::parser::subrange` in C++17,
+`std::ranges::subrange` in C++20 and later).
 
     namespace bp = boost::parser;
     auto result = bp::search("aaXYZq", bp::lit("XYZ"), bp::ws);
@@ -2880,8 +2884,8 @@ range for `replacement`.  What happens in this case is silent transcoding of
 `replacement` from UTF-M to UTF-N by the _replace_ range adaptor.  This
 doesn't require memory allocation; _replace_ just slaps `|
 boost::parser::as_utfN` onto `replacement`.  However, since _Parser_ treats
-`char` sequences as unknown encoding, _replace_ will not transcode from `char`
-sequences.  So calls like this won't work:
+`char` ranges as unknown encoding, _replace_ will not transcode from `char`
+ranges.  So calls like this won't work:
 
     char const str[] = "some text";
     char const replacement_str[] = "some text";
@@ -2889,8 +2893,8 @@ sequences.  So calls like this won't work:
     auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8); // Error: ill-formed!  Can't mix plain-char inputs and UTF replacements.
 
 This does not work, even though `char` and UTF-8 are the same size.  If `r`
-and `replacement` are both sequences of `char`, everything will work of
-course.  It's just mixing `char` and UTF-encoded sequences that does not work.
+and `replacement` are both ranges of `char`, everything will work of course.
+It's just mixing `char` and UTF-encoded ranges that does not work.
 
 All the details called out in the subsection on _search_ above apply to
 _replace_: its parser produces no attributes; it accepts C-style strings for
@@ -3193,7 +3197,7 @@ See _ex_cb_json_ for an extended example of callback parsing.
 [heading Error handling]
 
 _Parser_ has good error reporting built into it.  Consider what happens when
-we fail to parse at an expectation point (created using `operator>()`).  If I
+we fail to parse at an expectation point (created using `operator>`).  If I
 feed the parser from the _ex_cb_json_ example a file called sample.json
 containing this input (note the unmatched `'['`):
 
@@ -3623,7 +3627,7 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
 * If trace is turned on by passing `_trace_::on` to a top-level
   parsing function, the names of parsers are allocated.
 
-* When a failed expectation is encountered (using `operator>()`), the name of
+* When a failed expectation is encountered (using `operator>`), the name of
   the failed parser is placed into a _std_str_, which will usually cause an
   allocation.
 
@@ -3631,8 +3635,8 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
   can avoid this allocation by explicitly using a different string type for
   the attribute that does not allocate.
 
-* The attribute for `_rpt_np_(p)` in all its forms, including `operator*()`,
-  `operator+()`, and `operator%()`, is `std::vector<_ATTR_np_(p)>`, the use of
+* The attribute for `_rpt_np_(p)` in all its forms, including `operator*`,
+  `operator+`, and `operator%`, is `std::vector<_ATTR_np_(p)>`, the use of
   which implies allocation.  You can avoid this allocation by explicitly using
   a different sequence container for the attribute that does not allocate.
   `boost::container::static_vector` or C++26's `std::inplace_vector` may be

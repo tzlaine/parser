@@ -63,6 +63,10 @@ namespace boost { namespace parser { namespace detail {
     struct n_aray_parser<or_parser<ParserTuple>> : std::true_type
     {};
 
+    template<typename ParserTuple>
+    struct n_aray_parser<perm_parser<ParserTuple>> : std::true_type
+    {};
+
     template<
         typename ParserTuple,
         typename BacktrackingTuple,
@@ -165,6 +169,32 @@ namespace boost { namespace parser { namespace detail {
             os << ")";
     }
 
+    template<typename Context, typename Parser>
+    void print_or_like_parser(
+        Context const & context,
+        Parser const & parser,
+        std::ostream & os,
+        int components,
+        std::string_view or_ellipsis,
+        std::string_view ws_or)
+    {
+        int i = 0;
+        bool printed_ellipsis = false;
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
+            if (components == parser_component_limit) {
+                if (!printed_ellipsis)
+                    os << or_ellipsis;
+                printed_ellipsis = true;
+                return;
+            }
+            if (i)
+                os << ws_or;
+            detail::print_parser(context, parser, os, components);
+            ++components;
+            ++i;
+        });
+    }
+
     template<typename Context, typename ParserTuple>
     void print_parser(
         Context const & context,
@@ -172,21 +202,19 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        int i = 0;
-        bool printed_ellipsis = false;
-        hl::for_each(parser.parsers_, [&](auto const & parser) {
-            if (components == parser_component_limit) {
-                if (!printed_ellipsis)
-                    os << " | ...";
-                printed_ellipsis = true;
-                return;
-            }
-            if (i)
-                os << " | ";
-            detail::print_parser(context, parser, os, components);
-            ++components;
-            ++i;
-        });
+        detail::print_or_like_parser(
+            context, parser, os, components, " | ...", " | ");
+    }
+
+    template<typename Context, typename ParserTuple>
+    void print_parser(
+        Context const & context,
+        perm_parser<ParserTuple> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_or_like_parser(
+            context, parser, os, components, " || ...", " || ");
     }
 
     template<
