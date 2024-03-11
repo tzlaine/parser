@@ -70,6 +70,7 @@ namespace boost { namespace parser {
             trace = 1 << 2,
             in_apply_parser = 1 << 3
         };
+        constexpr inline flags disable_attrs(flags f);
 
         using symbol_table_tries_t =
             std::map<void *, std::pair<std::any, bool>, std::less<void *>>;
@@ -116,6 +117,25 @@ namespace boost { namespace parser {
         {};
         struct upper_case_chars
         {};
+
+        template<
+            bool OmitAttr = false,
+            bool DontConsumeInput = false,
+            bool FailOnMatch = false,
+            typename Action = nope>
+        struct parser_config
+        {
+            static constexpr bool omit = OmitAttr;
+            static constexpr bool dont_consume_input = DontConsumeInput;
+            static constexpr bool fail_on_match = FailOnMatch;
+
+            static constexpr detail::flags flags(detail::flags f)
+            {
+                return omit ? detail::disable_attrs(f) : f;
+            }
+
+            [[maybe_unused]] Action action_;
+        };
     }
 
     /** Repeats the application of another parser `p` of type `Parser`,
@@ -128,36 +148,15 @@ namespace boost { namespace parser {
         typename Parser,
         typename DelimiterParser = detail::nope,
         typename MinType = int64_t,
-        typename MaxType = int64_t>
+        typename MaxType = int64_t,
+        typename ParserConfig = parser_config<>>
     struct repeat_parser;
-
-    /** Repeats the application of another parser `p` of type `Parser`, `[0,
-        Inf)` times.  The parse always succeeds.  The attribute produced is a
-        sequence of the type of attribute produced by `Parser`. */
-    template<typename Parser>
-    struct zero_plus_parser;
-
-    /** Repeats the application of another parser `p` of type `Parser`, `[1,
-        Inf)` times.  The parse succeeds iff `p` succeeds at least once.  The
-        attribute produced is a sequence of the type of attribute produced by
-        `Parser`. */
-    template<typename Parser>
-    struct one_plus_parser;
-
-    /** Repeats the application of another parser `p` of type `Parser`, `[1,
-        Inf)` times, applying a parser `d` of type `DelimiterParser` in
-        between each pair of applications of `p`.  The parse succeeds iff `p`
-        succeeds at least once, and `d` succeeds each time it is applied.  The
-        attribute produced is a sequence of the type of attribute produced by
-        `Parser`. */
-    template<typename Parser, typename DelimiterParser>
-    struct delimited_seq_parser;
 
     /** Repeats the application of another parser of type `Parser`, `[0, 1]`
         times.  The parse always succeeds.  The attribute produced is a
         `std::optional<T>`, where `T` is the type of attribute produced by
         `Parser`. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct opt_parser;
 
     /** Applies each parser in `ParserTuple`, in order, stopping after the
@@ -165,7 +164,7 @@ namespace boost { namespace parser {
         one of the sub-parsers succeeds.  The attribute produced is a
         `std::variant` over the types of attribute produced by the parsers in
         `ParserTuple`. */
-    template<typename ParserTuple>
+    template<typename ParserTuple, typename ParserConfig = parser_config<>>
     struct or_parser;
 
     /** Applies each parsers in `ParserTuple`, an any order, stopping after
@@ -176,7 +175,7 @@ namespace boost { namespace parser {
         `ParserTuple`, not the order of the parsers' matches.  It is an error
         to specialize `perm_parser` with a `ParserTuple` template parameter
         that includes an `eps_parser`. */
-    template<typename ParserTuple>
+    template<typename ParserTuple, typename ParserConfig = parser_config<>>
     struct perm_parser;
 
     /** Applies each parser in `ParserTuple`, in order.  The parse succeeds
@@ -189,14 +188,18 @@ namespace boost { namespace parser {
     template<
         typename ParserTuple,
         typename BacktrackingTuple,
-        typename CombiningGroups>
+        typename CombiningGroups,
+        typename ParserConfig = parser_config<>>
     struct seq_parser;
 
     /** Applies the given parser `p` of type `Parser` and an invocable `a` of
         type `Action`.  `Action` shall model `semantic_action`, and `a` will
         only be invoked if `p` succeeds.  The parse succeeds iff `p` succeeds.
         Produces no attribute. */
-    template<typename Parser, typename Action>
+    template<
+        typename Parser,
+        typename Action,
+        typename ParserConfig = parser_config<>>
     struct action_parser;
 
     /** Applies the given parser `p` of type `Parser`.  The attribute produced
@@ -204,21 +207,24 @@ namespace boost { namespace parser {
         only be invoked if `p` succeeds and sttributes are currently being
         generated.  The parse succeeds iff `p` succeeds.  The attribute
         produced is the the result of the call to `f`. */
-    template<typename Parser, typename F>
+    template<
+        typename Parser,
+        typename F,
+        typename ParserConfig = parser_config<>>
     struct transform_parser;
 
     /** Applies the given parser `p` of type `Parser`.  This parser produces
         no attribute, and suppresses the production of any attributes that
         would otherwise be produced by `p`.  The parse succeeds iff `p`
         succeeds. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct omit_parser;
 
     /** Applies the given parser `p` of type `Parser`; regardless of the
         attribute produced by `Parser`, this parser's attribute is equivalent
         to `_where(ctx)` within a semantic action on `p`.  The parse succeeds
         iff `p` succeeds. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct raw_parser;
 
 #if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
@@ -231,43 +237,49 @@ namespace boost { namespace parser {
         non-contiguous, code using `string_view_parser` is ill-formed.  The
         parse succeeds iff `p` succeeds.  This parser is only available in
         C++20 and later. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct string_view_parser;
 #endif
 
     /** Applies the given parser `p` of type `Parser`, disabling the current
         skipper in use, if any.  The parse succeeds iff `p` succeeds.  The
         attribute produced is the type of attribute produced by `Parser`. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct lexeme_parser;
 
     /** Applies the given parser `p` of type `Parser`, enabling
         case-insensitive matching, based on Unicode case folding.  The parse
         succeeds iff `p` succeeds.  The attribute produced is the type of
         attribute produced by `Parser`. */
-    template<typename Parser>
+    template<typename Parser, typename ParserConfig = parser_config<>>
     struct no_case_parser;
 
     /** Applies the given parser `p` of type `Parser`, using a parser of type
         `SkipParser` as the skipper.  The parse succeeds iff `p` succeeds.
         The attribute produced is the type of attribute produced by
         `Parser`. */
-    template<typename Parser, typename SkipParser = detail::nope>
+    template<
+        typename Parser,
+        typename SkipParser = detail::nope,
+        typename ParserConfig = parser_config<>>
     struct skip_parser;
 
     /** Applies the given parser `p` of type `Parser`, producing no attributes
         and consuming no input.  The parse succeeds iff `p`'s success is
         unequal to `FailOnMatch`. */
-    template<typename Parser, bool FailOnMatch>
+    template<
+        typename Parser,
+        typename ParserConfig,
+        typename ParserConfig = parser_config<>>
     struct expect_parser;
 
-    /** Matches one of a set S of possible inputs, each of which is associated
-        with an attribute value of type `T`, forming a symbol table.  New
-        elements and their associated attributes may be added to or removed
-        from S dynamically, during parsing; any such changes are reverted at
-        the end of parsing.  The parse succeeds iff an element of S is
-        matched.  \see `symbols` */
-    template<typename T>
+    /** Matches one of a set S of possible inputs, each of which is
+       associated with an attribute value of type `T`, forming a symbol
+       table.  New elements and their associated attributes may be added to
+       or removed from S dynamically, during parsing; any such changes are
+       reverted at the end of parsing.  The parse succeeds iff an element of
+       S is matched.  \see `symbols` */
+    template<typename T, typename ParserConfig = parser_config<>>
     struct symbol_parser;
 
     /** Applies another parser `p`, associated with this parser via `TagType`.
@@ -286,22 +298,24 @@ namespace boost { namespace parser {
         typename TagType,
         typename Attribute,
         typename LocalState,
-        typename ParamsTuple>
+        typename ParamsTuple,
+        typename ParserConfig = parser_config<>>
     struct rule_parser;
 
     /** Matches anything, and consumes no input.  If `Predicate` is anything
         other than `detail::nope` (which it is by default), and `pred_(ctx)`
         evaluates to false, where `ctx` is the parser context, the parse
         fails. */
-    template<typename Predicate>
+    template<typename Predicate, typename ParserConfig = parser_config<>>
     struct eps_parser;
 
     /** Matches only the end of input.  Produces no attribute. */
+    template<typename ParserConfig = parser_config<>>
     struct eoi_parser;
 
     /** Matches anything, consumes no input, and produces an attribute of type
         `RESOLVE(Attribute)`. */
-    template<typename Attribute>
+    template<typename Attribute, typename ParserConfig = parser_config<>>
     struct attr_parser;
 
     /** A tag type that can be passed as the first parameter to `char_()` when

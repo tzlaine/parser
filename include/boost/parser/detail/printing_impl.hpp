@@ -378,14 +378,14 @@ namespace boost { namespace parser { namespace detail {
         }
     }
 
-    template<typename Context, typename Parser, bool FailOnMatch>
+    template<typename Context, typename Parser, typename ParserConfig>
     void print_parser(
         Context const & context,
-        expect_parser<Parser, FailOnMatch> const & parser,
+        expect_parser_t<Parser, ParserConfig> const & parser,
         std::ostream & os,
         int components)
     {
-        if (FailOnMatch)
+        if (ParserConfig::fail_on_match)
             os << "!";
         else
             os << "&";

@@ -2685,6 +2685,89 @@ namespace boost { namespace parser {
         private:
             T * x_;
         };
+
+        template<typename I, typename ParserConfig>
+        struct scoped_consume_input
+        {
+            scoped_consume_input(I & first, ParserConfig const &) :
+                first_copy_(first), first_(first)
+            {}
+            ~scoped_consume_input()
+            {
+                if (ParserConfig::dont_consume_input)
+                    first_ = first_copy_;
+            }
+
+        private:
+            I first_copy_;
+            I & first_;
+        };
+
+        template<typename ParserConfig>
+        struct scoped_fail_on_match
+        {
+            scoped_fail_on_match(bool & success, ParserConfig const &) :
+                success_(success)
+            {}
+            ~scoped_fail_on_match()
+            {
+                if (ParserConfig::fail_on_match)
+                    success_ = !success_;
+            }
+
+        private:
+            bool & success_;
+        };
+
+        // TODO: Tests for these.
+        template<
+            template<class, class>
+            typename ParserTmpl,
+            typename Parser,
+            typename OldConfig,
+            typename NewConfig>
+        constexpr auto with_config(
+            ParserTmpl<Parser, OldConfig> const & parser, NewConfig && config)
+            -> decltype(ParserTmpl<Parser, NewConfig>{
+                parser.parser_, (NewConfig &&) config})
+        {
+            return ParserTmpl<Parser, NewConfig>{
+                parser.parser_, (NewConfig &&) config};
+        }
+
+        template<
+            template<class, class>
+            typename ParserTmpl,
+            typename Parsers,
+            typename OldConfig,
+            typename NewConfig>
+        constexpr auto with_config(
+            ParserTmpl<Parser, OldConfig> const & parser, NewConfig && config)
+            -> decltype(ParserTmpl<Parser, NewConfig>{
+                parser.parsers_, (NewConfig &&) config})
+        {
+            return ParserTmpl<Parsers, NewConfig>{
+                parser.parsers_, (NewConfig &&) config};
+        }
+
+        template<
+            typename Parser,
+            typename DelimiterParser,
+            typename MinType,
+            typename MaxType,
+            typename OldConfig,
+            typename NewConfig>
+        constexpr auto with_config(
+            repeat_parser<Parser, OldConfig> const & parser,
+            NewConfig && config)
+        {
+            return repeat_parser<
+                Parser,
+                DelimiterParser,
+                MinType,
+                MaxType,
+                NewConfig>{parser.parser_, (NewConfig &&) config};
+        }
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -4855,8 +4938,8 @@ namespace boost { namespace parser {
         SkipParser skip_parser_;
     };
 
-    template<typename Parser, bool FailOnMatch>
-    struct expect_parser
+    template<typename Parser, typename ParserConfig>
+    struct expect_parser_t
     {
         template<
             typename Iter,
@@ -4887,26 +4970,20 @@ namespace boost { namespace parser {
             Sentinel last,
             Context const & context,
             SkipParser const & skip,
-            detail::flags flags,
+            detail::flags flags_,
             bool & success,
             Attribute & retval) const
         {
             [[maybe_unused]] auto _ = detail::scoped_trace(
-                *this, first, last, context, flags, retval);
-
-            auto first_copy = first;
-            parser_.call(
-                first_copy,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success);
-            if (FailOnMatch)
-                success = !success;
+                *this, first, last, context, flags_, retval);
+            auto sci = detail::scoped_consume_input(first, config_);
+            auto sfm = detail::scoped_fail_on_match(success, config_);
+            auto flags = ParserConfig::flags(flags_);
+            parser_.call(first, last, context, skip, flags, success);
         }
 
         Parser parser_;
+        [[maybe_unused]] ParserConfig config_;
     };
 
     template<typename T>
@@ -5195,8 +5272,12 @@ namespace boost { namespace parser {
             true`. */
         constexpr auto operator!() const noexcept
         {
-            return parser::parser_interface{
-                expect_parser<parser_type, true>{parser_}};
+            expect_parser_t<
+                parser_type,
+                detail::parser_config<true, true, false>>
+                ex_parser{parser_, {}};
+            return parser::parser_interface{detail::with_config(
+                ex_parser, detail::parser_config<true, true, true>{})};
         }
 
         /** Returns a `parser_interface` containing a parser equivalent to an
@@ -5204,8 +5285,12 @@ namespace boost { namespace parser {
             false`. */
         constexpr auto operator&() const noexcept
         {
-            return parser::parser_interface{
-                expect_parser<parser_type, false>{parser_}};
+            expect_parser_t<
+                parser_type,
+                detail::parser_config<true, true, true>>
+                ex_parser{parser_, {}};
+            return parser::parser_interface{detail::with_config(
+                ex_parser, detail::parser_config<true, true, false>{})};
         }
 
         /** Returns a `parser_interface` containing a parser equivalent to a
