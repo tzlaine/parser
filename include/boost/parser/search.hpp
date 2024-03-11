@@ -93,10 +93,12 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            bool Memoize,
             typename SkipParser>
         auto search_impl(
             R && r,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode)
         {
@@ -127,6 +129,7 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            bool Memoize,
             typename SkipParser>
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::borrowed_subrange_t<R>
@@ -135,7 +138,8 @@ namespace boost::parser {
 #endif
         search_repack_shim(
             R && r,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode)
         {
@@ -172,6 +176,7 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser
 #if !BOOST_PARSER_USE_CONCEPTS
         ,
@@ -180,7 +185,8 @@ namespace boost::parser {
         >
     auto search(
         R && r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
     {
@@ -210,11 +216,13 @@ namespace boost::parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>
 #endif
-        >
+        ,
+        bool Memoize>
     auto search(
         I first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
     {
@@ -234,7 +242,8 @@ namespace boost::parser {
 #endif
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler
+        typename ErrorHandler,
+        bool Memoize
 #if !BOOST_PARSER_USE_CONCEPTS
         ,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>
@@ -242,7 +251,8 @@ namespace boost::parser {
         >
     auto search(
         R && r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         trace trace_mode = trace::off)
     {
         return parser::search(
@@ -273,11 +283,13 @@ namespace boost::parser {
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>
 #endif
-        >
+        ,
+        bool Memoize>
     auto search(
         I first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         trace trace_mode = trace::off)
     {
         return parser::search(
@@ -299,15 +311,22 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
     struct search_all_view
-        : detail::stl_interfaces::view_interface<
-              search_all_view<V, Parser, GlobalState, ErrorHandler, SkipParser>>
+        : detail::stl_interfaces::view_interface<search_all_view<
+              V,
+              Parser,
+              GlobalState,
+              ErrorHandler,
+              Memoize,
+              SkipParser>>
     {
         constexpr search_all_view() = default;
         constexpr search_all_view(
             V base,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode = trace::off) :
             base_(std::move(base)),
@@ -317,7 +336,8 @@ namespace boost::parser {
         {}
         constexpr search_all_view(
             V base,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             trace trace_mode = trace::off) :
             base_(std::move(base)),
             parser_(parser),
@@ -421,7 +441,7 @@ namespace boost::parser {
 
     private:
         V base_;
-        parser_interface<Parser, GlobalState, ErrorHandler> parser_;
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> parser_;
         parser_interface<SkipParser> skip_;
         trace trace_mode_;
     };
@@ -432,10 +452,11 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
     search_all_view(
         V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
         parser_interface<SkipParser>,
         trace)
         -> search_all_view<
@@ -443,6 +464,7 @@ namespace boost::parser {
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             SkipParser>;
 
     template<
@@ -450,43 +472,52 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
     search_all_view(
         V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
         parser_interface<SkipParser>)
         -> search_all_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             SkipParser>;
 
     template<
         typename V,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
+        typename ErrorHandler,
+        bool Memoize>
     search_all_view(
-        V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
+        V &&,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
+        trace)
         -> search_all_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             parser_interface<eps_parser<detail::phony>>>;
 
     template<
         typename V,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
-    search_all_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
+        typename ErrorHandler,
+        bool Memoize>
+    search_all_view(
+        V &&, parser_interface<Parser, GlobalState, ErrorHandler, Memoize>)
         -> search_all_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             parser_interface<eps_parser<detail::phony>>>;
 
     namespace detail {
@@ -495,16 +526,21 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            typename Memoize,
             typename SkipParser>
         using search_all_view_expr = decltype(search_all_view<
                                               V,
                                               Parser,
                                               GlobalState,
                                               ErrorHandler,
+                                              Memoize::value,
                                               SkipParser>(
             std::declval<V>(),
-            std::declval<
-                parser_interface<Parser, GlobalState, ErrorHandler> const &>(),
+            std::declval<parser_interface<
+                Parser,
+                GlobalState,
+                ErrorHandler,
+                Memoize::value> const &>(),
             std::declval<parser_interface<SkipParser> const &>(),
             trace::on));
 
@@ -513,6 +549,7 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            bool Memoize,
             typename SkipParser>
         constexpr bool can_search_all_view = is_detected_v<
             search_all_view_expr,
@@ -520,6 +557,7 @@ namespace boost::parser {
             Parser,
             GlobalState,
             ErrorHandler,
+            std::bool_constant<Memoize>,
             SkipParser>;
 
         struct search_all_impl
@@ -530,7 +568,7 @@ namespace boost::parser {
                 parsable_range_like R,
                 typename Parser,
                 typename GlobalState,
-                typename ErrorHandler,
+                typename ErrorHandler, bool Memoize,
                 typename SkipParser>
             requires(
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
@@ -540,11 +578,12 @@ namespace boost::parser {
                     Parser,
                     GlobalState,
                     ErrorHandler,
+                    Memoize,
                     SkipParser>
                 // clang-format off
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
+                parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
                     parser,
                 parser_interface<SkipParser> const & skip,
                 trace trace_mode = trace::off) const
@@ -558,7 +597,7 @@ namespace boost::parser {
                 parsable_range_like R,
                 typename Parser,
                 typename GlobalState,
-                typename ErrorHandler>
+                typename ErrorHandler, bool Memoize>
             requires(
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
@@ -567,11 +606,12 @@ namespace boost::parser {
                     Parser,
                     GlobalState,
                     ErrorHandler,
+                    Memoize,
                     parser_interface<eps_parser<detail::phony>>>
                 // clang-format off
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
+                parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
                     parser,
                 trace trace_mode = trace::off) const
             // clang-format on
@@ -590,14 +630,18 @@ namespace boost::parser {
                 typename Parser,
                 typename GlobalState,
                 typename ErrorHandler,
+                bool Memoize,
                 typename SkipParser =
                     parser_interface<eps_parser<detail::phony>>,
                 typename Trace = trace,
                 typename Enable = std::enable_if_t<is_parsable_range_like_v<R>>>
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
-                    parser,
+                parser_interface<
+                    Parser,
+                    GlobalState,
+                    ErrorHandler,
+                    Memoize> const & parser,
                 SkipParser const & skip = SkipParser{},
                 Trace trace_mode = Trace{}) const
             {
@@ -631,11 +675,15 @@ namespace boost::parser {
                 typename Parser,
                 typename GlobalState,
                 typename ErrorHandler,
+                bool Memoize,
                 typename SkipParser>
             [[nodiscard]] constexpr auto impl(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
-                    parser,
+                parser_interface<
+                    Parser,
+                    GlobalState,
+                    ErrorHandler,
+                    Memoize> const & parser,
                 parser_interface<SkipParser> const & skip,
                 trace trace_mode = trace::off) const
             {
@@ -663,11 +711,16 @@ template<
     typename Parser,
     typename GlobalState,
     typename ErrorHandler,
+    bool Memoize,
     typename SkipParser>
-constexpr bool std::ranges::enable_borrowed_range<
-    boost::parser::
-        search_all_view<V, Parser, GlobalState, ErrorHandler, SkipParser>> =
-    std::ranges::enable_borrowed_range<V>;
+constexpr bool
+    std::ranges::enable_borrowed_range<boost::parser::search_all_view<
+        V,
+        Parser,
+        GlobalState,
+        ErrorHandler,
+        Memoize,
+        SkipParser>> = std::ranges::enable_borrowed_range<V>;
 #endif
 
 #endif

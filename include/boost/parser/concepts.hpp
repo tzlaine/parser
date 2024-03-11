@@ -51,14 +51,16 @@ namespace boost { namespace parser {
         typename S,
         typename ErrorHandler,
         typename GlobalState>
-    using minimal_parse_context = decltype(detail::make_context<false, false>(
-        std::declval<I>(),
-        std::declval<S>(),
-        std::declval<bool &>(),
-        std::declval<int &>(),
-        std::declval<ErrorHandler const &>(),
-        std::declval<detail::nope &>(),
-        std::declval<detail::symbol_table_tries_t &>()));
+    using minimal_parse_context =
+        decltype(detail::make_context<false, false>(
+            std::declval<I>(),
+            std::declval<S>(),
+            std::declval<bool &>(),
+            std::declval<int &>(),
+            std::declval<ErrorHandler const &>(),
+            std::declval<detail::nope &>(),
+            std::declval<detail::symbol_table_tries_t &>(),
+            std::declval<detail::nope &>()));
 
     template<typename T, typename I, typename S, typename GlobalState>
     concept error_handler =

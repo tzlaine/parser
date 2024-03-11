@@ -16,6 +16,8 @@
 #include <boost/parser/detail/unicode_char_sets.hpp>
 #include <boost/parser/detail/pp_for_each.hpp>
 #include <boost/parser/detail/printing.hpp>
+#include <boost/parser/detail/counted_iterator.hpp>
+#include <boost/parser/detail/memos.hpp>
 
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/trie_map.hpp>
@@ -24,6 +26,9 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
+
+
+#define BOOST_PARSER_TEST_PACKRAT 1
 
 
 namespace boost { namespace parser {
@@ -415,6 +420,15 @@ namespace boost { namespace parser {
         inline nope global_nope;
 
         template<typename T>
+        struct is_nope : std::false_type
+        {};
+        template<>
+        struct is_nope<nope> : std::true_type
+        {};
+        template<typename T>
+        constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
+
+        template<typename T>
         using parser_interface_tag_expr =
             typename T::parser_interface_derivation_tag;
         template<typename T>
@@ -440,7 +454,8 @@ namespace boost { namespace parser {
             typename RuleTag = void,
             typename RuleLocals = nope,
             typename RuleParams = nope,
-            typename Where = nope>
+            typename Where = nope,
+            typename Memos = nope>
         struct parse_context
         {
             parse_context() = default;
@@ -450,6 +465,7 @@ namespace boost { namespace parser {
             using rule_tag = RuleTag;
 
             static constexpr bool do_trace = DoTrace;
+            static constexpr bool use_memo = !is_nope_v<Memos>;
             static constexpr bool use_callbacks = UseCallbacks;
 
             I first_;
@@ -465,6 +481,7 @@ namespace boost { namespace parser {
             nope_or_pointer_t<RuleLocals> locals_{};
             nope_or_pointer_t<RuleParams, true> params_{};
             nope_or_pointer_t<Where, true> where_{};
+            nope_or_pointer_t<Memos> memos_{};
             int no_case_depth_ = 0;
 
             template<typename T>
@@ -494,14 +511,16 @@ namespace boost { namespace parser {
                 int & indent,
                 ErrorHandler const & error_handler,
                 GlobalState & globals,
-                symbol_table_tries_t & symbol_table_tries) :
+                symbol_table_tries_t & symbol_table_tries,
+                Memos & memos) :
                 first_(first),
                 last_(last),
                 pass_(std::addressof(success)),
                 trace_indent_(std::addressof(indent)),
                 symbol_table_tries_(std::addressof(symbol_table_tries)),
                 error_handler_(std::addressof(error_handler)),
-                globals_(nope_or_address(globals))
+                globals_(nope_or_address(globals)),
+                memos_(nope_or_address(memos))
             {}
 
             // With callbacks.
@@ -515,7 +534,8 @@ namespace boost { namespace parser {
                 ErrorHandler const & error_handler,
                 Callbacks const & callbacks,
                 GlobalState & globals,
-                symbol_table_tries_t & symbol_table_tries) :
+                symbol_table_tries_t & symbol_table_tries,
+                Memos & memos) :
                 first_(first),
                 last_(last),
                 pass_(std::addressof(success)),
@@ -523,7 +543,8 @@ namespace boost { namespace parser {
                 symbol_table_tries_(std::addressof(symbol_table_tries)),
                 error_handler_(std::addressof(error_handler)),
                 globals_(nope_or_address(globals)),
-                callbacks_(std::addressof(callbacks))
+                callbacks_(std::addressof(callbacks)),
+                memos_(nope_or_address(memos))
             {}
 
             // For making rule contexts.
@@ -549,7 +570,9 @@ namespace boost { namespace parser {
                     OldVal,
                     OldRuleTag,
                     OldRuleLocals,
-                    OldRuleParams> const & other,
+                    OldRuleParams,
+                    Where,
+                    Memos> const & other,
                 NewRuleTag * tag_ptr,
                 NewVal & value,
                 NewRuleLocals & locals,
@@ -563,6 +586,7 @@ namespace boost { namespace parser {
                 globals_(other.globals_),
                 callbacks_(other.callbacks_),
                 attr_(other.attr_),
+                memos_(other.memos_),
                 no_case_depth_(other.no_case_depth_)
             {
                 if constexpr (
@@ -594,7 +618,8 @@ namespace boost { namespace parser {
                     RuleTag,
                     RuleLocals,
                     RuleParams,
-                    OldWhere> const & other,
+                    OldWhere,
+                    Memos> const & other,
                 Attr & attr,
                 Where const & where) :
                 first_(other.first_),
@@ -610,6 +635,7 @@ namespace boost { namespace parser {
                 locals_(other.locals_),
                 params_(other.params_),
                 where_(nope_or_address(where)),
+                memos_(other.memos_),
                 no_case_depth_(other.no_case_depth_)
             {}
         };
@@ -628,7 +654,9 @@ namespace boost { namespace parser {
             typename RuleParams,
             typename Attr,
             typename Where,
-            typename OldAttr>
+            typename Memos,
+            typename OldAttr,
+            typename OldWhere>
         auto make_action_context(
             parse_context<
                 DoTrace,
@@ -642,7 +670,9 @@ namespace boost { namespace parser {
                 Val,
                 RuleTag,
                 RuleLocals,
-                RuleParams> const & context,
+                RuleParams,
+                OldWhere,
+                Memos> const & context,
             Attr & attr,
             Where const & where)
         {
@@ -659,7 +689,8 @@ namespace boost { namespace parser {
                 RuleTag,
                 RuleLocals,
                 RuleParams,
-                Where>;
+                Where,
+                Memos>;
             return result_type(context, attr, where);
         }
 
@@ -676,6 +707,8 @@ namespace boost { namespace parser {
             typename RuleTag,
             typename RuleLocals,
             typename RuleParams,
+            typename Where,
+            typename Memos,
             typename NewVal,
             typename NewRuleTag,
             typename NewRuleLocals,
@@ -693,7 +726,9 @@ namespace boost { namespace parser {
                 Val,
                 RuleTag,
                 RuleLocals,
-                RuleParams> const & context,
+                RuleParams,
+                Where,
+                Memos> const & context,
             NewRuleTag * tag_ptr,
             NewVal & value,
             NewRuleLocals & locals,
@@ -717,7 +752,9 @@ namespace boost { namespace parser {
                 std::conditional_t<
                     std::is_same_v<NewRuleParams, nope>,
                     RuleParams,
-                    NewRuleParams>>;
+                    NewRuleParams>,
+                Where,
+                Memos>;
             return result_type(context, tag_ptr, value, locals, params);
         }
 
@@ -726,7 +763,8 @@ namespace boost { namespace parser {
             bool UseCallbacks,
             typename Iter,
             typename Sentinel,
-            typename ErrorHandler>
+            typename ErrorHandler,
+            typename Memos>
         auto make_context(
             Iter first,
             Sentinel last,
@@ -734,7 +772,8 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             nope & n,
-            symbol_table_tries_t & symbol_table_tries) noexcept
+            symbol_table_tries_t & symbol_table_tries,
+            Memos & memos) noexcept
         {
             return parse_context(
                 std::bool_constant<DoTrace>{},
@@ -745,7 +784,8 @@ namespace boost { namespace parser {
                 indent,
                 error_handler,
                 n,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
         }
 
         template<
@@ -754,7 +794,8 @@ namespace boost { namespace parser {
             typename Iter,
             typename Sentinel,
             typename ErrorHandler,
-            typename GlobalState>
+            typename GlobalState,
+            typename Memos>
         auto make_context(
             Iter first,
             Sentinel last,
@@ -762,7 +803,8 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             GlobalState & globals,
-            symbol_table_tries_t & symbol_table_tries) noexcept
+            symbol_table_tries_t & symbol_table_tries,
+            Memos & memos) noexcept
         {
             return parse_context(
                 std::bool_constant<DoTrace>{},
@@ -773,37 +815,8 @@ namespace boost { namespace parser {
                 indent,
                 error_handler,
                 globals,
-                symbol_table_tries);
-        }
-
-        template<
-            bool DoTrace,
-            bool UseCallbacks,
-            typename Iter,
-            typename Sentinel,
-            typename ErrorHandler,
-            typename Callbacks>
-        auto make_context(
-            Iter first,
-            Sentinel last,
-            bool & success,
-            int & indent,
-            ErrorHandler const & error_handler,
-            Callbacks const & callbacks,
-            nope & n,
-            symbol_table_tries_t & symbol_table_tries) noexcept
-        {
-            return parse_context(
-                std::bool_constant<DoTrace>{},
-                std::bool_constant<UseCallbacks>{},
-                first,
-                last,
-                success,
-                indent,
-                error_handler,
-                callbacks,
-                n,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
         }
 
         template<
@@ -813,7 +826,41 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename ErrorHandler,
             typename Callbacks,
-            typename GlobalState>
+            typename Memos>
+        auto make_context(
+            Iter first,
+            Sentinel last,
+            bool & success,
+            int & indent,
+            ErrorHandler const & error_handler,
+            Callbacks const & callbacks,
+            nope & n,
+            symbol_table_tries_t & symbol_table_tries,
+            Memos & memos) noexcept
+        {
+            return parse_context(
+                std::bool_constant<DoTrace>{},
+                std::bool_constant<UseCallbacks>{},
+                first,
+                last,
+                success,
+                indent,
+                error_handler,
+                callbacks,
+                n,
+                symbol_table_tries,
+                memos);
+        }
+
+        template<
+            bool DoTrace,
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler,
+            typename Callbacks,
+            typename GlobalState,
+            typename Memos>
         auto make_context(
             Iter first,
             Sentinel last,
@@ -822,7 +869,8 @@ namespace boost { namespace parser {
             ErrorHandler const & error_handler,
             Callbacks const & callbacks,
             GlobalState & globals,
-            symbol_table_tries_t & symbol_table_tries) noexcept
+            symbol_table_tries_t & symbol_table_tries,
+            Memos & memos) noexcept
         {
             return parse_context(
                 std::bool_constant<DoTrace>{},
@@ -834,7 +882,8 @@ namespace boost { namespace parser {
                 error_handler,
                 callbacks,
                 globals,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
         }
 
 
@@ -945,15 +994,6 @@ namespace boost { namespace parser {
         template<typename T, typename U>
         constexpr bool is_equality_comparable_with_v =
             is_detected_v<comparison, T, U>;
-
-        template<typename T>
-        struct is_nope : std::false_type
-        {};
-        template<>
-        struct is_nope<nope> : std::true_type
-        {};
-        template<typename T>
-        constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
         struct is_eps_p : std::false_type
@@ -1495,7 +1535,7 @@ namespace boost { namespace parser {
             nope n;
             symbol_table_tries_t symbol_table_tries;
             auto const context = detail::make_context<false, false>(
-                first, last, success, indent, eh, n, symbol_table_tries);
+                first, last, success, indent, eh, n, symbol_table_tries, n);
             while (success) {
                 skip_(
                     first,
@@ -2138,6 +2178,81 @@ namespace boost { namespace parser {
 
         // API implementations
 
+        template<typename I>
+        constexpr size_t iter_to_size_impl(I it)
+        {
+            return size_t(uintptr_t(std::addressof(*it)));
+        }
+
+        template<typename S>
+        struct unpack_iter_to_size
+        {
+            template<typename I>
+            constexpr size_t operator()(I it) const
+            {
+                auto unpacked = text::unpack_iterator_and_sentinel(it, last);
+                return detail::iter_to_size_impl(unpacked.first);
+            }
+
+            S last;
+        };
+
+        struct iter_to_size
+        {
+            template<typename I>
+            constexpr size_t operator()(I it) const
+            {
+                return detail::iter_to_size_impl(it);
+            }
+        };
+
+        template<typename S>
+        struct counted_iter_to_size
+        {
+            template<typename I>
+            constexpr size_t operator()(counted_iterator<I, S> it) const
+            {
+                return it.count();
+            }
+        };
+
+        template<typename I>
+        constexpr bool proxy_iterator =
+            !std::is_reference_v<decltype(*std::declval<I>())>;
+
+        template<typename I, typename S>
+        constexpr auto iterator_and_projection(I first, S last)
+        {
+            auto unpacked = text::unpack_iterator_and_sentinel(first, last);
+            if constexpr (proxy_iterator<decltype(unpacked.first)>) {
+                // TODO: This needs a test.
+                return std::pair(
+                    counted_iterator(first), counted_iter_to_size<S>{});
+            } else if constexpr (std::is_same_v<decltype(unpacked.first), I>) {
+                return std::pair(first, iter_to_size{});
+            } else {
+                return std::pair(first, unpack_iter_to_size{last});
+            }
+        }
+
+        template<bool UseMemo, typename I, typename S>
+        constexpr auto iterator_and_memos(I first, S last)
+        {
+#if BOOST_PARSER_TEST_PACKRAT
+            constexpr bool testing = true;
+#else
+            constexpr bool testing = false;
+#endif
+            if constexpr (UseMemo || testing) {
+                auto [it, proj] = detail::iterator_and_projection(first, last);
+                using memos_type = memos<I, I, decltype(proj)>;
+                return std::pair<decltype(it), memos_type>(
+                    it, memos_type(proj));
+            } else {
+                return std::pair(first, nope{});
+            }
+        }
+
         template<typename Iter, typename Sentinel, typename Parser>
         auto has_attribute(Iter first, Sentinel last, Parser parser);
 
@@ -2147,7 +2262,13 @@ namespace boost { namespace parser {
             scoped_base_assign(BaseIter & base, Iter & it) :
                 base_(base), it_(it)
             {}
-            ~scoped_base_assign() { base_ = it_.base(); }
+            ~scoped_base_assign()
+            {
+                if constexpr (std::is_same_v<BaseIter, Iter>)
+                    base_ = it_;
+                else
+                    base_ = it_.base();
+            }
 
             BaseIter & base_;
             Iter & it_;
@@ -2161,16 +2282,19 @@ namespace boost { namespace parser {
             typename Attr,
             typename ErrorHandler>
         bool parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler,
             Attr & attr)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, false>(
                 first,
                 last,
@@ -2178,7 +2302,8 @@ namespace boost { namespace parser {
                 trace_indent,
                 error_handler,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
@@ -2210,15 +2335,18 @@ namespace boost { namespace parser {
             typename Parser,
             typename ErrorHandler>
         auto parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, false>(
                 first,
                 last,
@@ -2226,7 +2354,8 @@ namespace boost { namespace parser {
                 trace_indent,
                 error_handler,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
@@ -2262,16 +2391,19 @@ namespace boost { namespace parser {
             typename ErrorHandler,
             typename Callbacks>
         bool callback_parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, true>(
                 first,
                 last,
@@ -2280,7 +2412,8 @@ namespace boost { namespace parser {
                 error_handler,
                 callbacks,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
@@ -2313,17 +2446,20 @@ namespace boost { namespace parser {
             typename Attr,
             typename ErrorHandler>
         bool skip_parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler,
             Attr & attr)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, false>(
                 first,
                 last,
@@ -2331,7 +2467,8 @@ namespace boost { namespace parser {
                 trace_indent,
                 error_handler,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::default_flags())
                       : detail::default_flags();
@@ -2359,16 +2496,19 @@ namespace boost { namespace parser {
             typename SkipParser,
             typename ErrorHandler>
         auto skip_parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, false>(
                 first,
                 last,
@@ -2376,7 +2516,8 @@ namespace boost { namespace parser {
                 trace_indent,
                 error_handler,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::default_flags())
                       : detail::default_flags();
@@ -2410,17 +2551,20 @@ namespace boost { namespace parser {
             typename ErrorHandler,
             typename Callbacks>
         bool callback_skip_parse_impl(
-            Iter & first,
+            Iter & first_,
             Sentinel last,
             Parser const & parser,
             SkipParser const & skip,
             ErrorHandler const & error_handler,
             Callbacks const & callbacks)
         {
-            auto const initial_first = first;
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
+            auto [first, memos] =
+                detail::iterator_and_memos<Parser::memoize>(first_, last);
+            auto _ = scoped_base_assign(first_, first);
+            auto const initial_first = first;
             auto context = detail::make_context<Debug, true>(
                 first,
                 last,
@@ -2429,7 +2573,8 @@ namespace boost { namespace parser {
                 error_handler,
                 callbacks,
                 parser.globals_,
-                symbol_table_tries);
+                symbol_table_tries,
+                memos);
             auto const flags =
                 Debug ? detail::enable_trace(detail::default_flags())
                       : detail::default_flags();
@@ -2687,6 +2832,55 @@ namespace boost { namespace parser {
         private:
             T * x_;
         };
+
+        template<typename Parser, typename I, typename Context, typename Attr>
+        bool in_memos(
+            I & first, Context const & context, bool & success, Attr & attr)
+        {
+            if (auto const cref =
+                    context.memos_->template find<Parser, Attr>(first)) {
+                if (cref.get_kind() == context.memos_->success) {
+                    attr = *cref.value;
+                    first = *cref.datum;
+                } else {
+                    success = false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        template<
+            typename Parser,
+            typename I,
+            typename Context,
+            typename Attr,
+            typename... Params>
+        void memoize(
+            I first,
+            I next,
+            Context const & context,
+            Attr & attr,
+            Params const &... params)
+        {
+            if (auto ref = context.memos_->template insert<Parser, Attr>(
+                    context.memos_->success, first, params...)) {
+                *ref.value = attr;
+                *ref.datum = next;
+            }
+        }
+
+        template<
+            typename Parser,
+            typename Attr,
+            typename I,
+            typename Context,
+            typename... Params>
+        void memoize(I first, Context const & context, Params const &... params)
+        {
+            context.memos_->template insert<Parser, Attr>(
+                context.memos_->failure, first, params...);
+        }
     }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -5178,12 +5372,17 @@ namespace boost { namespace parser {
 
     // Parser interface.
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     struct parser_interface
     {
         using parser_type = Parser;
         using global_state_type = GlobalState;
         using error_handler_type = ErrorHandler;
+        static constexpr bool memoize = Memoize;
 
         constexpr parser_interface() : parser_() {}
         constexpr parser_interface(parser_type p) : parser_(p) {}
@@ -5547,26 +5746,51 @@ namespace boost { namespace parser {
     /** Returns a `parser_interface` with the same parser and error handler,
         with `globals` added.  The resut of passing any non-top-level parser
         for the `parser` argument is undefined. */
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     auto with_globals(
-        parser_interface<Parser, detail::nope, ErrorHandler> const & parser,
+        parser_interface<Parser, detail::nope, ErrorHandler, Memoize> const &
+            parser,
         GlobalState & globals)
     {
-        return parser_interface<Parser, GlobalState &, ErrorHandler>{
+        return parser_interface<Parser, GlobalState &, ErrorHandler, Memoize>{
             parser.parser_, globals, parser.error_handler_};
     }
 
     /** Returns a `parser_interface` with the same parser and globals, with
         `error_handler` added.  The resut of passing any non-top-level parser
         for the `parser` argument is undefined. */
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     auto with_error_handler(
-        parser_interface<Parser, GlobalState, default_error_handler> const &
-            parser,
+        parser_interface<
+            Parser,
+            GlobalState,
+            default_error_handler,
+            Memoize> const & parser,
         ErrorHandler & error_handler)
     {
-        return parser_interface<Parser, GlobalState, ErrorHandler &>{
+        return parser_interface<Parser, GlobalState, ErrorHandler &, Memoize>{
             parser.parser_, parser.globals_, error_handler};
+    }
+
+    /** Returns a `parser_interface` with the same parser, globals, and error
+        handler, with the `true` for the template parameter `Memoize`.  The
+        resut of passing any non-top-level parser for the `parser` argument is
+        undefined. */
+    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    auto
+    with_memo(parser_interface<Parser, GlobalState, ErrorHandler, false> const &
+                  parser)
+    {
+        return parser_interface<Parser, GlobalState, ErrorHandler, true>{
+            parser.parser_, parser.globals_, parser.error_handler_};
     }
 
 
@@ -6332,6 +6556,8 @@ namespace boost { namespace parser {
     template<typename Expected, typename AttributeType>
     struct char_parser
     {
+        using this_type = char_parser<Expected, AttributeType>;
+
         constexpr char_parser() {}
         constexpr char_parser(Expected expected) : expected_(expected) {}
 
@@ -6377,17 +6603,31 @@ namespace boost { namespace parser {
             [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
+            // TODO: Put this in the other overload of call() as well?
+            if constexpr (Context::use_memo) {
+                if (detail::in_memos<this_type>(
+                        first, context, success, retval)) {
+                    return;
+                }
+            }
+
             if (first == last) {
                 success = false;
+                if constexpr (Context::use_memo)
+                    detail::memoize<this_type, Attribute>(first, context);
                 return;
             }
             attribute_type<decltype(*first)> const x = *first;
             if (detail::unequal(context, x, expected_)) {
                 success = false;
+                if constexpr (Context::use_memo)
+                    detail::memoize<this_type, Attribute>(first, context);
                 return;
             }
             detail::assign(retval, x);
-            ++first;
+            auto const prev_first = first++;
+            if constexpr (Context::use_memo)
+                detail::memoize<this_type>(prev_first, first, context, retval);
         }
 
         /** Returns a `parser_interface` containing a `char_parser` that
@@ -7965,30 +8205,42 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>>(
         char rhs) const noexcept
     {
         return *this >> parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>>(
         char32_t rhs) const noexcept
     {
         return *this >> parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
 #else
     template<typename R, typename>
 #endif
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>>(
         R && r) const noexcept
     {
         return *this >> parser::lit(r);
@@ -8038,30 +8290,42 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>(
         char rhs) const noexcept
     {
         return *this > parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>(
         char32_t rhs) const noexcept
     {
         return *this > parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
 #else
     template<typename R, typename>
 #endif
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator>(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator>(
         R && r) const noexcept
     {
         return *this > parser::lit(r);
@@ -8111,30 +8375,42 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator|(
         char rhs) const noexcept
     {
         return *this | parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator|(
         char32_t rhs) const noexcept
     {
         return *this | parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
 #else
     template<typename R, typename>
 #endif
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator|(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator|(
         R && r) const noexcept
     {
         return *this | parser::lit(r);
@@ -8184,30 +8460,42 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator-(
         char rhs) const noexcept
     {
         return !parser::lit(rhs) >> *this;
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator-(
         char32_t rhs) const noexcept
     {
         return !parser::lit(rhs) >> *this;
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
 #else
     template<typename R, typename>
 #endif
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator-(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator-(
         R && r) const noexcept
     {
         return !parser::lit(r) >> *this;
@@ -8245,30 +8533,42 @@ namespace boost { namespace parser {
 
 #ifndef BOOST_PARSER_DOXYGEN
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator%(
         char rhs) const noexcept
     {
         return *this % parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator%(
         char32_t rhs) const noexcept
     {
         return *this % parser::lit(rhs);
     }
 
-    template<typename Parser, typename GlobalState, typename ErrorHandler>
+    template<
+        typename Parser,
+        typename GlobalState,
+        typename ErrorHandler,
+        bool Memoize>
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
 #else
     template<typename R, typename>
 #endif
     constexpr auto
-    parser_interface<Parser, GlobalState, ErrorHandler>::operator%(
+    parser_interface<Parser, GlobalState, ErrorHandler, Memoize>::operator%(
         R && r) const noexcept
     {
         return *this % parser::lit(r);
@@ -8330,6 +8630,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize,
         typename Attr>
 #else
     template<
@@ -8338,6 +8639,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
@@ -8348,7 +8650,8 @@ namespace boost { namespace parser {
     bool prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         Attr & attr,
         trace trace_mode = trace::off)
 #if BOOST_PARSER_USE_CONCEPTS
@@ -8413,6 +8716,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Attr>
 #else
     template<
@@ -8420,6 +8724,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_range_like_v<R> &&
@@ -8428,7 +8733,8 @@ namespace boost { namespace parser {
 #endif
     bool parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         Attr & attr,
         trace trace_mode = trace::off)
 #if BOOST_PARSER_USE_CONCEPTS
@@ -8465,7 +8771,8 @@ namespace boost { namespace parser {
         std::sentinel_for<I> S,
         typename Parser,
         typename GlobalState,
-        error_handler<I, S, GlobalState> ErrorHandler>
+        error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize>
 #else
     template<
         typename I,
@@ -8473,6 +8780,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
             detail::is_equality_comparable_with_v<I, S>>>
@@ -8480,7 +8788,8 @@ namespace boost { namespace parser {
     auto prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         trace trace_mode = trace::off)
     {
         if constexpr (!detail::is_char8_iter_v<I>) {
@@ -8525,18 +8834,21 @@ namespace boost { namespace parser {
         parsable_range_like R,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
+        typename ErrorHandler,
+        bool Memoize>
 #else
     template<
         typename R,
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         trace trace_mode = trace::off)
 #if BOOST_PARSER_USE_CONCEPTS
         // clang-format off
@@ -8568,6 +8880,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Attr>
 #else
@@ -8577,6 +8890,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Attr,
         typename Enable = std::enable_if_t<
@@ -8586,7 +8900,8 @@ namespace boost { namespace parser {
     bool prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
@@ -8655,6 +8970,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Attr>
 #else
@@ -8663,13 +8979,15 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Attr,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
@@ -8707,6 +9025,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize,
         typename SkipParser>
 #else
     template<
@@ -8715,6 +9034,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
@@ -8723,7 +9043,8 @@ namespace boost { namespace parser {
     auto prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
     {
@@ -8770,6 +9091,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
 #else
     template<
@@ -8777,12 +9099,14 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     auto parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
 #if BOOST_PARSER_USE_CONCEPTS
@@ -8821,6 +9145,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize,
         typename Callbacks>
 #else
     template<
@@ -8829,6 +9154,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Callbacks,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
@@ -8837,7 +9163,8 @@ namespace boost { namespace parser {
     bool callback_prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
     {
@@ -8888,6 +9215,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Callbacks>
 #else
     template<
@@ -8895,12 +9223,14 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename Callbacks,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool callback_parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
 #if BOOST_PARSER_USE_CONCEPTS
@@ -8940,6 +9270,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         error_handler<I, S, GlobalState> ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Callbacks>
 #else
@@ -8949,6 +9280,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Callbacks,
         typename Enable = std::enable_if_t<
@@ -8958,7 +9290,8 @@ namespace boost { namespace parser {
     bool callback_prefix_parse(
         I & first,
         S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
@@ -9021,6 +9354,7 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Callbacks>
 #else
@@ -9029,13 +9363,15 @@ namespace boost { namespace parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser,
         typename Callbacks,
         typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
 #endif
     bool callback_parse(
         R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+            parser,
         parser_interface<SkipParser> const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
@@ -9131,7 +9467,8 @@ namespace boost { namespace parser {
                 std::declval<int &>(),
                 std::declval<error_handler_type>(),
                 std::declval<global_state_type &>(),
-                std::declval<detail::symbol_table_tries_t &>()));
+                std::declval<detail::symbol_table_tries_t &>(),
+                std::declval<detail::nope &>()));
             using type = decltype(std::declval<Parser>()(
                 std::declval<iterator &>(),
                 std::declval<sentinel>(),

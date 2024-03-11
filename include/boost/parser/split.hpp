@@ -18,15 +18,21 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
-    struct split_view
-        : detail::stl_interfaces::view_interface<
-              split_view<V, Parser, GlobalState, ErrorHandler, SkipParser>>
+    struct split_view : detail::stl_interfaces::view_interface<split_view<
+                            V,
+                            Parser,
+                            GlobalState,
+                            ErrorHandler,
+                            Memoize,
+                            SkipParser>>
     {
         constexpr split_view() = default;
         constexpr split_view(
             V base,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             parser_interface<SkipParser> const & skip,
             trace trace_mode = trace::off) :
             base_(std::move(base)),
@@ -36,7 +42,8 @@ namespace boost::parser {
         {}
         constexpr split_view(
             V base,
-            parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
+            parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
+                parser,
             trace trace_mode = trace::off) :
             base_(std::move(base)),
             parser_(parser),
@@ -147,7 +154,7 @@ namespace boost::parser {
 
     private:
         V base_;
-        parser_interface<Parser, GlobalState, ErrorHandler> parser_;
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize> parser_;
         parser_interface<SkipParser> skip_;
         trace trace_mode_;
     };
@@ -158,10 +165,11 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
     split_view(
         V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
         parser_interface<SkipParser>,
         trace)
         -> split_view<
@@ -169,6 +177,7 @@ namespace boost::parser {
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             SkipParser>;
 
     template<
@@ -176,43 +185,52 @@ namespace boost::parser {
         typename Parser,
         typename GlobalState,
         typename ErrorHandler,
+        bool Memoize,
         typename SkipParser>
     split_view(
         V &&,
-        parser_interface<Parser, GlobalState, ErrorHandler>,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
         parser_interface<SkipParser>)
         -> split_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             SkipParser>;
 
     template<
         typename V,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
+        typename ErrorHandler,
+        bool Memoize>
     split_view(
-        V &&, parser_interface<Parser, GlobalState, ErrorHandler>, trace)
+        V &&,
+        parser_interface<Parser, GlobalState, ErrorHandler, Memoize>,
+        trace)
         -> split_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             parser_interface<eps_parser<detail::phony>>>;
 
     template<
         typename V,
         typename Parser,
         typename GlobalState,
-        typename ErrorHandler>
-    split_view(V &&, parser_interface<Parser, GlobalState, ErrorHandler>)
+        typename ErrorHandler,
+        bool Memoize>
+    split_view(
+        V &&, parser_interface<Parser, GlobalState, ErrorHandler, Memoize>)
         -> split_view<
             detail::text::detail::all_t<V>,
             Parser,
             GlobalState,
             ErrorHandler,
+            Memoize,
             parser_interface<eps_parser<detail::phony>>>;
 
     namespace detail {
@@ -221,16 +239,21 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            typename Memoize,
             typename SkipParser>
         using split_view_expr = decltype(split_view<
-                                              V,
-                                              Parser,
-                                              GlobalState,
-                                              ErrorHandler,
-                                              SkipParser>(
+                                         V,
+                                         Parser,
+                                         GlobalState,
+                                         ErrorHandler,
+                                         Memoize::value,
+                                         SkipParser>(
             std::declval<V>(),
-            std::declval<
-                parser_interface<Parser, GlobalState, ErrorHandler> const &>(),
+            std::declval<parser_interface<
+                Parser,
+                GlobalState,
+                ErrorHandler,
+                Memoize::value> const &>(),
             std::declval<parser_interface<SkipParser> const &>(),
             trace::on));
 
@@ -239,6 +262,7 @@ namespace boost::parser {
             typename Parser,
             typename GlobalState,
             typename ErrorHandler,
+            bool Memoize,
             typename SkipParser>
         constexpr bool can_split_view = is_detected_v<
             split_view_expr,
@@ -246,6 +270,7 @@ namespace boost::parser {
             Parser,
             GlobalState,
             ErrorHandler,
+            std::bool_constant<Memoize>,
             SkipParser>;
 
         struct split_impl
@@ -257,6 +282,7 @@ namespace boost::parser {
                 typename Parser,
                 typename GlobalState,
                 typename ErrorHandler,
+                bool Memoize,
                 typename SkipParser>
             requires(
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
@@ -266,11 +292,12 @@ namespace boost::parser {
                     Parser,
                     GlobalState,
                     ErrorHandler,
+                    Memoize,
                     SkipParser>
                 // clang-format off
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
+                parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
                     parser,
                 parser_interface<SkipParser> const & skip,
                 trace trace_mode = trace::off) const
@@ -284,7 +311,8 @@ namespace boost::parser {
                 parsable_range_like R,
                 typename Parser,
                 typename GlobalState,
-                typename ErrorHandler>
+                typename ErrorHandler,
+                bool Memoize>
             requires(
                 std::is_pointer_v<std::remove_cvref_t<R>> ||
                 std::ranges::viewable_range<R>) &&
@@ -293,11 +321,12 @@ namespace boost::parser {
                     Parser,
                     GlobalState,
                     ErrorHandler,
+                    Memoize,
                     parser_interface<eps_parser<detail::phony>>>
                 // clang-format off
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
+                parser_interface<Parser, GlobalState, ErrorHandler, Memoize> const &
                     parser,
                 trace trace_mode = trace::off) const
             // clang-format on
@@ -316,14 +345,18 @@ namespace boost::parser {
                 typename Parser,
                 typename GlobalState,
                 typename ErrorHandler,
+                bool Memoize,
                 typename SkipParser =
                     parser_interface<eps_parser<detail::phony>>,
                 typename Trace = trace,
                 typename Enable = std::enable_if_t<is_parsable_range_like_v<R>>>
             [[nodiscard]] constexpr auto operator()(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
-                    parser,
+                parser_interface<
+                    Parser,
+                    GlobalState,
+                    ErrorHandler,
+                    Memoize> const & parser,
                 SkipParser const & skip = SkipParser{},
                 Trace trace_mode = Trace{}) const
             {
@@ -357,11 +390,15 @@ namespace boost::parser {
                 typename Parser,
                 typename GlobalState,
                 typename ErrorHandler,
+                bool Memoize,
                 typename SkipParser>
             [[nodiscard]] constexpr auto impl(
                 R && r,
-                parser_interface<Parser, GlobalState, ErrorHandler> const &
-                    parser,
+                parser_interface<
+                    Parser,
+                    GlobalState,
+                    ErrorHandler,
+                    Memoize> const & parser,
                 parser_interface<SkipParser> const & skip,
                 trace trace_mode = trace::off) const
             {
@@ -389,10 +426,11 @@ template<
     typename Parser,
     typename GlobalState,
     typename ErrorHandler,
+    bool Memoize,
     typename SkipParser>
 constexpr bool std::ranges::enable_borrowed_range<
     boost::parser::
-        split_view<V, Parser, GlobalState, ErrorHandler, SkipParser>> =
+        split_view<V, Parser, GlobalState, ErrorHandler, Memoize, SkipParser>> =
     std::ranges::enable_borrowed_range<V>;
 #endif
 

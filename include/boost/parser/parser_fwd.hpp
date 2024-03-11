@@ -8,6 +8,7 @@
 
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
+#include <boost/parser/detail/memos.hpp>
 
 #include <any>
 #include <cstdint>
@@ -79,7 +80,8 @@ namespace boost { namespace parser {
             bool UseCallbacks,
             typename Iter,
             typename Sentinel,
-            typename ErrorHandler>
+            typename ErrorHandler,
+            typename Memos>
         inline auto make_context(
             Iter first,
             Sentinel last,
@@ -87,7 +89,8 @@ namespace boost { namespace parser {
             int & indent,
             ErrorHandler const & error_handler,
             nope &,
-            symbol_table_tries_t & symbol_table_tries) noexcept;
+            symbol_table_tries_t & symbol_table_tries,
+            Memos & memos) noexcept;
 
         struct skip_skipper;
 
@@ -417,7 +420,8 @@ namespace boost { namespace parser {
     template<
         typename Parser,
         typename GlobalState = detail::nope,
-        typename ErrorHandler = default_error_handler>
+        typename ErrorHandler = default_error_handler,
+        bool Memoize = false>
     struct parser_interface;
 
     using no_attribute = detail::nope;
