@@ -118,14 +118,14 @@
         <code class="computeroutput"><span class="keyword">char32_t</span></code>, or <code class="computeroutput"><span class="keyword">char</span>
         <span class="keyword">const</span> <span class="special">*</span></code>
         to form a literal parser. You can also make a literal parser by writing
-        <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit()</a></code>, passing an argument of
+        <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit()</a></code>, passing an argument of
         one of the previously mentioned types.
       </p>
 <p>
         Why do we need any of this, considering that we just used a literal <code class="computeroutput"><span class="char">','</span></code> in our previous example? The reason is that
         <code class="computeroutput"><span class="char">'M'</span></code> is not used in an expression
         with another Boost.Parser parser. It is used within <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="identifier">_l</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>.
-        If we'd written <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>, clearly that would be ill-formed; <code class="computeroutput"><span class="keyword">char</span></code> has no <code class="computeroutput"><span class="keyword">operator</span><span class="special">*()</span></code>, nor an <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]()</span></code>, associated with it.
+        If we'd written <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>, clearly that would be ill-formed; <code class="computeroutput"><span class="keyword">char</span></code> has no <code class="computeroutput"><span class="keyword">operator</span><span class="special">*</span></code>, nor an <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>, associated with it.
       </p>
 <div class="tip"><table border="0" summary="Tip">
 <tr>
@@ -139,7 +139,7 @@
           Boost.Parser subparser <code class="computeroutput"><span class="identifier">p</span></code>,
           as in <code class="computeroutput"><span class="char">'x'</span> <span class="special">&gt;&gt;</span>
           <span class="identifier">p</span></code>. Otherwise, you need to wrap
-          it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit()</a></code>, or use the <code class="computeroutput"><span class="identifier">_l</span></code> <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
+          it in a call to <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit()</a></code>, or use the <code class="computeroutput"><span class="identifier">_l</span></code> <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
           suffix.
         </p></td></tr>
 </table></div>
@@ -148,7 +148,7 @@
         By now, the use of the index operator should be pretty familiar; it associates
         the semantic action <code class="computeroutput"><span class="identifier">add</span></code> with
         the parser <code class="computeroutput"><span class="identifier">hundreds</span></code>. The
-        <code class="computeroutput"><span class="keyword">operator</span><span class="special">-()</span></code>
+        <code class="computeroutput"><span class="keyword">operator</span><span class="special">-</span></code>
         at the beginning is new. It means that the parser it is applied to is optional.
         You can read it as "zero or one". So, if <code class="computeroutput"><span class="identifier">hundreds</span></code>
         is not successfully parsed after <code class="computeroutput"><span class="special">*</span><span class="char">'M'</span><span class="special">[</span><span class="identifier">add_1000</span><span class="special">]</span></code>, nothing happens, because <code class="computeroutput"><span class="identifier">hundreds</span></code> is allowed to be missing —

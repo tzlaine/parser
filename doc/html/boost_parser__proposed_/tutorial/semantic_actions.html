@@ -121,6 +121,30 @@ You entered:
         they are not reused, named lambdas keep your parsers smaller and easier to
         read.
       </p>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          Attaching a semantic action to a parser removes its attribute. That is,
+          <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">[</span><span class="identifier">a</span><span class="special">])</span></code> is always the special no-attribute type
+          <code class="computeroutput"><a class="link" href="../../boost/parser/none.html" title="Struct none">none</a></code>,
+          regardless of what type <code class="computeroutput"><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p</span><span class="special">)</span></code>
+          is.
+        </p></td></tr>
+</table></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.semantic_actions.h0"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.semantic_actions.semantic_actions_inside_rules"></a></span><a class="link" href="semantic_actions.html#boost_parser__proposed_.tutorial.semantic_actions.semantic_actions_inside_rules">Semantic
+        actions inside rules</a>
+      </h5>
+<p>
+        There are some other forms for semantic actions, when they are used inside
+        of <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>.
+        See <a class="link" href="more_about_rules.html" title="More About Rules">More
+        About Rules</a> for details.
+      </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
         Distributed under the Boost Software License, Version 1.0. (See accompanying

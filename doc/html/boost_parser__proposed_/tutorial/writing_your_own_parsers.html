@@ -70,13 +70,11 @@
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span>
-    <span class="keyword">bool</span> <span class="identifier">UseCallbacks</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Iter</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Sentinel</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">SkipParser</span><span class="special">&gt;</span>
 <span class="keyword">auto</span> <span class="identifier">call</span><span class="special">(</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span><span class="identifier">UseCallbacks</span><span class="special">&gt;</span> <span class="identifier">use_cbs</span><span class="special">,</span>
     <span class="identifier">Iter</span> <span class="special">&amp;</span> <span class="identifier">first</span><span class="special">,</span>
     <span class="identifier">Sentinel</span> <span class="identifier">last</span><span class="special">,</span>
     <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">,</span>
@@ -85,9 +83,9 @@
     <span class="keyword">bool</span> <span class="special">&amp;</span> <span class="identifier">success</span><span class="special">)</span> <span class="keyword">const</span>
 <span class="special">{</span>
     <span class="keyword">using</span> <span class="identifier">attr_t</span> <span class="special">=</span> <span class="keyword">decltype</span><span class="special">(</span><span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span>
-        <span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">));</span>
+        <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">));</span>
     <span class="identifier">detail</span><span class="special">::</span><span class="identifier">optional_of</span><span class="special">&lt;</span><span class="identifier">attr_t</span><span class="special">&gt;</span> <span class="identifier">retval</span><span class="special">;</span>
-    <span class="identifier">call</span><span class="special">(</span><span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
+    <span class="identifier">call</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
     <span class="keyword">return</span> <span class="identifier">retval</span><span class="special">;</span>
 <span class="special">}</span>
 </pre>
@@ -97,11 +95,6 @@
         First, let's look at the template and function parameters.
       </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-            <code class="computeroutput">UseCallbacks</code> is <code class="computeroutput">true</code> only within a call to
-            <code class="computeroutput"><a class="link" href="../../boost/parser/callback_parse_idm27307.html" title="Function template callback_parse">callback_parse()</a></code> (or <code class="computeroutput"><a class="link" href="../../boost/parser/callback_prefix_p_idm27268.html" title="Function template callback_prefix_parse">callback_prefix_parse()</a></code>),
-            and it is deduced from the <code class="computeroutput">use_cbs</code> function parameter.
-          </li>
 <li class="listitem">
             <code class="computeroutput">Iter &amp; first</code> is the iterator. It is taken as an out-param.
             It is the responsibility of <code class="computeroutput">call()</code> to advance <code class="computeroutput">first</code>
@@ -165,14 +158,12 @@
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span>
-    <span class="keyword">bool</span> <span class="identifier">UseCallbacks</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Iter</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Sentinel</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Context</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">SkipParser</span><span class="special">,</span>
     <span class="keyword">typename</span> <span class="identifier">Attribute</span><span class="special">&gt;</span>
 <span class="keyword">void</span> <span class="identifier">call</span><span class="special">(</span>
-    <span class="identifier">std</span><span class="special">::</span><span class="identifier">bool_constant</span><span class="special">&lt;</span><span class="identifier">UseCallbacks</span><span class="special">&gt;</span> <span class="identifier">use_cbs</span><span class="special">,</span>
     <span class="identifier">Iter</span> <span class="special">&amp;</span> <span class="identifier">first</span><span class="special">,</span>
     <span class="identifier">Sentinel</span> <span class="identifier">last</span><span class="special">,</span>
     <span class="identifier">Context</span> <span class="keyword">const</span> <span class="special">&amp;</span> <span class="identifier">context</span><span class="special">,</span>
@@ -181,20 +172,18 @@
     <span class="keyword">bool</span> <span class="special">&amp;</span> <span class="identifier">success</span><span class="special">,</span>
     <span class="identifier">Attribute</span> <span class="special">&amp;</span> <span class="identifier">retval</span><span class="special">)</span> <span class="keyword">const</span>
 <span class="special">{</span>
-    <span class="keyword">auto</span> <span class="identifier">_</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">scoped_trace</span><span class="special">(</span>
+    <span class="special">[[</span><span class="identifier">maybe_unused</span><span class="special">]]</span> <span class="keyword">auto</span> <span class="identifier">_</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">scoped_trace</span><span class="special">(</span>
         <span class="special">*</span><span class="keyword">this</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
 
     <span class="identifier">detail</span><span class="special">::</span><span class="identifier">skip</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">);</span>
 
     <span class="keyword">if</span> <span class="special">(!</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">gen_attrs</span><span class="special">(</span><span class="identifier">flags</span><span class="special">))</span> <span class="special">{</span>
-        <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span>
-            <span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">);</span>
+        <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">);</span>
         <span class="identifier">success</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
         <span class="keyword">return</span><span class="special">;</span>
     <span class="special">}</span>
 
-    <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span>
-        <span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
+    <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
     <span class="identifier">success</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
 <span class="special">}</span>
 </pre>
@@ -210,7 +199,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="keyword">auto</span> <span class="identifier">_</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">scoped_trace</span><span class="special">(</span>
+<pre class="programlisting"><span class="special">[[</span><span class="identifier">maybe_unused</span><span class="special">]]</span> <span class="keyword">auto</span> <span class="identifier">_</span> <span class="special">=</span> <span class="identifier">detail</span><span class="special">::</span><span class="identifier">scoped_trace</span><span class="special">(</span>
     <span class="special">*</span><span class="keyword">this</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
 </pre>
 <p>
@@ -248,8 +237,7 @@
 <p>
 </p>
 <pre class="programlisting"><span class="keyword">if</span> <span class="special">(!</span><span class="identifier">detail</span><span class="special">::</span><span class="identifier">gen_attrs</span><span class="special">(</span><span class="identifier">flags</span><span class="special">))</span> <span class="special">{</span>
-    <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span>
-        <span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">);</span>
+    <span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">);</span>
     <span class="identifier">success</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
     <span class="keyword">return</span><span class="special">;</span>
 <span class="special">}</span>
@@ -263,8 +251,7 @@
       </p>
 <p>
 </p>
-<pre class="programlisting"><span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span>
-    <span class="identifier">use_cbs</span><span class="special">,</span> <span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
+<pre class="programlisting"><span class="identifier">parser_</span><span class="special">.</span><span class="identifier">call</span><span class="special">(</span><span class="identifier">first</span><span class="special">,</span> <span class="identifier">last</span><span class="special">,</span> <span class="identifier">context</span><span class="special">,</span> <span class="identifier">skip</span><span class="special">,</span> <span class="identifier">flags</span><span class="special">,</span> <span class="identifier">success</span><span class="special">,</span> <span class="identifier">retval</span><span class="special">);</span>
 <span class="identifier">success</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
 </pre>
 <p>

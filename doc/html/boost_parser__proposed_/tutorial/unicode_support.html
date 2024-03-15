@@ -27,9 +27,9 @@
         different in the two code paths, as they are written generically. The only
         difference is that the Unicode code path parses the input as a range of code
         points, and the non-Unicode path does not. In effect, this means that, in
-        the Unicode code path, when you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code> for some input range <code class="computeroutput"><span class="identifier">r</span></code>
+        the Unicode code path, when you call <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code> for some input range <code class="computeroutput"><span class="identifier">r</span></code>
         and some parser <code class="computeroutput"><span class="identifier">p</span></code>, the parse
-        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code>
+        happens as if you called <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse</a><span class="special">(</span><span class="identifier">r</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span><span class="special">,</span> <span class="identifier">p</span><span class="special">)</span></code>
         instead. (Of course, it does not matter if <code class="computeroutput"><span class="identifier">r</span></code>
         is a null-terminated pointer, a proper range, or an iterator/sentinel pair;
         those all work fine with <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">as_utf32</span></code>.)
@@ -197,7 +197,7 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result_2</span><span class="special">);</span>
 </pre>
 <p>
-        The first call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
+        The first call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>
         treats each <code class="computeroutput"><span class="keyword">char</span></code> as a code point,
         and since <code class="computeroutput"><span class="string">"ö"</span></code> is the
         pair of code units <code class="computeroutput"><span class="number">0xc3</span></code> <code class="computeroutput"><span class="number">0xb6</span></code>, the parse matches the second code unit
@@ -206,7 +206,7 @@
         each code unit/<code class="computeroutput"><span class="keyword">char</span></code> in <code class="computeroutput"><span class="identifier">str</span></code> is treated as an independent code point.
       </p>
 <p>
-        The second call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
+        The second call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>
         succeeds because, when the parse gets to the code point for <code class="computeroutput"><span class="char">'ö'</span></code>, it is <code class="computeroutput"><span class="number">0xf6</span></code>
         (U+00F6), which does not match the <code class="computeroutput"><span class="special">-</span>
         <span class="number">0xb6</span></code> part of the parser.
@@ -217,6 +217,29 @@
         for completeness, if you want to use them. They each can transcode any sequence
         of character types. A null-terminated string is considered a sequence of
         character type.
+      </p>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          The <code class="computeroutput"><span class="identifier">as_utfN</span></code> adaptors are
+          optional, so they don't come with <code class="computeroutput"><span class="identifier">parser</span><span class="special">.</span><span class="identifier">hpp</span></code>.
+          To get access to them, <code class="computeroutput"><span class="preprocessor">#include</span>
+          <span class="special">&lt;</span><span class="identifier">boost</span><span class="special">/</span><span class="identifier">parser</span><span class="special">/</span><span class="identifier">transcode_view</span><span class="special">.</span><span class="identifier">hpp</span><span class="special">&gt;</span></code>.
+        </p></td></tr>
+</table></div>
+<h5>
+<a name="boost_parser__proposed_.tutorial.unicode_support.h2"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.unicode_support._lack_of__normalization"></a></span><a class="link" href="unicode_support.html#boost_parser__proposed_.tutorial.unicode_support._lack_of__normalization">(Lack
+        of) normalization</a>
+      </h5>
+<p>
+        One thing that Boost.Parser does not handle for you is normalization; Boost.Parser
+        is completely normalization-agnostic. Since all the parsers do their matching
+        using equality comparisons of code points, you should make sure that your
+        parsed range and your parsers all use the same normalization form.
       </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>

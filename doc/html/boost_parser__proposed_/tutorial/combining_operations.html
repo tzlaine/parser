@@ -21,9 +21,11 @@
 </h3></div></div></div>
 <p>
         Certain overloaded operators are defined for all parsers in Boost.Parser.
-        We've already seen some of them used in this tutorial, especially <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;()</span></code>
-        and <code class="computeroutput"><span class="keyword">operator</span><span class="special">|()</span></code>,
-        which are used to form sequence parsers and alternative parsers, respectively.
+        We've already seen some of them used in this tutorial, especially <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;</span></code>,
+        <code class="computeroutput"><span class="keyword">operator</span><span class="special">|</span></code>,
+        and <code class="computeroutput"><span class="keyword">operator</span><span class="special">||</span></code>,
+        which are used to form sequence parsers, alternative parsers, and permutation
+        parsers, respectively.
       </p>
 <p>
         Here are all the operator overloaded for parsers. In the tables below:
@@ -58,7 +60,7 @@
         </p></td></tr>
 </table></div>
 <div class="table">
-<a name="boost_parser__proposed_.tutorial.combining_operations.t0"></a><p class="title"><b>Table 1.2. Combining Operations and Their Semantics</b></p>
+<a name="boost_parser__proposed_.tutorial.combining_operations.t0"></a><p class="title"><b>Table 1.7. Combining Operations and Their Semantics</b></p>
 <div class="table-contents"><table class="table" summary="Combining Operations and Their Semantics">
 <colgroup>
 <col>
@@ -445,6 +447,43 @@
 <tr>
 <td>
                 <p>
+                  <code class="computeroutput"><span class="identifier">p1</span> <span class="special">||</span>
+                  <span class="identifier">p2</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches iff <code class="computeroutput"><span class="identifier">p1</span></code>
+                  matches and <code class="computeroutput"><span class="identifier">p2</span></code>
+                  matches, regardless of the order they match in.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a><span class="special">&lt;</span><span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p1</span><span class="special">),</span> <span class="emphasis"><em><code class="literal">ATTR</code></em></span><span class="special">(</span><span class="identifier">p2</span><span class="special">)&gt;</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="special">||</span></code> is associative;
+                  <code class="computeroutput"><span class="identifier">p1</span> <span class="special">||</span>
+                  <span class="identifier">p2</span> <span class="special">||</span>
+                  <span class="identifier">p3</span></code>, <code class="computeroutput"><span class="special">(</span><span class="identifier">p1</span> <span class="special">||</span>
+                  <span class="identifier">p2</span><span class="special">)</span>
+                  <span class="special">||</span> <span class="identifier">p3</span></code>,
+                  and <code class="computeroutput"><span class="identifier">p1</span> <span class="special">||</span>
+                  <span class="special">(</span><span class="identifier">p2</span>
+                  <span class="special">||</span> <span class="identifier">p3</span><span class="special">)</span></code> are all equivalent. It is an error
+                  to include a <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code> (conditional
+                  or non-conditional) in an <code class="computeroutput"><span class="keyword">operator</span><span class="special">||</span></code> expression. Though the parsers
+                  are matched in any order, the attribute elements are always in
+                  the order written in the <code class="computeroutput"><span class="keyword">operator</span><span class="special">||</span></code> expression.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
                   <code class="computeroutput"><span class="identifier">p1</span> <span class="special">-</span>
                   <span class="identifier">p2</span></code>
                 </p>
@@ -609,8 +648,7 @@
           in the table above, that effectively means that every sequences of character
           attributes get turned into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>.
           The only time this does not happen is when you introduce your own rules
-          with attributes using another character type (or use <code class="computeroutput"><a class="link" href="../../boost/parser/attr.html" title="Function template attr">attr()</a></code>
-          to do so).
+          with attributes using another character type (or use <code class="computeroutput"><a class="link" href="../../boost/parser/attribute.html" title="Struct template attribute">attribute</a></code> to do so).
         </p></td></tr>
 </table></div>
 <p>

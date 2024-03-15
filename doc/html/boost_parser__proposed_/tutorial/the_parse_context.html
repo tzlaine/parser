@@ -98,10 +98,18 @@
       </h5>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/_begin.html" title="Function template _begin">_begin()</a></code> and <code class="computeroutput"><a class="link" href="../../boost/parser/_end.html" title="Function template _end">_end()</a></code>
-        return the beginning and end of the range that you passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>, respectively. <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where()</a></code> returns a <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a></code> indicating the bounds
+        return the beginning and end of the range that you passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>, respectively. <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where()</a></code> returns a <code class="computeroutput"><a class="link" href="../../boost/parser/subrange.html" title="Struct template subrange">subrange</a></code> indicating the bounds
         of the input matched by the current parse. <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where()</a></code>
         can be useful if you just want to parse some text and return a result consisting
         of where certain elements are located, without producing any other attributes.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where()</a></code> can also be essential in
+        tracking where things are located, to provide good diagnostics at a later
+        point in the parse. Think mismatched tags in XML; if you parse a close-tag
+        at the end of an element, and it does not match the open-tag, you want to
+        produce an error message that mentions or shows both tags. Stashing <code class="computeroutput"><a class="link" href="../../boost/parser/_where.html" title="Function template _where">_where</a><span class="special">(</span><span class="identifier">ctx</span><span class="special">).</span><span class="identifier">begin</span><span class="special">()</span></code>
+        somewhere that is available to the close-tag parser will enable that. See
+        <a class="link" href="error_handling_and_debugging.html" title="Error Handling and Debugging">Error
+        Handling and Debugging</a> for an example of this.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.the_parse_context.h3"></a>
@@ -109,10 +117,10 @@
       </h5>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/_error_handler.html" title="Function template _error_handler">_error_handler()</a></code> returns a reference to the
-        error handler associated with the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>.
-        See <a class="link" href="error_handling_and_debugging.html" title="Error Handling and Debugging">Error
-        Handling and Debugging</a> for more information on what you can do with
-        the error handler.
+        error handler associated with the parser passed to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>.
+        Using <code class="computeroutput"><a class="link" href="../../boost/parser/_error_handler.html" title="Function template _error_handler">_error_handler()</a></code>, you can generate errors
+        and warnings from within your semantic actions. See <a class="link" href="error_handling_and_debugging.html" title="Error Handling and Debugging">Error
+        Handling and Debugging</a> for concrete examples.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.the_parse_context.h4"></a>
@@ -140,19 +148,30 @@
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___val___code__phrase_role__identifier___val__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="the_parse_context.html#boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___val___code__phrase_role__identifier___val__phrase__phrase_role__special______phrase___code___functionname_">_val()</a>
       </h5>
 <p>
-        <code class="computeroutput"><a class="link" href="../../boost/parser/_val.html" title="Function template _val">_val()</a></code> returns a reference to the
+        <code class="computeroutput"><a class="link" href="../../boost/parser/_val.html" title="Function _val">_val()</a></code> returns a reference to the
         value of the attribute of the current rule being used to parse (if any),
         and is available even before the rule's parse is successful. It can be used
         to set the current rule's attribute, even from a parser that is a subparser
         inside the rule. Let's say we're writing a parser with a semantic action
-        that is within a rule. If we want to set the current rule's value to whatever
-        this subparser parses, we would write this semantic action:
+        that is within a rule. If we want to set the current rule's value to some
+        function of subparser's attribute, we would write this semantic action:
       </p>
-<pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">_val</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span> <span class="special">}</span>
+<pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">_val</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="identifier">some_function</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">));</span> <span class="special">}</span>
 </pre>
 <p>
         If there is no current rule, or the current rule has no attribute, a <code class="computeroutput"><a class="link" href="../../boost/parser/none.html" title="Struct none">none</a></code>
         is returned.
+      </p>
+<p>
+        You need to use <code class="computeroutput"><a class="link" href="../../boost/parser/_val.html" title="Function _val">_val()</a></code> in cases where the default
+        attribute for a <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>'s
+        parser is not directly compatible with the attribute type of the <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>.
+        In these cases, you'll need to write some code like the example above to
+        compute the <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>'s
+        attribute from the <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>'s
+        parser's generated attribute. For more info on <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rules</a></code>, see the next page, and
+        <a class="link" href="more_about_rules.html" title="More About Rules">More About
+        Rules</a>.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.the_parse_context.h7"></a>
@@ -160,12 +179,28 @@
       </h5>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/_globals.html" title="Function template _globals">_globals()</a></code> returns a reference to a
-        user-supplied struct that contains whatever data you want to use during the
-        parse. We'll get into this more later, but for now, here's how you might
-        use it:
+        user-supplied object that contains whatever data you want to use during the
+        parse. The "globals" for a parse is an object — typically
+        a struct — that you give to the top-level parser. Then you can use
+        <code class="computeroutput"><a class="link" href="../../boost/parser/_globals.html" title="Function template _globals">_globals()</a></code> to access it at any time
+        during the parse. We'll see how globals get associated with the top-level
+        parser in <a class="link" href="the__parse____api.html" title="The parse() API">The
+        <code class="computeroutput"><span class="identifier">parse</span><span class="special">()</span></code>
+        API</a> later. As an example, say that you have an early part of the parse
+        that needs to record some black-listed values, and that later parts of the
+        parse might need to parse values, failing the parse if they see the black-listed
+        values. In the early part of the parse, you could write something like this.
       </p>
 <pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
-    <span class="comment">// black_list is some set of values that are not allowed.</span>
+    <span class="comment">// black_list is a std::unordered_set.</span>
+    <span class="identifier">_globals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">).</span><span class="identifier">black_list</span><span class="special">.</span><span class="identifier">insert</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">));</span>
+<span class="special">}</span>
+</pre>
+<p>
+        Later in the parse, you could then use <code class="computeroutput"><span class="identifier">black_list</span></code>
+        to check values as they are parsed.
+      </p>
+<pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">if</span> <span class="special">(</span><span class="identifier">_globals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">).</span><span class="identifier">black_list</span><span class="special">.</span><span class="identifier">contains</span><span class="special">(</span><span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)))</span>
         <span class="identifier">_pass</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">=</span> <span class="keyword">false</span><span class="special">;</span>
 <span class="special">}</span>
@@ -179,12 +214,16 @@
         or more values that are local to the current rule being parsed, if any. If
         there are two or more local values, <code class="computeroutput"><a class="link" href="../../boost/parser/_locals.html" title="Function template _locals">_locals()</a></code>
         returns a reference to a <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code>. Rules with locals are
-        something we haven't gotten to yet, but here is how you use <code class="computeroutput"><a class="link" href="../../boost/parser/_locals.html" title="Function template _locals">_locals()</a></code>:
+        something we haven't gotten to yet (see <a class="link" href="more_about_rules.html" title="More About Rules">More
+        About Rules</a>), but for now all you need to know is that you can provide
+        a template parameter (<code class="computeroutput"><span class="identifier">LocalState</span></code>)
+        to <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>,
+        and the rule will default construct an object of that type for use within
+        the rule. You access it via <code class="computeroutput"><a class="link" href="../../boost/parser/_locals.html" title="Function template _locals">_locals()</a></code>:
       </p>
 <pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span>
     <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">local</span> <span class="special">=</span> <span class="identifier">_locals</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">);</span>
-    <span class="comment">// Use local here.  If boost::parser::tuple aliases to hana::tuple, access</span>
-    <span class="comment">// its members like this:</span>
+    <span class="comment">// Use local here.  If 'local' is a hana::tuple, access its members like this:</span>
     <span class="keyword">using</span> <span class="keyword">namespace</span> <span class="identifier">hana</span><span class="special">::</span><span class="identifier">literals</span><span class="special">;</span>
     <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">first_element</span> <span class="special">=</span> <span class="identifier">local</span><span class="special">[</span><span class="number">0</span><span class="identifier">_c</span><span class="special">];</span>
     <span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">second_element</span> <span class="special">=</span> <span class="identifier">local</span><span class="special">[</span><span class="number">1</span><span class="identifier">_c</span><span class="special">];</span>
@@ -200,14 +239,19 @@
       </h5>
 <p>
         <code class="computeroutput"><a class="link" href="../../boost/parser/_params.html" title="Function template _params">_params()</a></code>, like <code class="computeroutput"><a class="link" href="../../boost/parser/_locals.html" title="Function template _locals">_locals()</a></code>,
-        applies to the current rule being used to parse, if any. It also returns
-        a reference to a single value, if the current rule has only one parameter,
-        or a <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code>
-        of multiple values if the current rule has multiple parameters.
+        applies to the current rule being used to parse, if any (see <a class="link" href="more_about_rules.html" title="More About Rules">More
+        About Rules</a>). It also returns a reference to a single value, if the
+        current rule has only one parameter, or a <code class="computeroutput"><a class="link" href="../../boost/parser/tuple.html" title="Type definition tuple">boost::parser::tuple</a></code> of multiple values if
+        the current rule has multiple parameters. If there is no current rule, or
+        the current rule has no parameters, a <code class="computeroutput"><a class="link" href="../../boost/parser/none.html" title="Struct none">none</a></code> is returned.
       </p>
 <p>
-        If there is no current rule, or the current rule has no parameters, a <code class="computeroutput"><a class="link" href="../../boost/parser/none.html" title="Struct none">none</a></code>
-        is returned.
+        Unlike with <code class="computeroutput"><a class="link" href="../../boost/parser/_locals.html" title="Function template _locals">_locals()</a></code>, you <span class="bold"><strong>do
+        not</strong></span> provide a template parameter to <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>. Instead you call the
+        <code class="computeroutput"><a class="link" href="../../boost/parser/rule.html" title="Struct template rule">rule</a></code>'s
+        <code class="computeroutput"><span class="identifier">with</span><span class="special">()</span></code>
+        member function (again, see <a class="link" href="more_about_rules.html" title="More About Rules">More
+        About Rules</a>).
       </p>
 <div class="note"><table border="0" summary="Note">
 <tr>
@@ -220,7 +264,7 @@
           accessors. <code class="computeroutput"><a class="link" href="../../boost/parser/none.html" title="Struct none">none</a></code>
           is convertible to anything that has a default constructor, convertible
           from anything, assignable form anything, and has templated overloads for
-          all the overloadable operators. The intention is that a misuse of <code class="computeroutput"><a class="link" href="../../boost/parser/_val.html" title="Function template _val">_val()</a></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/_globals.html" title="Function template _globals">_globals()</a></code>,
+          all the overloadable operators. The intention is that a misuse of <code class="computeroutput"><a class="link" href="../../boost/parser/_val.html" title="Function _val">_val()</a></code>, <code class="computeroutput"><a class="link" href="../../boost/parser/_globals.html" title="Function template _globals">_globals()</a></code>,
           etc. should compile, and produce an assertion at runtime. Experience has
           shown that using a debugger for investigating the stack that leads to your
           mistake is a far better user experience than sifting through compiler diagnostics.
@@ -230,11 +274,14 @@
 </table></div>
 <h5>
 <a name="boost_parser__proposed_.tutorial.the_parse_context.h10"></a>
-        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___no_case___code__phrase_role__identifier___no_case__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="the_parse_context.html#boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___no_case___code__phrase_role__identifier___no_case__phrase__phrase_role__special______phrase___code___functionname_">_no_case()</a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___no_case___code__phrase_role__identifier___no_case__phrase__phrase_role__special______phrase___code___functionname_"></a></span><a class="link" href="the_parse_context.html#boost_parser__proposed_.tutorial.the_parse_context._functionname_alt__boost__parser___no_case___code__phrase_role__identifier___no_case__phrase__phrase_role__special______phrase___code___functionname_"><code class="computeroutput">_no_case()</code></a>
       </h5>
 <p>
-        <code class="computeroutput"><a class="link" href="../../header/boost/parser/parser_hpp.html#boost.parser._no_case">_no_case()</a></code> returns <code class="computeroutput"><span class="keyword">true</span></code>
-        if the current parse context is inside one or more (possibly nested) <code class="computeroutput"><a class="link" href="../../boost/parser/no_case.html" title="Global no_case">no_case[]</a></code> directives.
+        <code class="computeroutput">_no_case()</code> returns <code class="computeroutput"><span class="keyword">true</span></code>
+        if the current parse context is inside one or more (possibly nested) <code class="computeroutput"><a class="link" href="../../boost/parser/no_case.html" title="Global no_case">no_case[]</a></code> directives. I don't have a
+        use case for this, but if I didn't expose it, it would be the only thing
+        in the context that you could not examine from inside a semantic action.
+        It was easy to add, so I did.
       </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>

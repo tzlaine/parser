@@ -26,7 +26,10 @@
 <li class="listitem">
             <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code>
             allocates memory for the symbol/attribute pairs it contains. If symbols
-            are added during the parse, allocations must also occur then.
+            are added during the parse, allocations must also occur then. The data
+            structure used by <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code> is also a trie,
+            which is a node-based tree. So, lots of allocations are likely if you
+            use <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols</a></code>.
           </li>
 <li class="listitem">
             The error handlers that can take a file name allocate memory for the
@@ -37,7 +40,7 @@
             parsing function, the names of parsers are allocated.
           </li>
 <li class="listitem">
-            When a failed expectation is encountered (using <code class="computeroutput">operator&gt;()</code>),
+            When a failed expectation is encountered (using <code class="computeroutput">operator&gt;</code>),
             the name of the failed parser is placed into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>,
             which will usually cause an allocation.
           </li>
@@ -47,9 +50,9 @@
             type for the attribute that does not allocate.
           </li>
 <li class="listitem">
-            The attribute for <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm26699.html" title="Function template repeat">repeat</a>(p)</code> in
-            all its forms, including <code class="computeroutput">operator*()</code>, <code class="computeroutput">operator+()</code>,
-            and <code class="computeroutput">operator%()</code>, is <code class="computeroutput">std::vector&lt;<span class="emphasis"><em><code class="literal">ATTR</code></em></span>(p)&gt;</code>,
+            The attribute for <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm32124.html" title="Function template repeat">repeat</a>(p)</code> in
+            all its forms, including <code class="computeroutput">operator*</code>, <code class="computeroutput">operator+</code>,
+            and <code class="computeroutput">operator%</code>, is <code class="computeroutput">std::vector&lt;<span class="emphasis"><em><code class="literal">ATTR</code></em></span>(p)&gt;</code>,
             the use of which implies allocation. You can avoid this allocation by
             explicitly using a different sequence container for the attribute that
             does not allocate. <code class="computeroutput">boost::container::static_vector</code> or C++26's

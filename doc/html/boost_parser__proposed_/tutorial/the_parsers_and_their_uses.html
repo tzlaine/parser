@@ -6,13 +6,13 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 <link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
-<link rel="prev" href="alternative_parsers.html" title="Alternative Parsers">
+<link rel="prev" href="mutable_symbol_tables.html" title="Mutable Symbol Tables">
 <link rel="next" href="directives.html" title="Directives">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="alternative_parsers.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="directives.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="mutable_symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="directives.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -52,7 +52,9 @@
 <p>
         The operation that produces a value from a parse argument, which may be a
         value or a callable taking a parse context argument, is referred to as <span class="emphasis"><em>resolving</em></span>
-        the parse argument.
+        the parse argument. If a parse argument <code class="computeroutput"><span class="identifier">arg</span></code>
+        can be called with the current context, then the resolved value of <code class="computeroutput"><span class="identifier">arg</span></code> is <code class="computeroutput"><span class="identifier">arg</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span></code>;
+        otherwise, the resolved value is just <code class="computeroutput"><span class="identifier">arg</span></code>.
       </p>
 <p>
         Some callable parsers take a <span class="emphasis"><em>parse predicate</em></span>. A parse
@@ -75,6 +77,10 @@
       </p>
 <pre class="programlisting"><span class="special">[](</span><span class="keyword">auto</span> <span class="special">&amp;</span> <span class="identifier">ctx</span><span class="special">)</span> <span class="special">{</span> <span class="keyword">return</span> <span class="identifier">_attr</span><span class="special">(</span><span class="identifier">ctx</span><span class="special">)</span> <span class="special">==</span> <span class="number">3</span><span class="special">;</span> <span class="special">}</span>
 </pre>
+<p>
+        The notional macro <span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><code class="computeroutput"><span class="special">()</span></code> expands to the result of resolving a parse
+        argument or parse predicate. You'll see it used in the rest of the documentation.
+      </p>
 <p>
         An example of how parse arguments are used:
       </p>
@@ -120,7 +126,8 @@
 <li class="listitem">
             <span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><code class="computeroutput"><span class="special">()</span></code>
             is a notional macro that expands to the resolution of parse argument
-            or evaluation of a parse predicate;
+            or evaluation of a parse predicate (see <a class="link" href="the_parsers_and_their_uses.html" title="The Parsers And Their Uses">The
+            Parsers And Their Uses</a>);
           </li>
 <li class="listitem">
             "<code class="computeroutput"><span class="emphasis"><em><code class="literal">RESOLVE</code></em></span><span class="special">(</span><span class="identifier">pred</span><span class="special">)</span> <span class="special">==</span> <span class="keyword">true</span></code>"
@@ -157,6 +164,10 @@
 <li class="listitem">
             <code class="computeroutput"><span class="identifier">p</span></code>, <code class="computeroutput"><span class="identifier">p1</span></code>,
             <code class="computeroutput"><span class="identifier">p2</span></code>, ... are parsers.
+          </li>
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">escapes</span></code> is a <code class="computeroutput"><a class="link" href="../../boost/parser/symbols.html" title="Struct template symbols">symbols&lt;T&gt;</a></code> object, where <code class="computeroutput"><span class="identifier">T</span></code> is <code class="computeroutput"><span class="keyword">char</span></code>
+            or <code class="computeroutput"><span class="keyword">char32_t</span></code>.
           </li>
 </ul></div>
 <div class="note"><table border="0" summary="Note">
@@ -202,7 +213,7 @@
         </p></td></tr>
 </table></div>
 <div class="table">
-<a name="boost_parser__proposed_.tutorial.the_parsers_and_their_uses.t0"></a><p class="title"><b>Table 1.1. Parsers and Their Semantics</b></p>
+<a name="boost_parser__proposed_.tutorial.the_parsers_and_their_uses.t0"></a><p class="title"><b>Table 1.6. Parsers and Their Semantics</b></p>
 <div class="table-contents"><table class="table" summary="Parsers and Their Semantics">
 <colgroup>
 <col>
@@ -371,7 +382,7 @@
               </td>
 <td>
                 <p>
-                  An important use case for <code class="computeroutput"><a class="link" href="../../boost/parser/attr.html" title="Function template attr">attr()</a></code>
+                  An important use case for <code class="computeroutput"><a class="link" href="../../boost/parser/attribute.html" title="Struct template attribute">attribute</a></code>
                   is to provide a default attribute value as a trailing alternative.
                   For instance, an <span class="bold"><strong>optional</strong></span> comma-delmited
                   list is: <code class="computeroutput"><span class="identifier">int_</span> <span class="special">%</span> <span class="char">','</span> <span class="special">|</span> <span class="identifier">attr</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;)</span></code>. Without the "<code class="computeroutput"><span class="special">|</span> <span class="identifier">attr</span><span class="special">(...)</span></code>", at least one <code class="computeroutput"><span class="identifier">int_</span></code> match would be required.
@@ -583,7 +594,7 @@
               </td>
 <td>
                 <p>
-                  Matches a single deimal digit code point.
+                  Matches a single decimal digit code point.
                 </p>
               </td>
 <td>
@@ -678,7 +689,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -693,7 +704,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
                 </p>
               </td>
 </tr>
@@ -716,7 +727,7 @@
 <td>
                 <p>
                   This is a <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
-                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>,
+                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>,
                   for example <code class="computeroutput"><span class="char">'F'</span><span class="identifier">_l</span></code>.
                 </p>
               </td>
@@ -724,7 +735,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit</a></code><code class="computeroutput"><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
                 </p>
               </td>
 <td>
@@ -739,7 +750,7 @@
               </td>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit()</a></code> does <span class="bold"><strong>not</strong></span> take parse arguments.
                 </p>
               </td>
 </tr>
@@ -762,7 +773,7 @@
 <td>
                 <p>
                   This is a <a href="https://en.cppreference.com/w/cpp/language/user_literal" target="_top">UDL</a>
-                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm26750.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">s</span><span class="special">)</span></code>,
+                  that represents <code class="computeroutput"><a class="link" href="../../boost/parser/lit_idm32186.html" title="Function lit">lit</a><span class="special">(</span><span class="identifier">s</span><span class="special">)</span></code>,
                   for example <code class="computeroutput"><span class="string">"a string"</span><span class="identifier">_l</span></code>.
                 </p>
               </td>
@@ -1321,7 +1332,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm26699.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm32124.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1345,7 +1356,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm26699.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm32124.html" title="Function template repeat">repeat</a><span class="special">(</span><a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>
@@ -1354,7 +1365,7 @@
 <tr>
 <td>
                 <p>
-                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm26699.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm32124.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">arg0</span><span class="special">,</span> <span class="identifier">arg1</span><span class="special">)[</span><span class="identifier">p</span><span class="special">]</span></code>
                 </p>
               </td>
 <td>
@@ -1378,7 +1389,7 @@
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   an unlimited number of times creates an infinite loop, which is
                   undefined behavior in C++. Boost.Parser will assert in debug mode
-                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm26699.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
+                  when it encounters <code class="computeroutput"><a class="link" href="../../boost/parser/repeat_idm32124.html" title="Function template repeat">repeat</a><span class="special">(</span><span class="identifier">n</span><span class="special">,</span> <a class="link" href="../../boost/parser/Inf.html" title="Global Inf">Inf</a><span class="special">)[</span><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a><span class="special">]</span></code> (this applies to unconditional
                   <code class="computeroutput"><a class="link" href="../../boost/parser/eps.html" title="Global eps">eps</a></code>
                   only).
                 </p>
@@ -1470,6 +1481,151 @@
                 </p>
               </td>
 </tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/quoted_string.html" title="Global quoted_string">quoted_string</a></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches <code class="computeroutput"><span class="char">'"'</span></code>, followed
+                  by zero or more characters, followed by <code class="computeroutput"><span class="char">'"'</span></code>.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The result does not include the quotes. A quote within the string
+                  can be written by escaping it with a backslash. A backslash within
+                  the string can be written by writing two consecutive backslashes.
+                  Any other use of a backslash will fail the parse. Skipping is disabled
+                  while parsing the entire string, as if using <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/quoted_string.html" title="Global quoted_string">quoted_string</a><span class="special">(</span><span class="identifier">c</span><span class="special">)</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches <code class="computeroutput"><span class="identifier">c</span></code>, followed
+                  by zero or more characters, followed by <code class="computeroutput"><span class="identifier">c</span></code>.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The result does not include the <code class="computeroutput"><span class="identifier">c</span></code>
+                  quotes. A <code class="computeroutput"><span class="identifier">c</span></code> within
+                  the string can be written by escaping it with a backslash. A backslash
+                  within the string can be written by writing two consecutive backslashes.
+                  Any other use of a backslash will fail the parse. Skipping is disabled
+                  while parsing the entire string, as if using <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/quoted_string.html" title="Global quoted_string">quoted_string</a><span class="special">(</span><span class="identifier">r</span><span class="special">)</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches some character <code class="computeroutput"><span class="identifier">Q</span></code>
+                  in <code class="computeroutput"><span class="identifier">r</span></code>, followed
+                  by zero or more characters, followed by <code class="computeroutput"><span class="identifier">Q</span></code>.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The result does not include the <code class="computeroutput"><span class="identifier">Q</span></code>
+                  quotes. A <code class="computeroutput"><span class="identifier">Q</span></code> within
+                  the string can be written by escaping it with a backslash. A backslash
+                  within the string can be written by writing two consecutive backslashes.
+                  Any other use of a backslash will fail the parse. Skipping is disabled
+                  while parsing the entire string, as if using <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/quoted_string.html" title="Global quoted_string">quoted_string</a><span class="special">(</span><span class="identifier">c</span><span class="special">,</span> <span class="identifier">symbols</span><span class="special">)</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches <code class="computeroutput"><span class="identifier">c</span></code>, followed
+                  by zero or more characters, followed by <code class="computeroutput"><span class="identifier">c</span></code>.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The result does not include the <code class="computeroutput"><span class="identifier">c</span></code>
+                  quotes. A <code class="computeroutput"><span class="identifier">c</span></code> within
+                  the string can be written by escaping it with a backslash. A backslash
+                  within the string can be written by writing two consecutive backslashes.
+                  A backslash followed by a successful match using <code class="computeroutput"><span class="identifier">symbols</span></code> will be interpreted as
+                  the corresponding value produced by <code class="computeroutput"><span class="identifier">symbols</span></code>.
+                  Any other use of a backslash will fail the parse. Skipping is disabled
+                  while parsing the entire string, as if using <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <code class="computeroutput"><a class="link" href="../../boost/parser/quoted_string.html" title="Global quoted_string">quoted_string</a><span class="special">(</span><span class="identifier">r</span><span class="special">,</span> <span class="identifier">symbols</span><span class="special">)</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  Matches some character <code class="computeroutput"><span class="identifier">Q</span></code>
+                  in <code class="computeroutput"><span class="identifier">r</span></code>, followed
+                  by zero or more characters, followed by <code class="computeroutput"><span class="identifier">Q</span></code>.
+                </p>
+              </td>
+<td>
+                <p>
+                  <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+                </p>
+              </td>
+<td>
+                <p>
+                  The result does not include the <code class="computeroutput"><span class="identifier">Q</span></code>
+                  quotes. A <code class="computeroutput"><span class="identifier">Q</span></code> within
+                  the string can be written by escaping it with a backslash. A backslash
+                  within the string can be written by writing two consecutive backslashes.
+                  A backslash followed by a successful match using <code class="computeroutput"><span class="identifier">symbols</span></code> will be interpreted as
+                  the corresponding value produced by <code class="computeroutput"><span class="identifier">symbols</span></code>.
+                  Any other use of a backslash will fail the parse. Skipping is disabled
+                  while parsing the entire string, as if using <code class="computeroutput"><a class="link" href="../../boost/parser/lexeme.html" title="Global lexeme">lexeme[]</a></code>.
+                </p>
+              </td>
+</tr>
 </tbody>
 </table></div>
 </div>
@@ -1487,8 +1643,7 @@
           in the table above, that effectively means that every sequences of character
           attributes get turned into a <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>.
           The only time this does not happen is when you introduce your own rules
-          with attributes using another character type (or use <code class="computeroutput"><a class="link" href="../../boost/parser/attr.html" title="Function template attr">attr()</a></code>
-          to do so).
+          with attributes using another character type (or use <code class="computeroutput"><a class="link" href="../../boost/parser/attribute.html" title="Struct template attribute">attribute</a></code> to do so).
         </p></td></tr>
 </table></div>
 <div class="note"><table border="0" summary="Note">
@@ -1536,7 +1691,7 @@
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="alternative_parsers.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="directives.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="mutable_symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="directives.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

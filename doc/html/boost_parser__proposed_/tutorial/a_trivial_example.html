@@ -34,7 +34,7 @@
 <pre class="programlisting"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">double_</span> <span class="special">&gt;&gt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">double_</span>
 </pre>
 <p>
-        <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;()</span></code>
+        <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;</span></code>
         in this expression is the sequence-operator; read it as "followed by".
         If we combine the sequence-operator with <a href="https://en.wikipedia.org/wiki/Kleene_star" target="_top">Kleene
         star</a>, we can get the parser we want by writing:
@@ -44,7 +44,7 @@
 <p>
         This is a parser that matches at least one <code class="computeroutput"><span class="keyword">double</span></code>
         — because of the first <code class="computeroutput"><a class="link" href="../../boost/parser/double_.html" title="Global double_">double_</a></code> in the expression
-        above — followed by zero or more instances of a-comma-followed-by-a-<code class="computeroutput"><span class="keyword">double</span></code>. Notice that we can use <code class="computeroutput"><span class="char">','</span></code> directly. Though it is not a parser, <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;()</span></code>
+        above — followed by zero or more instances of a-comma-followed-by-a-<code class="computeroutput"><span class="keyword">double</span></code>. Notice that we can use <code class="computeroutput"><span class="char">','</span></code> directly. Though it is not a parser, <code class="computeroutput"><span class="keyword">operator</span><span class="special">&gt;&gt;</span></code>
         and the other operators defined on Boost.Parser parsers have overloads that
         accept character/parser pairs of arguments; these operator overloads will
         create the right parser to recognize <code class="computeroutput"><span class="char">','</span></code>.
@@ -82,15 +82,28 @@
       </p>
 <p>
         The first example filled in an out-parameter to deliver the result of the
-        parse. This call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
+        parse. This call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>
         returns a result instead. As you can see, the result is contextually convertible
         to <code class="computeroutput"><span class="keyword">bool</span></code>, and <code class="computeroutput"><span class="special">*</span><span class="identifier">result</span></code> is some sort of range. In fact,
-        the return type of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm27047.html" title="Function template parse">parse()</a></code>
+        the return type of this call to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>
         is <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">optional</span><span class="special">&lt;</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span><span class="special">&lt;</span><span class="keyword">double</span><span class="special">&gt;&gt;</span></code>. Naturally, if the parse fails,
         <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">nullopt</span></code> is returned. We'll look at how
         Boost.Parser maps the type of the parser to the return type, or the filled
         in out-parameter's type, a bit later.
       </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+          There's a type trait that can tell you the attribute type for a parser,
+          <code class="computeroutput"><a class="link" href="../../boost/parser/attribute.html" title="Struct template attribute">attribute</a></code>
+          (and an associated alias <code class="computeroutput"><a class="link" href="../../boost/parser/attribute_t.html" title="Type definition attribute_t">attribute_t</a></code>). We'll discuss
+          it more in the <a class="link" href="attribute_generation.html" title="Attribute Generation">Attribute
+          Generation</a> section.
+        </p></td></tr>
+</table></div>
 <p>
         If I run it in a shell, this is the result:
       </p>

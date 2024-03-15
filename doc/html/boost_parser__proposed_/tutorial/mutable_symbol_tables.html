@@ -7,12 +7,12 @@
 <link rel="home" href="../../index.html" title="Chapter 1. Boost.Parser (Proposed)">
 <link rel="up" href="../tutorial.html" title="Tutorial">
 <link rel="prev" href="symbol_tables.html" title="Symbol Tables">
-<link rel="next" href="alternative_parsers.html" title="Alternative Parsers">
+<link rel="next" href="the_parsers_and_their_uses.html" title="The Parsers And Their Uses">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="spirit-nav">
-<a accesskey="p" href="symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="alternative_parsers.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="the_parsers_and_their_uses.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -122,6 +122,7 @@
 
     <span class="keyword">auto</span> <span class="keyword">const</span> <span class="identifier">result</span> <span class="special">=</span> <span class="identifier">parse</span><span class="special">(</span><span class="string">"X 9 X"</span><span class="special">,</span> <span class="identifier">parser</span><span class="special">,</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">ws</span><span class="special">);</span>
     <span class="identifier">assert</span><span class="special">(</span><span class="identifier">result</span> <span class="special">&amp;&amp;</span> <span class="special">*</span><span class="identifier">result</span> <span class="special">==</span> <span class="number">9</span><span class="special">);</span>
+    <span class="special">(</span><span class="keyword">void</span><span class="special">)</span><span class="identifier">result</span><span class="special">;</span>
 
     <span class="identifier">assert</span><span class="special">(!</span><span class="identifier">parse</span><span class="special">(</span><span class="string">"X"</span><span class="special">,</span> <span class="identifier">symbols</span><span class="special">));</span>
 <span class="special">}</span>
@@ -154,8 +155,11 @@
           this:
         </p>
 <p>
-          symbols&lt;int&gt; roman_numerals; roman_numerals.insert_for_next_parse("I",
-          1)("V", 5)("X", 10);
+</p>
+<pre class="programlisting"><span class="identifier">symbols</span><span class="special">&lt;</span><span class="keyword">int</span><span class="special">&gt;</span> <span class="identifier">roman_numerals</span><span class="special">;</span>
+<span class="identifier">roman_numerals</span><span class="special">.</span><span class="identifier">insert_for_next_parse</span><span class="special">(</span><span class="string">"I"</span><span class="special">,</span> <span class="number">1</span><span class="special">)(</span><span class="string">"V"</span><span class="special">,</span> <span class="number">5</span><span class="special">)(</span><span class="string">"X"</span><span class="special">,</span> <span class="number">10</span><span class="special">);</span>
+</pre>
+<p>
         </p>
 </td></tr>
 </table></div>
@@ -181,7 +185,7 @@
 </div>
 <hr>
 <div class="spirit-nav">
-<a accesskey="p" href="symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="alternative_parsers.html"><img src="../../images/next.png" alt="Next"></a>
+<a accesskey="p" href="symbol_tables.html"><img src="../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../tutorial.html"><img src="../../images/up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../images/home.png" alt="Home"></a><a accesskey="n" href="the_parsers_and_their_uses.html"><img src="../../images/next.png" alt="Next"></a>
 </div>
 </body>
 </html>

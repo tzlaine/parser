@@ -51,6 +51,46 @@
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.best_practices.h2"></a>
+        <span class="phrase"><a name="boost_parser__proposed_.tutorial.best_practices.prefer_auto_generated_attributes_to_semantic_actions"></a></span><a class="link" href="best_practices.html#boost_parser__proposed_.tutorial.best_practices.prefer_auto_generated_attributes_to_semantic_actions">Prefer
+        auto-generated attributes to semantic actions</a>
+      </h5>
+<p>
+        There are multiple ways to get attributes out of a parser. You can:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+            use whatever attribute the parser generates;
+          </li>
+<li class="listitem">
+            provide an attribute out-argument to <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32479.html" title="Function template parse">parse()</a></code>
+            for the parser to fill in;
+          </li>
+<li class="listitem">
+            use one or more semantic actions to assign attributes from the parser
+            to variables outside the parser;
+          </li>
+<li class="listitem">
+            use callback parsing to provide attributes via callback calls.
+          </li>
+</ul></div>
+<p>
+        All of these are fairly similar in how much effort they require, except for
+        the semantic action method. For the semantic action approach, you need to
+        have values to fill in from your parser, and keep them in scope for the duration
+        of the parse.
+      </p>
+<p>
+        It is much more straight forward, and leads to more reusable parsers, to
+        have the parsers produce the attributes of the parse directly as a result
+        of the parse.
+      </p>
+<p>
+        This does not mean that you should never use semantic actions. They are sometimes
+        necessary. However, you should default to using the other non-semantic action
+        methods, and only use semantic actions with a good reason.
+      </p>
+<h5>
+<a name="boost_parser__proposed_.tutorial.best_practices.h3"></a>
         <span class="phrase"><a name="boost_parser__proposed_.tutorial.best_practices.if_your_parser_takes_end_user_input__give_rules_names_that_you_would_want_an_end_user_to_see"></a></span><a class="link" href="best_practices.html#boost_parser__proposed_.tutorial.best_practices.if_your_parser_takes_end_user_input__give_rules_names_that_you_would_want_an_end_user_to_see">If
         your parser takes end-user input, give rules names that you would want an
         end-user to see</a>
@@ -83,23 +123,6 @@ bp::rule&lt;class single_escaped_char, uint32_t&gt; const single_escaped_char =
         it's not really used as a name anywhere per se. In error messages, it works
         nicely, though. The error will be "Expected '"', '', '/', 'b',
         'f', 'n', 'r', or 't' here", which is pretty helpful.
-      </p>
-<h5>
-<a name="boost_parser__proposed_.tutorial.best_practices.h3"></a>
-        <span class="phrase"><a name="boost_parser__proposed_.tutorial.best_practices.compile_separately_when_you_know_the_type_of_your_input_will_not_change"></a></span><a class="link" href="best_practices.html#boost_parser__proposed_.tutorial.best_practices.compile_separately_when_you_know_the_type_of_your_input_will_not_change">Compile
-        separately when you know the type of your input will not change</a>
-      </h5>
-<p>
-        If your input type will not change (for instance, if you always parse from
-        a <code class="computeroutput">std::string</code> and nothing else), you can use separate compilation
-        to keep from recompiling your parsing code over and over in every translation
-        unit that includes it. For instance, in the JSON callback parser example,
-        there is a call to <code class="computeroutput">json::parse()</code>, which is a template. However,
-        the function template is always instantiated with the same parameter: <code class="computeroutput">json_callbacks</code>,
-        a type defined in the example. It would be possible to remove the template
-        parameter from <code class="computeroutput">json::parse()</code>, forward declare <code class="computeroutput">json_callbacks</code>
-        and <code class="computeroutput">json::parse()</code>, and define them in a different implementation
-        file.
       </p>
 <h5>
 <a name="boost_parser__proposed_.tutorial.best_practices.h4"></a>
