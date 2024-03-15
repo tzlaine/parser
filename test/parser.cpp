@@ -627,61 +627,63 @@ TEST(parser, star_and_plus_collapsing)
     }
 }
 
-TEST(parser, action)
-{
-    {{std::string str = "";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "");
-}
-{
-    std::string str = "b";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "b");
-}
-{
-    std::string str = "bb";
-    std::stringstream ss;
-    auto action = [&ss](auto & context) { ss << _attr(context); };
-    auto parser = *char_('b')[action];
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_TRUE(parse(str, parser));
-    EXPECT_EQ(ss.str(), "bbbb");
-}
-}
-
+TEST(parser, action_)
 {
     {
         std::string str = "";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_FALSE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "");
+        {
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "");
+        }
+        {
+            str = "b";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "b");
+        }
+        {
+            str = "bb";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = *char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "bbbb");
+        }
     }
+
     {
-        std::string str = "b";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "b");
+        {
+            std::string str = "";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_FALSE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "");
+        }
+        {
+            std::string str = "b";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "b");
+        }
+        {
+            std::string str = "bb";
+            std::stringstream ss;
+            auto action = [&ss](auto & ctx) { ss << _attr(ctx); };
+            auto parser = +char_('b')[action];
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_TRUE(parse(str, parser));
+            EXPECT_EQ(ss.str(), "bbbb");
+        }
     }
-    {
-        std::string str = "bb";
-        std::stringstream ss;
-        auto action = [&ss](auto & context) { ss << _attr(context); };
-        auto parser = +char_('b')[action];
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_TRUE(parse(str, parser));
-        EXPECT_EQ(ss.str(), "bbbb");
-    }
-}
 }
 
 TEST(parser, star_as_string_or_vector)
@@ -847,6 +849,106 @@ TEST(parser, star_as_string_or_vector)
             EXPECT_EQ(chars, std::vector<std::string>({"zs", "zs"}));
         }
     }
+}
+
+TEST(parser, transform)
+{
+    int calls = 0;
+    auto by_value_str_sum = [&](std::string s) {
+        ++calls;
+        std::transform(
+            s.begin(), s.end(), s.begin(), [](auto ch) { return ch - '0'; });
+        return std::accumulate(s.begin(), s.end(), 0);
+    };
+    auto cref_str_sum = [&](std::string const & s) {
+        ++calls;
+        int retval = 0;
+        for (auto ch : s) {
+            retval += ch - '0';
+        }
+        return retval;
+    };
+    auto rv_ref_str_sum = [&](std::string && s) {
+        ++calls;
+        std::transform(
+            s.begin(), s.end(), s.begin(), [](auto ch) { return ch - '0'; });
+        return std::accumulate(s.begin(), s.end(), 0);
+    };
+    {
+        constexpr auto parser = +char_;
+        std::string str = "012345";
+        {
+            auto result = parse(str, parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "012345");
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(by_value_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(cref_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, transform(rv_ref_str_sum)[parser]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 15);
+            EXPECT_EQ(calls, 1);
+        }
+    }
+    {
+        constexpr auto parser = +char_;
+        std::string str = "012345";
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(by_value_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(cref_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+        {
+            calls = 0;
+            auto result = parse(str, omit[transform(rv_ref_str_sum)[parser]]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(calls, 0);
+        }
+    }
+}
+
+TEST(parser, transform_doc_example)
+{
+    //[ transform_directive_example
+    auto str_sum = [&](std::string const & s) {
+        int retval = 0;
+        for (auto ch : s) {
+            retval += ch - '0';
+        }
+        return retval;
+    };
+
+    namespace bp = boost::parser;
+    constexpr auto parser = +bp::char_;
+    std::string str = "012345";
+
+    auto result = bp::parse(str, bp::transform(str_sum)[parser]);
+    assert(result);
+    assert(*result == 15);
+    static_assert(std::is_same_v<decltype(result), std::optional<int>>);
+    //]
+    (void)result;
 }
 
 TEST(parser, omit)
@@ -2042,11 +2144,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             std::string str = "abc";
-            tuple<
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable>
-                chars;
+            tuple<std::any, std::any, std::any> chars;
             EXPECT_TRUE(parse(str, parser, chars));
         }
 
@@ -2166,6 +2264,13 @@ TEST(parser, combined_seq_and_or)
             EXPECT_TRUE(parse(str, parser, chars, trace::on));
             EXPECT_EQ(chars, "xyz");
         }
+    }
+
+    {
+        constexpr auto parser = int_ >> -(lit('a') | 'b');
+        auto result = parse("34b", parser);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(*result, 34);
     }
 }
 
@@ -2848,4 +2953,65 @@ TEST(parser, rule_example)
     namespace bp = boost::parser;
     using namespace rule_construction_example;
     EXPECT_TRUE(bp::parse("3 4", type, bp::ws));
+}
+
+TEST(parser, utf_iterator_copy_ctor)
+{
+    namespace bp = boost::parser;
+
+    char mut_chars[] = "foo";
+    char const const_chars[] = "bar";
+
+    auto mut_view = mut_chars | bp::as_utf8;
+    auto const_view = const_chars | bp::as_utf8;
+
+    auto mut_it = mut_view.begin();
+    auto mut_last = mut_view.end();
+    auto const_it = const_view.begin();
+    auto const_last = const_view.begin();
+
+    const_it = mut_it;
+    const_last = mut_last;
+
+    std::string copy;
+    copy.resize(3);
+    std::copy(const_it, const_last, copy.begin());
+    EXPECT_EQ(copy, "foo");
+}
+
+namespace github_issue_125_ {
+    namespace bp = boost::parser;
+    constexpr bp::
+        rule<struct replacement_field_rule, std::optional<unsigned short>>
+            replacement_field = "replacement_field";
+    constexpr auto replacement_field_def = bp::lit('{') >> -bp::ushort_;
+    BOOST_PARSER_DEFINE_RULES(replacement_field);
+}
+
+TEST(parser, github_issue_125)
+{
+    namespace bp = boost::parser;
+    using namespace github_issue_125_;
+
+    unsigned short integer_found = 99;
+    auto print_repl_field = [&](auto & ctx) {
+        const std::optional<unsigned short> & val = bp::_attr(ctx);
+        if (val)
+            integer_found = *val;
+        else
+            integer_found = 77;
+    };
+
+    {
+        integer_found = 99;
+        auto result = bp::parse("{9", replacement_field[print_repl_field]);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(integer_found, 9);
+    }
+    {
+        integer_found = 99;
+        auto result = bp::parse("{", replacement_field[print_repl_field]);
+        EXPECT_TRUE(result);
+        EXPECT_EQ(integer_found, 77);
+    }
 }

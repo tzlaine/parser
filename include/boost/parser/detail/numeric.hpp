@@ -12,12 +12,34 @@
 #ifndef BOOST_PARSER_DETAIL_NUMERIC_HPP
 #define BOOST_PARSER_DETAIL_NUMERIC_HPP
 
+#include <boost/parser/detail/text/unpack.hpp>
+
+#include <version>
+#if defined(__cpp_lib_to_chars)
+#include <charconv>
+#define BOOST_PARSER_HAVE_STD_CHARCONV
+#define BOOST_PARSER_NUMERIC_NS std_charconv
+#elif __has_include(<boost/charconv.hpp>)
+#include <boost/charconv.hpp>
+#define BOOST_PARSER_HAVE_BOOST_CHARCONV
+#define BOOST_PARSER_NUMERIC_NS boost_charconv
+#else
+#define BOOST_PARSER_NUMERIC_NS spirit_parsers
+#endif
+
+#include <type_traits>
 #include <cmath>
 
+#if defined(BOOST_PARSER_HAVE_STD_CHARCONV) ||                                 \
+    defined(BOOST_PARSER_HAVE_BOOST_CHARCONV)
+#define BOOST_PARSER_HAVE_CHARCONV
+#endif
 
-namespace boost { namespace parser { namespace detail_spirit_x3 {
 
-    struct unused_type{};
+namespace boost::parser::detail_spirit_x3 {
+
+    struct unused_type
+    {};
 
     // Copied from boost/spirit/home/support/char_class.hpp (Boost 1.71), and
     // modified not to use Boost.TypeTraits.
@@ -963,7 +985,106 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     {
         static bool const expect_dot = true;
     };
+}
 
-}}}
+namespace boost::parser::detail::numeric {
+
+    template<typename I, typename S>
+    constexpr bool common_range = std::is_same_v<I, S>;
+
+    template<typename I, typename S>
+    using unpacked_iter = decltype(text::unpack_iterator_and_sentinel(
+                                       std::declval<I>(), std::declval<S>())
+                                       .first);
+
+    template<typename I, typename S>
+    constexpr bool unpacks_to_chars =
+        std::is_pointer_v<unpacked_iter<I, S>> && std::is_same_v<
+            std::remove_cv_t<std::remove_reference_t<
+                std::remove_pointer_t<unpacked_iter<I, S>>>>,
+            char>;
+
+    inline namespace BOOST_PARSER_NUMERIC_NS {
+
+        template<int MinDigits, int MaxDigits, typename I, typename S>
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+        constexpr bool use_charconv_int =
+            MinDigits == 1 && MaxDigits == -1 &&
+            common_range<I, S> && unpacks_to_chars<I, S>;
+#else
+        constexpr bool use_charconv_int = false;
+#endif
+
+        template<
+            bool Signed,
+            int Radix,
+            int MinDigits,
+            int MaxDigits,
+            typename I,
+            typename S,
+            typename T>
+        bool parse_int(I & first, S last, T & attr)
+        {
+            if constexpr (use_charconv_int<MinDigits, MaxDigits, I, S>) {
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+                auto unpacked = text::unpack_iterator_and_sentinel(first, last);
+#if defined(BOOST_PARSER_HAVE_STD_CHARCONV)
+                std::from_chars_result const result = std::from_chars(
+#else
+                charconv::from_chars_result const result = charconv::from_chars(
+#endif
+                    unpacked.first, unpacked.last, attr, Radix);
+                if (result.ec == std::errc()) {
+                    first = unpacked.repack(result.ptr);
+                    return true;
+                }
+                return false;
+#endif
+            } else if constexpr (Signed) {
+                using extract = detail_spirit_x3::
+                    extract_int<T, Radix, MinDigits, MaxDigits>;
+                return extract::call(first, last, attr);
+            } else {
+                using extract = detail_spirit_x3::
+                    extract_uint<T, Radix, MinDigits, MaxDigits>;
+                return extract::call(first, last, attr);
+            }
+        }
+
+        template<typename I, typename S>
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+        constexpr bool use_charconv_real =
+            common_range<I, S> && unpacks_to_chars<I, S>;
+#else
+        constexpr bool use_charconv_real = false;
+#endif
+
+        template<typename I, typename S, typename T>
+        bool parse_real(I & first, S last, T & attr)
+        {
+            if constexpr (use_charconv_real<I, S>) {
+#if defined(BOOST_PARSER_HAVE_CHARCONV)
+                auto unpacked = text::unpack_iterator_and_sentinel(first, last);
+#if defined(BOOST_PARSER_HAVE_STD_CHARCONV)
+                std::from_chars_result const result = std::from_chars(
+#else
+                charconv::from_chars_result const result = charconv::from_chars(
+#endif
+                    unpacked.first, unpacked.last, attr);
+                if (result.ec == std::errc()) {
+                    first = unpacked.repack(result.ptr);
+                    return true;
+                }
+                return false;
+#endif
+            } else {
+                detail_spirit_x3::real_policies<T> policies;
+                using extract = detail_spirit_x3::
+                    extract_real<T, detail_spirit_x3::real_policies<T>>;
+                return extract::parse(first, last, attr, policies);
+            }
+        }
+    }
+}
 
 #endif

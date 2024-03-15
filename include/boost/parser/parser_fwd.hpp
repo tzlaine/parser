@@ -9,6 +9,7 @@
 #include <boost/parser/config.hpp>
 #include <boost/parser/error_handling_fwd.hpp>
 
+#include <any>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -43,6 +44,20 @@ namespace boost { namespace parser {
     constexpr bool enable_variant<std::variant<Ts...>> = true;
 #endif
 
+    /** A type trait that evaluates to the attribute type for parser `Parser`
+        used to parse range `R`, as if by calling `parse(r, parser)`, using
+        some `R r` and `Parser parser`.  Note that this implies that pointers
+        to null-terminated strings are supported types for `R`.  The result is
+        not wrapped in a `std::optional` like the result of a call to
+        `parse()` would be.  If `Parser` produces no attribute, the result is
+        the no-attribute sentinel type `none`. */
+    template<typename R, typename Parser>
+    struct attribute;
+
+    /** An alias for `typename attribute<R, Parser>::type`. */
+    template<typename R, typename Parser>
+    using attribute_t = typename attribute<R, Parser>::type;
+
     namespace detail {
         template<typename T>
         constexpr bool is_optional_v = enable_optional<T>;
@@ -56,71 +71,15 @@ namespace boost { namespace parser {
             in_apply_parser = 1 << 3
         };
 
-        struct any_copyable
-        {
-            template<
-                typename T,
-                typename Enable = std::enable_if_t<!std::is_reference_v<T>>>
-            any_copyable(T && v) :
-                impl_(new holder<std::decay_t<T>>(std::move(v)))
-            {}
-            template<typename T>
-            any_copyable(T const & v) : impl_(new holder<T>(v))
-            {}
-
-            any_copyable() = default;
-            any_copyable(any_copyable const & other)
-            {
-                if (other.impl_)
-                    impl_ = other.impl_->clone();
-            }
-            any_copyable & operator=(any_copyable const & other)
-            {
-                any_copyable temp(other);
-                swap(temp);
-                return *this;
-            }
-            any_copyable(any_copyable &&) = default;
-            any_copyable & operator=(any_copyable &&) = default;
-
-            bool empty() const { return impl_.get() == nullptr; }
-
-            template<typename T>
-            T & cast() const
-            {
-                BOOST_PARSER_DEBUG_ASSERT(impl_);
-                BOOST_PARSER_DEBUG_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
-                return static_cast<holder<T> *>(impl_.get())->value_;
-            }
-
-            void swap(any_copyable & other) { std::swap(impl_, other.impl_); }
-
-        private:
-            struct holder_base
-            {
-                virtual ~holder_base() {}
-                virtual std::unique_ptr<holder_base> clone() const = 0;
-            };
-            template<typename T>
-            struct holder : holder_base
-            {
-                holder(T && v) : value_(std::move(v)) {}
-                holder(T const & v) : value_(v) {}
-                virtual ~holder() {}
-                virtual std::unique_ptr<holder_base> clone() const
-                {
-                    return std::unique_ptr<holder_base>(new holder<T>{value_});
-                }
-                T value_;
-            };
-
-            std::unique_ptr<holder_base> impl_;
-        };
-
         using symbol_table_tries_t =
-            std::map<void *, any_copyable, std::less<void *>>;
+            std::map<void *, std::pair<std::any, bool>, std::less<void *>>;
 
-        template<typename Iter, typename Sentinel, typename ErrorHandler>
+        template<
+            bool DoTrace,
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler>
         inline auto make_context(
             Iter first,
             Sentinel last,
@@ -209,6 +168,17 @@ namespace boost { namespace parser {
     template<typename ParserTuple>
     struct or_parser;
 
+    /** Applies each parsers in `ParserTuple`, an any order, stopping after
+        all of them have matched the input.  The parse succeeds iff all the
+        parsers match, regardless of the order in which they do.  The
+        attribute produced is a `parser::tuple` containing the attributes of
+        the subparsers, in their order of the parsers' appearance in
+        `ParserTuple`, not the order of the parsers' matches.  It is an error
+        to specialize `perm_parser` with a `ParserTuple` template parameter
+        that includes an `eps_parser`. */
+    template<typename ParserTuple>
+    struct perm_parser;
+
     /** Applies each parser in `ParserTuple`, in order.  The parse succeeds
         iff all of the sub-parsers succeed.  The attribute produced is a
         `std::tuple` over the types of attribute produced by the parsers in
@@ -228,6 +198,14 @@ namespace boost { namespace parser {
         Produces no attribute. */
     template<typename Parser, typename Action>
     struct action_parser;
+
+    /** Applies the given parser `p` of type `Parser`.  The attribute produced
+        by `p` is passed to the fiven invocable `f` of type `F`.  `f` will
+        only be invoked if `p` succeeds and sttributes are currently being
+        generated.  The parse succeeds iff `p` succeeds.  The attribute
+        produced is the the result of the call to `f`. */
+    template<typename Parser, typename F>
+    struct transform_parser;
 
     /** Applies the given parser `p` of type `Parser`.  This parser produces
         no attribute, and suppresses the production of any attributes that
@@ -364,12 +342,17 @@ namespace boost { namespace parser {
         character being matched. */
     struct digit_parser;
 
-    /** Maches a particular string, delimited by an iterator sentinel pair;
+    /** Matches a particular string, delimited by an iterator sentinel pair;
         produces no attribute. */
     template<typename StrIter, typename StrSentinel>
     struct string_parser;
 
-    /** Maches an end-of-line (`NewlinesOnly == true`), whitespace
+    /** Matches a string delimited by quotation marks; produces a
+        `std::string` attribute. */
+    template<typename Quotes = detail::nope, typename Escapes = detail::nope>
+    struct quoted_string_parser;
+
+    /** Matches an end-of-line (`NewlinesOnly == true`), whitespace
         (`NewlinesOnly == false`), or (`NoNewlines == true`) blank (whitespace
         but not newline) code point, based on the Unicode definitions of each
         (also matches the two code points `"\r\n"`).  Produces no
@@ -377,7 +360,7 @@ namespace boost { namespace parser {
     template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser;
 
-    /** Maches the strings "true" and "false", producing an attribute of
+    /** Matches the strings "true" and "false", producing an attribute of
         `true` or `false`, respectively, and fails on any other input. */
     struct bool_parser;
 
@@ -462,13 +445,14 @@ namespace boost { namespace parser {
         typename ParamsTuple = no_params>
     struct callback_rule;
 
+#ifdef BOOST_PARSER_DOXYGEN
     /** Returns a reference to the attribute(s) (i.e. return value) of the
         bottommost parser; multiple attributes will be stored within a
         `parser::tuple`.  You may write to this value in a semantic action to
         control what attribute value(s) the associated parser produces.
         Returns `none` if the bottommost parser does produce an attribute. */
-    template<typename Context>
     decltype(auto) _val(Context const & context);
+#endif
 
     /** Returns a reference to the attribute or attributes already produced by
         the bottommost parser; multiple attributes will be stored within a
@@ -527,9 +511,13 @@ namespace boost { namespace parser {
 
     /** Report that the error described in `message` occurred at `location`,
         using the context's error handler. */
-    template<typename Iter, typename Context>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
     void _report_error(
-        Context const & context, std::string_view message, Iter location);
+        Context const & context, std::string_view message, I location);
 
     /** Report that the error described in `message` occurred at
         `_where(context).begin()`, using the context's error handler. */
@@ -538,9 +526,13 @@ namespace boost { namespace parser {
 
     /** Report that the warning described in `message` occurred at `location`,
         using the context's error handler. */
-    template<typename Iter, typename Context>
+#if BOOST_PARSER_USE_CONCEPTS
+    template<std::forward_iterator I, typename Context>
+#else
+    template<typename I, typename Context>
+#endif
     void _report_warning(
-        Context const & context, std::string_view message, Iter location);
+        Context const & context, std::string_view message, I location);
 
     /** Report that the warning described in `message` occurred at
         `_where(context).begin()`, using the context's error handler. */

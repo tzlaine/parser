@@ -7,6 +7,7 @@
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/transcode_iterator.hpp>
 
+#include <algorithm>
 #include <array>
 #include <functional>
 #include <iostream>

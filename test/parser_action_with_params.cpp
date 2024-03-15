@@ -15,7 +15,7 @@ auto make_13 = [](auto & context) { return 13; };
 
 auto const first_param_to_val = [](auto & context) {
     using namespace boost::parser::literals;
-    _val(context) = get(_params(context), 0_c);
+    _val(context) = (int)get(_params(context), 0_c);
 };
 auto const second_param_to_val = [](auto & context) {
     using namespace boost::parser::literals;

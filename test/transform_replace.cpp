@@ -681,7 +681,8 @@ TEST(transform_replace, transform_replace_unicode)
         int count = 0;
         std::string replace_result;
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             replace_result += str;
             ++count;
         }
@@ -696,7 +697,8 @@ TEST(transform_replace, transform_replace_unicode)
         int count = 0;
         std::string replace_result;
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             replace_result += str;
             ++count;
         }
@@ -725,7 +727,8 @@ TEST(transform_replace, transform_replace_unicode)
         int count = 0;
         std::string replace_result;
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             replace_result += str;
             ++count;
         }
@@ -739,7 +742,8 @@ TEST(transform_replace, transform_replace_unicode)
         int count = 0;
         std::string replace_result;
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             replace_result += str;
             ++count;
         }
@@ -775,7 +779,7 @@ TEST(transform_replace, join_compat)
         std::string transform_replace_result;
         for (auto ch : rng) {
             static_assert(std::is_same_v<decltype(ch), char16_t>);
-            transform_replace_result.push_back(ch);
+            transform_replace_result.push_back((char)ch);
         }
         EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
     }
@@ -787,7 +791,7 @@ TEST(transform_replace, join_compat)
         std::string transform_replace_result;
         for (auto ch : rng) {
             static_assert(std::is_same_v<decltype(ch), char32_t>);
-            transform_replace_result.push_back(ch);
+            transform_replace_result.push_back((char)ch);
         }
         EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
     }

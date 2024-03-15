@@ -739,6 +739,7 @@ TEST(search, doc_examples)
         assert(
             std::string_view(result.begin(), result.end() - result.begin()) ==
             "XYZ");
+        (void)result;
     }
     {
         auto r = "XYZaaXYZbaabaXYZXYZ" | bp::search_all(bp::lit("XYZ"));

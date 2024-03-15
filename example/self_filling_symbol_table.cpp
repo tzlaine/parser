@@ -35,6 +35,7 @@ int main()
     auto const result = parse("X 9 X", parser, bp::ws);
     assert(result && *result == 9);
     //]
+    (void)result;
 
     //[ self_filling_symbol_table_after_parse
     assert(!parse("X", symbols));

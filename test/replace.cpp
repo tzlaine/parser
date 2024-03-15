@@ -258,7 +258,8 @@ TEST(replace, replace_unicode)
         int count = 0;
         std::string_view const strs[] = {"aa", "foo", "b"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -274,7 +275,8 @@ TEST(replace, replace_unicode)
         int count = 0;
         std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -301,7 +303,8 @@ TEST(replace, replace_unicode)
         int count = 0;
         std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -314,7 +317,8 @@ TEST(replace, replace_unicode)
         int count = 0;
         std::string_view const strs[] = {"aa", "foo", "baaba", "foo", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -342,7 +346,8 @@ TEST(replace, replace_unicode)
         std::string_view const strs[] = {
             "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -356,7 +361,8 @@ TEST(replace, replace_unicode)
         std::string_view const strs[] = {
             "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -370,7 +376,8 @@ TEST(replace, replace_unicode)
         std::string_view const strs[] = {
             "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
         for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
+            auto u8sub = subrange | bp::as_utf8;
+            std::string str(u8sub.begin(), u8sub.end());
             EXPECT_EQ(str, strs[count]);
             ++count;
         }
@@ -391,7 +398,7 @@ TEST(replace, join_compat)
         std::string replace_result;
         for (auto ch : rng) {
             static_assert(std::is_same_v<decltype(ch), char32_t>);
-            replace_result.push_back(ch);
+            replace_result.push_back((char)ch);
         }
         EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
     }
@@ -437,17 +444,35 @@ TEST(replace, join_compat)
 
 TEST(replace, doc_examples)
 {
+    // clang-format off
     {
-        auto rng = "XYZaaXYZbaabaXYZXYZ" | bp::replace(bp::lit("XYZ"), "foo");
+        namespace bp = boost::parser;
+        auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+        auto rng = "My credit card number is 1234-5678-9012-3456." | bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX");
         int count = 0;
-        // Prints foo aa foo baaba foo foo.
+        // Prints My credit card number is XXXX-XXXX-XXXX-XXXX.
         for (auto subrange : rng) {
-            std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+            std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin());
             ++count;
         }
         std::cout << "\n";
-        assert(count == 6);
+        assert(count == 3);
     }
+#if BOOST_PARSER_USE_CONCEPTS && (!defined(__GNUC__) || 12 <= __GNUC__)
+    {
+        namespace bp = boost::parser;
+        auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+        auto rng = "My credit card number is 1234-5678-9012-3456." |
+                   bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX") |
+                   std::views::join;
+        std::string replace_result;
+        for (auto ch : rng) {
+            replace_result.push_back(ch);
+        }
+        assert(replace_result == "My credit card number is XXXX-XXXX-XXXX-XXXX.");
+    }
+#endif
+    // clang-format on
 }
 
 #endif

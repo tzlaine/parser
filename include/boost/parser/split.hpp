@@ -8,7 +8,7 @@ namespace boost::parser {
 
     /** Produces a sequence of subranges of the underlying sequence of type
         `V`.  the underlying sequence is split into subranges delimited by
-        matches of the given parser, possibly using a given skip-parser.  */
+        matches of the given parser, possibly using a given skip-parser. */
     template<
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::viewable_range V,

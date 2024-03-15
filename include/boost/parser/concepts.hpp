@@ -44,18 +44,14 @@ namespace boost { namespace parser {
     //]
 
     template<typename T>
-    concept utf_pointer =
-        std::is_pointer_v<T> && code_unit<std::iter_value_t<T>>;
-    template<typename T>
-    concept range_like =
-        std::ranges::range<T> || utf_pointer<std::remove_cvref_t<T>>;
+    concept range_like = std::ranges::range<T> || parsable_pointer<T>;
 
     template<
         typename I,
         typename S,
         typename ErrorHandler,
         typename GlobalState>
-    using minimal_parse_context = decltype(detail::make_context(
+    using minimal_parse_context = decltype(detail::make_context<false, false>(
         std::declval<I>(),
         std::declval<S>(),
         std::declval<bool &>(),

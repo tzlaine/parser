@@ -115,11 +115,12 @@ TEST(parser, full_parse_api)
         EXPECT_EQ(out, 'a');
         out = 0;
         first = str.c_str();
+        auto ws_copy = ws;
         EXPECT_FALSE(prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             char_('b'),
-            ws,
+            ws_copy,
             out));
         EXPECT_EQ(out, 0);
     }
@@ -138,7 +139,8 @@ TEST(parser, full_parse_api)
         EXPECT_TRUE(parse(str.c_str(), char_, ws, out));
         EXPECT_EQ(out, 'a');
         out = 0;
-        EXPECT_FALSE(parse(str.c_str(), char_('b'), ws, out));
+        auto ws_copy = ws;
+        EXPECT_FALSE(parse(str.c_str(), char_('b'), ws_copy, out));
         EXPECT_EQ(out, 0);
     }
 
@@ -156,11 +158,12 @@ TEST(parser, full_parse_api)
                 ws),
             'a');
         first = str.c_str();
+        auto ws_copy = ws;
         EXPECT_TRUE(!prefix_parse(
             first,
             boost::parser::detail::text::null_sentinel,
             char_('b'),
-            ws));
+            ws_copy));
     }
     // returned attr, using skipper, range
     {
@@ -172,7 +175,8 @@ TEST(parser, full_parse_api)
     {
         EXPECT_TRUE(parse(str.c_str(), char_, ws));
         EXPECT_EQ(*parse(str.c_str(), char_, ws), 'a');
-        EXPECT_FALSE(parse(str.c_str(), char_('b'), ws));
+        auto ws_copy = ws;
+        EXPECT_FALSE(parse(str.c_str(), char_('b'), ws_copy));
     }
 
     // callback, iter/sent
@@ -217,6 +221,20 @@ TEST(parser, full_parse_api)
         first = str.c_str();
         EXPECT_EQ(out, 'a');
     }
+    {
+        char out = 0;
+        auto callbacks = [&out](auto tag, auto x) { out = x; };
+        auto first = str.c_str();
+        auto ws_copy = ws;
+        EXPECT_TRUE(callback_prefix_parse(
+            first,
+            boost::parser::detail::text::null_sentinel,
+            callback_char_rule,
+            ws_copy,
+            callbacks));
+        first = str.c_str();
+        EXPECT_EQ(out, 'a');
+    }
     // callback, using skipper, range
     {
         char out = 0;
@@ -229,8 +247,9 @@ TEST(parser, full_parse_api)
     {
         char out = 0;
         auto callbacks = [&out](auto tag, auto x) { out = x; };
+        auto ws_copy = ws;
         EXPECT_TRUE(callback_parse(
-            str.c_str(), callback_char_rule, ws, callbacks));
+            str.c_str(), callback_char_rule, ws_copy, callbacks));
         EXPECT_EQ(out, 'a');
     }
 }
@@ -1797,11 +1816,7 @@ TEST(parser, combined_seq_and_or)
 
         {
             char const * str = "abc";
-            tuple<
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable,
-                boost::parser::detail::any_copyable>
-                chars;
+            tuple<std::any, std::any, std::any> chars;
             EXPECT_TRUE(parse(str, parser, chars));
         }
 
@@ -1979,6 +1994,7 @@ TEST(parser, attr_out_param_compat)
         using namespace bp::literals;
 
         assert(success);
+        (void)success;
         assert(bp::get(result, 0_c) == std::vector<int>({'r', U'ô', 'l', 'e'}));
         assert(bp::get(result, 1_c) == "foo");
     }
@@ -1996,6 +2012,7 @@ TEST(parser, attr_out_param_compat)
         using namespace bp::literals;
 
         assert(success);
+        (void)success;
         // The 4 code points "rôle" get transcoded to 5 UTF-8 code points to fit in the std::string.
         assert(bp::get(result, 0_c) == std::vector<char>({'r', (char)0xc3, (char)0xb4, 'l', 'e'}));
         assert(bp::get(result, 1_c) == "foo");

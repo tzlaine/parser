@@ -10,25 +10,29 @@
 #endif
 #include <boost/type_index.hpp>
 #define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 1
+#define BOOST_PARSER_TYPE_NAME_NS boost_type_index
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 #else
 #include <typeinfo>
 #define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 0
+#define BOOST_PARSER_TYPE_NAME_NS std_typeinfo
 #endif
 
 
 namespace boost { namespace parser { namespace detail {
 
-    template<typename T>
-    auto type_name()
-    {
+    inline namespace BOOST_PARSER_TYPE_NAME_NS {
+        template<typename T>
+        auto type_name()
+        {
 #if BOOST_PARSER_HAVE_BOOST_TYPEINDEX
-        return typeindex::type_id<T>().pretty_name();
+            return typeindex::type_id<T>().pretty_name();
 #else
-        return typeid(T).name();
+            return typeid(T).name();
 #endif
+        }
     }
 
     template<typename Parser>
@@ -57,6 +61,10 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename ParserTuple>
     struct n_aray_parser<or_parser<ParserTuple>> : std::true_type
+    {};
+
+    template<typename ParserTuple>
+    struct n_aray_parser<perm_parser<ParserTuple>> : std::true_type
     {};
 
     template<
@@ -161,6 +169,32 @@ namespace boost { namespace parser { namespace detail {
             os << ")";
     }
 
+    template<typename Context, typename Parser>
+    void print_or_like_parser(
+        Context const & context,
+        Parser const & parser,
+        std::ostream & os,
+        int components,
+        std::string_view or_ellipsis,
+        std::string_view ws_or)
+    {
+        int i = 0;
+        bool printed_ellipsis = false;
+        hl::for_each(parser.parsers_, [&](auto const & parser) {
+            if (components == parser_component_limit) {
+                if (!printed_ellipsis)
+                    os << or_ellipsis;
+                printed_ellipsis = true;
+                return;
+            }
+            if (i)
+                os << ws_or;
+            detail::print_parser(context, parser, os, components);
+            ++components;
+            ++i;
+        });
+    }
+
     template<typename Context, typename ParserTuple>
     void print_parser(
         Context const & context,
@@ -168,21 +202,19 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        int i = 0;
-        bool printed_ellipsis = false;
-        hl::for_each(parser.parsers_, [&](auto const & parser) {
-            if (components == parser_component_limit) {
-                if (!printed_ellipsis)
-                    os << " | ...";
-                printed_ellipsis = true;
-                return;
-            }
-            if (i)
-                os << " | ";
-            detail::print_parser(context, parser, os, components);
-            ++components;
-            ++i;
-        });
+        detail::print_or_like_parser(
+            context, parser, os, components, " | ...", " | ");
+    }
+
+    template<typename Context, typename ParserTuple>
+    void print_parser(
+        Context const & context,
+        perm_parser<ParserTuple> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_or_like_parser(
+            context, parser, os, components, " || ...", " || ");
     }
 
     template<
@@ -226,7 +258,7 @@ namespace boost { namespace parser { namespace detail {
                 detail::print_parser(context, parser, os, components);
                 ++components;
                 ++i;
-                prev_group = group;
+                prev_group = (int)group;
             });
         if (prev_group && !printed_ellipsis)
             os << ']';
@@ -257,6 +289,17 @@ namespace boost { namespace parser { namespace detail {
         else
             detail::print_parser(context, parser, os, components + 1);
         os << "]";
+    }
+
+    template<typename Context, typename Parser, typename F>
+    void print_parser(
+        Context const & context,
+        transform_parser<Parser, F> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        detail::print_directive(
+            context, "transform(<<f>>)", parser.parser_, os, components);
     }
 
     template<typename Context, typename Parser>
@@ -439,8 +482,7 @@ namespace boost { namespace parser { namespace detail {
     template<
         typename Context,
         typename ResolvedExpected,
-        bool Integral = std::is_integral<ResolvedExpected>{},
-        int SizeofExpected = sizeof(ResolvedExpected)>
+        bool Integral = std::is_integral<ResolvedExpected>{}>
     struct print_expected_char_impl
     {
         static void call(
@@ -452,13 +494,17 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Context, typename Expected>
-    struct print_expected_char_impl<Context, Expected, true, 4>
+    template<typename Context>
+    struct print_expected_char_impl<Context, char32_t, true>
     {
         static void
-        call(Context const & context, std::ostream & os, Expected expected)
+        call(Context const & context, std::ostream & os, char32_t expected)
         {
-            std::array<char32_t, 1> cps = {{(char32_t)expected}};
+            if (expected == '\'') {
+                os << "'\\''";
+                return;
+            }
+            std::array<char32_t, 1> cps = {{expected}};
             auto const r = cps | text::as_utf8;
             os << "'";
             for (auto c : r) {
@@ -646,6 +692,27 @@ namespace boost { namespace parser { namespace detail {
         os << "\"";
     }
 
+    template<typename Context, typename Quotes, typename Escapes>
+    void print_parser(
+        Context const & context,
+        quoted_string_parser<Quotes, Escapes> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "quoted_string(";
+        if constexpr (is_nope_v<Quotes>) {
+            detail::print_expected_char_impl<Context, char32_t>::call(
+                context, os, parser.ch_);
+        } else {
+            os << '"';
+            for (auto c : parser.chs_ | text::as_utf8) {
+                detail::print_char(os, c);
+            }
+            os << '"';
+        }
+        os << ')';
+    }
+
     template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,
@@ -825,11 +892,12 @@ namespace boost { namespace parser { namespace detail {
         int components)
     {
         using namespace literals;
-
-        os << "("
-           << detail::resolve(
-                  context, parser::get(parser.parsers_, 0_c).pred_.value_)
-           << ", ";
+        os << "(";
+        detail::print(
+            os,
+            detail::resolve(
+                context, parser::get(parser.parsers_, 0_c).pred_.value_));
+        os << ", ";
         detail::print_parser(
             context, parser::get(parser.parsers_, 1_c), os, components);
         os << ")";

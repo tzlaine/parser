@@ -289,7 +289,7 @@ namespace boost::parser {
 
     /** Produces a sequence of subranges of the underlying sequence of type
         `V`.  Each subrange is a nonoverlapping match of the given parser,
-        using a skip-parser if provided.  */
+        using a skip-parser if provided. */
     template<
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::viewable_range V,

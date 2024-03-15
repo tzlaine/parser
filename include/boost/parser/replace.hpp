@@ -193,7 +193,12 @@ namespace boost::parser {
 
     /** Produces a range of subranges of a given range `base`.  Each subrange
         is either a subrange of `base` that does not match the given parser
-        `parser`, or is the given replacement for a match, `replacement`. */
+        `parser`, or is the given replacement for a match, `replacement`.
+
+        In addition to the template parameter constraints, `V` and
+        `ReplacementV` must be ranges of `char`, or must have the same UTF
+        format, and `V` and `ReplacementV` must meet the same compatibility
+        requirements as described in `std::ranges::join_view`. */
     template<
 #if BOOST_PARSER_USE_CONCEPTS
         std::ranges::viewable_range V,

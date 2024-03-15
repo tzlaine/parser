@@ -2,9 +2,9 @@ name: windows-2022 - Visual Studio 2022
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, develop, boost_review_changes ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ master, develop, boost_review_changes ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

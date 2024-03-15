@@ -23,6 +23,9 @@ TEST(no_case, doc_example)
     auto const alpha_parser = bp::no_case[bp::char_('a', 'z')];
     assert(bp::parse("a" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
     assert(bp::parse("B" | bp::as_utf32, bp::no_case[alpha_parser])); // Match!
+
+    (void)street_parser;
+    (void)alpha_parser;
 }
 
 
@@ -165,6 +168,97 @@ TEST(no_case, match_any_within_string)
     }
 }
 
+TEST(no_case, symbol_table)
+{
+    // without mutation
+    {
+        symbols<int> const roman_numerals = {
+            {"I", 1}, {"V", 5}, {"X", 10}, {"L", 50}, {"C", 100}};
+        symbols<std::string> const named_strings = {
+            {"I", "1"}, {"V", "5"}, {"X", "10"}, {"L", "50"}, {"C", "100"}};
+
+        {
+            auto const result = parse("I", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 1);
+        }
+        {
+            auto const result = parse("i", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 1);
+        }
+        {
+            auto const result = parse("I", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "1");
+        }
+        {
+            auto const result = parse("i", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "1");
+        }
+
+        {
+            auto const result = parse("L", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+        }
+        {
+            auto const result = parse("l", no_case[roman_numerals]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+        }
+        {
+            auto const result = parse("L", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "50");
+        }
+        {
+            auto const result = parse("l", no_case[named_strings]);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, "50");
+        }
+    }
+    // with mutation
+    {
+        symbols<int> roman_numerals;
+        roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
+        auto const add_numeral = [&roman_numerals](auto & context) {
+            using namespace boost::parser::literals;
+            char chars[2] = {get(_attr(context), 0_c), 0};
+            roman_numerals.insert(context, chars, get(_attr(context), 1_c));
+        };
+        auto const numerals_parser = omit[roman_numerals] >>
+                                     (char_ >> int_)[add_numeral] >>
+                                     no_case[roman_numerals];
+
+        {
+            auto const result = parse("VL50L", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+            EXPECT_FALSE(parse("L", roman_numerals));
+        }
+        {
+            auto const result = parse("VL50l", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 50);
+            EXPECT_FALSE(parse("L", roman_numerals));
+        }
+        {
+            auto const result = parse("VC100C", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 100);
+            EXPECT_FALSE(parse("C", roman_numerals));
+        }
+        {
+            auto const result = parse("Vc100C", numerals_parser);
+            EXPECT_TRUE(result);
+            EXPECT_EQ(*result, 100);
+            EXPECT_FALSE(parse("C", roman_numerals));
+        }
+    }
+}
+
 constexpr auto capital_sharp_s = u8"ẞ"; // U+1E9E
 constexpr auto small_sharp_s = u8"ß";   // U+00DF
 constexpr auto double_s = u8"sS";       // U+0073 U+0073
@@ -290,7 +384,7 @@ TEST(no_case, detail_no_case_iter)
         auto first =
             detail::no_case_iter(mixed_sharp_s1, detail::text::null_sentinel);
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "sss");
@@ -302,7 +396,7 @@ TEST(no_case, detail_no_case_iter)
         auto first =
             detail::no_case_iter(mixed_sharp_s2, detail::text::null_sentinel);
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "sss");
@@ -315,7 +409,7 @@ TEST(no_case, detail_no_case_iter)
             detail::no_case_iter(street, detail::text::null_sentinel);
         auto first = first_const;
         while (first != detail::text::null_sentinel) {
-            folded.push_back(*first);
+            folded.push_back((char)*first);
             ++first;
         }
         EXPECT_EQ(folded, "strasse");

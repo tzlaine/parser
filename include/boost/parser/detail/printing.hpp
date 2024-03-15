@@ -71,6 +71,13 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+    template<typename Context, typename ParserTuple>
+    void print_parser(
+        Context const & context,
+        perm_parser<ParserTuple> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<
         typename Context,
         typename ParserTuple,
@@ -87,6 +94,13 @@ namespace boost { namespace parser { namespace detail {
     void print_parser(
         Context const & context,
         action_parser<Parser, Action> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context, typename Parser, typename F>
+    void print_parser(
+        Context const & context,
+        transform_parser<Parser, F> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -261,6 +275,13 @@ namespace boost { namespace parser { namespace detail {
     void print_parser(
         Context const & context,
         omit_parser<string_parser<StrIter, StrSentinel>> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context, typename Quotes, typename Escapes>
+    void print_parser(
+        Context const & context,
+        quoted_string_parser<Quotes, Escapes> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -554,6 +575,7 @@ namespace boost { namespace parser { namespace detail {
     auto resolve(Context const &, nope n);
 
     template<
+        bool DoTrace,
         typename Iter,
         typename Sentinel,
         typename Context,
@@ -608,6 +630,16 @@ namespace boost { namespace parser { namespace detail {
     };
 
     template<
+        typename Iter,
+        typename Sentinel,
+        typename Context,
+        typename Attribute>
+    struct scoped_trace_t<false, Iter, Sentinel, Context, Attribute>
+    {
+        scoped_trace_t() {}
+    };
+
+    template<
         typename Parser,
         typename Iter,
         typename Sentinel,
@@ -621,11 +653,14 @@ namespace boost { namespace parser { namespace detail {
         flags f,
         Attribute const & attr)
     {
-        std::stringstream oss;
-        if (detail::do_trace(f))
+        if constexpr (Context::do_trace) {
+            std::stringstream oss;
             detail::print_parser(context, parser, oss);
-        return scoped_trace_t<Iter, Sentinel, Context, Attribute>(
-            first, last, context, f, attr, oss.str());
+            return scoped_trace_t<true, Iter, Sentinel, Context, Attribute>(
+                first, last, context, f, attr, oss.str());
+        } else {
+            return scoped_trace_t<false, Iter, Sentinel, Context, Attribute>{};
+        }
     }
 
     template<typename Context, typename Attribute>

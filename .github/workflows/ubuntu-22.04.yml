@@ -2,9 +2,9 @@ name: Ubuntu-22.04 - GCC 10,11
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, develop, boost_review_changes ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ master, develop, boost_review_changes ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

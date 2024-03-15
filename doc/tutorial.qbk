@@ -49,27 +49,31 @@ Throughout the _Parser_ documentation, I will refer to "the call to _p_".
 Read this as "the call to any one of the functions described in _p_api_".
 That includes _pp_, _cbp_, and _cbpp_.
 
-There are a couple of special kinds of parsers that come up often in this
+There are some special kinds of parsers that come up often in this
 documentation.
 
-One is a /sequence parser/; you will see it created using `operator>>()`, as
+One is a /sequence parser/; you will see it created using `operator>>`, as
 in `p1 >> p2 >> p3`.  A sequence parser tries to match all of its subparsers
 to the input, one at a time, in order.  It matches the input iff all its
 subparsers do.
 
-The other is an /alternative parser/; you will see it created using
-`operator|()`, as in `p1 | p2 | p3`.  A alternative parser tries to match all
+Another is an /alternative parser/; you will see it created using
+`operator|`, as in `p1 | p2 | p3`.  An alternative parser tries to match all
 of its subparsers to the input, one at a time, in order; it stops after
 matching at most one subparser.  It matches the input iff one of its
 subparsers does.
 
+Finally, there is a /permutation parser/; it is created using `operator||`,
+as in `p1 || p2 || p3`.  A permutation parser tries to match all of its
+subparsers to the input, in any order.  So the parser `p1 || p2 || p3` is equivalent to `(p1 >> p2 >> p3) | (p1 >> p3 >> p2) | (p2 >> p1 >> p3) | (p2 >> p3 >> p1) | (p3 >> p1 >> p2) | (p3 >> p2 >> p1)`.  Hopefully its terseness is self-explanatory.  It matches the
+input iff all of its subparsers do, regardless of the order they match in.
+
 _Parser_ parsers each have an /attribute/ associated with them, or explicitly
 have no attribute.  An attribute is a value that the parser generates when it
 matches the input.  For instance, the parser _d_ generates a `double` when it
-matches the input.  Since it is not possible to write a type trait that
-returns the attribute type of a parser, we need notation for concisely
-communicating that relationship.  _ATTR_ is a notional macro that expands to
-the attribute type of the parser passed to it; `_ATTR_np_(_d_)` is `double`.
+matches the input.  _ATTR_ is a notional macro that expands to the attribute
+type of the parser passed to it; `_ATTR_np_(_d_)` is `double`.  This is
+similar to the _attr_ type trait.
 
 Next, we'll look at some simple programs that parse using _Parser_.  We'll
 start small and build up from there.
@@ -87,7 +91,7 @@ and then we parse it:
 The expression `*bp::char_` is a parser-expression.  It uses one of the many
 parsers that _Parser_ provides: _ch_.  Like all _Parser_ parsers, it has
 certain operations defined on it.  In this case, `*bp::char_` is using an
-overloaded `operator*()` as the C++ version of a _kl_ operator.  Since C++ has
+overloaded `operator*` as the C++ version of a _kl_ operator.  Since C++ has
 no postfix unary `*` operator, we have to use the one we have, so it is used
 as a prefix.
 
@@ -127,16 +131,16 @@ just use that.  If we wanted to parse two `double`s in a row, we'd use:
 
     boost::parser::double_ >> boost::parser::double_
 
-`operator>>()` in this expression is the sequence-operator; read it as
-"followed by".  If we combine the sequence-operator with _kl_, we can get the
-parser we want by writing:
+`operator>>` in this expression is the sequence-operator; read it as "followed
+by".  If we combine the sequence-operator with _kl_, we can get the parser we
+want by writing:
 
     boost::parser::double_ >> *(',' >> boost::parser::double_)
 
 This is a parser that matches at least one `double` _emdash_ because of the
 first _d_ in the expression above _emdash_ followed by zero or more instances
 of a-comma-followed-by-a-`double`.  Notice that we can use `','` directly.
-Though it is not a parser, `operator>>()` and the other operators defined on
+Though it is not a parser, `operator>>` and the other operators defined on
 _Parser_ parsers have overloads that accept character/parser pairs of
 arguments; these operator overloads will create the right parser to recognize
 `','`.
@@ -150,6 +154,10 @@ In fact, the return type of this call to _p_ is
 `std::optional<std::vector<double>>`.  Naturally, if the parse fails,
 `std::nullopt` is returned.  We'll look at how _Parser_ maps the type of the
 parser to the return type, or the filled in out-parameter's type, a bit later.
+
+[note There's a type trait that can tell you the attribute type for a parser,
+_attr_ (and an associated alias _attr_t_).  We'll discuss it more in the
+_attr_gen_ section.]
 
 If I run it in a shell, this is the result:
 
@@ -262,6 +270,15 @@ are almost always generic (having an `auto & ctx` parameter), and so are very
 frequently re-usable.  Most semantic action lambdas you write should be
 written out-of-line, and given a good name.  Even when they are not reused,
 named lambdas keep your parsers smaller and easier to read.
+
+[important Attaching a semantic action to a parser removes its attribute.
+That is, `_ATTR_np_(p[a])` is always the special no-attribute type _n_,
+regardless of what type `_ATTR_np_(p)` is.]
+
+[heading Semantic actions inside rules]
+
+There are some other forms for semantic actions, when they are used inside of
+_rs_.  See _more_about_rules_ for details.
 
 [endsect]
 
@@ -417,13 +434,20 @@ _begin_ and _end_ return the beginning and end of the range that you passed to
 _p_, respectively.  _where_ returns a _v_ indicating the bounds of the input
 matched by the current parse.  _where_ can be useful if you just want to parse
 some text and return a result consisting of where certain elements are
-located, without producing any other attributes.
+located, without producing any other attributes.  _where_ can also be
+essential in tracking where things are located, to provide good diagnostics at
+a later point in the parse.  Think mismatched tags in XML; if you parse a
+close-tag at the end of an element, and it does not match the open-tag, you
+want to produce an error message that mentions or shows both tags.  Stashing
+`_where_np_(ctx).begin()` somewhere that is available to the close-tag parser
+will enable that.  See _eh_debugging_ for an example of this.
 
 [heading _error_handler_]
 
 _error_handler_ returns a reference to the error handler associated with the
-parser passed to _p_.  See _eh_debugging_ for more information on what you can
-do with the error handler.
+parser passed to _p_.  Using _error_handler_, you can generate errors and
+warnings from within your semantic actions.  See _eh_debugging_ for concrete
+examples.
 
 [heading Accessors for data that are only sometimes available]
 
@@ -445,22 +469,41 @@ being used to parse (if any), and is available even before the rule's parse is
 successful.  It can be used to set the current rule's attribute, even from a
 parser that is a subparser inside the rule.  Let's say we're writing a parser
 with a semantic action that is within a rule.  If we want to set the current
-rule's value to whatever this subparser parses, we would write this semantic
-action:
+rule's value to some function of subparser's attribute, we would write this
+semantic action:
 
-    [](auto & ctx) { _val(ctx) = _attr(ctx); }
+    [](auto & ctx) { _val(ctx) = some_function(_attr(ctx)); }
 
 If there is no current rule, or the current rule has no attribute, a _n_ is
 returned.
 
+You need to use _val_ in cases where the default attribute for a _r_'s parser
+is not directly compatible with the attribute type of the _r_.  In these
+cases, you'll need to write some code like the example above to compute the
+_r_'s attribute from the _r_'s parser's generated attribute.  For more info on
+_rs_, see the next page, and _more_about_rules_.
+
 [heading _globals_]
 
-_globals_ returns a reference to a user-supplied struct that contains whatever
-data you want to use during the parse.  We'll get into this more later, but
-for now, here's how you might use it:
+_globals_ returns a reference to a user-supplied object that contains whatever
+data you want to use during the parse.  The "globals" for a parse is an object
+_emdash_ typically a struct _emdash_ that you give to the top-level parser.
+Then you can use _globals_ to access it at any time during the parse.  We'll
+see how globals get associated with the top-level parser in _p_api_ later.  As
+an example, say that you have an early part of the parse that needs to record
+some black-listed values, and that later parts of the parse might need to
+parse values, failing the parse if they see the black-listed values.  In the
+early part of the parse, you could write something like this.
 
     [](auto & ctx) {
-        // black_list is some set of values that are not allowed.
+        // black_list is a std::unordered_set.
+        _globals(ctx).black_list.insert(_attr(ctx));
+    }
+
+Later in the parse, you could then use `black_list` to check values as they
+are parsed.
+
+    [](auto & ctx) {
         if (_globals(ctx).black_list.contains(_attr(ctx)))
             _pass(ctx) = false;
     }
@@ -470,12 +513,14 @@ for now, here's how you might use it:
 _locals_ returns a reference to one or more values that are local to the
 current rule being parsed, if any.  If there are two or more local values,
 _locals_ returns a reference to a _bp_tup_.  Rules with locals are something
-we haven't gotten to yet, but here is how you use _locals_:
+we haven't gotten to yet (see _more_about_rules_), but for now all you need to
+know is that you can provide a template parameter (`LocalState`) to _r_, and
+the rule will default construct an object of that type for use within the
+rule.  You access it via _locals_:
 
     [](auto & ctx) {
         auto & local = _locals(ctx);
-        // Use local here.  If boost::parser::tuple aliases to hana::tuple, access
-        // its members like this:
+        // Use local here.  If 'local' is a hana::tuple, access its members like this:
         using namespace hana::literals;
         auto & first_element = local[0_c];
         auto & second_element = local[1_c];
@@ -487,12 +532,14 @@ returned.
 [heading _params_]
 
 _params_, like _locals_, applies to the current rule being used to parse, if
-any.  It also returns a reference to a single value, if the current rule has
-only one parameter, or a _bp_tup_ of multiple values if the current rule has
-multiple parameters.
+any (see _more_about_rules_).  It also returns a reference to a single value,
+if the current rule has only one parameter, or a _bp_tup_ of multiple values
+if the current rule has multiple parameters.  If there is no current rule, or
+the current rule has no parameters, a _n_ is returned.
 
-If there is no current rule, or the current rule has no parameters, a _n_ is
-returned.
+Unlike with _locals_, you *do not* provide a template parameter to _r_.
+Instead you call the _r_'s `with()` member function (again, see
+_more_about_rules_).
 
 [note _n_ is a type that is used as a return value in _Parser_ for parse
 context accessors.  _n_ is convertible to anything that has a default
@@ -507,7 +554,10 @@ explanation.]
 [heading _no_case_func_]
 
 _no_case_func_ returns `true` if the current parse context is inside one or
-more (possibly nested) _no_case_ directives.
+more (possibly nested) _no_case_ directives.  I don't have a use case for
+this, but if I didn't expose it, it would be the only thing in the context
+that you could not examine from inside a semantic action.  It was easy to add,
+so I did.
 
 [endsect]
 
@@ -558,13 +608,16 @@ parser `doubles_def` work together.  The `_def` suffix is a naming convention
 that this macro relies on to work.  The tag type allows the rule parser,
 `doubles`, to call one of these overloads when used as a parser.
 
-[note In case you're curious about exactly what code is produced by the above
-use of _RULES_, it's two overloads of a function called `parse_rule()`.  The
-overloads each take a `struct doubles` parameter (to distinguish them from the
-other overloads of `parse_rule()` for other rules) and parse using
-`doubles_def`.  You will never need to call any overload of `parse_rule()`
-yourself; it is used internally by the parser that implements _rs_,
-`rule_parser`.]
+_RULES_ expands to two overloads of a function called `parse_rule()`.  In the
+case above, the overloads each take a `struct doubles` parameter (to
+distinguish them from the other overloads of `parse_rule()` for other rules)
+and parse using `doubles_def`.  You will never need to call any overload of
+`parse_rule()` yourself; it is used internally by the parser that implements
+_rs_, `rule_parser`.
+
+Here is the definition of the macro that is expanded for each rule:
+
+[define_rule_definition]
 
 Now that we have the `doubles` parser, we can use it like we might any other
 parser:
@@ -685,6 +738,106 @@ no sense.
 
 [endsect]
 
+[section Alternative Parsers]
+
+Frequently, you need to parse something that might have one of several forms.
+`operator|` is overloaded to form alternative parsers.  For example:
+
+    namespace bp = boost::parser;
+    auto const parser_1 = bp::int_ | bp::eps;
+
+`parser_1` matches an integer, or if that fails, it matches /epsilon/, the
+empty string.  This is equivalent to writing:
+
+    namespace bp = boost::parser;
+    auto const parser_2 = -bp::int_;
+
+However, neither `parser_1` nor `parser_2` is equivalent to writing this:
+
+    namespace bp = boost::parser;
+    auto const parser_3 = bp::eps | bp::int_; // Does not do what you think.
+
+The reason is that alternative parsers try each of their subparsers, one at a
+time, and stop on the first one that matches.  /Epsilon/ matches anything,
+since it is zero length and consumes no input.  It even matches the end of
+input.  This means that `parser_3` is equivalent to _e_ by itself.
+
+[note For this reason, writing `_e_ | p` for any parser p is considered a bug.
+Debug builds will assert when `_e_ | p` is encountered. ]
+
+[warning This kind of error is very common when _e_ is involved, and also very
+easy to detect.  However, it is possible to write `P1 >> P2`, where `P1` is a
+prefix of `P2`, such as `int_ | int >> int_`, or `repeat(4)[hex_digit] |
+repeat(8)[hex_digit]`.  This is almost certainly an error, but is impossible
+to detect in the general case _emdash_ remember that _rs_ can be separately
+compiled, and consider a pair of rules whose associated `_def` parsers are
+`int_` and `int_ >> int_`, respectively.]
+
+[endsect]
+
+[section Parsing Quoted Strings]
+
+It is very common to need to parse quoted strings.  Quoted strings are
+slightly tricky, though, when using a skipper (and you should be using a
+skipper 99% of the time).  You don't want to allow arbitrary whitespace in the
+middle of your strings, and you also don't want to remove all whitespace from
+your strings.  Both of these things will happen with the typical skipper,
+_ws_.
+
+So, here is how most people would write a quoted string parser:
+
+    namespace bp = boost::parser;
+    const auto string = bp::lexeme['"' >> *(bp::char_ - '"') > '"'];
+
+Some things to note:
+
+* the result is a string;
+
+* the quotes are not included in the result;
+
+* there is an expectation point before the close-quote;
+
+* the use of _lexeme_ disables skipping in the parser, and it must be written
+  around the quotes, not around the `operator*` expression; and
+
+* there's no way to write a quote in the middle of the string.
+
+This is a very common pattern.  I have written a quoted string parser like
+this dozens of times.  The parser above is the quick-and-dirty version.  A
+more robust version would be able to handle escaped quotes within the string,
+and then would immediately also need to support escaped escape characters.
+
+_Parser_ provides _quot_str_ to use in place of this very common pattern.  It
+supports quote- and escaped-character-escaping, using backslash as the escape
+character.
+
+[quoted_string_example_1_2]
+
+As common as this use case is, there are very similar use cases that it does
+not cover.  So, _quot_str_ has some options.  If you call it with a single
+character, it returns a _quot_str_ that uses that single character as the
+quote-character.
+
+[quoted_string_example_3]
+
+You can also supply a range of characters.  One of the characters from the
+range must quote the whole string; mismatches are not allowed.  Think of how
+Python allows you to quote a string with either `'"'` or `'\''`, but the same
+character must be used on both sides.
+
+[quoted_string_example_4]
+
+Another common thing to do in a quoted string parser is to recognize escape
+sequences.  If you have simple escape sequencecs that do not require any real
+parsing, like say the simple escape sequences from C++, you can provide a
+_symbols_ object as well.  The template parameter `T` to _symbols_t_ must be
+`char` or `char32_t`.  You don't need to include the escaped backslash or the
+escaped quote character, since those always work.
+
+[quoted_string_example_5]
+
+[endsect]
+
 [section Parsing In Detail]
 
 Now that you've seen some examples, let's see how parsing works in a bit more
@@ -718,7 +871,7 @@ consumes `"2"` and then `bp::ws` skips the subsequent space.  Since we've
 finished with `int_pair`'s match, its `_bp_tup_<int, int>` attribute is
 complete.  It's parent is `+int_pair`, so this tuple attribute is pushed onto
 the back of `+int_pair`'s attribute, which is a `std::vector<_bp_tup_<int,
-int>>`.  Control passes up to the parent if `int_pair`, `+int_pair`.  Since
+int>>`.  Control passes up to the parent of `int_pair`, `+int_pair`.  Since
 `+int_pair` is a one-or-more parser, it starts a new iteration; control passes
 to `int_pair` again.
 
@@ -899,7 +1052,7 @@ Why do we need any of this, considering that we just used a literal `','` in
 our previous example?  The reason is that `'M'` is not used in an expression
 with another _Parser_ parser.  It is used within `*'M'_l[add_1000]`.  If we'd
 written `*'M'[add_1000]`, clearly that would be ill-formed; `char` has no
-`operator*()`, nor an `operator[]()`, associated with it.
+`operator*`, nor an `operator[]`, associated with it.
 
 [tip Any time you want to use a `char`, `char32_t`, or string literal in a
 _Parser_ parser, write it as-is if it is combined with a preexisting _Parser_
@@ -908,7 +1061,7 @@ _lit_, or use the `_l` _udl_ suffix.]
 
 On to the next bit: `-hundreds[add]`.  By now, the use of the index operator
 should be pretty familiar; it associates the semantic action `add` with the
-parser `hundreds`.  The `operator-()` at the beginning is new.  It means that
+parser `hundreds`.  The `operator-` at the beginning is new.  It means that
 the parser it is applied to is optional.  You can read it as "zero or one".
 So, if `hundreds` is not successfully parsed after `*'M'[add_1000]`, nothing
 happens, because `hundreds` is allowed to be missing _emdash_ it's optional.
@@ -985,9 +1138,10 @@ parses, you need to call both functions. ]
 `.insert_for_next_parse()` does.  This allows you to chain additions with a
 convenient syntax, like this:
 
+```
     symbols<int> roman_numerals;
     roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
-
+```
 ]
 
 [important _symbols_ stores all its strings in UTF-32 internally.  If you do
@@ -995,43 +1149,6 @@ Unicode or ASCII parsing, this will not matter to you at all.  If you do
 non-Unicode parsing of a character encoding that is not a subset of Unicode
 (EBCDIC, for instance), it could cause problems.  See the section on _unicode_
 for more information.]
-
-[endsect]
-
-[section Alternative Parsers]
-
-Frequently, you need to parse something that might have one of several forms.
-`operator|()` is overloaded to form alternative parsers.  For example:
-
-    namespace bp = boost::parser;
-    auto const parser_1 = bp::int_ | bp::eps;
-
-`parser_1` matches an integer, or if that fails, it matches /epsilon/, the
-empty string.  This is equivalent to writing:
-
-    namespace bp = boost::parser;
-    auto const parser_2 = -bp::int_;
-
-However, neither `parser_1` nor `parser_2` is equivalent to writing this:
-
-    namespace bp = boost::parser;
-    auto const parser_3 = bp::eps | bp::int_; // Does not do what you think.
-
-The reason is that alternative parsers try each of their subparsers, one at a
-time, and stop on the first one that matches.  /Epsilon/ matches anything,
-since it is zero length and consumes no input.  It even matches the end of
-input.  This means that `parser_3` is equivalent to _e_ by itself.
-
-[note For this reason, writing `_e_ | p` for any parser p is considered a bug.
-Debug builds will assert when `_e_ | p` is encountered. ]
-
-[warning This kind of error is very common when _e_ is involved, and also very
-easy to detect.  However, it is possible to write `P1 >> P2`, where `P1` is a
-prefix of `P2`, such as `int_ | int >> int_`, or `repeat(4)[hex_digit] |
-repeat(8)[hex_digit]`.  This is almost certainly an error, but is impossible
-to detect in the general case _emdash_ remember that _rs_ can be separately
-compiled, and consider a pair of rules whose associated `_def` parsers are
-`int_` and `int_ >> int_`, respectively.]
 
 [endsect]
 
@@ -1064,7 +1181,9 @@ This can also be a lambda.  For example:
 
 The operation that produces a value from a parse argument, which may be a
 value or a callable taking a parse context argument, is referred to as
-/resolving/ the parse argument.
+/resolving/ the parse argument.  If a parse argument `arg` can be called with
+the current context, then the resolved value of `arg` is `arg(ctx)`;
+otherwise, the resolved value is just `arg`.
 
 Some callable parsers take a /parse predicate/.  A parse predicate is not
 quite the same as a parse argument, because it must be a callable object, and
@@ -1083,6 +1202,9 @@ convertible to `bool`.  For example:
 This may of course be a lambda:
 
     [](auto & ctx) { return _attr(ctx) == 3; }
+
+The notional macro _RES_ expands to the result of resolving a parse argument
+or parse predicate.  You'll see it used in the rest of the documentation.
 
 An example of how parse arguments are used:
 
@@ -1105,337 +1227,7 @@ the parse, by using the parse context:
 Each callable parser returns a new parser, parameterized using the arguments
 given in the invocation.
 
-This table lists all the _Parser_ parsers.  For the callable parsers, a
-separate entry exists for each possible arity of arguments.  For a parser `p`,
-if there is no entry for `p` without arguments, `p` is a function, and cannot
-itself be used as a parser; it must be called.  In the table below:
-
-* each entry is a global object usable directly in your parsers, unless
-  otherwise noted;
-
-* "code point" is used to refer to the elements of the input range, which
-  assumes that the parse is being done in the Unicode-aware code path (if the
-  parse is being done in the non-Unicode code path, read "code point" as
-  "`char`");
-
-* _RES_ is a notional macro that expands to the resolution of parse argument
-  or evaluation of a parse predicate;
-
-* "`_RES_np_(pred) == true`" is a shorthand notation for "`_RES_np_(pred)` is
-  contextually convertible to `bool` and `true`"; likewise for `false`;
-
-* `c` is a character of type `char`, `char8_t`, or `char32_t`;
-
-* `str` is a string literal of type `char const[]`, `char8_t const []`, or
-  `char32_t const []`;
-
-* `pred` is a parse predicate;
-
-* `arg0`, `arg1`, `arg2`, ... are parse arguments;
-
-* `a` is a semantic action;
-
-* `r` is an object whose type models `parsable_range_like`; and
-
-* `p`, `p1`, `p2`, ... are parsers.
-
-[note The definition of `parsable_range_like` is:
-
-[parsable_range_like_concept]
-
-It is intended to be a range-like thing; a null-terminated sequence of
-characters is considered range-like, given that a pointer `T *` to a
-null-terminated string is isomorphic with `subrange<T *, _null_sent_>`.]
-
-[note Some of the parsers in this table consume no input.  All parsers consume
-the input they match unless otherwise stated in the table below.]
-
-[table Parsers and Their Semantics
-    [[Parser] [Semantics] [Attribute Type] [Notes]]
-
-    [[ _e_ ]
-      [ Matches /epsilon/, the empty string.  Always matches, and consumes no input. ]
-      [ None. ]
-      [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_`, `+_e_`, etc (this applies to unconditional _e_ only). ]]
-
-    [[ `_e_(pred)` ]
-     [ Fails to match the input if `_RES_np_(pred) == false`.  Otherwise, the semantics are those of _e_. ]
-     [ None. ]
-     []]
-
-    [[ _ws_ ]
-     [ Matches a single whitespace code point (see note), according to the Unicode White_Space property. ]
-     [ None. ]
-     [ For more info, see the [@https://www.unicode.org/Public/UCD/latest/ucd/PropList.txt Unicode properties].  _ws_ may consume one code point or two.  It only consumes two code points when it matches `"\r\n"`. ]]
-
-    [[ _eol_ ]
-     [ Matches a single newline (see note), following the "hard" line breaks in the Unicode line breaking algorithm. ]
-     [ None. ]
-     [ For more info, see the [@https://unicode.org/reports/tr14 Unicode Line Breaking Algorithm].  _eol_ may consume one code point or two.  It only consumes two code points when it matches `"\r\n"`. ]]
-
-    [[ _eoi_ ]
-     [ Matches only at the end of input, and consumes no input. ]
-     [ None. ]
-     []]
-
-    [[ _attr_np_`(arg0)` ]
-     [ Always matches, and consumes no input.  Generates the attribute `_RES_np_(arg0)`. ]
-     [ `decltype(_RES_np_(arg0))`. ]
-     [ An important use case for `_attr_` is to provide a default attribute value as a trailing alternative.  For instance, an *optional* comma-delmited list is: `int_ % ',' | attr(std::vector<int>)`.  Without the "`| attr(...)`", at least one `int_` match would be required. ]]
-
-    [[ _ch_ ]
-     [ Matches any single code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     []]
-
-    [[ `_ch_(arg0)` ]
-     [ Matches exactly the code point `_RES_np_(arg0)`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     []]
-
-    [[ `_ch_(arg0, arg1)` ]
-     [ Matches the next code point `n` in the input, if `_RES_np_(arg0) <= n && n <= _RES_np_(arg1)`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     []]
-
-    [[ `_ch_(r)` ]
-     [ Matches the next code point `n` in the input, if `n` is one of the code points in `r`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See _attr_gen_. ]
-     [ `r` is taken to be in a UTF encoding.  The exact UTF used depends on `r`'s element type.  If you do not pass UTF encoded ranges for `r`, the behavior of _ch_ is undefined.  Note that ASCII is a subset of UTF-8, so ASCII is fine.  EBCDIC is not.  `r` is not copied; a reference to it is taken.  The lifetime of `_ch_(r)` must be within the lifetime of `r`.  This overload of _ch_ does *not* take parse arguments. ]]
-
-    [[ _cp_ ]
-     [ Matches a single code point. ]
-     [ `char32_t` ]
-     [ Similar to _ch_, but with a fixed `char32_t` attribute type; _cp_ has all the same call operator overloads as _ch_, though they are not repeated here, for brevity. ]]
-
-    [[ _cu_ ]
-     [ Matches a single code point. ]
-     [ `char` ]
-     [ Similar to _ch_, but with a fixed `char` attribute type; _cu_ has all the same call operator overloads as _ch_, though they are not repeated here, for brevity.  Even though the name "`cu`" suggests that this parser match at the code unit level, it does not.  The name refers to the attribute type generated, much like the names _i_ versus _ui_. ]]
-
-    [[ `_blank_` ]
-     [ Equivalent to `_ws_ - _eol_`. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_control_` ]
-     [ Matches a single control-character code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_digit_` ]
-     [ Matches a single deimal digit code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_punct_` ]
-     [ Matches a single punctuation code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_hex_digit_` ]
-     [ Matches a single hexidecimal digit code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_lower_` ]
-     [ Matches a single lower-case code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ `_upper_` ]
-     [ Matches a single upper-case code point. ]
-     [ The code point type in Unicode parsing, or `char` in non-Unicode parsing.  See the entry for _ch_. ]
-     []]
-
-    [[ _lit_np_`(c)`]
-     [ Matches exactly the given code point `c`. ]
-     [ None. ]
-     [_lit_ does *not* take parse arguments. ]]
-
-    [[ `c_l` ]
-     [ Matches exactly the given code point `c`. ]
-     [ None. ]
-     [ This is a _udl_ that represents `_lit_np_(c)`, for example `'F'_l`. ]]
-
-    [[ _lit_np_`(r)`]
-     [ Matches exactly the given string `r`. ]
-     [ None. ]
-     [ _lit_ does *not* take parse arguments. ]]
-
-    [[ `str_l` ]
-     [ Matches exactly the given string `str`. ]
-     [ None. ]
-     [ This is a _udl_ that represents `_lit_np_(s)`, for example `"a string"_l`. ]]
-
-    [[ `_str_np_(r)`]
-     [ Matches exactly `r`, and generates the match as an attribute. ]
-     [ _std_str_ ]
-     [ _str_ does *not* take parse arguments. ]]
-
-    [[ `str_p`]
-     [ Matches exactly `str`, and generates the match as an attribute. ]
-     [ _std_str_ ]
-     [ This is a _udl_ that represents `_str_np_(s)`, for example `"a string"_p`. ]]
-
-    [[ _b_ ]
-     [ Matches `"true"` or `"false"`. ]
-     [ `bool` ]
-     []]
-
-    [[ _bin_ ]
-     [ Matches a binary unsigned integral value. ]
-     [ `unsigned int` ]
-     [ For example, _bin_ would match `"101"`, and generate an attribute of `5u`. ]]
-
-    [[ `_bin_(arg0)` ]
-     [ Matches exactly the binary unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned int` ]
-     []]
-
-    [[ _oct_ ]
-     [ Matches an octal unsigned integral value. ]
-     [ `unsigned int` ]
-     [ For example, _oct_ would match `"31"`, and generate an attribute of `25u`. ]]
-
-    [[ `_oct_(arg0)` ]
-     [ Matches exactly the octal unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned int` ]
-     []]
-
-    [[ _hex_ ]
-     [ Matches a hexadecimal unsigned integral value. ]
-     [ `unsigned int` ]
-     [ For example, _hex_ would match `"ff"`, and generate an attribute of `255u`. ]]
-
-    [[ `_hex_(arg0)` ]
-     [ Matches exactly the hexadecimal unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned int` ]
-     []]
-
-    [[ _us_ ]
-     [ Matches an unsigned integral value. ]
-     [ `unsigned short` ]
-     []]
-
-    [[ `_us_(arg0)` ]
-     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned short` ]
-     []]
-
-    [[ _ui_ ]
-     [ Matches an unsigned integral value. ]
-     [ `unsigned int` ]
-     []]
-
-    [[ `_ui_(arg0)` ]
-     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned int` ]
-     []]
-
-    [[ _ul_ ]
-     [ Matches an unsigned integral value. ]
-     [ `unsigned long` ]
-     []]
-
-    [[ `_ul_(arg0)` ]
-     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned long` ]
-     []]
-
-    [[ _ull_ ]
-     [ Matches an unsigned integral value. ]
-     [ `unsigned long long` ]
-     []]
-
-    [[ `_ull_(arg0)` ]
-     [ Matches exactly the unsigned integral value `_RES_np_(arg0)`. ]
-     [ `unsigned long long` ]
-     []]
-
-    [[ _s_ ]
-     [ Matches a signed integral value. ]
-     [ `short` ]
-     []]
-
-    [[ `_s_(arg0)` ]
-     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
-     [ `short` ]
-     []]
-
-    [[ _i_ ]
-     [ Matches a signed integral value. ]
-     [ `int` ]
-     []]
-
-    [[ `_i_(arg0)` ]
-     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
-     [ `int` ]
-     []]
-
-    [[ _l_ ]
-     [ Matches a signed integral value. ]
-     [ `long` ]
-     []]
-
-    [[ `_l_(arg0)` ]
-     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
-     [ `long` ]
-     []]
-
-    [[ _ll_ ]
-     [ Matches a signed integral value. ]
-     [ `long long` ]
-     []]
-
-    [[ `_ll_(arg0)` ]
-     [ Matches exactly the signed integral value `_RES_np_(arg0)`. ]
-     [ `long long` ]
-     []]
-
-    [[ _f_ ]
-     [ Matches a floating-point number.  _f_ uses parsing implementation details from _Spirit_.  The specifics of what formats are accepted can be found in their _spirit_reals_.  Note that only the default `RealPolicies` is supported by _f_. ]
-     [ `float` ]
-     []]
-
-    [[ _d_ ]
-     [ Matches a floating-point number.  _d_ uses parsing implementation details from _Spirit_.  The specifics of what formats are accepted can be found in their _spirit_reals_.  Note that only the default `RealPolicies` is supported by _d_. ]
-     [ `double` ]
-     []]
-
-    [[ `_rpt_np_(arg0)[p]` ]
-     [ Matches iff `p` matches exactly `_RES_np_(arg0)` times. ]
-     [ `std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>` ]
-     [ The special value _inf_ may be used; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(_inf_)[_e_]` (this applies to unconditional _e_ only). ]]
-
-    [[ `_rpt_np_(arg0, arg1)[p]` ]
-     [ Matches iff `p` matches between `_RES_np_(arg0)` and `_RES_np_(arg1)` times, inclusively. ]
-     [ `std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>` ]
-     [ The special value _inf_ may be used for the upper bound; it indicates unlimited repetition.  `decltype(_RES_np_(arg0))` and `decltype(_RES_np_(arg1))` each must be implicitly convertible to `int64_t`.  Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `_rpt_np_(n, _inf_)[_e_]` (this applies to unconditional _e_ only). ]]
-
-    [[ `_if_np_(pred)[p]` ]
-     [ Equivalent to `_e_(pred) >> p`. ]
-     [ `std::optional<_ATTR_np_(p)>` ]
-     [ It is an error to write `_if_np_(pred)`.  That is, it is an error to omit the conditionally matched parser `p`. ]]
-
-    [[ `_sw_np_(arg0)(arg1, p1)(arg2, p2) ...` ]
-     [ Equivalent to `p1` when `_RES_np_(arg0) == _RES_np_(arg1)`, `p2` when `_RES_np_(arg0) == _RES_np_(arg2)`, etc.  If there is such no `argN`, the behavior of _sw_ is undefined. ]
-     [ `std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>` ]
-     [ It is an error to write `_sw_np_(arg0)`.  That is, it is an error to omit the conditionally matched parsers `p1`, `p2`, .... ]]
-
-    [[ _symbols_t_ ]
-     [ _symbols_ is an associative container of key, value pairs.  Each key is a _std_str_ and each value has type `T`.  In the Unicode parsing path, the strings are considered to be UTF-8 encoded; in the non-Unicode path, no encoding is assumed.  _symbols_ Matches the longest prefix `pre` of the input that is equal to one of the keys `k`.  If the length `len` of `pre` is zero, and there is no zero-length key, it does not match the input.  If `len` is positive, the generated attribute is the value associated with `k`.]
-     [ `T` ]
-     [ Unlike the other entries in this table, _symbols_ is a type, not an object. ]]
-]
-
-[important All the character parsers, like _ch_, _cp_ and _cu_ produce either
-`char` or `char32_t` attributes.  So when you see "`std::string` if
-`_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`"
-in the table above, that effectively means that every sequences of character
-attributes get turned into a `std::string`.  The only time this does not
-happen is when you introduce your own rules with attributes using another
-character type (or use _attr_ to do so).]
+[table_parsers_and_their_semantics]
 
 [note A slightly more complete description of the attributes generated by
 these parsers is in a subsequent section.  The attributes are repeated here so
@@ -1472,9 +1264,35 @@ Non-directives might, but only when attaching a semantic action.
 The directives that are second order parsers are technically directives, but
 since they are also used to create parsers, it is more useful just to focus on
 that.  The directives _rpt_ and _if_ were already described in the section on
-parsers; we won't say more about them here.
+parsers; we won't say much about them here.
 
-That leaves the directives that affect aspects of the parse:
+[heading Interaction with sequence, alternative, and permutation parsers]
+
+Sequence, alternative, and permutation parsers do not nest in most cases.
+(Let's consider just sequence parsers to keep thinkgs simple, but most of this
+logic applies to alternative parsers as well.)  `a >> b >> c` is the same as
+`(a >> b) >> c` and `a >> (b >> c)`, and they are each represented by a single
+_seq_p_ with three subparsers, `a`, `b`, and `c`.  However, if something
+prevents two _seq_ps_ from interacting directly, they *will* nest.  For
+instance, `lexeme[a >> b] >> c` is a _seq_p_ containing two parsers, `lexeme[a
+>> b]` and `c`.  This is because _lexeme_ takes its given parser and wraps it
+in a _lex_p_.  This in turn turns off the sequence parser combining logic,
+since both sides of the second `operator>>` in `lexeme[a >> b] >> c` are not
+_seq_ps_.  Sequence parsers have several rules that govern what the overall
+attribute type of the parser is, based on the positions and attributes of it
+subparsers (see _attr_gen_).  Therefore, it's important to know which
+directives create a new parser (and what kind), and which ones do not; this is
+indicated for each directive below.
+
+[heading The directives]
+
+[heading _rpt_]
+
+See _parsers_uses_.  Creates a _rpt_p_.
+
+[heading _if_]
+
+See _parsers_uses_.  Creates a _seq_p_.
 
 [heading _omit_]
 
@@ -1488,6 +1306,8 @@ attribute.  Now say that you want to write a function that just counts how
 many times `p` can match a string (where the matches are non-overlapping).
 Instead of using `p` directly, and building all those attributes, or rewriting
 `p` without the attribute generation, use _omit_.
+
+Creates an _omt_p_.
 
 [heading _raw_]
 
@@ -1503,19 +1323,22 @@ iterator.  Just like _omit_, _raw_ causes all attribute-generation work within
 Similar to the re-use scenario for _omit_ above, _raw_ could be used to find
 the *locations* of all non-overlapping matches of `p` in a string.
 
+Creates a _raw_p_.
+
 [heading _string_view_]
 
 `_string_view_np_[p]` is very similar to `_raw_np_[p]`, except that it changes
 the attribute of `p` to `std::basic_string_view<C>`, where `C` is the
-character type of the underlying sequence being parsed.  _string_view_
-requires that the underlying range being parsed is contiguous.  Since this can
-only be detected in C++20 and later, _string_view_ is not available in C++17
-mode.
+character type of the underlying range being parsed.  _string_view_ requires
+that the underlying range being parsed is contiguous.  Since this can only be
+detected in C++20 and later, _string_view_ is not available in C++17 mode.
 
 Similar to the re-use scenario for _omit_ above, _string_view_ could be used
 to find the *locations* of all non-overlapping matches of `p` in a string.
 Whether _raw_ or _string_view_ is more natural to use to report the locations
 depends on your use case, but they are essentially the same.
+
+Creates a _sv_p_.
 
 [heading _no_case_]
 
@@ -1527,6 +1350,8 @@ in the parser being matched (see note below if you want to know more about
 Unicode case folding).  In the non-Unicode code path, a full Unicode case
 folding is not done; instead, only the transformations of values less than
 `0x100` are done.  Examples:
+
+    #include <boost/parser/transcode_view.hpp> // For as_utfN.
 
     namespace bp = boost::parser;
     auto const street_parser = bp::string(u8"Tobias Straße");
@@ -1555,6 +1380,8 @@ sometimes expand a code point into multiple code points (e.g. case folding
 `"ẞ"` yields `"ss"`.  When such a multi-code point expansion occurs, the
 expanded code points are in the NFKC normalization form.]
 
+Creates a _noc_p_.
+
 [heading _lexeme_]
 
 `_lexeme_np_[p]` disables use of the skipper, if a skipper is being used,
@@ -1569,6 +1396,8 @@ _lexeme_:
 
 Without _lexeme_, our string parser would correctly match `"foo bar"`, but the
 generated attribute would be `"foobar"`.
+
+Creates a _lex_p_.
 
 [heading _skip_]
 
@@ -1596,80 +1425,27 @@ call:
 The first occurrence of `zero_or_more` will use the skipper passed to _p_,
 which is _ws_; the second will use _blank_ as its skipper.
 
-[heading _merge_ and _sep_]
+Creates a _skp_p_.
 
-These two directives influence the generation of attributes.  See _attr_gen_
+[heading _merge_, _sep_, and _transform_]
+
+These directives influence the generation of attributes.  See _attr_gen_
 section for more details on them.
+
+_merge_ and _sep_ create a copy of the given _seq_p_.
+
+_transform_ creates a _xfm_p_.
 
 [endsect]
 
 [section Combining Operations]
 
 Certain overloaded operators are defined for all parsers in _Parser_.  We've
-already seen some of them used in this tutorial, especially `operator>>()` and
-`operator|()`, which are used to form sequence parsers and alternative
-parsers, respectively.
+already seen some of them used in this tutorial, especially `operator>>`,
+`operator|`, and `operator||`, which are used to form sequence parsers,
+alternative parsers, and permutation parsers, respectively.
 
-Here are all the operator overloaded for parsers.  In the tables below:
-
-* `c` is a character of type `char` or `char32_t`;
-
-* `a` is a semantic action;
-
-* `r` is an object whose type models `parsable_range_like` (see _concepts_);
-  and
-
-* `p`, `p1`, `p2`, ... are parsers.
-
-[note Some of the expressions in this table consume no input.  All parsers
-consume the input they match unless otherwise stated in the table below.]
-
-[table Combining Operations and Their Semantics
-    [[Expression] [Semantics] [Attribute Type] [Notes]]
-
-    [[`!p`] [ Matches iff `p` does not match; consumes no input. ] [None.] []]
-    [[`&p`] [ Matches iff `p` matches; consumes no input. ] [None.] []]
-    [[`*p`] [ Parses using `p` repeatedly until `p` no longer matches; always matches. ] [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `*_e_` (this applies to unconditional _e_ only). ]]
-    [[`+p`] [ Parses using `p` repeatedly until `p` no longer matches; matches iff `p` matches at least once. ] [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`] [ Matching _e_ an unlimited number of times creates an infinite loop, which is undefined behavior in C++.  _Parser_ will assert in debug mode when it encounters `+_e_` (this applies to unconditional _e_ only). ]]
-    [[`-p`] [ Equivalent to `p | _e_`. ] [`std::optional<_ATTR_np_(p)>`] []]
-    [[`p1 >> p2`] [ Matches iff `p1` matches and then `p2` matches. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>>` is associative; `p1 >> p2 >> p3`, `(p1 >> p2) >> p3`, and `p1 >> (p2 >> p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
-    [[`p >> c`] [ Equivalent to `p >> lit(c)`. ] [`_ATTR_np_(p)`] []]
-    [[`p >> r`] [ Equivalent to `p >> lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 > p2`] [ Matches iff `p1` matches and then `p2` matches.  No back-tracking is allowed after `p1` matches; if `p1` matches but then `p2` does not, the top-level parse fails. ] [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `>` is associative; `p1 > p2 > p3`, `(p1 > p2) > p3`, and `p1 > (p2 > p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes; see _attr_gen_ for the full rules. ]]
-    [[`p > c`] [ Equivalent to `p > lit(c)`. ] [`_ATTR_np_(p)`] []]
-    [[`p > r`] [ Equivalent to `p > lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 | p2`] [ Matches iff either `p1` matches or `p2` matches. ] [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>` (See note.)] [ `|` is associative; `p1 | p2 | p3`, `(p1 | p2) | p3`, and `p1 | (p2 | p3)` are all equivalent.  This attribute type only applies to the case where `p1` and `p2` both generate attributes, and where the attribute types are different; see _attr_gen_ for the full rules. ]]
-    [[`p | c`] [ Equivalent to `p | lit(c)`. ] [`_ATTR_np_(p)`] []]
-    [[`p | r`] [ Equivalent to `p | lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 - p2`] [ Equivalent to `!p2 >> p1`. ] [`_ATTR_np_(p1)`] []]
-    [[`p - c`] [ Equivalent to `p - lit(c)`. ] [`_ATTR_np_(p)`] []]
-    [[`p - r`] [ Equivalent to `p - lit(r)`. ] [`_ATTR_np_(p)`] []]
-    [[`p1 % p2`] [ Equivalent to `p1 >> *(p2 >> p1)`. ] [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p1)>`] []]
-    [[`p % c`] [ Equivalent to `p % lit(c)`. ] [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`] []]
-    [[`p % r`] [ Equivalent to `p % lit(r)`. ] [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`] []]
-    [[`p[a]`] [ Matches iff `p` matches.  If `p` matches, the semantic action `a` is executed. ] [None.] []]
-]
-
-[important All the character parsers, like _ch_, _cp_ and _cu_ produce either
-`char` or `char32_t` attributes.  So when you see "`std::string` if
-`_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`"
-in the table above, that effectively means that every sequences of character
-attributes get turned into a `std::string`.  The only time this does not
-happen is when you introduce your own rules with attributes using another
-character type (or use _attr_ to do so).]
-
-There are a couple of special rules not captured in the table above:
-
-First, the zero-or-more and one-or-more repetitions (`operator*()` and
-`operator+()`, respectively) may collapse when combined.  For any parser `p`,
-`+(+p)` collapses to `+p`; `**p`, `*+p`, and `+*p` each collapse to just `*p`.
-
-Second, using _e_ in an alternative parser as any alternative *except* the
-last one is a common source of errors; _Parser_ disallows it.  This is true
-because, for any parser `p`, `_e_ | p` is equivalent to _e_, since _e_ always
-matches.  This is not true for _e_ parameterized with a condition.  For any
-condition `cond`, `_e_(cond)` is allowed to appear anywhere within an
-alternative parser.
+[table_combining_operations]
 
 [note When looking at _Parser_ parsers in a debugger, or when looking at their
 reference documentation, you may see reference to the template _p_iface_.
@@ -1707,137 +1483,37 @@ parse.]
 moved, copy, and default constructed.  There is no support for move-only or
 non-default-constructible types.]
 
+[heading The attribute type trait, _attr_]
+
+You can use _attr_ (and the associated alias, _attr_t_) to determine the
+attribute a parser would have if it were passed to _p_.  Since at least one
+parser (_ch_) has a polymorphic attribute type, _attr_ also takes the type of
+the range being parsed.  If a parser produces no attribute, _attr_ will
+produce _n_, not `void`.
+
+If you want to feed an iterator/sentinel pair to _attr_, create a range from
+it like so:
+
+    constexpr auto parser = /* ... */;
+    auto first = /* ... */;
+    auto const last = /* ... */;
+
+    namespace bp = boost::parser;
+    // You can of course use std::ranges::subrange directly in C++20 and later.
+    using attr_type = bp::attribute_t<decltype(BOOST_PARSER_SUBRANGE(first, last)), decltype(parser)>;
+
+There is no single attribute type for any parser, since a parser can be placed
+within _omit_, which makes its attribute type _n_.  Therefore, _attr_ cannot
+tell you what attribute your parser will produce under all circumstances; it
+only tells you what it would produce if it were passed to _p_.
+
 [heading Parser attributes]
 
-This table summarizes the attributes generated for all _Parser_ parsers.  In
-the table below:
-
-* _RES_ is a notional macro that expands to the resolution of parse argument
-or evaluation of a parse predicate, and
-
-* `x` and `y` represent arbitrary objects.
-
-[table Parsers and Their Attributes
-    [[Parser]              [Attribute Type]              [Notes]]
-
-    [[ _e_ ]               [ None. ]                     []]
-    [[ _eol_ ]             [ None. ]                     []]
-    [[ _eoi_ ]             [ None. ]                     []]
-    [[ `_attr_np_(x)` ]    [ `decltype(_RES_np_(x))` ][]]
-    [[ _ch_ ]              [ The code point type in Unicode parsing, or `char` in non-Unicode parsing; see below. ]
-     [Includes all the `_p` _udls_ that take a single character, and all character class parsers like `control` and `lower`.]]
-    [[ _cp_ ]              [ `char32_t` ]                []]
-    [[ _cu_ ]              [ `char` ]                    []]
-    [[ `_lit_np_(x)`]      [ None. ]
-     [Includes all the `_l` _udls_.]]
-    [[ `_str_np_(x)`]      [ _std_str_ ]
-     [Includes all the `_p` _udls_ that take a string.]]
-    [[ _b_ ]               [ `bool` ]                    []]
-
-    [[ _bin_ ]             [ `unsigned int` ]            []]
-    [[ _oct_ ]             [ `unsigned int` ]            []]
-    [[ _hex_ ]             [ `unsigned int` ]            []]
-    [[ _us_ ]              [ `unsigned short` ]          []]
-    [[ _ui_ ]              [ `unsigned int` ]            []]
-    [[ _ul_ ]              [ `unsigned long` ]           []]
-    [[ _ull_ ]             [ `unsigned long long` ]      []]
-
-    [[ _s_ ]               [ `short` ]                   []]
-    [[ _i_ ]               [ `int` ]                     []]
-    [[ _l_ ]               [ `long` ]                    []]
-    [[ _ll_ ]              [ `long long` ]               []]
-    [[ _f_ ]               [ `float` ]                   []]
-    [[ _d_ ]               [ `double` ]                  []]
-
-    [[ _symbols_t_ ]       [ `T` ]                       []]
-]
-
-_ch_ is a bit odd, since its attribute type is polymorphic.  When you use _ch_
-to parse text in the non-Unicode code path (i.e. a string of `char`), the
-attribute is `char`.  When you use the exact same _ch_ to parse in the
-Unicode-aware code path, all matching is code point based, and so the
-attribute type is the type used to represent code points, `char32_t`.  All
-parsing of UTF-8 falls under this case.
-
-Here, we're parsing plain `char`s, meaning that the parsing is in the
-non-Unicode code path, the attribute of _ch_ is `char`:
-
-    auto result = parse("some text", boost::parser::char_);
-    static_assert(std::is_same_v<decltype(result), std::optional<char>>));
-
-When you parse UTF-8, the matching is done on a code point basis, so the
-attribute type is `char32_t`:
-
-    auto result = parse("some text" | boost::parser::as_utf8, boost::parser::char_);
-    static_assert(std::is_same_v<decltype(result), std::optional<char32_t>>));
-
-The good news is that usually you don't parse characters individually.  When
-you parse with _ch_, you usually parse repetition of then, which will produce
-a _std_str_, regardless of whether you're in Unicode parsing mode or not.  If
-you do need to parse individual characters, and want to lock down their
-attribute type, you can use _cp_ and/or _cu_ to enforce a non-polymorphic
-attribute type.
-
+[table_attribute_generation]
 
 [heading Combining operation attributes]
 
-Combining operations of course affect the generation of attributes.  In the
-tables below:
-
-* `m` and `n` are parse arguments that resolve to integral values;
-
-* `pred` is a parse predicate;
-
-* `arg0`, `arg1`, `arg2`, ... are parse arguments;
-
-* `a` is a semantic action; and
-
-* `p`, `p1`, `p2`, ... are parsers that generate attributes.
-
-[table Combining Operations and Their Attributes
-    [[Parser]                           [Attribute Type]]
-
-    [[`!p`]                             [None.]]
-    [[`&p`]                             [None.]]
-
-    [[`*p`]                             [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`+p`]                             [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`+*p`]                            [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`*+p`]                            [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`-p`]                             [`std::optional<_ATTR_np_(p)>`]]
-
-    [[`p1 >> p2`]                       [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p1 > p2`]                        [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p1 >> p2 >> p3`]                 [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 > p2 >> p3`]                  [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 >> p2 > p3`]                  [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-    [[`p1 > p2 > p3`]                   [`_bp_tup_<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-
-    [[`p1 | p2`]                        [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p1 | p2 | p3`]                   [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), _ATTR_np_(p3)>`]]
-
-    [[`p1 % p2`]                        [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p1)>`]]
-
-    [[`p[a]`]                           [None.]]
-
-    [[`_rpt_np_(arg0)[p]`]              [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`_rpt_np_(arg0, arg1)[p]`]        [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`_if_np_(pred)[p]`]               [`std::optional<_ATTR_np_(p)>`]]
-    [[`_sw_np_(arg0)(arg1, p1)(arg2, p2)...`]
-     [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2), ...>`]]
-]
-
-[important All the character parsers, like _ch_, _cp_ and _cu_ produce either
-`char` or `char32_t` attributes.  So when you see "`std::string` if
-`_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`"
-in the table above, that effectively means that every sequences of character
-attributes get turned into a `std::string`.  The only time this does not
-happen is when you introduce your own rules with attributes using another
-character type (or use _attr_ to do so).]
-
-[important In case you did not notice it above, adding a semantic action to a
-parser erases the parser's attribute.  The attribute is still available inside
-the semantic action as `_attr(ctx)`.]
+[table_attribute_combinations]
 
 There are a relatively small number of rules that define how sequence parsers
 and alternative parsers' attributes are generated.  (Don't worry, there are
@@ -1961,45 +1637,14 @@ if you write this:
     auto b = bp::parse("3", bp::int_, bp::ws, result);
 
 ... you are even more likely to have made a mistake.  Though this should work,
-because the assignment in `std::string s; s = 3.6;` is well-formed, _Parser_
+because the assignment in `std::string s; s = 3;` is well-formed, _Parser_
 forbids it.  If you write parsing code like the snippet above, you will get a
 static assertion.  If you really do want to assign a `float` or whatever to a
 _std_str_, do it in a semantic action.
 
 [heading Examples of attributes generated by sequence and alternative parsers]
 
-In the table: `a` is a semantic action; and `p`, `p1`, `p2`, ... are parsers
-that generate attributes.  Note that only `>>` is used here; `>` has the exact
-same attribute generation rules.
-
-[table Sequence and Alternative Combining Operations and Their Attributes
-    [[Expression]                    [Attribute Type]]
-
-    [[`_e_ >> _e_`]                  [None.]]
-    [[`p >> _e_`]                    [`_ATTR_np_(p)`]]
-    [[`_e_ >> p`]                    [`_ATTR_np_(p)`]]
-
-    [[`_cu_ >> _str_np_("str")`]     [_std_str_]]
-    [[`_str_np_("str") >> _cu_`]     [_std_str_]]
-    [[`*_cu_ >> _str_np_("str")`]    [`_bp_tup_<std::string, std::string>`]]
-    [[`_str_np_("str") >> *_cu_`]    [`_bp_tup_<std::string, std::string>`]]
-
-    [[`p >> p`]                      [`_bp_tup_<_ATTR_np_(p), _ATTR_np_(p)>`]]
-    [[`*p >> p`]                     [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`p >> *p`]                     [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`*p >> -p`]                    [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-    [[`-p >> *p`]                    [`std::string` if `_ATTR_np_(p)` is `char` or `char32_t`, otherwise `std::vector<_ATTR_np_(p)>`]]
-
-    [[`_str_np_("str") >> -_cu_`]    [_std_str_]]
-    [[`-_cu_ >> _str_np_("str")`]    [_std_str_]]
-
-    [[`!p1 | p2[a]`]                 [None.]]
-    [[`p | p`]                       [`_ATTR_np_(p)`]]
-    [[`p1 | p2`]                     [`std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>`]]
-    [[`p | `_e_]                     [`std::optional<_ATTR_np_(p)>`]]
-    [[`p1 | p2 | _e_`]               [`std::optional<std::variant<_ATTR_np_(p1), _ATTR_np_(p2)>>`]]
-    [[`p1 | p2[a] | p3`]             [`std::optional<std::variant<_ATTR_np_(p1), _ATTR_np_(p3)>>`]]
-]
+[table_seq_or_attribute_combinations]
 
 [heading Controlling attribute generation with _merge_ and _sep_]
 
@@ -2094,6 +1739,48 @@ created a merge group above, we disabled the default behavior in which the
 them.  Since they are all treated as separate entities, and since they have
 different attribute types, the use of _merge_ is an error.
 
+Many directives create a new parser out of the parser they are given.  _merge_
+and _sep_ do not.  Since they operate only on sequence parsers, all they do is
+create a copy of the sequence parser they are given.  The _seq_p_ template has
+a template parameter `CombiningGroups`, and all _merge_ and _sep_ do is take a
+given _seq_p_ and create a copy of it with a different `CombiningGroups`
+template parameter.  This means that _merge_ and _sep_ are can be ignored in
+`operator>>` expressions much like parentheses are.  Consider an example.
+
+    namespace bp = boost::parser;
+    constexpr auto parser1 = bp::separate[bp::int_ >> bp::int_] >> bp::int_;
+    constexpr auto parser2 = bp::lexeme[bp::int_ >> ' ' >> bp::int_] >> bp::int_;
+
+Note that _sep_ is a no-op here; it's only being used this way for this
+example.  These parsers have different attribute types. `_ATTR_np_(parser1)`
+is `_bp_tup_(int, int, int)`.  `_ATTR_np_(parser2)` is `_bp_tup_(_bp_tup_(int,
+int), int)`.  This is because `bp::lexeme[]` wraps its given parser in a new
+parser.  _merge_ does not.  That's why, even though `parser1` and `parser2`
+look so structurally similar, they have different attributes.
+
+[heading _transform_]
+
+_transform_ is a directive that transforms the attribute of a parser using the
+given function `f`.  For example:
+
+[transform_directive_example]
+
+Here, we have a function `str_sum` that we use for `f`.  It assumes each
+character in the given _std_str_ `s` is a digit, and returns the sum of all
+the digits in `s`.  Out parser `parser` would normally return a _std_str_.
+However, since `str_sum` returns a different type _emdash_ `int` _emdash_ that
+is the attribute type of the full parser,
+`bp::transform(by_value_str_sum)[parser]`, as you can see from the
+`static_assert`.
+
+As is the case with attributes all throughout _Parser_, the attribute passed
+to `f` will be moved.  You can take it by `const &`, `&&`, or by value.
+
+No distinction is made between parsers with and without an attribute, because
+there is a Regular special no-attribute type that is generated by parsers with
+no attribute.  You may therefore write something like
+`_transform_np_(f)[_e_]`, and _Parser_ will happily call `f` with this special
+no-attribute type.
 
 [heading Other directives that affect attribute generation]
 
@@ -2113,11 +1800,12 @@ common:
 * They each return a value contextually convertible to `bool`.
 
 * They each take at least a range to parse and a parser.  The "range to parse"
-  may be an iterator/sentinel pair or an single range-like object.
+  may be an iterator/sentinel pair or an single range-like object.  Note that
+  "range-like" includes null-terminated string pointers.
 
 * They each require forward iterability of the range to parse.
 
-* They each accept any range with an character element type.  This means that
+* They each accept any range with a character element type.  This means that
   they can each parse ranges of `char`, `wchar_t`, `char8_t`, `char16_t`, or
   `char32_t`.
 
@@ -2545,8 +2233,6 @@ common use cases for _rs_.  Use a _r_ if you want to:
 
 * create a set of mutually-recursive parsers;
 
-* separately compile a parser; or
-
 * do callback parsing.
 
 Let's look at the use cases in detail.
@@ -2554,25 +2240,28 @@ Let's look at the use cases in detail.
 [heading Fixing the attribute type]
 
 We saw in the previous section how _p_ is flexible in what types it will
-accept as attribute out-parameters.
+accept as attribute out-parameters.  Here's another example.
 
-That flexibility is a blessing and a curse.  For instance, say you wanted to
-use the parser `+_ch_` to parse a _std_str_, and capture the result in a
-_std_str_.  `+_ch_` generates an attribute of _std_vec_char_ when parsing a
-sequence of `char`, so you'd have to write the result into a vector first,
-including all the allocations that implies, and then you'd have to allocate
-space in a string, and copy the entire result.  Not great.  The flexibility of
-attribute out-parameters lets you avoid that.  On the other hand, if you want
-to parse your result into a _std_vec_char_, but *accidentally* pass a
-_std_str_, the code is well-formed.  Usually, we expect type mismatches like
-this to be ill-formed in C++.  Fortunately, _rs_ help you address both these
-concerns.
+    namespace bp = boost::parser;
+    auto result = bp::parse(input, bp::int % ',', result);
 
-First, let's see _rs_ used to nail down attribute flexibility.  Every rule has
-a specific attribute type, provided as a template parameter.  If one is not
-specified, the rule has no attribute.  The fact that the attribute is a
-specific type allows you to remove attribute flexibility.  For instance, say
-we have a rule defined like this:
+`result` can be one of many different types.  It could be `std::vector<int>`.
+It could be `std::set<long long>`.  It could be a lot of things.  Often, this
+is a very useful property; if you had to rewrite all of your parser logic
+because you changed the desired container in some part of your attribute from
+a `std::vector` to a `std::deque`, that would be annoying.  However, that
+flexibility comes at the cost of type checking.  If you want to write a parser
+that *always* produces exactly a `std::vector<unsigned int>` *and no other
+type*, you also probably want a compilation error if you accidentally pass
+that parser a `std::set<unsigned int>` attribute instead.  There is no way
+with a plain parser to enforce that its attribute type may only ever be a
+single, fixed type.
+
+Fortunately, _rs_ allow you to write a parser that has a fixed attribute type.
+Every rule has a specific attribute type, provided as a template parameter.
+If one is not specified, the rule has no attribute.  The fact that the
+attribute is a specific type allows you to remove attribute flexibility.  For
+instance, say we have a rule defined like this:
 
 [rule_intro_rule_definition]
 
@@ -2602,10 +2291,10 @@ If we wanted to use a `std::deque<double>` as the attribute type of our rule:
         bp::parse(input, doubles, bp::ws, deque_result); // Ok.
     }
 
-So, the attribute flexibility is still available, but only *within* the rule
-_emdash_ the parser `bp::double_ % ','` can parse into a `std::vector<double>`
-or a `std::deque<double>`, but the rule `doubles` must parse into only the
-exact attribute it was declared to generate.
+The take-away here is that the attribute flexibility is still available, but
+only *within* the rule _emdash_ the parser `bp::double_ % ','` can parse into
+a `std::vector<double>` or a `std::deque<double>`, but the rule `doubles` must
+parse into only the exact attribute it was declared to generate.
 
 The reason for this is that, inside the rule parsing implementation, there is
 code something like this:
@@ -2856,40 +2545,6 @@ strings, etc.  Since we need to be able to parse objects within arrays and
 vice versa, we need each of those two parsers to be able to refer to each
 other.
 
-[heading Separately compiled rules]
-
-_Parser_ is obviously very template-heavy.  However, the template parameters
-used in your in _Parser_ code are all known at the time you write your rules
-and parsers _emdash_ except for the range you're parsing.
-
-Therefore, if you know you're only going to parse with a single kind of range,
-you can declare a function that does the parsing, and put the implementation
-in a .cpp file.  I know.  A Boost author talking about putting code in
-non-header files is weird.  Let's see an example; first, we forward declare
-our parse function in a header.
-
-    // foo.h
-    bool balanced_parens(std::string_view str);
-
-Then we define the function, plus all the rules and parsers it uses, in an
-implementation file:
-
-    // foo.cpp
-    namespace {
-        namespace bp = boost::parser;
-        bp::rule<struct parens_tag> parens = "matched parentheses";
-        auto const parens_def = ('(' >> parens > ')') | bp::eps;
-        BOOST_PARSER_DEFINE_RULES(parens);
-    }
-    bool balanced_parens(std::string_view str)
-    {
-        namespace bp = boost::parser;
-        return bp::parse(str, bp::omit[parens], bp::ws);
-    }
-
-For large parsers, separate compilation can be a significant savings on build
-time.
-
 [heading Callback parsing]
 
 Only _rs_ can be callback parsers, so if you want to get attributes supplied
@@ -2922,9 +2577,11 @@ semantics, is a lot easier to read, and is a lot less code.]
 [heading Locals]
 
 The _r_ template takes another template parameter we have not discussed yet.
-You can pass a third parameter to _r_, which will be available within semantic
-actions used in the rule as `_locals_np_(ctx)`.  This gives your rule some
-local state, if it needs it:
+You can pass a third parameter `LocalState` to _r_, which will be defaulted
+csontructed by the _r_, and made available within semantic actions used in the
+rule as `_locals_np_(ctx)`.  This gives your rule some local state, if it
+needs it.  The type of `LocalState` can be anything regular.  It could be a
+single value, a struct containing multiple values, or a tuple, among others.
 
     struct foo_locals
     {
@@ -2953,48 +2610,74 @@ write parsers that have to track state as they parse.
 
 [heading Parameters]
 
-Sometimes, it is convenient to parameterize parsers.  Consider this parsing
-rule from the _yaml_ spec:
+Sometimes, it is convenient to parameterize parsers.  Consider these parsing
+rules from the _yaml_ spec:
 
 [pre
-\[137\] c-flow-sequence(n,c) ::= “\[” s-separate(n,c)?
-                               ns-s-flow-seq-entries(n,in-flow(c))? “\]”
+\[80\]
+s-separate(n,BLOCK-OUT) ::= s-separate-lines(n)
+s-separate(n,BLOCK-IN)  ::= s-separate-lines(n)
+s-separate(n,FLOW-OUT)  ::= s-separate-lines(n)
+s-separate(n,FLOW-IN)   ::= s-separate-lines(n)
+s-separate(n,BLOCK-KEY) ::= s-separate-in-line
+s-separate(n,FLOW-KEY)  ::= s-separate-in-line
+
+\[136\]
+in-flow(n,FLOW-OUT)  ::= ns-s-flow-seq-entries(n,FLOW-IN)
+in-flow(n,FLOW-IN)   ::= ns-s-flow-seq-entries(n,FLOW-IN)
+in-flow(n,BLOCK-KEY) ::= ns-s-flow-seq-entries(n,FLOW-KEY)
+in-flow(n,FLOW-KEY)  ::= ns-s-flow-seq-entries(n,FLOW-KEY)
+
+\[137\]
+c-flow-sequence(n,c) ::= “\[” s-separate(n,c)? in-flow(c)? “\]”
+
 ]
 
-This YAML rule says that the parsing should proceed into two YAML subrules,
-both of which have these `n` and `c` parameters.  It is certainly possible to
+YAML [137] says that the parsing should proceed into two YAML subrules, both
+of which have these `n` and `c` parameters.  It is certainly possible to
 transliterate these YAML parsing rules to something that uses unparameterized
-_Parser_ _rs_, but it is quite painful to do so.
+_Parser_ _rs_, but it is quite painful to do so.  It is better to use a
+parameterized rule.
 
 You give parameters to a _r_ by calling its `with()` member.  The values you
 pass to `with()` are used to create a _bp_tup_ that is available in semantic
 actions attached to the rule, using `_params_np_(ctx)`.
 
-    namespace bp = boost::parser;
-
-    // Declare our rules.
-    bp::rule</* ... */> foo = "foo";
-    bp::rule</* ... */> bar = "bar";
-
-    // Get the first parameter for this rule.
-    auto first_param = [](auto & ctx) {
-        using namespace boost::hana::literals;
-        return _params(ctx)[0_c];
-    };
-    auto const foo_def = bp::repeat(first_param)[' '_l]; // Match ' ' the number of times indicated by the first parameter to foo.
-
-    // Assume that bar has a locals struct with a local_indent member, and
-    // that set_local_indent and local_indent are lambdas that respectively write
-    // and read _locals(ctx).local_indent.
-
-    // Parse an integer, and then pass that as a parameter to foo.
-    auto const bar_def = bp::int_[set_local_indent] >> foo.with(local_indent);
-
-    BOOST_PARSER_DEFINE_RULES(foo, bar);
-
 Passing parameters to _rs_ like this allows you to easily write parsers that
 change the way they parse depending on contextual data that they have already
 parsed.
+
+Here is an implementation of YAML [137].  It also implements the two YAML
+rules used directly by [137], rules [136] and [80].  The rules that *those*
+rules use are also represented below, but are implemented using only _e_, so
+that I don't have to repeat too much of the (very large) YAML spec.
+
+[extended_param_yaml_example_rules]
+
+YAML [137] (`c_flow_sequence`) parses a list.  The list may be empty, and must
+be surrounded by brackets, as you see here.  But, depending on the current
+YAML context (the `c` parameter to [137]), we may require certain spacing to
+be matched by `s-separate`, and how sub-parser `in-flow` behaves also depends
+on the current context.
+
+In `s_separate` above, we parse differently based on the value of `c`.  This
+is done above by using the value of the second parameter to `s_separate` in a
+switch-parser.  The second parameter is looked up by using __p_ as a parse
+argument.
+
+`in_flow` does something similar.  Note that `in_flow` calls its subrule by
+passing its first parameter, but using a fixed value for the second value.
+`s_separate` only passes its `n` parameter conditionally.  The point is that a
+rule can be used with and without `.with()`, and that you can pass constants
+or parse arguments to `.with()`.
+
+With those rules defined, we could write a unit test for YAML [137] like this:
+
+[extended_param_yaml_example_use]
+
+You could extend this with tests for different values of `n` and `c`.
+Obviously, in real tests, you parse actual contents inside the `"[]"`, if the
+other rules were implemented, like [138].
 
 [heading The __p_ variable template]
 
@@ -3010,16 +2693,85 @@ Using __p_ can prevent you from having to write a bunch of lambdas that get
 each get an argument out of the parse context using `_params_np_(ctx)[0_c]` or
 similar.
 
+Note that __p_ is a parse argument (see _parsers_uses_), meaning that it is an
+invocable that takes the context as its only parameter.  If you want to use it
+inside a semantic action, you have to call it.
+
+[heading Special forms of semantic actions usable within a rule]
+
+Semantic actions in this tutorial are usually of the signature `void (auto &
+ctx)`.  That is, they take a context by reference, and return nothing.  If
+they were to return something, that something would just get dropped on the
+floor.
+
+It is a pretty common pattern to create a rule in order to get a certain kind
+of value out of a parser, when you don't normally get it automatically.  If I
+want to parse an `int`, _i_ does that, and the thing that I parsed is also the
+desired attribute.  If I parse an `int` followed by a `double`, I get a
+_bp_tup_ containing one of each.  But what if I don't want those two values,
+but some function of those two values?  I probably write something like this.
+
+    struct obj_t { /* ... */ };
+    obj_t to_obj(int i, double d) { /* ... */ }
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    auto make_obj = [](auto & ctx) {
+        using boost::hana::literals;
+        _val(ctx) = to_obj(_attr(ctx)[0_c], _attr(ctx)[1_c]);
+    };
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[make_obj];
+
+That's fine, if a little verbose.  However, you can also do this instead:
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    auto make_obj = [](auto & ctx) {
+        using boost::hana::literals;
+        return to_obj(_attr(ctx)[0_c], _attr(ctx)[1_c]);
+    };
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[make_obj];
+
+Above, we return the value from a semantic action, and the returned value
+gets assigned to `_val_np_(ctx)`.
+
+Finally, you can provide a function that takes the individual elements of the
+attribute (if it's a tuple), and returns the value to assign to
+`_val_np_(ctx)`:
+
+    namespace bp = boost::parser;
+    bp::rule<struct obj_tag, obj_t> obj = "obj";
+    constexpr auto obj_def = (bp::int_ >> bp::double_)[to_obj];
+
+More formally, within a rule, the use of a semantic action is determined as
+follows.  Assume we have a function `APPLY` that calls a function with the
+elements of a tuple, like `std::apply`.  For some context `ctx`, semantic
+action `action`, and attribute `attr`, `action` is used like this:
+
+- `_val(ctx) = APPLY(action, std::move(attr))`, if that is well-formed, and
+  `attr` is a tuple of size 2 or larger;
+
+- otherwise, `_val(ctx) = action(ctx)`, if that is well-formed;
+
+- otherwise, `action(ctx)`.
+
+The first case does not pass the context to the action at all.  The last case
+is the normal use of semantic actions outside of rules.
+
 [endsect]
 
 [section Algorithms and Views That Use Parsers]
 
+Unless otherwise noted, all the algorithms and views are constrained very much
+like the way the _p_ overloads are.  The kinds of ranges, parsers, etc., that
+they accept are the same.
+
 [heading _search_]
 
 As shown in _p_api_, the two patterns of parsing in _Parser_ are whole-parse
-and prefix-parse.  When you want to find something in the middle of the
-sequence being parsed, there's no `parse` API for that.  You can of course
-make a simple parser that skips everything before what you're looking for.
+and prefix-parse.  When you want to find something in the middle of the range
+being parsed, there's no `parse` API for that.  You can of course make a
+simple parser that skips everything before what you're looking for.
 
     namespace bp = boost::parser;
     constexpr auto parser = /* ... */;
@@ -3032,13 +2784,13 @@ write.  If you need to parse something from the middle in order to generate
 attributes, this is what you should use.
 
 However, it often turns out you only need to find some subrange in the parsed
-sequence.  In these cases, it would be nice to turn this into a proper
-algorithm in the pattern of the ones in `std::ranges`, since that's more
-idiomatic.  _search_ is that algorithm.  It has very similar semantics to
+range.  In these cases, it would be nice to turn this into a proper algorithm
+in the pattern of the ones in `std::ranges`, since that's more idiomatic.
+_search_ is that algorithm.  It has very similar semantics to
 `std::ranges::search`, except that it searches not for a match to an exact
-subsequence, but to a match with the given parser.  Like
-`std::ranges::search()`, it returns a subrange (`boost::parser::subrange` in
-C++17, `std::ranges::subrange` in C++20 and later).
+subrange, but to a match with the given parser.  Like `std::ranges::search()`,
+it returns a subrange (`boost::parser::subrange` in C++17,
+`std::ranges::subrange` in C++20 and later).
 
     namespace bp = boost::parser;
     auto result = bp::search("aaXYZq", bp::lit("XYZ"), bp::ws);
@@ -3141,15 +2893,16 @@ Unlike _split_v_, _replace_v_ does not produce empty subranges, unless
 `replacement` is empty.
 
     namespace bp = boost::parser;
-    auto rng = "XYZaaXYZbaabaXYZXYZ" | bp::replace(bp::lit("XYZ"), "foo");
+    auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+    auto rng = "My credit card number is 1234-5678-9012-3456." | bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX");
     int count = 0;
-    // Prints foo aa foo baaba foo foo.
+    // Prints My credit card number is XXXX-XXXX-XXXX-XXXX.
     for (auto subrange : rng) {
-        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin()) << " ";
+        std::cout << std::string_view(subrange.begin(), subrange.end() - subrange.begin());
         ++count;
     }
     std::cout << "\n";
-    assert(count == 6);
+    assert(count == 3);
 
 
 If the iterator types `Ir` and `Ireplacement` for the `r` and `replacement`
@@ -3164,13 +2917,13 @@ subranges represented by _replace_v_ is easily joined back into a single
 range.
 
     namespace bp = boost::parser;
-    char const str[] = "XYZaaXYZbaabaXYZXYZ";
-    auto rng = str | bp::replace(bp::lit("XYZ"), "foo") | std::views::join;
+    auto card_number = bp::int_ >> bp::repeat(3)['-' >> bp::int_];
+    auto rng = "My credit card number is 1234-5678-9012-3456." | bp::replace(card_number, "XXXX-XXXX-XXXX-XXXX") | std::views::join;
     std::string replace_result;
     for (auto ch : rng) {
         replace_result.push_back(ch);
     }
-    assert(replace_result == "fooaafoobaabafoofoo");
+    assert(replace_result == "My credit card number is XXXX-XXXX-XXXX-XXXX.");
 
 Note that we could *not* have written `std::string replace_result(r.begin(),
 r.end())`.  This is ill-formed because the `std::string` range constructor
@@ -3184,13 +2937,18 @@ is because the subranges produced are all common ranges, and so if
 pass very long C-style strings to _replace_ and not pay to see the end until
 the range is used, don't.
 
+`ReplacementV` is constrained almost exactly the same as `V`.  `V` must model
+`parsable_range` and `std::ranges::viewable_range`.  `ReplacementV` is the
+same, except that it can also be a `std::ranges::input_range`, whereas `V`
+must be a `std::ranges::forward_range`.
+
 You may wonder what happens when you pass a UTF-N range for `r`, and a UTF-M
 range for `replacement`.  What happens in this case is silent transcoding of
 `replacement` from UTF-M to UTF-N by the _replace_ range adaptor.  This
 doesn't require memory allocation; _replace_ just slaps `|
 boost::parser::as_utfN` onto `replacement`.  However, since _Parser_ treats
-`char` sequences as unknown encoding, _replace_ will not transcode from `char`
-sequences.  So calls like this won't work:
+`char` ranges as unknown encoding, _replace_ will not transcode from `char`
+ranges.  So calls like this won't work:
 
     char const str[] = "some text";
     char const replacement_str[] = "some text";
@@ -3198,8 +2956,8 @@ sequences.  So calls like this won't work:
     auto r = empty_str | bp::replace(parser, replacement_str | bp::as_utf8); // Error: ill-formed!  Can't mix plain-char inputs and UTF replacements.
 
 This does not work, even though `char` and UTF-8 are the same size.  If `r`
-and `replacement` are both sequences of `char`, everything will work of
-course.  It's just mixing `char` and UTF-encoded sequences that does not work.
+and `replacement` are both ranges of `char`, everything will work of course.
+It's just mixing `char` and UTF-encoded ranges that does not work.
 
 All the details called out in the subsection on _search_ above apply to
 _replace_: its parser produces no attributes; it accepts C-style strings for
@@ -3425,6 +3183,17 @@ completeness, if you want to use them.  They each can transcode any sequence
 of character types.  A null-terminated string is considered a sequence of
 character type.
 
+[important The `as_utfN` adaptors are optional, so they don't come with
+`parser.hpp`.  To get access to them, `#include
+<boost/parser/transcode_view.hpp>`. ]
+
+[heading (Lack of) normalization]
+
+One thing that _Parser_ does not handle for you is normalization; _Parser_ is
+completely normalization-agnostic.  Since all the parsers do their matching
+using equality comparisons of code points, you should make sure that your
+parsed range and your parsers all use the same normalization form.
+
 [endsect]
 
 [section Callback Parsing]
@@ -3491,7 +3260,7 @@ See _ex_cb_json_ for an extended example of callback parsing.
 [heading Error handling]
 
 _Parser_ has good error reporting built into it.  Consider what happens when
-we fail to parse at an expectation point (created using `operator>()`).  If I
+we fail to parse at an expectation point (created using `operator>`).  If I
 feed the parser from the _ex_cb_json_ example a file called sample.json
 containing this input (note the unmatched `'['`):
 
@@ -3640,7 +3409,7 @@ was found.  That may of course not be located anywhere near
                 close_tag_msg,
                 ctx);
 
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            // Explicitly fail the parse.  Diagnostics do not affect parse success.
             _pass(ctx) = false;
         }
     }
@@ -3662,7 +3431,7 @@ less verbose, _report_error_ and _report_warning_:
                 "does not match close-tag \"" + _attr(ctx) + "\" here:";
             _report_error(ctx, close_tag_msg);
 
-            // Explicitly fail the parse.  Diagnostics to not affect parse success.
+            // Explicitly fail the parse.  Diagnostics do not affect parse success.
             _pass(ctx) = false;
         }
     }
@@ -3911,7 +3680,9 @@ Some things to be aware of when looking at _Parser_ trace output:
 _Parser_ seldom allocates memory.  The exceptions to this are:
 
 * _symbols_ allocates memory for the symbol/attribute pairs it contains.  If
-  symbols are added during the parse, allocations must also occur then.
+  symbols are added during the parse, allocations must also occur then.  The
+  data structure used by _symbols_ is also a trie, which is a node-based tree.
+  So, lots of allocations are likely if you use _symbols_.
 
 * The error handlers that can take a file name allocate memory for the file
   name, if one is provided.
@@ -3919,7 +3690,7 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
 * If trace is turned on by passing `_trace_::on` to a top-level
   parsing function, the names of parsers are allocated.
 
-* When a failed expectation is encountered (using `operator>()`), the name of
+* When a failed expectation is encountered (using `operator>`), the name of
   the failed parser is placed into a _std_str_, which will usually cause an
   allocation.
 
@@ -3927,8 +3698,8 @@ _Parser_ seldom allocates memory.  The exceptions to this are:
   can avoid this allocation by explicitly using a different string type for
   the attribute that does not allocate.
 
-* The attribute for `_rpt_np_(p)` in all its forms, including `operator*()`,
-  `operator+()`, and `operator%()`, is `std::vector<_ATTR_np_(p)>`, the use of
+* The attribute for `_rpt_np_(p)` in all its forms, including `operator*`,
+  `operator+`, and `operator%`, is `std::vector<_ATTR_np_(p)>`, the use of
   which implies allocation.  You can avoid this allocation by explicitly using
   a different sequence container for the attribute that does not allocate.
   `boost::container::static_vector` or C++26's `std::inplace_vector` may be
@@ -3964,6 +3735,29 @@ get better coverage with less work, since exercising all the code paths of
 your rules, one by one, keeps the combinatorial number of paths through your
 code manageable.
 
+[heading Prefer auto-generated attributes to semantic actions]
+
+There are multiple ways to get attributes out of a parser.  You can:
+
+* use whatever attribute the parser generates;
+* provide an attribute out-argument to _p_ for the parser to fill in;
+* use one or more semantic actions to assign attributes from the parser to
+  variables outside the parser;
+* use callback parsing to provide attributes via callback calls.
+
+All of these are fairly similar in how much effort they require, except for
+the semantic action method.  For the semantic action approach, you need to
+have values to fill in from your parser, and keep them in scope for the
+duration of the parse.
+
+It is much more straight forward, and leads to more reusable parsers, to have
+the parsers produce the attributes of the parse directly as a result of the
+parse.
+
+This does not mean that you should never use semantic actions.  They are
+sometimes necessary.  However, you should default to using the other
+non-semantic action methods, and only use semantic actions with a good reason.
+
 [heading If your parser takes end-user input, give rules names that you would want an end-user to see]
 
 A typical error message produced by _Parser_ will say something like,
@@ -3990,18 +3784,6 @@ Some things to note:
   used as a name anywhere per se.  In error messages, it works nicely, though.
   The error will be "Expected '"', '\', '/', 'b', 'f', 'n', 'r', or 't' here",
   which is pretty helpful.
-
-[heading Compile separately when you know the type of your input will not change]
-
-If your input type will not change (for instance, if you always parse from a
-`std::string` and nothing else), you can use separate compilation to keep from
-recompiling your parsing code over and over in every translation unit that
-includes it.  For instance, in the JSON callback parser example, there is a
-call to `json::parse()`, which is a template.  However, the function template
-is always instantiated with the same parameter: `json_callbacks`, a type
-defined in the example.  It would be possible to remove the template parameter
-from `json::parse()`, forward declare `json_callbacks` and `json::parse()`,
-and define them in a different implementation file.
 
 [heading Have a simple test that you can run to find ill-formed-code-as-asserts]
 
@@ -4049,9 +3831,6 @@ As you can see, `opt_parser`'s only data member is the parser it adapts,
 [opt_parser_attr_call]
 
 First, let's look at the template and function parameters.
-
-* `UseCallbacks` is `true` only within a call to _cbp_ (or _cbpp_), and it is
-  deduced from the `use_cbs` function parameter.
 
 * `Iter & first` is the iterator.  It is taken as an out-param.  It is the
   responsibility of `call()` to advance `first` if and only if the parse

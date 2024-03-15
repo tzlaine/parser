@@ -18,7 +18,7 @@
 #include <boost/parser/detail/printing.hpp>
 
 #include <boost/parser/detail/text/algorithm.hpp>
-#include <boost/parser/detail/text/trie.hpp>
+#include <boost/parser/detail/text/trie_map.hpp>
 #include <boost/parser/detail/text/unpack.hpp>
 
 #include <type_traits>
@@ -370,9 +370,12 @@ namespace boost { namespace parser {
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
+
         template<typename T>
         using print_type = typename print_t<T>::type;
 
+        template<typename R, typename Parser>
+        struct attribute_impl;
 
         // Utility types.
 
@@ -411,6 +414,13 @@ namespace boost { namespace parser {
 
         inline nope global_nope;
 
+        template<typename T>
+        using parser_interface_tag_expr =
+            typename T::parser_interface_derivation_tag;
+        template<typename T>
+        constexpr bool derived_from_parser_interface_v =
+            is_detected_v<parser_interface_tag_expr, T>;
+
         template<typename T, bool AlwaysConst = false>
         using nope_or_pointer_t = std::conditional_t<
             std::is_same_v<std::remove_const_t<T>, nope>,
@@ -418,6 +428,8 @@ namespace boost { namespace parser {
             std::conditional_t<AlwaysConst, T const *, T *>>;
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename I,
             typename S,
             typename ErrorHandler,
@@ -436,6 +448,9 @@ namespace boost { namespace parser {
             parse_context & operator=(parse_context const &) = default;
 
             using rule_tag = RuleTag;
+
+            static constexpr bool do_trace = DoTrace;
+            static constexpr bool use_callbacks = UseCallbacks;
 
             I first_;
             S last_;
@@ -471,6 +486,8 @@ namespace boost { namespace parser {
             }
 
             parse_context(
+                std::bool_constant<DoTrace>,
+                std::bool_constant<UseCallbacks>,
                 I & first,
                 S last,
                 bool & success,
@@ -489,6 +506,8 @@ namespace boost { namespace parser {
 
             // With callbacks.
             parse_context(
+                std::bool_constant<DoTrace>,
+                std::bool_constant<UseCallbacks>,
                 I & first,
                 S last,
                 bool & success,
@@ -519,6 +538,8 @@ namespace boost { namespace parser {
                 typename NewRuleParams>
             parse_context(
                 parse_context<
+                    DoTrace,
+                    UseCallbacks,
                     I,
                     S,
                     ErrorHandler,
@@ -561,6 +582,8 @@ namespace boost { namespace parser {
             template<typename OldAttr, typename OldWhere>
             parse_context(
                 parse_context<
+                    DoTrace,
+                    UseCallbacks,
                     I,
                     S,
                     ErrorHandler,
@@ -592,6 +615,8 @@ namespace boost { namespace parser {
         };
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename I,
             typename S,
             typename ErrorHandler,
@@ -606,6 +631,8 @@ namespace boost { namespace parser {
             typename OldAttr>
         auto make_action_context(
             parse_context<
+                DoTrace,
+                UseCallbacks,
                 I,
                 S,
                 ErrorHandler,
@@ -620,6 +647,8 @@ namespace boost { namespace parser {
             Where const & where)
         {
             using result_type = parse_context<
+                DoTrace,
+                UseCallbacks,
                 I,
                 S,
                 ErrorHandler,
@@ -635,6 +664,8 @@ namespace boost { namespace parser {
         }
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename I,
             typename S,
             typename ErrorHandler,
@@ -651,6 +682,8 @@ namespace boost { namespace parser {
             typename NewRuleParams>
         auto make_rule_context(
             parse_context<
+                DoTrace,
+                UseCallbacks,
                 I,
                 S,
                 ErrorHandler,
@@ -667,6 +700,8 @@ namespace boost { namespace parser {
             NewRuleParams const & params)
         {
             using result_type = parse_context<
+                DoTrace,
+                UseCallbacks,
                 I,
                 S,
                 ErrorHandler,
@@ -686,7 +721,12 @@ namespace boost { namespace parser {
             return result_type(context, tag_ptr, value, locals, params);
         }
 
-        template<typename Iter, typename Sentinel, typename ErrorHandler>
+        template<
+            bool DoTrace,
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename ErrorHandler>
         auto make_context(
             Iter first,
             Sentinel last,
@@ -697,6 +737,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return parse_context(
+                std::bool_constant<DoTrace>{},
+                std::bool_constant<UseCallbacks>{},
                 first,
                 last,
                 success,
@@ -707,6 +749,8 @@ namespace boost { namespace parser {
         }
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename ErrorHandler,
@@ -721,6 +765,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return parse_context(
+                std::bool_constant<DoTrace>{},
+                std::bool_constant<UseCallbacks>{},
                 first,
                 last,
                 success,
@@ -731,6 +777,8 @@ namespace boost { namespace parser {
         }
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename ErrorHandler,
@@ -746,6 +794,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return parse_context(
+                std::bool_constant<DoTrace>{},
+                std::bool_constant<UseCallbacks>{},
                 first,
                 last,
                 success,
@@ -757,6 +807,8 @@ namespace boost { namespace parser {
         }
 
         template<
+            bool DoTrace,
+            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename ErrorHandler,
@@ -773,6 +825,8 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept
         {
             return parse_context(
+                std::bool_constant<DoTrace>{},
+                std::bool_constant<UseCallbacks>{},
                 first,
                 last,
                 success,
@@ -790,7 +844,7 @@ namespace boost { namespace parser {
             template<typename Context>
             decltype(auto) operator()(Context const & context) const
             {
-                return parser::_params(context)[llong<I>{}];
+                return parser::get(parser::_params(context), llong<I>{});
             }
         };
 
@@ -878,26 +932,6 @@ namespace boost { namespace parser {
             return *context.callbacks_;
         }
 
-        template<typename Context, typename T>
-        decltype(auto) get_trie(
-            Context const & context, symbol_parser<T> const & symbol_parser)
-        {
-            using trie_t = text::trie<std::vector<char32_t>, T>;
-            symbol_table_tries_t & symbol_table_tries =
-                *context.symbol_table_tries_;
-            any_copyable & a = symbol_table_tries[(void *)&symbol_parser];
-            if (a.empty()) {
-                a = trie_t{};
-                trie_t & trie = a.cast<trie_t>();
-                for (auto const & e : symbol_parser.initial_elements()) {
-                    trie.insert(e.first | text::as_utf32, e.second);
-                }
-                return trie;
-            } else {
-                return a.cast<trie_t>();
-            }
-        }
-
 
         // Type traits.
 
@@ -922,6 +956,13 @@ namespace boost { namespace parser {
         constexpr bool is_nope_v = is_nope<remove_cv_ref_t<T>>::value;
 
         template<typename T>
+        struct is_eps_p : std::false_type
+        {};
+        template<typename T>
+        struct is_eps_p<eps_parser<T>> : std::true_type
+        {};
+
+        template<typename T>
         struct is_unconditional_eps : std::false_type
         {};
         template<>
@@ -943,6 +984,13 @@ namespace boost { namespace parser {
         {};
         template<typename T>
         struct is_or_p<or_parser<T>> : std::true_type
+        {};
+
+        template<typename T>
+        struct is_perm_p : std::false_type
+        {};
+        template<typename T>
+        struct is_perm_p<perm_parser<T>> : std::true_type
         {};
 
         template<typename T>
@@ -1289,6 +1337,16 @@ namespace boost { namespace parser {
             }
         }
 
+        template<typename Container, typename T>
+        void append(std::optional<Container> & c, T && x, bool gen_attrs)
+        {
+            if (!gen_attrs)
+                return;
+            if (!c)
+                c = Container();
+            return detail::append(*c, (T &&) x, gen_attrs);
+        }
+
         template<typename Container>
         void append(Container & c, nope &&, bool)
         {}
@@ -1313,6 +1371,20 @@ namespace boost { namespace parser {
             } else {
                 detail::insert(c, first, last);
             }
+        }
+
+        template<typename Container, typename Iter, typename Sentinel>
+        void append(
+            std::optional<Container> & c,
+            Iter first,
+            Sentinel last,
+            bool gen_attrs)
+        {
+            if (!gen_attrs)
+                return;
+            if (!c)
+                c = Container();
+            return detail::append(*c, first, last, gen_attrs);
         }
 
         template<typename Iter, typename Sentinel>
@@ -1374,13 +1446,11 @@ namespace boost { namespace parser {
         struct skip_skipper
         {
             template<
-                bool UseCallbacks,
                 typename Iter,
                 typename Sentinel,
                 typename Context,
                 typename SkipParser>
             nope operator()(
-                std::bool_constant<UseCallbacks> use_cbs,
                 Iter & first,
                 Sentinel last,
                 Context const & context,
@@ -1392,14 +1462,12 @@ namespace boost { namespace parser {
             }
 
             template<
-                bool UseCallbacks,
                 typename Iter,
                 typename Sentinel,
                 typename Context,
                 typename SkipParser,
                 typename Attribute>
             void operator()(
-                std::bool_constant<UseCallbacks> use_cbs,
                 Iter & first,
                 Sentinel last,
                 Context const & context,
@@ -1426,11 +1494,10 @@ namespace boost { namespace parser {
             rethrow_error_handler eh;
             nope n;
             symbol_table_tries_t symbol_table_tries;
-            auto const context = detail::make_context(
+            auto const context = detail::make_context<false, false>(
                 first, last, success, indent, eh, n, symbol_table_tries);
             while (success) {
                 skip_(
-                    std::false_type{},
                     first,
                     last,
                     context,
@@ -1452,6 +1519,7 @@ namespace boost { namespace parser {
         }
 
         inline bool make_parse_result(nope &, bool success) { return success; }
+        inline bool make_parse_result(none &, bool success) { return success; }
 
         template<typename LoType, typename HiType>
         struct char_pair
@@ -1463,10 +1531,9 @@ namespace boost { namespace parser {
         using case_fold_array_t = std::array<char32_t, detail::longest_mapping>;
 
         template<typename I, typename S>
-        struct no_case_iter : stl_interfaces::iterator_interface<
+        struct no_case_iter : stl_interfaces::proxy_iterator_interface<
                                   no_case_iter<I, S>,
                                   std::forward_iterator_tag,
-                                  char32_t,
                                   char32_t>
         {
             no_case_iter() : it_(), last_(), idx_(0), last_idx_() {}
@@ -1496,10 +1563,9 @@ namespace boost { namespace parser {
                 return lhs.it_ == rhs.it_ && lhs.idx_ == rhs.idx_;
             }
 
-            using base_type = stl_interfaces::iterator_interface<
+            using base_type = stl_interfaces::proxy_iterator_interface<
                 no_case_iter<I, S>,
                 std::forward_iterator_tag,
-                char32_t,
                 char32_t>;
             using base_type::operator++;
 
@@ -1514,7 +1580,7 @@ namespace boost { namespace parser {
                 }
                 auto const folded_last =
                     detail::case_fold(*it_, folded_.begin());
-                last_idx_ = folded_last - folded_.begin();
+                last_idx_ = int(folded_last - folded_.begin());
             }
 
             case_fold_array_t folded_;
@@ -1523,6 +1589,66 @@ namespace boost { namespace parser {
             int idx_;
             int last_idx_;
         };
+
+        template<typename V>
+        struct case_fold_view
+        {
+            using iterator =
+                no_case_iter<detail::iterator_t<V>, detail::sentinel_t<V>>;
+
+            case_fold_view(V base) : base_(std::move(base)) {}
+
+            iterator begin() const
+            {
+                return iterator(
+                    text::detail::begin(base_), text::detail::end(base_));
+            }
+            auto end() const { return text::detail::end(base_); }
+
+        private:
+            V base_;
+        };
+
+        template<typename Context, typename T>
+        auto get_trie(
+            Context const & context, symbol_parser<T> const & symbol_parser)
+        {
+            using trie_t = text::trie_map<std::vector<char32_t>, T>;
+            using result_type = std::pair<trie_t &, bool>;
+            symbol_table_tries_t & symbol_table_tries =
+                *context.symbol_table_tries_;
+
+            auto & [any, has_case_folded] =
+                symbol_table_tries[(void *)&symbol_parser];
+
+            bool const needs_case_folded = context.no_case_depth_;
+
+            if (!any.has_value()) {
+                any = trie_t{};
+                has_case_folded = false;
+                trie_t & trie = *std::any_cast<trie_t>(&any);
+                for (auto const & e : symbol_parser.initial_elements()) {
+                    trie.insert(e.first | text::as_utf32, e.second);
+                    if (needs_case_folded) {
+                        trie.insert(
+                            case_fold_view(e.first | text::as_utf32), e.second);
+                        has_case_folded = true;
+                    }
+                }
+                return result_type(trie, has_case_folded);
+            } else {
+                trie_t & trie = *std::any_cast<trie_t>(&any);
+                if (needs_case_folded && !has_case_folded) {
+                    trie_t new_trie = trie;
+                    for (auto && [key, value] : trie) {
+                        new_trie.insert(
+                            case_fold_view(key | text::as_utf32), value);
+                    }
+                    std::swap(new_trie, trie);
+                }
+                return result_type(trie, has_case_folded);
+             }
+        }
 
         template<>
         struct char_subranges<hex_digit_subranges>
@@ -1583,7 +1709,8 @@ namespace boost { namespace parser {
                         return text::find(cps.begin(), cps.end(), c_) !=
                                cps.end();
                     } else {
-                        using element_type = decltype(*chars_.begin());
+                        using element_type =
+                            remove_cv_ref_t<decltype(*chars_.begin())>;
                         element_type const c = c_;
                         return text::find(chars_.begin(), chars_.end(), c) !=
                                chars_.end();
@@ -1604,11 +1731,12 @@ namespace boost { namespace parser {
         template<bool SortedUTF32, typename R>
         constexpr auto make_char_range(R && r) noexcept
         {
-            if constexpr (std::is_pointer_v<std::decay_t<R>>) {
+            if constexpr (std::is_pointer_v<remove_cv_ref_t<R>>) {
                 return detail::make_char_range<SortedUTF32>(
                     r, text::null_sentinel);
             } else {
-                return detail::make_char_range<SortedUTF32>(r.begin(), r.end());
+                return detail::make_char_range<SortedUTF32>(
+                    text::detail::begin(r), text::detail::end(r));
             }
         }
 
@@ -1798,8 +1926,7 @@ namespace boost { namespace parser {
         }
 
         template<typename Container>
-        constexpr void
-        move_back(Container & c, Container & x, bool gen_attrs)
+        constexpr void move_back(Container & c, Container & x, bool gen_attrs)
         {
             if (!gen_attrs)
                 return;
@@ -1912,7 +2039,6 @@ namespace boost { namespace parser {
 
         template<
             typename Parser,
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -1920,7 +2046,6 @@ namespace boost { namespace parser {
             typename... T>
         void apply_parser(
             Parser const & parser,
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1930,25 +2055,16 @@ namespace boost { namespace parser {
             std::optional<std::variant<T...>> & retval)
         {
             using attr_t = decltype(parser.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             if constexpr (std::is_same<
                               attr_t,
                               std::optional<std::variant<T...>>>{}) {
-                parser.call(
-                    use_cbs,
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    retval);
+                parser.call(first, last, context, skip, flags, success, retval);
             } else if constexpr (is_nope_v<attr_t>) {
-                parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
+                parser.call(first, last, context, skip, flags, success);
             } else {
-                auto attr = parser.call(
-                    use_cbs, first, last, context, skip, flags, success);
+                auto attr =
+                    parser.call(first, last, context, skip, flags, success);
                 if (success)
                     detail::assign(retval, std::variant<T...>(std::move(attr)));
             }
@@ -1956,7 +2072,6 @@ namespace boost { namespace parser {
 
         template<
             typename Parser,
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -1964,7 +2079,6 @@ namespace boost { namespace parser {
             typename... T>
         void apply_parser(
             Parser const & parser,
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1973,15 +2087,13 @@ namespace boost { namespace parser {
             bool & success,
             std::variant<T...> & retval)
         {
-            auto attr = parser.call(
-                use_cbs, first, last, context, skip, flags, success);
+            auto attr = parser.call(first, last, context, skip, flags, success);
             if (success)
                 detail::assign(retval, std::move(attr));
         }
 
         template<
             typename Parser,
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -1989,7 +2101,6 @@ namespace boost { namespace parser {
             typename T>
         void apply_parser(
             Parser const & parser,
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -1998,15 +2109,13 @@ namespace boost { namespace parser {
             bool & success,
             std::optional<T> & retval)
         {
-            auto attr = parser.call(
-                use_cbs, first, last, context, skip, flags, success);
+            auto attr = parser.call(first, last, context, skip, flags, success);
             if (success)
                 detail::assign(retval, std::move(attr));
         }
 
         template<
             typename Parser,
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -2014,7 +2123,6 @@ namespace boost { namespace parser {
             typename Attribute>
         void apply_parser(
             Parser const & parser,
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2023,8 +2131,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval)
         {
-            parser.call(
-                use_cbs, first, last, context, skip, flags, success, retval);
+            parser.call(first, last, context, skip, flags, success, retval);
         }
 
 
@@ -2032,27 +2139,7 @@ namespace boost { namespace parser {
         // API implementations
 
         template<typename Iter, typename Sentinel, typename Parser>
-        auto has_attribute(Iter first, Sentinel last, Parser parser)
-        {
-            constexpr auto flags = detail::flags::gen_attrs;
-            using context = decltype(detail::make_context(
-                first,
-                last,
-                std::declval<bool &>(),
-                std::declval<int &>(),
-                parser.error_handler_,
-                parser.globals_,
-                std::declval<detail::symbol_table_tries_t &>()));
-            using attr_t = decltype(parser(
-                std::false_type{},
-                first,
-                last,
-                std::declval<context>(),
-                detail::null_parser{},
-                flags,
-                std::declval<bool &>()));
-            return std::integral_constant<bool, !is_nope_v<attr_t>>{};
-        }
+        auto has_attribute(Iter first, Sentinel last, Parser parser);
 
         template<typename BaseIter, typename Iter>
         struct scoped_base_assign
@@ -2084,7 +2171,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, false>(
                 first,
                 last,
                 success,
@@ -2097,7 +2184,6 @@ namespace boost { namespace parser {
                       : detail::flags::gen_attrs;
             try {
                 parser(
-                    std::false_type{},
                     first,
                     last,
                     context,
@@ -2133,7 +2219,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, false>(
                 first,
                 last,
                 success,
@@ -2144,17 +2230,11 @@ namespace boost { namespace parser {
             auto const flags =
                 Debug ? detail::enable_trace(detail::flags::gen_attrs)
                       : detail::flags::gen_attrs;
-            using attr_t = decltype(parser(
-                std::false_type{},
-                first,
-                last,
-                context,
-                detail::null_parser{},
-                flags,
-                success));
+            using attr_t = typename detail::attribute_impl<
+                BOOST_PARSER_SUBRANGE<std::remove_const_t<Iter>, Sentinel>,
+                Parser>::type;
             try {
                 attr_t attr_ = parser(
-                    std::false_type{},
                     first,
                     last,
                     context,
@@ -2192,7 +2272,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, true>(
                 first,
                 last,
                 success,
@@ -2206,7 +2286,6 @@ namespace boost { namespace parser {
                       : detail::flags::gen_attrs;
             try {
                 parser(
-                    std::true_type{},
                     first,
                     last,
                     context,
@@ -2245,7 +2324,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, false>(
                 first,
                 last,
                 success,
@@ -2258,15 +2337,7 @@ namespace boost { namespace parser {
                       : detail::default_flags();
             detail::skip(first, last, skip, flags);
             try {
-                parser(
-                    std::false_type{},
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success,
-                    attr);
+                parser(first, last, context, skip, flags, success, attr);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     detail::final_trace(context, flags, attr);
@@ -2298,7 +2369,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, false>(
                 first,
                 last,
                 success,
@@ -2310,17 +2381,12 @@ namespace boost { namespace parser {
                 Debug ? detail::enable_trace(detail::default_flags())
                       : detail::default_flags();
             detail::skip(first, last, skip, flags);
-            using attr_t = decltype(parser(
-                std::false_type{}, first, last, context, skip, flags, success));
+            using attr_t = typename detail::attribute_impl<
+                BOOST_PARSER_SUBRANGE<std::remove_const_t<Iter>, Sentinel>,
+                Parser>::type;
             try {
-                attr_t attr_ = parser(
-                    std::false_type{},
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success);
+                attr_t attr_ =
+                    parser(first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     detail::final_trace(context, flags, nope{});
@@ -2355,7 +2421,7 @@ namespace boost { namespace parser {
             bool success = true;
             int trace_indent = 0;
             detail::symbol_table_tries_t symbol_table_tries;
-            auto context = detail::make_context(
+            auto context = detail::make_context<Debug, true>(
                 first,
                 last,
                 success,
@@ -2369,14 +2435,7 @@ namespace boost { namespace parser {
                       : detail::default_flags();
             detail::skip(first, last, skip, flags);
             try {
-                parser(
-                    std::true_type{},
-                    first,
-                    last,
-                    context,
-                    skip,
-                    flags,
-                    success);
+                parser(first, last, context, skip, flags, success);
                 detail::skip(first, last, skip, flags);
                 if (Debug)
                     detail::final_trace(context, flags, nope{});
@@ -2630,9 +2689,15 @@ namespace boost { namespace parser {
         };
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
 
+    // This constraint is only here to allow the alternate-call semantic
+    // action metaprogramming logic to function on MSVC.
     template<typename Context>
-    decltype(auto) _val(Context const & context)
+    auto _val(Context const & context) -> std::conditional_t<
+        detail::is_nope_v<decltype(*context.val_)>,
+        none,
+        decltype(*context.val_)>
     {
         if constexpr (detail::is_nope_v<decltype(*context.val_)>)
             return none{};
@@ -2750,6 +2815,8 @@ namespace boost { namespace parser {
             diagnostic_kind::warning, message, context);
     }
 
+#endif
+
     /** An invocable that returns the `I`th parameter to the bottommost rule.
         This is useful for forwarding parameters to sub-rules. */
     template<unsigned int I>
@@ -2762,6 +2829,7 @@ namespace boost { namespace parser {
     /** A very large sentinel value used to represent pseudo-infinity. */
     int64_t const Inf = detail::unbounded;
 
+#ifndef BOOST_PARSER_DOXYGEN
     template<
         typename Parser,
         typename DelimiterParser,
@@ -2781,13 +2849,11 @@ namespace boost { namespace parser {
         {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2796,21 +2862,19 @@ namespace boost { namespace parser {
             bool & success) const
         {
             using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             auto retval = detail::make_sequence_of<attr_t>();
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2819,7 +2883,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this,
                 first,
                 last,
@@ -2832,7 +2896,6 @@ namespace boost { namespace parser {
                 detail::optional_type<Attribute> attr;
                 detail::apply_parser(
                     *this,
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -2845,7 +2908,7 @@ namespace boost { namespace parser {
             } else { // Otherwise, Attribute must be a container or a nope.
                 using attr_t = detail::parser_attr_or_container_value_type_v<
                     decltype(parser_.call(
-                        use_cbs, first, last, context, skip, flags, success)),
+                        first, last, context, skip, flags, success)),
                     Attribute>;
 
                 int64_t count = 0;
@@ -2853,16 +2916,9 @@ namespace boost { namespace parser {
                 for (int64_t end = detail::resolve(context, min_); count != end;
                      ++count) {
                     detail::skip(first, last, skip, flags);
-                    attr_t attr;
+                    attr_t attr{};
                     parser_.call(
-                        use_cbs,
-                        first,
-                        last,
-                        context,
-                        skip,
-                        flags,
-                        success,
-                        attr);
+                        first, last, context, skip, flags, success, attr);
                     if (!success) {
                         detail::assign(retval, Attribute());
                         return;
@@ -2886,7 +2942,6 @@ namespace boost { namespace parser {
                     if constexpr (!detail::is_nope_v<DelimiterParser>) {
                         detail::skip(first, last, skip, flags);
                         delimiter_parser_.call(
-                            use_cbs,
                             first,
                             last,
                             context,
@@ -2901,16 +2956,9 @@ namespace boost { namespace parser {
                     }
 
                     detail::skip(first, last, skip, flags);
-                    attr_t attr;
+                    attr_t attr{};
                     parser_.call(
-                        use_cbs,
-                        first,
-                        last,
-                        context,
-                        skip,
-                        flags,
-                        success,
-                        attr);
+                        first, last, context, skip, flags, success, attr);
                     if (!success) {
                         success = true;
                         first = prev_first;
@@ -2927,9 +2975,8 @@ namespace boost { namespace parser {
         MinType min_;
         MaxType max_;
     };
+#endif
 
-    /** A simplified `repeat_parser` that applies `parser` zero or more
-        times.  */
     template<typename Parser>
     struct zero_plus_parser : repeat_parser<Parser>
     {
@@ -2938,8 +2985,6 @@ namespace boost { namespace parser {
         {}
     };
 
-    /** A simplified `repeat_parser` that applies `parser` one or more
-        times.  */
     template<typename Parser>
     struct one_plus_parser : repeat_parser<Parser>
     {
@@ -2948,9 +2993,6 @@ namespace boost { namespace parser {
         {}
     };
 
-    /** A simplified `repeat_parser` that applies `parser` zero or more times,
-        with `delimiter_parser` applied before each application of `parser`
-        after the first.  */
     template<typename Parser, typename DelimiterParser>
     struct delimited_seq_parser : repeat_parser<Parser, DelimiterParser>
     {
@@ -2968,13 +3010,11 @@ namespace boost { namespace parser {
         //]
         //[ opt_parser_attr_call
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -2983,23 +3023,21 @@ namespace boost { namespace parser {
             bool & success) const
         {
             using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             detail::optional_of<attr_t> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
         //]
 
         //[ opt_parser_out_param_call
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3009,7 +3047,7 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             //[ opt_parser_trace
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
             //]
 
@@ -3019,16 +3057,14 @@ namespace boost { namespace parser {
 
             //[ opt_parser_no_gen_attr_path
             if (!detail::gen_attrs(flags)) {
-                parser_.call(
-                    use_cbs, first, last, context, skip, flags, success);
+                parser_.call(first, last, context, skip, flags, success);
                 success = true;
                 return;
             }
             //]
 
             //[ opt_parser_gen_attr_path
-            parser_.call(
-                use_cbs, first, last, context, skip, flags, success, retval);
+            parser_.call(first, last, context, skip, flags, success, retval);
             success = true;
             //]
         }
@@ -3047,7 +3083,6 @@ namespace boost { namespace parser {
 #ifndef BOOST_PARSER_DOXYGEN
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -3060,7 +3095,6 @@ namespace boost { namespace parser {
                 detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
                 return parser.call(
-                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -3077,7 +3111,6 @@ namespace boost { namespace parser {
 
                 detail::apply_parser(
                     parser,
-                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -3098,13 +3131,11 @@ namespace boost { namespace parser {
 #endif
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3112,12 +3143,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            use_parser_t<
-                UseCallbacks,
-                Iter,
-                Sentinel,
-                Context,
-                SkipParser> const use_parser{
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
                 first, last, context, skip, flags, success};
 
             // A result type for each of the parsers in parsers_.
@@ -3163,20 +3189,18 @@ namespace boost { namespace parser {
             // nope if unwrapped_types is empty.
             using result_t = detail::to_hana_tuple_or_type_t<unwrapped_types>;
 
-            result_t retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            result_t retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3185,15 +3209,10 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            use_parser_t<
-                UseCallbacks,
-                Iter,
-                Sentinel,
-                Context,
-                SkipParser> const use_parser{
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
                 first, last, context, skip, flags, success};
 
             bool done = false;
@@ -3205,22 +3224,275 @@ namespace boost { namespace parser {
                                &done](auto const & parser) {
                 if (done)
                     return;
-                if (detail::gen_attrs(flags)) {
+                if (detail::gen_attrs(flags))
                     use_parser(parser, retval);
-                    if (!success)
-                        detail::assign(retval, Attribute());
-                } else {
+                else
                     use_parser(parser);
-                }
                 if (success)
                     done = true;
                 else
                     use_parser.first_ = prev_first;
             };
-            detail::hl::for_each(parsers_, try_parser);
+            detail::hl::for_each(parsers_, try_parser); // TODO: -> fold-expr
 
             if (!done)
                 success = false;
+        }
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+        template<typename Parser>
+        constexpr auto prepend(parser_interface<Parser> parser) const noexcept;
+        template<typename Parser>
+        constexpr auto append(parser_interface<Parser> parser) const noexcept;
+
+#endif
+
+        ParserTuple parsers_;
+    };
+
+    template<typename ParserTuple>
+    struct perm_parser
+    {
+        constexpr perm_parser(ParserTuple parsers) : parsers_(parsers) {}
+
+#ifndef BOOST_PARSER_DOXYGEN
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        struct use_parser_t
+        {
+            template<typename Parser>
+            auto operator()(Parser const & parser) const
+            {
+                detail::skip(first_, last_, skip_, flags_);
+                success_ = true; // In case someone earlier already failed...
+                return parser.call(
+                    first_,
+                    last_,
+                    context_,
+                    skip_,
+                    flags_,
+                    success_);
+            }
+
+            template<typename Parser, typename Attribute>
+            void operator()(Parser const & parser, Attribute & retval) const
+            {
+                detail::skip(first_, last_, skip_, flags_);
+                success_ = true; // In case someone earlier already failed...
+
+                detail::apply_parser(
+                    parser,
+                    first_,
+                    last_,
+                    context_,
+                    skip_,
+                    flags_,
+                    success_,
+                    retval);
+            }
+
+            Iter & first_;
+            Sentinel last_;
+            Context const & context_;
+            SkipParser const & skip_;
+            detail::flags flags_;
+            bool & success_;
+        };
+
+#endif
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            Iter & first_,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            Iter first = first_;
+
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
+            using result_t =
+                decltype(detail::hl::transform(parsers_, use_parser));
+            result_t retval{};
+
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first_, last, context, flags, retval);
+
+            call_impl(
+                first,
+                last,
+                context,
+                skip,
+                flags,
+                success,
+                retval,
+                std::make_integer_sequence<
+                    int,
+                    detail::tuple_size_<ParserTuple>>{});
+
+            if (success)
+                first_ = first;
+
+            return retval;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            Iter & first_,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first_, last, context, flags, retval);
+
+            Iter first = first_;
+            use_parser_t<Iter, Sentinel, Context, SkipParser> const use_parser{
+                first, last, context, skip, flags, success};
+            using result_t =
+                decltype(detail::hl::transform(parsers_, use_parser));
+
+            constexpr auto indices = std::
+                make_integer_sequence<int, detail::tuple_size_<ParserTuple>>{};
+
+            if constexpr (detail::is_optional_v<Attribute>) {
+                typename Attribute::value_type attr;
+                call(first, last, context, skip, flags, success, attr);
+                if (success)
+                    detail::assign(retval, std::move(attr));
+            } else if constexpr (
+                detail::is_tuple<Attribute>{} ||
+                detail::is_struct_compatible_v<Attribute, result_t>) {
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    retval,
+                    indices);
+
+                if (!success)
+                    detail::assign(retval, Attribute());
+            } else if constexpr (detail::is_constructible_from_tuple_v<
+                                     Attribute,
+                                     result_t>) {
+                result_t temp_retval{};
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval,
+                        detail::make_from_tuple<Attribute>(
+                            std::move(temp_retval)));
+                }
+            } else {
+#if 0 // TODO Seems incompatible with this parser.
+                // call_impl requires a tuple, so we must wrap this scalar.
+                tuple<Attribute> temp_retval{};
+                call_impl(
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval, std::move(detail::hl::front(temp_retval)));
+                }
+#else
+                static_assert(
+                    std::is_same_v<Attribute, void> && false,
+                    "It looks like you passed an attribute to this permutation "
+                    "parser that is not capable of taking the number, or the "
+                    "types of values compatible with the ones it produces.");
+#endif
+            }
+
+            if (success)
+                first_ = first;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename... Ts,
+            int... Is>
+        void call_impl(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            tuple<Ts...> & retval,
+            std::integer_sequence<int, Is...>) const
+        {
+            std::array<bool, sizeof...(Ts)> used_parsers = {{}};
+
+            // Use "parser" to fill in attribute "x", unless "parser" has
+            // previously been used.
+            auto parse_into = [&](int i, auto const & parser, auto & x) {
+                if (used_parsers[i])
+                    return false;
+                detail::skip(first, last, skip, flags);
+                parser.call(first, last, context, skip, flags, success, x);
+                if (success) {
+                    used_parsers[i] = true;
+                    return true;
+                }
+                success = true;
+                return false;
+            };
+            // Use one of the previously-unused parsers to parse one
+            // alternative.
+            auto parsed_one = [&](auto) {
+                return (
+                    parse_into(
+                        Is,
+                        parser::get(parsers_, llong<Is>{}),
+                        parser::get(retval, llong<Is>{})) ||
+                    ...);
+            };
+            success = (parsed_one(Is) && ...);
+
+            if (!success)
+                retval = tuple<Ts...>{};
         }
 
 #ifndef BOOST_PARSER_DOXYGEN
@@ -3252,15 +3524,12 @@ namespace boost { namespace parser {
         using default_combining_t = decltype(detail::make_default_combining(
             std::declval<ParserTuple>()));
 
-        struct default_combine_t
-        {};
         struct merge_t
         {};
         struct separate_t
         {};
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -3285,7 +3554,6 @@ namespace boost { namespace parser {
             auto operator()(Parser const & parser) const
             {
                 return parser.call(
-                    std::bool_constant<UseCallbacks>{},
                     first_,
                     last_,
                     context_,
@@ -3310,10 +3578,7 @@ namespace boost { namespace parser {
         template<typename CombiningGroups, typename... Args>
         constexpr auto make_combining(tuple<Args...> parsers)
         {
-            if constexpr (std::is_same_v<CombiningGroups, default_combine_t>) {
-                return detail::make_default_combining_impl<0>(
-                    std::make_integer_sequence<int, sizeof...(Args)>());
-            } else if constexpr (std::is_same_v<CombiningGroups, merge_t>) {
+            if constexpr (std::is_same_v<CombiningGroups, merge_t>) {
                 detail::static_assert_merge_attributes(parsers);
                 return detail::make_default_combining_impl<1>(
                     std::make_integer_sequence<int, sizeof...(Args)>());
@@ -3378,6 +3643,8 @@ namespace boost { namespace parser {
         static constexpr auto merge_wrap = merge_kind_t<Kind>{};
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<
         typename ParserTuple,
         typename BacktrackingTuple,
@@ -3388,8 +3655,6 @@ namespace boost { namespace parser {
         using combining_groups = CombiningGroups;
 
         constexpr seq_parser(ParserTuple parsers) : parsers_(parsers) {}
-
-#ifndef BOOST_PARSER_DOXYGEN
 
         static constexpr auto true_ = std::true_type{};
         static constexpr auto false_ = std::false_type{};
@@ -3625,13 +3890,11 @@ namespace boost { namespace parser {
         // indices into that tuple that each parser should use in turn.  The
         // case where the tuple only has one element is handled elsewhere.
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto make_temp_result(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3641,13 +3904,10 @@ namespace boost { namespace parser {
         {
             using namespace literals;
 
-            detail::dummy_use_parser_t<
-                UseCallbacks,
-                Iter,
-                Sentinel,
-                Context,
-                SkipParser> const
-                dummy_use_parser(first, last, context, skip, flags, success);
+            detail::
+                dummy_use_parser_t<Iter, Sentinel, Context, SkipParser> const
+                    dummy_use_parser(
+                        first, last, context, skip, flags, success);
 
             // A result type for each of the parsers in parsers_.
             using all_types =
@@ -3698,16 +3958,12 @@ namespace boost { namespace parser {
                 result_type{}, indices{}, parser::get(merged{}, 1_c));
         }
 
-#endif
-
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first_,
             Sentinel last,
             Context const & context,
@@ -3717,12 +3973,13 @@ namespace boost { namespace parser {
         {
             Iter first = first_;
 
-            auto temp_result = make_temp_result(
-                use_cbs, first, last, context, skip, flags, success);
+            auto temp_result =
+                make_temp_result(first, last, context, skip, flags, success);
 
-            std::decay_t<decltype(parser::get(temp_result, llong<0>{}))> retval;
+            std::decay_t<decltype(parser::get(temp_result, llong<0>{}))>
+                retval{};
 
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this,
                 first_,
                 last,
@@ -3736,7 +3993,6 @@ namespace boost { namespace parser {
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
             call_impl(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -3760,14 +4016,12 @@ namespace boost { namespace parser {
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first_,
             Sentinel last,
             Context const & context,
@@ -3776,7 +4030,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this,
                 first_,
                 last,
@@ -3787,14 +4041,13 @@ namespace boost { namespace parser {
 
             Iter first = first_;
 
-            auto temp_result = make_temp_result(
-                use_cbs, first, last, context, skip, flags, success);
+            auto temp_result =
+                make_temp_result(first, last, context, skip, flags, success);
             using temp_result_attr_t =
                 std::decay_t<decltype(parser::get(temp_result, llong<0>{}))>;
             std::decay_t<decltype(parser::get(temp_result, llong<1>{}))>
                 indices;
-            std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
-                merged;
+            std::decay_t<decltype(parser::get(temp_result, llong<2>{}))> merged;
 
             auto max_ = [](auto result, auto x) {
                 if constexpr (decltype(result)::value < decltype(x)::value) {
@@ -3808,14 +4061,13 @@ namespace boost { namespace parser {
 
             if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
-                call(use_cbs, first, last, context, skip, flags, success, attr);
+                call(first, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
                 detail::is_tuple<Attribute>{} ||
                 detail::is_struct_compatible_v<Attribute, temp_result_attr_t>) {
                 call_impl(
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -3826,15 +4078,14 @@ namespace boost { namespace parser {
                     indices,
                     merged);
 
-                if (!success || !detail::gen_attrs(flags))
+                if (!success)
                     detail::assign(retval, Attribute());
             } else if constexpr (
                 0 < max_index_t::value && detail::is_constructible_from_tuple_v<
                                               Attribute,
                                               temp_result_attr_t>) {
-                temp_result_attr_t temp_retval;
+                temp_result_attr_t temp_retval{};
                 call_impl(
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -3853,9 +4104,8 @@ namespace boost { namespace parser {
                 }
             } else {
                 // call_impl requires a tuple, so we must wrap this scalar.
-                tuple<Attribute> temp_retval;
+                tuple<Attribute> temp_retval{};
                 call_impl(
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -3876,13 +4126,10 @@ namespace boost { namespace parser {
                 first_ = first;
         }
 
-#ifndef BOOST_PARSER_DOXYGEN
-
         // Invokes each parser, placing the resulting values (if any) into
         // retval, using the index mapping in indices.  The case of a tuple
         // containing only a single value is handled elsewhere.
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
@@ -3891,7 +4138,6 @@ namespace boost { namespace parser {
             typename Indices,
             typename Merged>
         void call_impl(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -3909,15 +4155,15 @@ namespace boost { namespace parser {
                 detail::is_tuple<Attribute>{} || std::is_aggregate_v<Attribute>,
                 "");
 
-            auto use_parser = [use_cbs,
-                               &first,
+            auto use_parser = [&first,
                                last,
                                &context,
                                &skip,
-                               flags,
+                               flags_ = flags,
                                &success,
                                &retval](auto const &
                                             parser_index_merged_and_backtrack) {
+                auto flags = flags_;
                 using namespace literals;
                 detail::skip(first, last, skip, flags);
                 if (!success) // Someone earlier already failed...
@@ -3935,8 +4181,7 @@ namespace boost { namespace parser {
                     parser::get(parser_index_merged_and_backtrack, 3_c);
 
                 if (!detail::gen_attrs(flags)) {
-                    parser.call(
-                        use_cbs, first, last, context, skip, flags, success);
+                    parser.call(first, last, context, skip, flags, success);
                     if (!success && !can_backtrack) {
                         std::stringstream oss;
                         detail::print_parser(context, parser, oss);
@@ -3964,7 +4209,7 @@ namespace boost { namespace parser {
                 auto & out = parser::get(retval, tuple_idx);
 
                 using attr_t = decltype(parser.call(
-                    use_cbs, first, last, context, skip, flags, success));
+                    first, last, context, skip, flags, success));
                 constexpr bool out_container =
                     container<std::decay_t<decltype(out)>>;
                 constexpr bool attr_container = container<attr_t>;
@@ -3974,14 +4219,7 @@ namespace boost { namespace parser {
                      !was_merged_into_adjacent_container) ||
                     is_in_a_group) {
                     parser.call(
-                        use_cbs,
-                        first,
-                        last,
-                        context,
-                        skip,
-                        flags,
-                        success,
-                        out);
+                        first, last, context, skip, flags, success, out);
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
@@ -3992,8 +4230,8 @@ namespace boost { namespace parser {
                         return;
                     }
                 } else {
-                    attr_t x = parser.call(
-                        use_cbs, first, last, context, skip, flags, success);
+                    attr_t x =
+                        parser.call(first, last, context, skip, flags, success);
                     if (!success) {
                         if (!can_backtrack) {
                             std::stringstream oss;
@@ -4028,22 +4266,96 @@ namespace boost { namespace parser {
         template<bool AllowBacktracking, typename Parser>
         constexpr auto append(parser_interface<Parser> parser) const noexcept;
 
-#endif
-
         ParserTuple parsers_;
     };
+
+#endif
+
+    namespace detail {
+        // clang-format off
+        template<typename Action, typename Attribute>
+        using action_direct_call_expr =
+            decltype(std::declval<Action>()(std::declval<Attribute>()));
+        template<typename Action, typename Attribute>
+        using action_apply_call_expr =
+            decltype(hl::apply(std::declval<Action>(), std::declval<Attribute>()));
+        template<typename Action, typename Attribute, typename Context>
+        using action_assignable_to_val_direct_expr =
+            decltype(_val(std::declval<Context>()) =
+                     std::declval<Action>()(std::declval<Attribute>()));
+        template<typename Action, typename Attribute, typename Context>
+        using action_assignable_to_val_apply_expr =
+            decltype(_val(std::declval<Context>()) =
+                     hl::apply(std::declval<Action>(), std::declval<Attribute>()));
+        // clang-format on
+
+        template<typename Action, typename Attribute, typename Context>
+        constexpr auto action_assignable_to_val_direct()
+        {
+            if constexpr (is_nope_v<decltype(*std::declval<Context>().val_)>) {
+                return false;
+            } else if constexpr (!is_detected_v<
+                                     action_direct_call_expr,
+                                     Action,
+                                     Attribute>) {
+                return false;
+            } else if constexpr (std::is_same_v<
+                                     action_direct_call_expr<Action, Attribute>,
+                                     void>) {
+                return false;
+            } else {
+                return is_detected_v<
+                    action_assignable_to_val_direct_expr,
+                    Action,
+                    Attribute,
+                    Context>;
+            }
+        }
+
+        template<typename Action, typename Attribute, typename Context>
+        constexpr auto action_assignable_to_val_apply()
+        {
+            if constexpr (is_nope_v<decltype(*std::declval<Context>().val_)>) {
+                return false;
+            } else if constexpr (!is_tuple<remove_cv_ref_t<Attribute>>{}) {
+                return false;
+            } else if constexpr (tuple_size_<remove_cv_ref_t<Attribute>> < 2) {
+                return false;
+            } else if constexpr (!is_detected_v<
+                                     action_apply_call_expr,
+                                     Action,
+                                     Attribute>) {
+                return false;
+            } else if constexpr (std::is_same_v<
+                                     action_apply_call_expr<Action, Attribute>,
+                                     void>) {
+                return false;
+            } else {
+                return is_detected_v<
+                    action_assignable_to_val_apply_expr,
+                    Action,
+                    Attribute,
+                    Context>;
+            }
+        }
+
+        template<typename Context, typename TagType>
+        constexpr bool in_recursion =
+            std::is_same_v<typename Context::rule_tag, TagType> &&
+            !std::is_same_v<typename Context::rule_tag, void>;
+    }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Parser, typename Action>
     struct action_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4052,19 +4364,17 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4073,23 +4383,49 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             auto const initial_first = first;
             auto attr = parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            BOOST_PARSER_SUBRANGE const where(initial_first, first);
-            if (success) {
+
+            if (!success)
+                return;
+
+            if constexpr (detail::action_assignable_to_val_apply<
+                              decltype(action_) &,
+                              decltype(attr),
+                              decltype(context)>()) {
+                _val(context) = detail::hl::apply(action_, std::move(attr));
+            } else {
+                BOOST_PARSER_SUBRANGE const where(initial_first, first);
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
-                action_(action_context);
+                if constexpr (detail::action_assignable_to_val_direct<
+                                  decltype(action_) &,
+                                  decltype(action_context) &,
+                                  decltype(action_context) &>()) {
+                    _val(action_context) = action_(action_context);
+                } else if constexpr (std::is_same_v<
+                                         decltype(action_(action_context)),
+                                         void>) {
+                    action_(action_context);
+                } else {
+                    // If you see an error here, it's because you are using an
+                    // invocable for a semantic action that returns a non-void
+                    // type Ret, but values fo type Ret is not assignable to
+                    // _val(ctx).  To fix this, only use this invocable within
+                    // a rule whose attribute type is assignable from Ret, or
+                    // remove the non-void return statement(s) from your
+                    // invocable.
+                    [[maybe_unused]] none n = action_(action_context);
+                }
             }
         }
 
@@ -4097,17 +4433,15 @@ namespace boost { namespace parser {
         Action action_;
     };
 
-    template<typename Parser>
-    struct omit_parser
+    template<typename Parser, typename F>
+    struct transform_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
+        auto call(
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4115,11 +4449,63 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, detail::global_nope);
+            auto attr =
+                parser_.call(first, last, context, skip, flags, success);
+            if (success && detail::gen_attrs(flags))
+                return f_(std::move(attr));
+            else
+                return decltype(f_(std::move(attr))){};
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+            auto attr =
+                parser_.call(first, last, context, skip, flags, success);
+            if (success && detail::gen_attrs(flags))
+                detail::assign(retval, f_(std::move(attr)));
+        }
+
+        Parser parser_;
+        F f_;
+    };
+
+    template<typename Parser>
+    struct omit_parser
+    {
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        detail::nope call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
 
             parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -4130,14 +4516,12 @@ namespace boost { namespace parser {
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4146,11 +4530,10 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -4166,13 +4549,11 @@ namespace boost { namespace parser {
     struct raw_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         BOOST_PARSER_SUBRANGE<Iter> call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4181,19 +4562,17 @@ namespace boost { namespace parser {
             bool & success) const
         {
             BOOST_PARSER_SUBRANGE<Iter> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4202,12 +4581,11 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             auto const initial_first = first;
             parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -4222,18 +4600,16 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(__cpp_lib_concepts)
     template<typename Parser>
     struct string_view_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4251,19 +4627,17 @@ namespace boost { namespace parser {
                 "have not met this contract.");
             using char_type = detail::remove_cv_ref_t<decltype(*r.first)>;
             std::basic_string_view<char_type> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4272,12 +4646,11 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             auto const initial_first = first;
             parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -4315,13 +4688,11 @@ namespace boost { namespace parser {
     struct lexeme_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4330,21 +4701,19 @@ namespace boost { namespace parser {
             bool & success) const
         {
             using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             attr_t retval{};
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4353,11 +4722,10 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             parser_.call(
-                use_cbs,
                 first,
                 last,
                 context,
@@ -4374,13 +4742,11 @@ namespace boost { namespace parser {
     struct no_case_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context_,
@@ -4392,21 +4758,19 @@ namespace boost { namespace parser {
             ++context.no_case_depth_;
 
             using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             attr_t retval{};
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context_,
@@ -4418,11 +4782,10 @@ namespace boost { namespace parser {
             auto context = context_;
             ++context.no_case_depth_;
 
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            parser_.call(
-                use_cbs, first, last, context, skip, flags, success, retval);
+            parser_.call(first, last, context, skip, flags, success, retval);
         }
 
         Parser parser_;
@@ -4432,13 +4795,11 @@ namespace boost { namespace parser {
     struct skip_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser_>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4447,21 +4808,19 @@ namespace boost { namespace parser {
             bool & success) const
         {
             using attr_t = decltype(parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             attr_t retval{};
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser_,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4470,12 +4829,11 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if constexpr (detail::is_nope_v<SkipParser>) {
                 parser_.call(
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -4485,7 +4843,6 @@ namespace boost { namespace parser {
                     retval);
             } else {
                 parser_.call(
-                    use_cbs,
                     first,
                     last,
                     context,
@@ -4504,13 +4861,11 @@ namespace boost { namespace parser {
     struct expect_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4519,19 +4874,17 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4540,12 +4893,11 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             auto first_copy = first;
             parser_.call(
-                use_cbs,
                 first_copy,
                 last,
                 context,
@@ -4576,9 +4928,13 @@ namespace boost { namespace parser {
         parser::detail::text::optional_ref<T>
         find(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            return trie_[str | detail::text::as_utf32];
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                return trie[detail::case_fold_view(
+                    str | detail::text::as_utf32)];
+            } else {
+                return trie[str | detail::text::as_utf32];
+            }
         }
 
         /** Inserts an entry consisting of a UTF-8 string `str` to match, and
@@ -4587,9 +4943,14 @@ namespace boost { namespace parser {
         template<typename Context>
         void insert(Context const & context, std::string_view str, T && x) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            trie_.insert(str | detail::text::as_utf32, std::move(x));
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                trie.insert(
+                    detail::case_fold_view(str | detail::text::as_utf32),
+                    std::move(x));
+            } else {
+                trie.insert(str | detail::text::as_utf32, std::move(x));
+            }
         }
 
         /** Erases the entry whose UTF-8 match string is `str` from the copy
@@ -4597,19 +4958,21 @@ namespace boost { namespace parser {
         template<typename Context>
         void erase(Context const & context, std::string_view str) const
         {
-            parser::detail::text::trie<std::vector<char32_t>, T> & trie_ =
-                detail::get_trie(context, ref());
-            trie_.erase(str | detail::text::as_utf32);
+            auto [trie, has_case_folded] = detail::get_trie(context, ref());
+            if (context.no_case_depth_) {
+                trie.erase(
+                    detail::case_fold_view(str | detail::text::as_utf32));
+            } else {
+                trie.erase(str | detail::text::as_utf32);
+            }
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4617,20 +4980,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            T retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4639,15 +5000,17 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
-            parser::detail::text::trie<std::vector<char32_t>, T> const & trie_ =
-                detail::get_trie(context, ref());
-            auto const lookup = trie_.longest_match(first, last);
+            auto [trie, _0] = detail::get_trie(context, ref());
+            auto const lookup = context.no_case_depth_
+                                    ? trie.longest_match(detail::case_fold_view(
+                                          BOOST_PARSER_SUBRANGE(first, last)))
+                                    : trie.longest_match(first, last);
             if (lookup.match) {
                 std::advance(first, lookup.size);
-                detail::assign(retval, T{*trie_[lookup]});
+                detail::assign(retval, T{*trie[lookup]});
             } else {
                 success = false;
             }
@@ -4682,13 +5045,15 @@ namespace boost { namespace parser {
         using locals_type = LocalState;
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
+        std::conditional_t<
+            detail::in_recursion<Context, tag_type>,
+            detail::nope,
+            attr_type>
+        call(
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4696,11 +5061,10 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            constexpr bool recursive_rule =
-                std::is_same_v<typename Context::rule_tag, tag_type> &&
-                !std::is_same_v<typename Context::rule_tag, void>;
+            constexpr bool in_recursion =
+                detail::in_recursion<Context, tag_type>;
 
-            if constexpr (recursive_rule)
+            if constexpr (in_recursion)
                 flags = detail::disable_attrs(flags);
 
             attr_type retval{};
@@ -4709,21 +5073,42 @@ namespace boost { namespace parser {
             tag_type * const tag_ptr = nullptr;
             auto const rule_context = detail::make_rule_context(
                 context, tag_ptr, retval, locals, params);
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, rule_context, flags, retval);
 
-            parse_rule(
-                tag_ptr,
-                use_cbs,
-                first,
-                last,
-                rule_context,
-                skip,
-                flags,
-                success,
-                retval);
+            bool dont_assign = false;
+            if constexpr (in_recursion) {
+                // We have to use this out-arg overload for iterations >= 1 in
+                // recursive rules, since every iteration past the first is
+                // defined to return nope.
+                parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    dont_assign,
+                    retval);
+            } else {
+                auto attr = parse_rule(
+                    tag_ptr,
+                    first,
+                    last,
+                    rule_context,
+                    skip,
+                    flags,
+                    success,
+                    dont_assign);
+                if (success && !dont_assign) {
+                    if constexpr (!detail::is_nope_v<decltype(attr)>)
+                        detail::assign(retval, attr);
+                }
+            }
 
-            if constexpr (CanUseCallbacks && UseCallbacks && !recursive_rule) {
+            if constexpr (
+                CanUseCallbacks && Context::use_callbacks && !in_recursion) {
                 if (!success)
                     return attr_type{};
 
@@ -4752,9 +5137,9 @@ namespace boost { namespace parser {
 
                 return attr_type{};
             } else {
-                if (!success && !recursive_rule)
+                if (!success && !in_recursion)
                     detail::assign(retval, attr_type());
-                if constexpr (recursive_rule)
+                if constexpr (in_recursion)
                     return detail::nope{};
                 else
                     return retval;
@@ -4762,14 +5147,12 @@ namespace boost { namespace parser {
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute_>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -4778,11 +5161,10 @@ namespace boost { namespace parser {
             bool & success,
             Attribute_ & retval) const
         {
-            if constexpr (CanUseCallbacks && UseCallbacks) {
-                call(use_cbs, first, last, context, skip, flags, success);
+            if constexpr (CanUseCallbacks && Context::use_callbacks) {
+                call(first, last, context, skip, flags, success);
             } else {
-                auto attr =
-                    call(use_cbs, first, last, context, skip, flags, success);
+                auto attr = call(first, last, context, skip, flags, success);
                 if (success)
                     detail::assign(retval, std::move(attr));
             }
@@ -4792,6 +5174,7 @@ namespace boost { namespace parser {
         ParamsTuple params_;
     };
 
+#endif
 
     // Parser interface.
 
@@ -4802,7 +5185,7 @@ namespace boost { namespace parser {
         using global_state_type = GlobalState;
         using error_handler_type = ErrorHandler;
 
-        constexpr parser_interface() {}
+        constexpr parser_interface() : parser_() {}
         constexpr parser_interface(parser_type p) : parser_(p) {}
         constexpr parser_interface(
             parser_type p, global_state_type gs, error_handler_type eh) :
@@ -4983,6 +5366,30 @@ namespace boost { namespace parser {
             }
         }
 
+        /** Returns a `parser_interface` containing a parser equivalent to a
+            `perm_parser` containing `parser_` followed by `rhs.parser_`.  It
+            is an error to use `eps` (conditional or not) with this
+            operator. */
+        template<typename ParserType2>
+        constexpr auto
+        operator||(parser_interface<ParserType2> rhs) const noexcept
+        {
+            // If you're seeing this as a compile- or run-time failure, you've
+            // tried to put an eps parser in a permutation-parser, such as
+            // "eps || int_".
+            BOOST_PARSER_ASSERT(!detail::is_eps_p<parser_type>{});
+            BOOST_PARSER_ASSERT(!detail::is_eps_p<ParserType2>{});
+            if constexpr (detail::is_perm_p<parser_type>{}) {
+                return parser_.append(rhs);
+            } else if constexpr (detail::is_perm_p<ParserType2>{}) {
+                return rhs.parser_.prepend(*this);
+            } else {
+                return parser::parser_interface{
+                    perm_parser<tuple<parser_type, ParserType2>>{
+                        tuple<parser_type, ParserType2>{parser_, rhs.parser_}}};
+            }
+        }
+
         /** Returns a `parser_interface` containing a parser equivalent to an
             `or_parser` containing `parser_` followed by `lit(rhs)`. */
         constexpr auto operator|(char rhs) const noexcept;
@@ -5093,13 +5500,11 @@ namespace boost { namespace parser {
         /** Applies `parser_`, returning the parsed attribute, if any, unless
             the attribute is reported via callback. */
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParserType>
         auto operator()(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5107,21 +5512,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            return parser_.call(
-                use_cbs, first, last, context, skip, flags, success);
+            return parser_.call(first, last, context, skip, flags, success);
         }
 
         /** Applies `parser_`, assiging the parsed attribute, if any, to
             `attr`, unless the attribute is reported via callback. */
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParserType,
             typename Attribute>
         void operator()(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5130,8 +5532,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & attr) const
         {
-            parser_.call(
-                use_cbs, first, last, context, skip, flags, success, attr);
+            parser_.call(first, last, context, skip, flags, success, attr);
         }
 
         parser_type parser_;
@@ -5139,8 +5540,9 @@ namespace boost { namespace parser {
         error_handler_type error_handler_;
 
 #endif
-    };
 
+        using parser_interface_derivation_tag = int;
+    };
 
     /** Returns a `parser_interface` with the same parser and error handler,
         with `globals` added.  The resut of passing any non-top-level parser
@@ -5232,6 +5634,8 @@ namespace boost { namespace parser {
         }
     };
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<
         typename TagType,
         typename Attribute,
@@ -5310,64 +5714,78 @@ namespace boost { namespace parser {
         }
     };
 
-#ifndef BOOST_PARSER_DOXYGEN
-
-#define BOOST_PARSER_DEFINE_IMPL(_, diagnostic_text_)                          \
+//[ define_rule_definition
+#define BOOST_PARSER_DEFINE_IMPL(_, rule_name_)                                \
     template<                                                                  \
-        bool UseCallbacks,                                                     \
         typename Iter,                                                         \
         typename Sentinel,                                                     \
         typename Context,                                                      \
         typename SkipParser>                                                   \
-    auto parse_rule(                                                           \
-        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
-        std::bool_constant<UseCallbacks> use_cbs,                              \
-        Iter & first,                                                          \
-        Sentinel last,                                                         \
-        Context const & context,                                               \
-        SkipParser const & skip,                                               \
-        boost::parser::detail::flags flags,                                    \
-        bool & success)                                                        \
-    {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
-        return parser(use_cbs, first, last, context, skip, flags, success);    \
-    }                                                                          \
-                                                                               \
-    template<                                                                  \
-        bool UseCallbacks,                                                     \
-        typename Iter,                                                         \
-        typename Sentinel,                                                     \
-        typename Context,                                                      \
-        typename SkipParser,                                                   \
-        typename Attribute>                                                    \
-    void parse_rule(                                                           \
-        decltype(diagnostic_text_)::parser_type::tag_type *,                   \
-        std::bool_constant<UseCallbacks> use_cbs,                              \
+    decltype(rule_name_)::parser_type::attr_type parse_rule(                   \
+        decltype(rule_name_)::parser_type::tag_type *,                         \
         Iter & first,                                                          \
         Sentinel last,                                                         \
         Context const & context,                                               \
         SkipParser const & skip,                                               \
         boost::parser::detail::flags flags,                                    \
         bool & success,                                                        \
+        bool & dont_assign)                                                    \
+    {                                                                          \
+        auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \
+        using attr_t =                                                         \
+            decltype(parser(first, last, context, skip, flags, success));      \
+        using attr_type = decltype(rule_name_)::parser_type::attr_type;        \
+        if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
+            dont_assign = true;                                                \
+            parser(first, last, context, skip, flags, success);                \
+            return {};                                                         \
+        } else if constexpr (std::is_same_v<attr_type, attr_t>) {              \
+            return parser(first, last, context, skip, flags, success);         \
+        } else if constexpr (std::is_constructible_v<attr_type, attr_t>) {     \
+            return attr_type(                                                  \
+                parser(first, last, context, skip, flags, success));           \
+        } else {                                                               \
+            attr_type attr{};                                                  \
+            parser(first, last, context, skip, flags, success, attr);          \
+            return attr;                                                       \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    template<                                                                  \
+        typename Iter,                                                         \
+        typename Sentinel,                                                     \
+        typename Context,                                                      \
+        typename SkipParser,                                                   \
+        typename Attribute>                                                    \
+    void parse_rule(                                                           \
+        decltype(rule_name_)::parser_type::tag_type *,                         \
+        Iter & first,                                                          \
+        Sentinel last,                                                         \
+        Context const & context,                                               \
+        SkipParser const & skip,                                               \
+        boost::parser::detail::flags flags,                                    \
+        bool & success,                                                        \
+        bool & dont_assign,                                                    \
         Attribute & retval)                                                    \
     {                                                                          \
-        auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def);     \
-        using attr_t = decltype(parser(                                        \
-            use_cbs, first, last, context, skip, flags, success));             \
+        auto const & parser = BOOST_PARSER_PP_CAT(rule_name_, _def);           \
+        using attr_t =                                                         \
+            decltype(parser(first, last, context, skip, flags, success));      \
         if constexpr (boost::parser::detail::is_nope_v<attr_t>) {              \
-            parser(use_cbs, first, last, context, skip, flags, success);       \
+            parser(first, last, context, skip, flags, success);                \
         } else {                                                               \
-            parser(                                                            \
-                use_cbs, first, last, context, skip, flags, success, retval);  \
+            parser(first, last, context, skip, flags, success, retval);        \
         }                                                                      \
     }
+        //]
 
 #endif
 
-    /** For each given token `t`, defines a pair of `parse_rule()` overloads,
-        used internally within Boost.Parser.  Each such pair implements the
-        parsing behavior rule `t`, using the parser `t_def`.  This macro is
-        only available when the Boost.Preprocessor headers are available. */
+        /** For each given token `t`, defines a pair of `parse_rule()`
+           overloads, used internally within Boost.Parser.  Each such pair
+           implements the parsing behavior rule `t`, using the parser `t_def`.
+           This implementation is in the form of a pair of function templates.
+           You should therefore write this macro only at namespace scope. */
 #define BOOST_PARSER_DEFINE_RULES(...)                                         \
     BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
 
@@ -5417,6 +5835,40 @@ namespace boost { namespace parser {
         } else {
             return parser_interface{or_parser<decltype(
                 detail::hl::append(parsers_, parser.parser_))>{
+                detail::hl::append(parsers_, parser.parser_)}};
+        }
+    }
+
+    template<typename ParserTuple>
+    template<typename Parser>
+    constexpr auto perm_parser<ParserTuple>::prepend(
+        parser_interface<Parser> parser) const noexcept
+    {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser in a permutation-parser, such as "eps ||
+        // int_".
+        BOOST_PARSER_ASSERT(!detail::is_eps_p<Parser>{});
+        return parser_interface{perm_parser<decltype(detail::hl::prepend(
+            parsers_, parser.parser_))>{
+            detail::hl::prepend(parsers_, parser.parser_)}};
+    }
+
+    template<typename ParserTuple>
+    template<typename Parser>
+    constexpr auto perm_parser<ParserTuple>::append(
+        parser_interface<Parser> parser) const noexcept
+    {
+        // If you're seeing this as a compile- or run-time failure, you've
+        // tried to put an eps parser in a permutation-parser, such as "int_
+        // || eps".
+        BOOST_PARSER_ASSERT(!detail::is_eps_p<Parser>{});
+        if constexpr (detail::is_perm_p<Parser>{}) {
+            return parser_interface{perm_parser<decltype(detail::hl::concat(
+                parsers_, parser.parser_.parsers_))>{
+                detail::hl::concat(parsers_, parser.parser_.parsers_)}};
+        } else {
+            return parser_interface{perm_parser<decltype(detail::hl::append(
+                parsers_, parser.parser_))>{
                 detail::hl::append(parsers_, parser.parser_)}};
         }
     }
@@ -5660,20 +6112,44 @@ namespace boost { namespace parser {
         merging with any other subparser's attribute. */
     inline constexpr separate_directive separate;
 
+    /** A directive that transforms the attribute generated by a parser.
+        `operator[]` returns a `parser_interface<transform_parser<Parser,
+        F>>`. */
+    template<typename F>
+    struct transform_directive
+    {
+        template<typename Parser>
+        constexpr auto operator[](parser_interface<Parser> rhs) const noexcept
+        {
+            return parser_interface{
+                transform_parser<Parser, F>{rhs.parser_, f_}};
+        }
+
+        F f_;
+    };
+
+    /** Returns a `transform_directive` that uses invocable `F` to do its
+        work. */
+    template<typename F>
+    auto transform(F f)
+    {
+        return transform_directive<F>{std::move(f)};
+    }
+
 
     // First order parsers.
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Predicate>
     struct eps_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5681,7 +6157,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const noexcept
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
@@ -5695,14 +6171,12 @@ namespace boost { namespace parser {
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5711,7 +6185,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
             BOOST_PARSER_SUBRANGE const where(first, first);
             auto const predicate_context = detail::make_action_context(
@@ -5738,21 +6212,23 @@ namespace boost { namespace parser {
         Predicate pred_;
     };
 
+#endif
+
     /** The epsilon parser.  This matches anything, and consumes no input.  If
         used with an optional predicate, like `eps(pred)`, it matches iff
         `pred(ctx)` evaluates to true, where `ctx` is the parser context. */
     inline constexpr parser_interface<eps_parser<detail::nope>> eps;
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     struct eoi_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5760,7 +6236,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             if (first != last)
                 success = false;
@@ -5768,14 +6244,12 @@ namespace boost { namespace parser {
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5784,27 +6258,29 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
             if (first != last)
                 success = false;
         }
     };
 
+#endif
+
     /** The end-of-input parser.  It matches only the end of input. */
     inline constexpr parser_interface<eoi_parser> eoi;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename Attribute>
     struct attr_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5812,20 +6288,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool &) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
             return detail::resolve(context, attr_);
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute_>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5834,7 +6308,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute_ & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
             if (detail::gen_attrs(flags))
                 detail::assign_copy(retval, detail::resolve(context, attr_));
@@ -5842,6 +6316,8 @@ namespace boost { namespace parser {
 
         Attribute attr_;
     };
+
+#endif
 
     /** Returns an `attr_parser` which matches anything, and consumes no
         input, and which produces `a` as its attribute. */
@@ -5851,6 +6327,8 @@ namespace boost { namespace parser {
         return parser_interface{attr_parser<Attribute>{std::move(a)}};
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename Expected, typename AttributeType>
     struct char_parser
     {
@@ -5858,40 +6336,36 @@ namespace boost { namespace parser {
         constexpr char_parser(Expected expected) : expected_(expected) {}
 
         template<typename T>
-        using attribute_t = std::conditional_t<
+        using attribute_type = std::conditional_t<
             std::is_same_v<AttributeType, void>,
             std::decay_t<T>,
             AttributeType>;
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            attribute_type<decltype(*first)> retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -5900,14 +6374,14 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             if (detail::unequal(context, x, expected_)) {
                 success = false;
                 return;
@@ -5917,7 +6391,9 @@ namespace boost { namespace parser {
         }
 
         /** Returns a `parser_interface` containing a `char_parser` that
-            matches `x`. */
+            matches `x`.
+
+            \tparam T Constrained by `!parsable_range_like<T>`. */
 #if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
         // clang-format off
@@ -5990,7 +6466,10 @@ namespace boost { namespace parser {
             matches one of the values in `r`.  `r` must be a sorted,
             random-access sequence of `char32_t`.  The character begin matched
             is directly compared to the elements of `r`.  The match is found
-            via binary search.  No case folding is performed. */
+            via binary search.  No case folding is performed.
+
+            \tparam R Additionally constrained by
+            `std::same_as<std::ranges::range_value_t<R>, char32_t>`. */
         // clang-format off
 #if BOOST_PARSER_USE_CONCEPTS
         template<parsable_range_like R>
@@ -6029,37 +6508,33 @@ namespace boost { namespace parser {
         constexpr digit_parser() {}
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            attribute_type<decltype(*first)> retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6068,21 +6543,21 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             char32_t const x_cmp = x;
             if (x_cmp < U'\x0100' && (x_cmp < U'0' || U'9' < x_cmp)) {
                 success = false;
                 return;
             }
             char32_t const * it = std::upper_bound(
-                std::begin(zero_cps) + 1, std::end(zero_cps), x);
+                std::begin(zero_cps) + 1, std::end(zero_cps), x_cmp);
             if (it == std::begin(zero_cps) || x_cmp < *(it - 1) ||
                 *(it - 1) + 9 < x_cmp) {
                 success = false;
@@ -6175,43 +6650,42 @@ namespace boost { namespace parser {
             auto const & chars = detail::char_set<Tag>::chars;
             auto const first = std::begin(chars);
             auto const last = std::end(chars);
-            auto it = std::upper_bound(first, last, 0x100);
+            auto it = std::upper_bound(first, last, 0x100, [](auto x, auto y){
+                using common_t = std::common_type_t<decltype(x), decltype(x)>;
+                return (common_t)x < (common_t)y;
+            });
             if (it != last)
-                one_byte_offset_ = it - first;
+                one_byte_offset_ = int(it - first);
         }
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            attribute_type<decltype(*first)> retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6220,7 +6694,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
@@ -6229,7 +6703,7 @@ namespace boost { namespace parser {
             }
 
             auto const & chars = detail::char_set<Tag>::chars;
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             uint32_t const x_cmp = x;
             if (x_cmp < U'\x0100') {
                 uint32_t const * it = std::lower_bound(
@@ -6265,37 +6739,33 @@ namespace boost { namespace parser {
         constexpr char_subrange_parser() {}
 
         template<typename T>
-        using attribute_t = std::decay_t<T>;
+        using attribute_type = std::decay_t<T>;
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
             SkipParser const & skip,
             detail::flags flags,
-            bool & success) const -> attribute_t<decltype(*first)>
+            bool & success) const -> attribute_type<decltype(*first)>
         {
-            attribute_t<decltype(*first)> retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            attribute_type<decltype(*first)> retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6304,14 +6774,14 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
                 success = false;
                 return;
             }
-            attribute_t<decltype(*first)> const x = *first;
+            attribute_type<decltype(*first)> const x = *first;
             char32_t const x_cmp = x;
             success = false;
             for (auto subrange : detail::char_subranges<Tag>::ranges) {
@@ -6325,28 +6795,41 @@ namespace boost { namespace parser {
         }
     };
 
-    /** The literal code point parser.  The produced attribute is the type of
-        the matched code point.  This parser can be used to create code point
-        parsers that match one or more specific code point values, by calling
-        it with: a single value comparable to a code point; a set of code
-        point values in a string; a closed range of code point values `[lo,
-        hi]`, or a set of code point values passed as a range. */
+#endif
+
+    /** The single-character parser.  The produced attribute is the type of
+        the matched code point (`char` or `char32_t`).  Used as-is, `char_`
+        matches any code point.  `char_` can also can be used to create code
+        point parsers that match one or more specific code point values, by
+        calling it with: a single value comparable to a code point; a closed
+        range of code point values `[lo, hi]`, or a set of code point values
+        passed as a range.  When calling with a range, only the iterators that
+        bound the range are stored.  Make sure the range you pass outlives the
+        use of the resulting parser.  Note that a string literal is a range,
+        and that it outlives any parser it is used to construct. */
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
 
-    /** The literal code point parser.  It produces a `char32_t` attribute.
-        This parser can be used to create code point parsers that match one or
-        more specific code point values, by calling it with: a single value
-        comparable to a code point; a set of code point values in a string; a
-        closed range of code point values `[lo, hi]`, or a set of code point
-        values passed as a range. */
+    /** The code point parser.  It produces a `char32_t` attribute.  Used
+        as-is, `cp` matches any code point.  `cp` can also can be used to
+        create code point parsers that match one or more specific code point
+        values, by calling it with: a single value comparable to a code point;
+        a closed range of code point values `[lo, hi]`, or a set of code point
+        values passed as a range.  When calling with a range, only the
+        iterators that bound the range are stored.  Make sure the range you
+        pass outlives the use of the resulting parser.  Note that a string
+        literal is a range, and that it outlives any parser it is used to
+        construct. */
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
 
-    /** The literal code unit parser.  It produces a `char` attribute.  This
-        parser can be used to create code unit parsers that match one or more
-        specific code unit values, by calling it with: a single value
-        comparable to a code unit; a set of code unit values in a string; a
-        closed range of code unit values `[lo, hi]`, or a set of code unit
-        values passed as a range. */
+    /** The code unit parser.  It produces a `char` attribute.  Used as-is,
+        `cu` matches any code point.  `cu` can also can be used to create code
+        point parsers that match one or more specific code point values, by
+        calling it with: a single value comparable to a code point; a closed
+        range of code point values `[lo, hi]`, or a set of code point values
+        passed as a range.  When calling with a range, only the iterators that
+        bound the range are stored.  Make sure the range you pass outlives the
+        use of the resulting parser.  Note that a string literal is a range,
+        and that it outlives any parser it is used to construct. */
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
     /** Returns a literal code point parser that produces no attribute. */
@@ -6359,6 +6842,8 @@ namespace boost { namespace parser {
 
     /** Returns a literal code point parser that produces no attribute. */
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<typename StrIter, typename StrSentinel>
     struct string_parser
@@ -6379,13 +6864,11 @@ namespace boost { namespace parser {
         {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         std::string call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6394,19 +6877,17 @@ namespace boost { namespace parser {
             bool & success) const
         {
             std::string retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6415,7 +6896,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
@@ -6477,6 +6958,8 @@ namespace boost { namespace parser {
         decltype(detail::make_view_begin(r)),
         decltype(detail::make_view_end(r))>;
 
+#endif
+
     /** Returns a parser that matches `str` that produces the matched string
         as its attribute. */
 #if BOOST_PARSER_USE_CONCEPTS
@@ -6489,6 +6972,319 @@ namespace boost { namespace parser {
         return parser_interface{string_parser(str)};
     }
 
+    template<typename Quotes, typename Escapes>
+    struct quoted_string_parser
+    {
+        constexpr quoted_string_parser() : chs_(), ch_('"') {}
+
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr quoted_string_parser(R && r) : chs_((R &&) r), ch_(0)
+        {
+            // TODO: This becomes ill-formed when
+            // BOOST_PARSER_NO_RUNTIME_ASSERTIONS is turned on.
+            BOOST_PARSER_ASSERT(r.begin() != r.end());
+        }
+
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr quoted_string_parser(R && r, Escapes escapes) :
+            chs_((R &&) r), escapes_(escapes), ch_(0)
+        {
+            BOOST_PARSER_ASSERT(r.begin() != r.end());
+        }
+
+        constexpr quoted_string_parser(char32_t cp) : chs_(), ch_(cp) {}
+
+        constexpr quoted_string_parser(char32_t cp, Escapes escapes) :
+            chs_(), escapes_(escapes), ch_(cp)
+        {}
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        std::string call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const
+        {
+            std::string retval;
+            call(first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            [[maybe_unused]] auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+
+            auto const prev_first = first;
+
+            auto append = [&retval,
+                           gen_attrs = detail::gen_attrs(flags)](auto & ctx) {
+                detail::move_back(retval, _attr(ctx), gen_attrs);
+            };
+
+            auto quote_ch = [&]() {
+                if constexpr (detail::is_nope_v<Quotes>) {
+                    detail::remove_cv_ref_t<decltype(*first)> curr = *first;
+                    if ((char32_t)curr == ch_)
+                        ++first;
+                    else
+                        success = false;
+                    return ch_;
+                } else {
+                    detail::remove_cv_ref_t<decltype(*first)> const ch = *first;
+                    bool found = false;
+                    if constexpr (std::
+                                      is_same_v<decltype(ch), char32_t const>) {
+                        auto r = chs_ | detail::text::as_utf32;
+                        found = detail::text::find(r.begin(), r.end(), ch) !=
+                                r.end();
+                    } else {
+                        found = detail::text::find(
+                                    chs_.begin(), chs_.end(), ch) != chs_.end();
+                    }
+                    if (found)
+                        ++first;
+                    else
+                        success = false;
+                    return ch;
+                }
+            };
+
+            auto const ch = quote_ch();
+            if (!success)
+                return;
+
+            decltype(ch) const backslash_and_delim[] = {'\\', ch};
+            auto const back_delim = char_(backslash_and_delim);
+
+            auto make_parser = [&]() {
+                if constexpr (detail::is_nope_v<Escapes>) {
+                    return *((lit('\\') >> back_delim) |
+                             (char_ - back_delim))[append] > ch;
+                } else {
+                    return *((lit('\\') >> back_delim)[append] |
+                             (lit('\\') >> parser_interface(escapes_))[append] |
+                             (char_ - back_delim)[append]) > ch;
+                }
+            };
+
+            auto const p = make_parser();
+            p.parser_.call(
+                first,
+                last,
+                context,
+                skip,
+                detail::disable_skip(flags),
+                success);
+
+            if (!success) {
+                retval = Attribute();
+                first = prev_first;
+            }
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that uses `x` as its quotation marks. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<typename T>
+        // clang-format off
+        requires (!parsable_range_like<T>)
+#else
+        template<
+            typename T,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
+#endif
+        constexpr auto operator()(T x) const noexcept
+        // clang-format on
+        {
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like 'quoted_string('\"')('\\'')'.  Quit "
+                     "it!'"));
+            }
+            return parser_interface(quoted_string_parser(std::move(x)));
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that accepts any of the values in `r` as its quotation marks.  If
+            the input being matched during the parse is a a sequence of
+            `char32_t`, the elements of `r` are transcoded from their presumed
+            encoding to UTF-32 during the comparison.  Otherwise, the
+            character begin matched is directly compared to the elements of
+            `r`. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R>
+#else
+        template<
+            typename R,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        constexpr auto operator()(R && r) const noexcept
+        {
+            BOOST_PARSER_ASSERT(((
+                !std::is_rvalue_reference_v<R &&> ||
+                !detail::is_range<detail::remove_cv_ref_t<
+                    R>>)&&"It looks like you tried to pass an rvalue range to "
+                          "quoted_string().  Don't do that, or you'll end up "
+                          "with dangling references."));
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like "
+                     "'quoted_string(char-range)(char-range)'.  Quit it!'"));
+            }
+            return parser_interface(
+                quoted_string_parser<decltype(BOOST_PARSER_SUBRANGE(
+                    detail::make_view_begin(r), detail::make_view_end(r)))>(
+                    BOOST_PARSER_SUBRANGE(
+                        detail::make_view_begin(r), detail::make_view_end(r))));
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that uses `x` as its quotation marks.  `symbols` provides a list
+            of strings that may appear after a backslash to form an escape
+            sequence, and what character(s) each escape sequence represents.
+            Note that `"\\"` and `"\ch"` are always valid escape sequences. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<typename T, typename U>
+        // clang-format off
+        requires (!parsable_range_like<T>)
+#else
+        template<
+            typename T,
+            typename U,
+            typename Enable =
+                std::enable_if_t<!detail::is_parsable_range_like_v<T>>>
+#endif
+        auto operator()(T x, symbols<U> const & escapes) const noexcept
+        // clang-format on
+        {
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like 'quoted_string('\"')('\\'')'.  Quit "
+                     "it!'"));
+            }
+            auto symbols = symbol_parser(escapes.parser_);
+            auto parser =
+                quoted_string_parser<detail::nope, decltype(symbols)>(
+                    char32_t(x), symbols);
+            return parser_interface(parser);
+        }
+
+        /** Returns a `parser_interface` containing a `quoted_string_parser`
+            that accepts any of the values in `r` as its quotation marks.  If
+            the input being matched during the parse is a a sequence of
+            `char32_t`, the elements of `r` are transcoded from their presumed
+            encoding to UTF-32 during the comparison.  Otherwise, the
+            character begin matched is directly compared to the elements of
+            `r`.  `symbols` provides a list of strings that may appear after a
+            backslash to form an escape sequence, and what character(s) each
+            escape sequence represents.  Note that `"\\"` and `"\ch"` are
+            always valid escape sequences. */
+#if BOOST_PARSER_USE_CONCEPTS
+        template<parsable_range_like R, typename T>
+#else
+        template<
+            typename R,
+            typename T,
+            typename Enable =
+                std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+#endif
+        auto operator()(R && r, symbols<T> const & escapes) const noexcept
+        {
+            BOOST_PARSER_ASSERT(((
+                !std::is_rvalue_reference_v<R &&> ||
+                !detail::is_range<detail::remove_cv_ref_t<
+                    R>>)&&"It looks like you tried to pass an rvalue range to "
+                          "quoted_string().  Don't do that, or you'll end up "
+                          "with dangling references."));
+            if constexpr (!detail::is_nope_v<Quotes>) {
+                BOOST_PARSER_ASSERT(
+                    (chs_.empty() && ch_ == '"' &&
+                     "If you're seeing this, you tried to chain calls on "
+                     "quoted_string, like "
+                     "'quoted_string(char-range)(char-range)'.  Quit it!'"));
+            }
+            auto symbols = symbol_parser(escapes.parser_);
+            auto quotes = BOOST_PARSER_SUBRANGE(
+                detail::make_view_begin(r), detail::make_view_end(r));
+            auto parser =
+                quoted_string_parser<decltype(quotes), decltype(symbols)>(
+                    quotes, symbols);
+            return parser_interface(parser);
+        }
+
+        Quotes chs_;
+        Escapes escapes_;
+        char32_t ch_;
+    };
+
+    /** Parses a string delimited by quotation marks.  This parser can be used
+        to create parsers that accept one or more specific quotation mark
+        characters.  By default, the quotation marks are `'"'`; an alternate
+        quotation mark can be specified by calling this parser with a single
+        character, or a range of characters.  If a range is specified, the
+        opening quote must be one of the characters specified, and the closing
+        quote must match the opening quote.  Quotation marks may appear within
+        the string if escaped with a backslash, and a pair of backslashes is
+        treated as a single escaped backslash; all other backslashes cause the
+        parse to fail, unless a symbol table is in use.  A symbol table can be
+        provided as a second parameter after the single character or range
+        described above.  The symbol table is used to recognize escape
+        sequences.  Each escape sequence is a backslash followed by a value in
+        the symbol table.  When using a symbol table, any backslash that is
+        not followed by another backslash, the opening quote character, or a
+        symbol from the symbol table will cause the parse to fail.  Skipping
+        is disabled during parsing of the entire quoted string, including the
+        quotation marks.  There is an expectation point before the closing
+        quotation mark.  Produces a `std::string` attribute. */
+    inline constexpr parser_interface<quoted_string_parser<>> quoted_string;
+
     /** Returns a parser that matches `str` that produces no attribute. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<parsable_range_like R>
@@ -6500,6 +7296,8 @@ namespace boost { namespace parser {
         return omit[parser::string(str)];
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser
     {
@@ -6508,13 +7306,11 @@ namespace boost { namespace parser {
         static_assert(!NewlinesOnly || !NoNewlines);
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         detail::nope call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6523,19 +7319,17 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope nope;
-            call(use_cbs, first, last, context, skip, flags, success, nope);
+            call(first, last, context, skip, flags, success, nope);
             return {};
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6544,7 +7338,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             if (first == last) {
@@ -6611,6 +7405,8 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The end-of-line parser.  This matches "\r\n", or any one of the line
         break code points from the Unicode Line Break Algorithm, described in
         https://unicode.org/reports/tr14.  Produces no attribute. */
@@ -6666,16 +7462,16 @@ namespace boost { namespace parser {
         parser_interface<char_set_parser<detail::upper_case_chars>>
             upper;
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     struct bool_parser
     {
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         bool call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6683,20 +7479,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            bool retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            bool retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6705,7 +7499,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
             auto compare =
@@ -6735,9 +7529,13 @@ namespace boost { namespace parser {
         }
     };
 
+#endif
+
     /** The Boolean parser.  Parses "true" and "false", producing attributes
         `true` and `false`, respectively, and fails on any other input. */
     inline constexpr parser_interface<bool_parser> bool_;
+
+#ifndef BOOST_PARSER_DOXYGEN
 
     template<
         typename T,
@@ -6754,13 +7552,11 @@ namespace boost { namespace parser {
         {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6768,20 +7564,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            T retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6790,13 +7584,14 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            using extract =
-                detail_spirit_x3::extract_uint<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
-            success = extract::call(first, last, attr);
-            if (attr != detail::resolve(context, expected_))
+            auto const initial = first;
+            success =
+                detail::numeric::parse_int<false, Radix, MinDigits, MaxDigits>(
+                    first, last, attr);
+            if (first == initial || attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
                 detail::assign(retval, attr);
@@ -6818,6 +7613,8 @@ namespace boost { namespace parser {
 
         Expected expected_;
     };
+
+#endif
 
     /** The binary unsigned integer parser.  Produces an `unsigned int`
         attribute.  To parse a particular value `x`, use `bin(x)`. */
@@ -6848,6 +7645,8 @@ namespace boost { namespace parser {
     inline constexpr parser_interface<uint_parser<unsigned long long>>
         ulong_long;
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<
         typename T,
         int Radix,
@@ -6865,13 +7664,11 @@ namespace boost { namespace parser {
         {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6879,20 +7676,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            T retval{};
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6901,13 +7696,13 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            using extract =
-                detail_spirit_x3::extract_int<T, Radix, MinDigits, MaxDigits>;
             T attr = 0;
             auto const initial = first;
-            success = extract::call(first, last, attr);
+            success =
+                detail::numeric::parse_int<true, Radix, MinDigits, MaxDigits>(
+                    first, last, attr);
             if (first == initial || attr != detail::resolve(context, expected_))
                 success = false;
             if (success)
@@ -6931,6 +7726,8 @@ namespace boost { namespace parser {
         Expected expected_;
     };
 
+#endif
+
     /** The `short` parser.  Produces a `short` attribute.  To parse a
         particular value `x`, use `short_(x)`. */
     inline constexpr parser_interface<int_parser<short>> short_;
@@ -6947,19 +7744,19 @@ namespace boost { namespace parser {
         particular value `x`, use `long_long(x)`. */
     inline constexpr parser_interface<int_parser<long long>> long_long;
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename T>
     struct float_parser
     {
         constexpr float_parser() {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         T call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6967,20 +7764,18 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            T retval;
-            call(use_cbs, first, last, context, skip, flags, success, retval);
+            T retval = 0;
+            call(first, last, context, skip, flags, success, retval);
             return retval;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -6989,20 +7784,19 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            detail_spirit_x3::real_policies<T> policies;
-            using extract = detail_spirit_x3::
-                extract_real<T, detail_spirit_x3::real_policies<T>>;
             T attr = 0;
             auto const initial = first;
-            success = extract::parse(first, last, attr, policies);
+            success = detail::numeric::parse_real(first, last, attr);
             if (first == initial)
                 success = false;
             if (success)
                 detail::assign(retval, attr);
         }
     };
+
+#endif
 
     /** The `float` parser.  Produces a `float` attribute. */
     inline constexpr parser_interface<float_parser<float>> float_;
@@ -7052,6 +7846,8 @@ namespace boost { namespace parser {
         };
     }
 
+#ifndef BOOST_PARSER_DOXYGEN
+
     template<typename SwitchValue, typename OrParser>
     struct switch_parser
     {
@@ -7062,13 +7858,11 @@ namespace boost { namespace parser {
         {}
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser>
         auto call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -7082,24 +7876,21 @@ namespace boost { namespace parser {
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
             using attr_t = decltype(or_parser_.call(
-                use_cbs, first, last, context, skip, flags, success));
+                first, last, context, skip, flags, success));
             attr_t attr{};
-            auto _ =
+            [[maybe_unused]] auto _ =
                 detail::scoped_trace(*this, first, last, context, flags, attr);
-            attr = or_parser_.call(
-                use_cbs, first, last, context, skip, flags, success);
+            attr = or_parser_.call(first, last, context, skip, flags, success);
             return attr;
         }
 
         template<
-            bool UseCallbacks,
             typename Iter,
             typename Sentinel,
             typename Context,
             typename SkipParser,
             typename Attribute>
         void call(
-            std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
             Context const & context,
@@ -7109,14 +7900,13 @@ namespace boost { namespace parser {
             Attribute & retval) const
         {
             BOOST_PARSER_ASSERT(
-                (!detail::is_nope_v<OrParser>,
+                (!detail::is_nope_v<OrParser> &&
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
-            auto _ = detail::scoped_trace(
+            [[maybe_unused]] auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            or_parser_.call(
-                use_cbs, first, last, context, skip, flags, success, retval);
+            or_parser_.call(first, last, context, skip, flags, success, retval);
         }
 
         /** Returns a `parser_interface` containing a `switch_parser`, with
@@ -7155,6 +7945,8 @@ namespace boost { namespace parser {
         SwitchValue switch_value_;
         OrParser or_parser_;
     };
+
+#endif
 
     /** Returns a `switch`-like parser.  The resulting parser uses the given
         value `x` to select one of the following value/parser pairs, and to
@@ -7527,7 +8319,10 @@ namespace boost { namespace parser {
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  On success, `attr` will be assigned the value of the
         attribute produced by `parser`.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
@@ -7546,7 +8341,9 @@ namespace boost { namespace parser {
         typename Attr,
         typename Enable = std::enable_if_t<
             detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with_v<I, S>>>
+            detail::is_equality_comparable_with_v<I, S> &&
+            !detail::derived_from_parser_interface_v<
+                detail::remove_cv_ref_t<Attr>>>>
 #endif
     bool prefix_parse(
         I & first,
@@ -7554,6 +8351,12 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
+#if BOOST_PARSER_USE_CONCEPTS
+        // clang-format off
+        requires (
+            !detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>>)
+    // clang-format on
+#endif
     {
         detail::attr_reset reset(attr);
         if constexpr (!detail::is_char8_iter_v<I>) {
@@ -7595,7 +8398,15 @@ namespace boost { namespace parser {
         to be considered successful.  On success, `attr` will be assigned the
         value of the attribute produced by `parser`.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
-        `std::cout`. */
+        `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`.
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -7610,8 +8421,10 @@ namespace boost { namespace parser {
         typename GlobalState,
         typename ErrorHandler,
         typename Attr,
-        typename Enable =
-            std::enable_if_t<detail::is_parsable_range_like_v<R>>>
+        typename Enable = std::enable_if_t<
+            detail::is_parsable_range_like_v<R> &&
+            !detail::derived_from_parser_interface_v<
+                detail::remove_cv_ref_t<Attr>>>>
 #endif
     bool parse(
         R const & r,
@@ -7624,7 +8437,8 @@ namespace boost { namespace parser {
             ErrorHandler,
             std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
             std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
-            GlobalState>
+            GlobalState> &&
+        (!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>>)
     // clang-format on
 #endif
     {
@@ -7641,7 +8455,10 @@ namespace boost { namespace parser {
     /** Parses `[first, last)` using `parser`.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
         `std::nullopt` on parse failure.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_iter I,
@@ -7694,7 +8511,15 @@ namespace boost { namespace parser {
         attribute produced by `parser` on parse success, and `std::nullopt` on
         parse failure.  The entire input range `r` must be consumed for the
         parse to be considered successful.  If `trace_mode == trace::on`, a
-        verbose trace of the parse will be streamed to `std::cout`. */
+        verbose trace of the parse will be streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`.
+        \tparam Attr Constrained by
+        `!detail::derived_from_parser_interface_v<std::remove_cvref_t<Attr>`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -7817,7 +8642,13 @@ namespace boost { namespace parser {
         the parse to be considered successful.  On success, `attr` will be
         assigned the value of the attribute produced by `parser`.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -7920,131 +8751,19 @@ namespace boost { namespace parser {
         }
     }
 
-#ifndef BOOST_PARSER_DOXYGEN
-
-#if BOOST_PARSER_USE_CONCEPTS
-    template<
-        parsable_iter I,
-        std::sentinel_for<I> S,
-        typename Parser,
-        typename GlobalState,
-        error_handler<I, S, GlobalState> ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple>
-#else
-    template<
-        typename I,
-        typename S,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple,
-        typename Enable = std::enable_if_t<
-            detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with_v<I, S>>>
-#endif
-    auto prefix_parse(
-        I & first,
-        S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
-        rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
-        trace trace_mode = trace::off)
-    {
-        if constexpr (!detail::is_char8_iter_v<I>) {
-            if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    first, last, parser, skip, parser.error_handler_);
-            } else {
-                return detail::skip_parse_impl<false>(
-                    first, last, parser, skip, parser.error_handler_);
-            }
-        } else {
-            auto r =
-                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
-            auto f = r.begin();
-            auto const l = r.end();
-            auto _ = detail::scoped_base_assign(first, f);
-            if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    f, l, parser, skip, parser.error_handler_);
-            } else {
-                return detail::skip_parse_impl<false>(
-                    f, l, parser, skip, parser.error_handler_);
-            }
-        }
-    }
-
-#if BOOST_PARSER_USE_CONCEPTS
-    template<
-        parsable_iter I,
-        std::sentinel_for<I> S,
-        typename Parser,
-        typename GlobalState,
-        error_handler<I, S, GlobalState> ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple>
-#else
-    template<
-        typename I,
-        typename S,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple,
-        typename Enable = std::enable_if_t<
-            detail::is_parsable_iter_v<I> &&
-            detail::is_equality_comparable_with_v<I, S>>>
-#endif
-    auto prefix_parse(
-        I & first,
-        S last,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
-        callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
-        trace trace_mode = trace::off)
-    {
-        if constexpr (!detail::is_char8_iter_v<I>) {
-            if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    first, last, parser, skip, parser.error_handler_);
-            } else {
-                return detail::skip_parse_impl<false>(
-                    first, last, parser, skip, parser.error_handler_);
-            }
-        } else {
-            auto r =
-                BOOST_PARSER_SUBRANGE(first, last) | detail::text::as_utf32;
-            auto f = r.begin();
-            auto const l = r.end();
-            auto _ = detail::scoped_base_assign(first, f);
-            if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    f, l, parser, skip, parser.error_handler_);
-            } else {
-                return detail::skip_parse_impl<false>(
-                    f, l, parser, skip, parser.error_handler_);
-            }
-        }
-    }
-
-#endif
-
     /** Parses `r` using `parser`, skipping all input recognized by `skip`
         between the application of any two parsers.  Returns a `std::optional`
         containing the attribute produced by `parser` on parse success, and
         `std::nullopt` on parse failure.  The entire input range `r` must be
         consumed for the parse to be considered successful.  If `trace_mode ==
         trace::on`, a verbose trace of the parse will be streamed to
-        `std::cout`. */
+        `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8084,102 +8803,6 @@ namespace boost { namespace parser {
             last,
             parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
-
-#ifndef BOOST_PARSER_DOXYGEN
-
-#if BOOST_PARSER_USE_CONCEPTS
-    template<
-        parsable_range_like R,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple>
-#else
-    template<
-        typename R,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple,
-        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
-#endif
-    auto parse(
-        R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
-        rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
-        trace trace_mode = trace::off)
-#if BOOST_PARSER_USE_CONCEPTS
-        // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
-            GlobalState>
-    // clang-format on
-#endif
-    {
-        auto r_ = detail::make_input_subrange(r);
-        auto first = r_.begin();
-        auto const last = r_.end();
-        return detail::if_full_parse(
-            first,
-            last,
-            parser::prefix_parse(first, last, parser, skip, trace_mode));
-    }
-
-#if BOOST_PARSER_USE_CONCEPTS
-    template<
-        parsable_range_like R,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple>
-#else
-    template<
-        typename R,
-        typename Parser,
-        typename GlobalState,
-        typename ErrorHandler,
-        typename TagType,
-        typename Attribute,
-        typename LocalState,
-        typename ParamsTuple,
-        typename Enable = std::enable_if_t<detail::is_parsable_range_like_v<R>>>
-#endif
-    auto parse(
-        R const & r,
-        parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
-        callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
-        trace trace_mode = trace::off)
-#if BOOST_PARSER_USE_CONCEPTS
-        // clang-format off
-        requires error_handler<
-            ErrorHandler,
-            std::ranges::iterator_t<decltype(detail::make_input_subrange(r))>,
-            std::ranges::sentinel_t<decltype(detail::make_input_subrange(r))>,
-            GlobalState>
-    // clang-format on
-#endif
-    {
-        auto r_ = detail::make_input_subrange(r);
-        auto first = r_.begin();
-        auto const last = r_.end();
-        return detail::if_full_parse(
-            first,
-            last,
-            parser::prefix_parse(first, last, parser, skip, trace_mode));
-    }
-
-#endif
 
     /** Parses `[first, last)` using `parser`, and returns whether the parse
         was successful.  When a callback rule `r` is successful during the
@@ -8252,7 +8875,13 @@ namespace boost { namespace parser {
         `Callbacks` is expected to be an invocable with the correct overloads
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8379,7 +9008,13 @@ namespace boost { namespace parser {
         `Callbacks` is expected to be an invocable with the correct overloads
         required to support all successful rule parses that might occur.  If
         `trace_mode == trace::on`, a verbose trace of the parse will be
-        streamed to `std::cout`. */
+        streamed to `std::cout`.
+
+        \tparam ErrorHandler Constrained by `error_handler<ErrorHandler,std::ranges::iterator_t<decltype(subrange_of(r))>, std::ranges::sentinel_t<decltype(subrange_of(r))>, GlobalState>`,
+            where `subrange_of` is an implementation detail that: creates
+            subranges out of pointers; trims trailing zeros off of bounded
+            arrays (such as string literals); and transcodes to UTF-32 if the
+            input is non-`char`. */
 #if BOOST_PARSER_USE_CONCEPTS
     template<
         parsable_range_like R,
@@ -8479,6 +9114,60 @@ namespace boost { namespace parser {
     }
 
     namespace detail {
+        template<typename R, typename Parser>
+        struct attribute_impl
+        {
+            using parser_type = typename Parser::parser_type;
+            using global_state_type = typename Parser::global_state_type;
+            using error_handler_type = typename Parser::error_handler_type;
+
+            using iterator = detail::iterator_t<R>;
+            using sentinel = detail::sentinel_t<R>;
+
+            using context = decltype(detail::make_context<false, false>(
+                std::declval<iterator>(),
+                std::declval<sentinel>(),
+                std::declval<bool &>(),
+                std::declval<int &>(),
+                std::declval<error_handler_type>(),
+                std::declval<global_state_type &>(),
+                std::declval<detail::symbol_table_tries_t &>()));
+            using type = decltype(std::declval<Parser>()(
+                std::declval<iterator &>(),
+                std::declval<sentinel>(),
+                std::declval<context>(),
+                detail::null_parser{},
+                detail::flags::gen_attrs,
+                std::declval<bool &>()));
+        };
+
+        template<typename Iter, typename Sentinel, typename Parser>
+        auto has_attribute(Iter first, Sentinel last, Parser parser)
+        {
+            using attr_t = typename attribute_impl<
+                BOOST_PARSER_SUBRANGE<Iter, Sentinel>,
+                Parser>::type;
+            return std::integral_constant<bool, !is_nope_v<attr_t>>{};
+        }
+
+        template<typename T>
+        constexpr wrapper<T> attr_wrapped_final;
+        template<>
+        inline constexpr wrapper<none> attr_wrapped_final<nope>;
+    }
+
+    template<typename R, typename Parser>
+    struct attribute
+    {
+        using initial_type = typename detail::attribute_impl<
+            decltype(detail::make_input_subrange(std::declval<R>())),
+            Parser>::type;
+        using type =
+            typename decltype(detail::attr_wrapped_final<initial_type>)::type;
+    };
+
+
+    namespace detail {
         template<typename... Args>
         constexpr void static_assert_merge_attributes(tuple<Args...> parsers)
         {
@@ -8486,12 +9175,13 @@ namespace boost { namespace parser {
             // is an optional check, so I'm disabling it for those GCCs.
 #if !defined(__GNUC__) || 13 <= __GNUC__
             using context_t = parse_context<
+                false,
+                false,
                 char const *,
                 char const *,
                 default_error_handler>;
             using skipper_t = parser_interface<ws_parser<false, false>>;
             using use_parser_t = dummy_use_parser_t<
-                false,
                 char const *,
                 char const *,
                 context_t,
