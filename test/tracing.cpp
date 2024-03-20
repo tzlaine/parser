@@ -227,8 +227,10 @@ int main()
               << "| symbols<T>                            |\n"
               << "----------------------------------------\n";
 
-    symbols<int> symtab;
-    PARSE(symtab);
+    symbols<int> symtab1;
+    symbols<float> symtab2 = "integer symbols";
+    PARSE(symtab1);
+    PARSE(symtab2);
 
     std::cout << "\n\n"
               << "----------------------------------------\n"
