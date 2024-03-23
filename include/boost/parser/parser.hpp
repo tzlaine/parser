@@ -4915,9 +4915,18 @@ namespace boost { namespace parser {
     struct symbol_parser
     {
         symbol_parser() : copied_from_(nullptr) {}
+        explicit symbol_parser(std::string_view diagnostic_text) :
+            copied_from_(nullptr), diagnostic_text_(diagnostic_text)
+        {}
         symbol_parser(symbol_parser const & other) :
             initial_elements_(other.initial_elements_),
-            copied_from_(other.copied_from_ ? other.copied_from_ : &other)
+            copied_from_(other.copied_from_ ? other.copied_from_ : &other),
+            diagnostic_text_(other.diagnostic_text_)
+        {}
+        symbol_parser(symbol_parser && other) :
+            initial_elements_(std::move(other.initial_elements_)),
+            copied_from_(other.copied_from_),
+            diagnostic_text_(other.diagnostic_text_)
         {}
 
         /** Uses UTF-8 string `str` to look up an attribute in the table
@@ -5030,6 +5039,8 @@ namespace boost { namespace parser {
         {
             return ref().initial_elements_;
         }
+
+        std::string_view diagnostic_text_;
     };
 
     template<
@@ -5186,7 +5197,7 @@ namespace boost { namespace parser {
         using error_handler_type = ErrorHandler;
 
         constexpr parser_interface() : parser_() {}
-        constexpr parser_interface(parser_type p) : parser_(p) {}
+        constexpr parser_interface(parser_type p) : parser_(std::move(p)) {}
         constexpr parser_interface(
             parser_type p, global_state_type gs, error_handler_type eh) :
             parser_(p), globals_(gs), error_handler_(eh)
@@ -5581,7 +5592,19 @@ namespace boost { namespace parser {
     struct symbols : parser_interface<symbol_parser<T>>
     {
         symbols() {}
+        symbols(char const * diagnostic_text) :
+            parser_interface<symbol_parser<T>>(
+                symbol_parser<T>(diagnostic_text))
+        {}
         symbols(std::initializer_list<std::pair<std::string_view, T>> il)
+        {
+            this->parser_.initial_elements_ = il;
+        }
+        symbols(
+            char const * diagnostic_text,
+            std::initializer_list<std::pair<std::string_view, T>> il) :
+            parser_interface<symbol_parser<T>>(
+                symbol_parser<T>(diagnostic_text))
         {
             this->parser_.initial_elements_ = il;
         }

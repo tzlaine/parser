@@ -435,7 +435,10 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << "symbols<" << detail::type_name<T>() << ">";
+        if (parser.diagnostic_text_.empty())
+            os << "symbols<" << detail::type_name<T>() << ">";
+        else
+            os << parser.diagnostic_text_;
     }
 
     template<typename Context, typename Predicate>
