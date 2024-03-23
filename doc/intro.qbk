@@ -91,6 +91,17 @@ alternatives are used.  This applies to the use of `BOOST_ASSERT` versus
 `assert`, and printing typenames with Boost.TypeIndex versus with
 `std::typeinfo`.
 
+[note If you want to disable the use of the C macro `assert`, you define
+`BOOST_DISABLE_ASSERTS`.  This is true whether `BOOST_ASSERT` is available or
+not. ]
+
+[important _Parser_ uses inline namespaces around definitions of all functions
+and types that use the optional Boost features; the name of the inline
+namespace varies depending on whether the Boost implementation is used.  So if
+Boost.TypeIndex is available to one translation unit, but another TU must use
+`std::typeinfo`, there are no ODR violations.  The exception to this is the
+use of `BOOST_ASSERT`/`assert`; assert macros are inherently ODR traps. ]
+
 _Parser_ automatically treats aggregate `struct`s as if they were tuples in
 many cases.  There is some metaprogramming logic that makes this work, and
 this logic has a hard limit on the size of a `struct` that it can operate on.
