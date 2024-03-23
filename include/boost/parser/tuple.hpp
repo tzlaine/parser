@@ -92,8 +92,8 @@ namespace boost { namespace parser {
     }
 
     /** The tuple template alias used within Boost.Parser.  This will be
-        `boost::hana::tuple` unless `BOOST_PARSER_DISABLE_HANA_TUPLE` is
-        defined, in which case it is `std::tuple`. */
+        `boost::hana::tuple` if `BOOST_PARSER_USE_HANA_TUPLE` is defined, and
+        `std::tuple` otherwise. */
 #if BOOST_PARSER_USE_STD_TUPLE
     template<typename... Args>
     using tuple = std::tuple<Args...>;
@@ -102,9 +102,9 @@ namespace boost { namespace parser {
     using tuple = hana::tuple<Args...>;
 #endif
 
-    /** A template alias that is `boost::hana::integral_constant<T, I>` unless
-        `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined, in which case it is
-        `std::integral_constant<T, I>`. */
+    /** A template alias that is `boost::hana::integral_constant<T, I>` if
+        `BOOST_PARSER_USE_HANA_TUPLE` is defined, and
+        `std::integral_constant<T, I>` otherwise. */
 #if BOOST_PARSER_USE_STD_TUPLE
     template<typename T, T I>
     using integral_constant = std::integral_constant<T, I>;
@@ -118,9 +118,9 @@ namespace boost { namespace parser {
     template<typename T, typename U, U I>
     constexpr decltype(auto) get(T && x, integral_constant<U, I> i);
 
-    /** A template alias that is `boost::hana::llong<I>` unless
-        `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined, in which case it is
-        `std::integral_constant<long long, I>`. */
+    /** A template alias that is `boost::hana::llong<I>` if
+        `BOOST_PARSER_USE_HANA_TUPLE` is defined, and
+        `std::integral_constant<long long, I>` otherwise. */
     template<long long I>
     using llong = integral_constant<long long, I>;
 

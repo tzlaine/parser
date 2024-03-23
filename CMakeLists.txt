@@ -19,9 +19,9 @@ endif ()
 ##################################################
 # Build config
 ##################################################
-set(BUILD_WITHOUT_HANA false CACHE BOOL "Build with BOOST_PARSER_DISABLE_HANA_TUPLE defined.")
-if (BUILD_WITHOUT_HANA)
-  add_definitions(-DBOOST_PARSER_DISABLE_HANA_TUPLE)
+set(BUILD_WITH_HANA false CACHE BOOL "Build with BOOST_PARSER_USE_HANA_TUPLE defined.")
+if (BUILD_WITH_HANA)
+  add_definitions(-DBOOST_PARSER_USE_HANA_TUPLE)
 endif()
 
 

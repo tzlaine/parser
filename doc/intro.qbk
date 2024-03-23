@@ -71,11 +71,15 @@ standalone library, independent of Boost.
 _Parser_ can be used entirely on its own.  If Boost is available, extra
 functionality provided by Boost is also available.
 
-To use _Parser_ entirely on its own, simply define
-`BOOST_PARSER_DISABLE_HANA_TUPLE`.  This will force _std_tup_ to be the
-tuple-template used throughout _Parser_.  The Boost.Hana tuple is much nicer,
-because it has an `operator[]`; you will see this operator used throughout the
-tutorial and examples.
+By default, _Parser_ is usable entirely on its own.  The only explicit opt-in
+use of Boost is the use of Boost.Hana.  If you turn on the use of Hana, the
+tuple type used throughout _Parser_ will be `boost::hana::tuple` instead of
+`std::tuple`.  To enable this, simply define `BOOST_PARSER_USE_HANA_TUPLE`.
+The Boost.Hana tuple is much nicer, because it has an `operator[]`, and a
+whole lot of very useful algorithms; you will see this operator used
+throughout the tutorial and examples.  I encourage you to use the Hana tuple,
+but I realize that it is an often-unfamiliar replacement for `std::tuple`,
+which is a C++ vocabulary template, and so that is the default.
 
 [important _Parser_ defines a template alias _bp_tup_ that aliases to _bh_tup_
 by default, and _std_tup_ when `BOOST_PARSER_DISABLE_HANA_TUPLE` is defined.
