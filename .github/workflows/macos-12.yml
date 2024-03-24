@@ -2,9 +2,9 @@ name: macos-12 - Clang 13
 
 on:
   push:
-    branches: [ master, develop, boost_review_changes ]
+    branches: [ master, develop ]
   pull_request:
-    branches: [ master, develop, boost_review_changes ]
+    branches: [ master, develop ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
