@@ -8,7 +8,7 @@
 
 #include <boost/parser/search.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -26,56 +26,59 @@ namespace deduction {
 }
 #endif
 
-TEST(search, search_range_skip)
+int main()
+{
+
+// search_range_skip
 {
     // array of char
     {
         char const str[] = "";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const str[] = "not here";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::end(str) - 1);
-        EXPECT_EQ(result.end(), std::end(str) - 1);
+        BOOST_TEST(result.begin() == std::end(str) - 1);
+        BOOST_TEST(result.end() == std::end(str) - 1);
     }
     {
         char const str[] = "aaXYZb";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZab";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "gbXYZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "XXYZZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
     {
         char const * str = "XXYZZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 #if BOOST_PARSER_USE_CONCEPTS
     {
@@ -88,88 +91,88 @@ TEST(search, search_range_skip)
     {
         char const str[] = "";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const str[] = "not here";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::end(str) - 1);
-        EXPECT_EQ(result.end(), std::end(str) - 1);
+        BOOST_TEST(result.begin() == std::end(str) - 1);
+        BOOST_TEST(result.end() == std::end(str) - 1);
     }
     {
         char const str[] = "aaXYZb";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZab";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "gbXYZ";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZ";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "XXYZZ";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
     {
         char const * str = "";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const * str = "not here";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_TRUE(result.begin() == bp::null_sentinel_t{});
-        EXPECT_TRUE(result.end() == bp::null_sentinel_t{});
+        BOOST_TEST(result.begin() == bp::null_sentinel_t{});
+        BOOST_TEST(result.end() == bp::null_sentinel_t{});
     }
     {
         char const * str = "aaXYZb";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const * str = "XYZab";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const * str = "gbXYZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const * str = "XYZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const * str = "XXYZZ";
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
@@ -177,76 +180,76 @@ TEST(search, search_range_skip)
         char const * str_ = "";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str.begin());
-        EXPECT_EQ(result.end(), str.end());
+        BOOST_TEST(result.begin() == str.begin());
+        BOOST_TEST(result.end() == str.end());
     }
     {
         char const * str_ = "not here";
         auto str = str_ | bp::as_utf16;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_TRUE(result.begin() == str.end());
-        EXPECT_TRUE(result.end() == str.end());
+        BOOST_TEST(result.begin() == str.end());
+        BOOST_TEST(result.end() == str.end());
     }
     {
         char const * str_ = "aaXYZb";
         auto str = str_ | bp::as_utf8;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 2));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 5));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 2));
+        BOOST_TEST(result.end() == std::next(str.begin(), 5));
     }
     {
         char const * str_ = "XYZab";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
     {
         char const * str_ = "gbXYZ";
         auto str = str_ | bp::as_utf16;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 2));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 5));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 2));
+        BOOST_TEST(result.end() == std::next(str.begin(), 5));
     }
     {
         char const * str_ = "XYZ";
         auto str = str_ | bp::as_utf8;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
     {
         char const * str_ = "XXYZZ";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 1));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 4));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 1));
+        BOOST_TEST(result.end() == std::next(str.begin(), 4));
     }
 }
 
-TEST(search, search_iters_skip)
+// search_iters_skip
 {
     // array of char
     {
         char const str[] = "XYZab";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "gbXYZ";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZ";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
 
     // array of char | as_utf32
@@ -255,24 +258,24 @@ TEST(search, search_iters_skip)
         auto str = str_ | bp::as_utf32;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str_);
-        EXPECT_EQ(result.end(), str_);
+        BOOST_TEST(result.begin() == str_);
+        BOOST_TEST(result.end() == str_);
     }
     {
         char const str_[] = "XYZ";
         auto str = str_ | bp::as_utf32;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str_ + 0);
-        EXPECT_EQ(result.end(), str_ + 3);
+        BOOST_TEST(result.begin() == str_ + 0);
+        BOOST_TEST(result.end() == str_ + 3);
     }
     {
         char const str_[] = "XXYZZ";
         auto str = str_ | bp::as_utf32;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str_ + 1);
-        EXPECT_EQ(result.end(), str_ + 4);
+        BOOST_TEST(result.begin() == str_ + 1);
+        BOOST_TEST(result.end() == str_ + 4);
     }
 
     // pointer
@@ -280,22 +283,22 @@ TEST(search, search_iters_skip)
         char const * str = "";
         auto result =
             bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const * str = "not here";
         auto result =
             bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"), bp::ws);
-        EXPECT_TRUE(result.begin() == bp::null_sentinel_t{});
-        EXPECT_TRUE(result.end() == bp::null_sentinel_t{});
+        BOOST_TEST(result.begin() == bp::null_sentinel_t{});
+        BOOST_TEST(result.end() == bp::null_sentinel_t{});
     }
     {
         char const * str = "XXYZZ";
         auto result =
             bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
@@ -304,87 +307,87 @@ TEST(search, search_iters_skip)
         auto str = str_ | bp::as_utf32;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
     {
         char const * str_ = "gbXYZ";
         auto str = str_ | bp::as_utf16;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 2));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 5));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 2));
+        BOOST_TEST(result.end() == std::next(str.begin(), 5));
     }
     {
         char const * str_ = "XYZ";
         auto str = str_ | bp::as_utf8;
         auto result =
             bp::search(str.begin(), str.end(), bp::lit("XYZ"), bp::ws);
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
 }
 
-TEST(search, search_range_no_skip)
+// search_range_no_skip
 {
     // array of char
     {
         char const str[] = "XYZab";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "gbXYZ";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZ";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
 
     // array of char | as_utf32
     {
         char const str[] = "";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const str[] = "XYZ";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "XXYZZ";
         auto result = bp::search(str | bp::as_utf32, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
     {
         char const * str = "";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const * str = "not here";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_TRUE(result.begin() == bp::null_sentinel_t{});
-        EXPECT_TRUE(result.end() == bp::null_sentinel_t{});
+        BOOST_TEST(result.begin() == bp::null_sentinel_t{});
+        BOOST_TEST(result.end() == bp::null_sentinel_t{});
     }
     {
         char const * str = "XXYZZ";
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
@@ -392,48 +395,48 @@ TEST(search, search_range_no_skip)
         char const * str_ = "XYZab";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
     {
         char const * str_ = "gbXYZ";
         auto str = str_ | bp::as_utf16;
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 2));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 5));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 2));
+        BOOST_TEST(result.end() == std::next(str.begin(), 5));
     }
     {
         char const * str_ = "XYZ";
         auto str = str_ | bp::as_utf8;
         auto result = bp::search(str, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
 }
 
-TEST(search, search_iters_no_skip)
+// search_iters_no_skip
 {
     // array of char
     {
         char const str[] = "XYZab";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
     {
         char const str[] = "gbXYZ";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 2);
-        EXPECT_EQ(result.end(), str + 5);
+        BOOST_TEST(result.begin() == str + 2);
+        BOOST_TEST(result.end() == str + 5);
     }
     {
         char const str[] = "XYZ";
         auto result =
             bp::search(std::begin(str), std::end(str), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 0);
-        EXPECT_EQ(result.end(), str + 3);
+        BOOST_TEST(result.begin() == str + 0);
+        BOOST_TEST(result.end() == str + 3);
     }
 
     // array of char | as_utf32
@@ -441,42 +444,42 @@ TEST(search, search_iters_no_skip)
         char const str_[] = "";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str_);
-        EXPECT_EQ(result.end(), str_);
+        BOOST_TEST(result.begin() == str_);
+        BOOST_TEST(result.end() == str_);
     }
     {
         char const str_[] = "XYZ";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str_ + 0);
-        EXPECT_EQ(result.end(), str_ + 3);
+        BOOST_TEST(result.begin() == str_ + 0);
+        BOOST_TEST(result.end() == str_ + 3);
     }
     {
         char const str_[] = "XXYZZ";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str_ + 1);
-        EXPECT_EQ(result.end(), str_ + 4);
+        BOOST_TEST(result.begin() == str_ + 1);
+        BOOST_TEST(result.end() == str_ + 4);
     }
 
     // pointer
     {
         char const * str = "";
         auto result = bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str);
-        EXPECT_EQ(result.end(), str);
+        BOOST_TEST(result.begin() == str);
+        BOOST_TEST(result.end() == str);
     }
     {
         char const * str = "not here";
         auto result = bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"));
-        EXPECT_TRUE(result.begin() == bp::null_sentinel_t{});
-        EXPECT_TRUE(result.end() == bp::null_sentinel_t{});
+        BOOST_TEST(result.begin() == bp::null_sentinel_t{});
+        BOOST_TEST(result.end() == bp::null_sentinel_t{});
     }
     {
         char const * str = "XXYZZ";
         auto result = bp::search(str, bp::null_sentinel_t{}, bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), str + 1);
-        EXPECT_EQ(result.end(), str + 4);
+        BOOST_TEST(result.begin() == str + 1);
+        BOOST_TEST(result.end() == str + 4);
     }
 
     // pointer
@@ -484,26 +487,26 @@ TEST(search, search_iters_no_skip)
         char const * str_ = "XYZab";
         auto str = str_ | bp::as_utf32;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
     {
         char const * str_ = "gbXYZ";
         auto str = str_ | bp::as_utf16;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 2));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 5));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 2));
+        BOOST_TEST(result.end() == std::next(str.begin(), 5));
     }
     {
         char const * str_ = "XYZ";
         auto str = str_ | bp::as_utf8;
         auto result = bp::search(str.begin(), str.end(), bp::lit("XYZ"));
-        EXPECT_EQ(result.begin(), std::next(str.begin(), 0));
-        EXPECT_EQ(result.end(), std::next(str.begin(), 3));
+        BOOST_TEST(result.begin() == std::next(str.begin(), 0));
+        BOOST_TEST(result.end() == std::next(str.begin(), 3));
     }
 }
 
-TEST(search, search_all)
+// search_all
 {
     {
         auto r = bp::search_all("", bp::lit("XYZ"), bp::ws);
@@ -512,7 +515,7 @@ TEST(search, search_all)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const str[] = "aaXYZb";
@@ -520,11 +523,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {2, 5};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 1);
+        BOOST_TEST(count == 1);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -532,11 +535,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -544,11 +547,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -556,11 +559,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str[] = "aaXYZbaabaXYZXYZ";
@@ -568,11 +571,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13, 13, 16};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str[] = "XYZaaXYZbaabaXYZXYZ";
@@ -580,11 +583,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {0, 3, 5, 8, 13, 16, 16, 19};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -592,11 +595,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {0, 3, 3, 6, 8, 11, 16, 19, 19, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
     {
         char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -604,11 +607,11 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {0, 3, 3, 6, 8, 11, 16, 19, 19, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
     {
         char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -616,15 +619,15 @@ TEST(search, search_all)
         int count = 0;
         int const offsets[] = {0, 3, 3, 6, 8, 11, 16, 19, 19, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
 }
 
-TEST(search, search_all_unicode)
+// search_all_unicode
 {
     {
         char const str_[] = "";
@@ -635,7 +638,7 @@ TEST(search, search_all_unicode)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const * str_ = "aaXYZb";
@@ -644,11 +647,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {2, 5};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 1);
+        BOOST_TEST(count == 1);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -657,11 +660,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -670,11 +673,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -683,11 +686,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str_[] = "aaXYZbaabaXYZXYZ";
@@ -696,11 +699,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {2, 5, 10, 13, 13, 16};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "XYZaaXYZbaabaXYZXYZ";
@@ -709,11 +712,11 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {0, 3, 5, 8, 13, 16, 16, 19};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -722,15 +725,15 @@ TEST(search, search_all_unicode)
         int count = 0;
         int const offsets[] = {0, 3, 3, 6, 8, 11, 16, 19, 19, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
 }
 
-TEST(search, doc_examples)
+// doc_examples
 {
     {
         namespace bp = boost::parser;
@@ -752,4 +755,7 @@ TEST(search, doc_examples)
         std::cout << "\n";
         assert(count == 4);
     }
+}
+
+return boost::report_errors();
 }

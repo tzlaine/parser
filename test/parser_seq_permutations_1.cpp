@@ -8,7 +8,7 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -34,7 +34,7 @@ P3 = bp::char_('c');
 
 using namespace std::literals;
 
-TEST(attributes, seq_parser_permutations_1)
+int main()
 {
     [[maybe_unused]] int dummy = 0; // for clang-format(!)
 
@@ -42,85 +42,85 @@ TEST(attributes, seq_parser_permutations_1)
     {
         auto result =
             bp::parse("foofoo", bp::string("foo") >> bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, "foo"s)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, "foo"s)));
     }
     {
         auto result =
             bp::parse("foobar", bp::string("foo") >> bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, "bar"s)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, "bar"s)));
     }
     {
         auto result = bp::parse("foo42", bp::string("foo") >> bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, 42)));
     }
     {
         auto result = bp::parse("fooc", bp::string("foo") >> bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "fooc"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "fooc"s);
     }
     {
         auto result = bp::parse("foo", bp::string("foo") >> bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo"s);
     }
     {
         auto result =
             bp::parse("foofoofoo", bp::string("foo") >> *bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "foo"s, "foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "foo"s, "foo"s}));
     }
     {
         auto result = bp::parse("foo", bp::string("foo") >> -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, std::optional<std::string>{})));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, std::optional<std::string>{})));
     }
     {
         auto result = bp::parse(
             "foofoo42", bp::string("foo") >> (bp::string("foo") >> bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, "foo"s, 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, "foo"s, 42)));
     }
     {
         auto result = bp::parse(
             "foofoobar",
             bp::string("foo") >> -(bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple("foo"s, std::optional(make::tuple("foo"s, "bar"s)))));
     }
     {
         auto result = bp::parse(
             "foofoobar",
             bp::string("foo") >> (-bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result, (make::tuple("foo"s, std::optional("foo"s), "bar"s)));
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result == (make::tuple("foo"s, std::optional("foo"s), "bar"s)));
     }
     {
         auto result = bp::parse(
             "foo42", bp::string("foo") >> (bp::string("foo") | bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result, (make::tuple("foo"s, std::variant<std::string, int>(42))));
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result == (make::tuple("foo"s, std::variant<std::string, int>(42))));
     }
     {
         auto result = bp::parse(
             "foo",
             bp::string("foo") >> -(bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple("foo"s, std::optional<std::string>{})));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple("foo"s, std::optional<std::string>{})));
     }
     {
         auto result = bp::parse(
             "foo",
             bp::string("foo") >> (-bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 "foo"s,
                 std::variant<std::optional<std::string>, std::string>(
@@ -131,56 +131,56 @@ TEST(attributes, seq_parser_permutations_1)
     {
         auto result =
             bp::parse("foofoo", -bp::string("foo") >> bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::optional("foo"s), "foo"s)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::optional("foo"s), "foo"s)));
     }
     {
         auto result = bp::parse("bar", -bp::string("foo") >> bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::optional<std::string>{}, "bar"s)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::optional<std::string>{}, "bar"s)));
     }
     {
         auto result = bp::parse("42", -bp::string("foo") >> bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::optional<std::string>{}, 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::optional<std::string>{}, 42)));
     }
     {
         auto result = bp::parse("c", -bp::string("foo") >> bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::optional<std::string>{}, 'c')));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::optional<std::string>{}, 'c')));
     }
     {
         auto result = bp::parse("foo", -bp::string("foo") >> bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::optional("foo"s));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::optional("foo"s));
     }
     {
         auto result =
             bp::parse("foofoo", -bp::string("foo") >> *bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "foo"s}));
     }
     {
         auto result =
             bp::parse("foofoo", -bp::string("foo") >> -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(std::optional("foo"s), std::optional("foo"s))));
     }
     {
         auto result = bp::parse(
             "foofoo42", -bp::string("foo") >> (bp::string("foo") >> bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::optional("foo"s), "foo"s, 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::optional("foo"s), "foo"s, 42)));
     }
     {
         auto result = bp::parse(
             "foofoobar",
             -bp::string("foo") >> -(bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::optional("foo"s),
                 std::optional((make::tuple("foo"s, "bar"s))))));
@@ -189,18 +189,18 @@ TEST(attributes, seq_parser_permutations_1)
         auto result = bp::parse(
             "foofoobar",
             -bp::string("foo") >> (-bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::optional("foo"s), std::optional("foo"s), "bar"s)));
     }
     {
         auto result = bp::parse(
             "foo42", -bp::string("foo") >> (bp::string("foo") | bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::optional("foo"s), std::variant<std::string, int>(42))));
     }
@@ -208,18 +208,18 @@ TEST(attributes, seq_parser_permutations_1)
         auto result = bp::parse(
             "foobar",
             -bp::string("foo") >> -(bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(std::optional("foo"s), std::optional("bar"s))));
     }
     {
         auto result = bp::parse(
             "foofoo",
             -bp::string("foo") >> (-bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 "foo"s,
                 std::variant<std::optional<std::string>, std::string>(
@@ -232,53 +232,53 @@ TEST(attributes, seq_parser_permutations_1)
             "foo foo",
             bp::lexeme[*bp::string("foo")] >> bp::string("foo"),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "foo"s}));
     }
     {
         auto result =
             bp::parse("foobar", *bp::string("foo") >> bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "bar"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "bar"s}));
     }
     {
         auto result = bp::parse("foo42", *bp::string("foo") >> bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::vector({"foo"s}), 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::vector({"foo"s}), 42)));
     }
     {
         auto result = bp::parse("fooc", *bp::string("foo") >> bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::vector({"foo"s}), 'c')));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::vector({"foo"s}), 'c')));
     }
     {
         auto result = bp::parse("foo", *bp::string("foo") >> bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s}));
     }
     {
         auto result = bp::parse(
             "foo foo",
             bp::lexeme[*bp::string("foo")] >> *bp::string("foo"),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(std::vector({"foo"s}), std::vector({"foo"s}))));
     }
     {
         auto result =
             bp::parse("foo", *bp::string("foo") >> -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s}));
     }
     {
         auto result = bp::parse(
             "foo foo42",
             bp::lexeme[*bp::string("foo")] >> (bp::string("foo") >> bp::int_),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (make::tuple(std::vector({"foo"s, "foo"s}), 42)));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (make::tuple(std::vector({"foo"s, "foo"s}), 42)));
     }
     {
         auto result = bp::parse(
@@ -286,9 +286,9 @@ TEST(attributes, seq_parser_permutations_1)
             bp::lexeme[*bp::string("foo")] >>
                 -(bp::string("foo") >> bp::string("bar")),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::vector({"foo"s}),
                 std::optional((make::tuple("foo"s, "bar"s))))));
@@ -299,17 +299,17 @@ TEST(attributes, seq_parser_permutations_1)
             bp::lexeme[*bp::string("foo")] >>
                 (-bp::string("foo") >> bp::string("bar")),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "foo"s, "bar"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "foo"s, "bar"s}));
     }
     {
         auto result = bp::parse(
             "foo 42",
             bp::lexeme[*bp::string("foo")] >> (bp::string("foo") | bp::int_),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::vector({"foo"s}), std::variant<std::string, int>(42))));
     }
@@ -319,8 +319,8 @@ TEST(attributes, seq_parser_permutations_1)
             bp::lexeme[*bp::string("foo")] >>
                 -(bp::string("foo") | bp::string("bar")),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "bar"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "bar"s}));
     }
     {
         auto result = bp::parse(
@@ -328,12 +328,14 @@ TEST(attributes, seq_parser_permutations_1)
             bp::lexeme[*bp::string("foo")] >>
                 (-bp::string("foo") | bp::string("bar")),
             bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(
-            *result,
+        BOOST_TEST(result);
+        BOOST_TEST(
+            *result ==
             (make::tuple(
                 std::vector({"foo"s}),
                 std::variant<std::optional<std::string>, std::string>(
                     std::nullopt))));
     }
+
+    return boost::report_errors();
 }

@@ -8,7 +8,7 @@
 
 #include <boost/parser/split.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -26,7 +26,10 @@ namespace deduction {
 }
 #endif
 
-TEST(split, split_)
+int main()
+{
+
+// split_
 {
     {
         auto r = bp::split("", bp::lit("XYZ"), bp::ws);
@@ -35,7 +38,7 @@ TEST(split, split_)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const str[] = "aaXYZb";
@@ -43,11 +46,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 2, 5, 6};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -55,11 +58,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -67,11 +70,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str[] = "aaXYZbaabaXYZ";
@@ -79,11 +82,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str[] = "aaXYZbaabaXYZXYZ";
@@ -91,11 +94,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13, 16, 16};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str[] = "XYZaaXYZbaabaXYZXYZ";
@@ -103,11 +106,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 0, 3, 5, 8, 13, 16, 16, 19, 19};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
     {
         char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -115,11 +118,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 0, 3, 3, 6, 8, 11, 16, 19, 19, 22, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(count == 6);
     }
     {
         char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -127,11 +130,11 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 0, 3, 3, 6, 8, 11, 16, 19, 19, 22, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(count == 6);
     }
     {
         char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -139,15 +142,15 @@ TEST(split, split_)
         int count = 0;
         int const offsets[] = {0, 0, 3, 3, 6, 8, 11, 16, 19, 19, 22, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin() - str, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end() - str, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin() - str == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end() - str == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(count == 6);
     }
 }
 
-TEST(split, split_unicode)
+// split_unicode
 {
     {
         char const str_[] = "";
@@ -158,7 +161,7 @@ TEST(split, split_unicode)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const * str_ = "aaXYZb";
@@ -167,11 +170,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 2, 5, 6};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 2);
+        BOOST_TEST(count == 2);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -180,11 +183,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -193,11 +196,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -206,11 +209,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "aaXYZbaabaXYZXYZ";
@@ -219,11 +222,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 2, 5, 10, 13, 13, 16, 16};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "XYZaaXYZbaabaXYZXYZ";
@@ -232,11 +235,11 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 0, 3, 5, 8, 13, 16, 16, 19, 19};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
     {
         char const str_[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -245,15 +248,15 @@ TEST(split, split_unicode)
         int count = 0;
         int const offsets[] = {0, 0, 3, 3, 6, 8, 11, 16, 19, 19, 22, 22};
         for (auto subrange : r) {
-            EXPECT_EQ(subrange.begin().base() - str_, offsets[count * 2 + 0]);
-            EXPECT_EQ(subrange.end().base() - str_, offsets[count * 2 + 1]);
+            BOOST_TEST(subrange.begin().base() - str_ == offsets[count * 2 + 0]);
+            BOOST_TEST(subrange.end().base() - str_ == offsets[count * 2 + 1]);
             ++count;
         }
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(count == 6);
     }
 }
 
-TEST(split, doc_examples)
+// doc_examples
 {
     {
         auto r = "XYZaaXYZbaabaXYZXYZ" | bp::split(bp::lit("XYZ"));
@@ -266,4 +269,7 @@ TEST(split, doc_examples)
         std::cout << "\n";
         assert(count == 5);
     }
+}
+
+return boost::report_errors();
 }

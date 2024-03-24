@@ -11,7 +11,7 @@
 #include <boost/parser/detail/detection.hpp>
 
 #include <array>
-#if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS
 #include <ranges>
 #endif
 

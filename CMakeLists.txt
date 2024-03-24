@@ -30,11 +30,6 @@ endif()
 ##################################################
 include(dependencies)
 
-find_package(PythonInterp)
-if (PYTHONINTERP_FOUND)
-    message("-- Found Python ${PYTHON_VERSION_STRING} (${PYTHON_EXECUTABLE})")
-endif ()
-
 
 ##################################################
 # Sanitizers
@@ -51,7 +46,7 @@ endif()
 
 
 ##################################################
-# Parser sub-library
+# Parser
 ##################################################
 add_library(parser INTERFACE)
 target_include_directories(parser INTERFACE ${CMAKE_SOURCE_DIR}/include)

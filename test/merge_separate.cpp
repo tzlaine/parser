@@ -8,12 +8,15 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
 
-TEST(merge_separate, merge_)
+int main()
+{
+
+// merge_
 {
     {
         constexpr auto parser = merge[char_ >> ' ' >> char_];
@@ -23,8 +26,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 'b');
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 'b');
         }
     }
     {
@@ -35,11 +38,11 @@ TEST(merge_separate, merge_)
                       std::optional<tuple<char, char, char>>>);
 
         {
-            EXPECT_FALSE(parse("ab", parser));
-            EXPECT_FALSE(parse("abc", parser));
+            BOOST_TEST(!parse("ab", parser));
+            BOOST_TEST(!parse("abc", parser));
             auto result = parse("abcd", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('a', 'c', 'd'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('a', 'c', 'd'));
         }
     }
     {
@@ -50,11 +53,11 @@ TEST(merge_separate, merge_)
                       std::optional<tuple<char, char, char>>>);
 
         {
-            EXPECT_FALSE(parse("ab", parser));
-            EXPECT_FALSE(parse("abc", parser));
+            BOOST_TEST(!parse("ab", parser));
+            BOOST_TEST(!parse("abc", parser));
             auto result = parse("abcd", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('a', 'c', 'd'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('a', 'c', 'd'));
         }
     }
     {
@@ -65,10 +68,10 @@ TEST(merge_separate, merge_)
                       std::optional<tuple<char, char>>>);
 
         {
-            EXPECT_FALSE(parse("ab", parser));
+            BOOST_TEST(!parse("ab", parser));
             auto result = parse("abc", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('b', 'c'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('b', 'c'));
         }
     }
     {
@@ -79,11 +82,11 @@ TEST(merge_separate, merge_)
                       std::optional<tuple<char, char, char>>>);
 
         {
-            EXPECT_FALSE(parse("ab", parser));
-            EXPECT_FALSE(parse("abc", parser));
+            BOOST_TEST(!parse("ab", parser));
+            BOOST_TEST(!parse("abc", parser));
             auto result = parse("abcd", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('a', 'c', 'd'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('a', 'c', 'd'));
         }
     }
     {
@@ -94,11 +97,11 @@ TEST(merge_separate, merge_)
                       std::optional<tuple<char, char, char>>>);
 
         {
-            EXPECT_FALSE(parse("ab", parser));
-            EXPECT_FALSE(parse("abc", parser));
+            BOOST_TEST(!parse("ab", parser));
+            BOOST_TEST(!parse("abc", parser));
             auto result = parse("abcd", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('a', 'c', 'd'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('a', 'c', 'd'));
         }
     }
     {
@@ -110,8 +113,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abc", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple('b', 'c'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple('b', 'c'));
         }
     }
     {
@@ -122,8 +125,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "abcdef");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "abcdef");
         }
     }
     {
@@ -134,8 +137,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "abcdef");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "abcdef");
         }
     }
     {
@@ -146,8 +149,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "abcdef");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "abcdef");
         }
     }
     {
@@ -158,8 +161,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "abcdef");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "abcdef");
         }
     }
     {
@@ -171,8 +174,8 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "abcdef");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "abcdef");
         }
     }
     {
@@ -185,11 +188,10 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("zabcdefghi", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
-                detail::hl::make_tuple(
-                    'z', std::string("abcdef"), std::string("ghi")));
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result == detail::hl::make_tuple(
+                               'z', std::string("abcdef"), std::string("ghi")));
         }
     }
     {
@@ -203,9 +205,10 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("zabcdefghi", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result, detail::hl::make_tuple('z', std::string("abcdefghi")));
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
+                detail::hl::make_tuple('z', std::string("abcdefghi")));
         }
     }
 #if 0 // Intentionally ill-formed.
@@ -219,15 +222,15 @@ TEST(merge_separate, merge_)
 
         {
             auto result = parse("abcefghi", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result, detail::hl::make_tuple('z', std::string("abcefghi")));
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result == detail::hl::make_tuple('z', std::string("abcefghi")));
         }
     }
 #endif
 }
 
-TEST(merge_separate, separate_)
+// separate_
 {
     {
         constexpr auto parser = +char_('a') >> ' ' >> char_;
@@ -238,8 +241,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "ab");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "ab");
         }
     }
     {
@@ -251,8 +254,9 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -264,8 +268,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -277,8 +281,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -290,8 +294,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -304,8 +308,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -318,8 +322,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -332,8 +336,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -345,8 +349,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -358,8 +362,8 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
     {
@@ -372,13 +376,13 @@ TEST(merge_separate, separate_)
 
         {
             auto result = parse("a b", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, detail::hl::make_tuple(std::string("a"), 'b'));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == detail::hl::make_tuple(std::string("a"), 'b'));
         }
     }
 }
 
-TEST(merge_separate, merge_separate_interop)
+// merge_separate_interop
 {
     [[maybe_unused]] constexpr auto A =
         eps >> separate[+char_('a') >> ' ' >> char_] >> eps;
@@ -409,11 +413,10 @@ TEST(merge_separate, merge_separate_interop)
 
         {
             auto result = parse("a babcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
-                detail::hl::make_tuple(
-                    std::string("a"), 'b', std::string("abcdef")));
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result == detail::hl::make_tuple(
+                               std::string("a"), 'b', std::string("abcdef")));
         }
     }
     { // A1
@@ -428,9 +431,9 @@ TEST(merge_separate, merge_separate_interop)
 
         {
             auto result = parse("a bzabcdef", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 detail::hl::make_tuple(
                     std::string("a"), 'b', 'z', std::string("abcdef")));
         }
@@ -447,9 +450,9 @@ TEST(merge_separate, merge_separate_interop)
 
         {
             auto result = parse("a babcdefz", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 detail::hl::make_tuple(
                     std::string("a"), 'b', std::string("abcdef"), 'z'));
         }
@@ -466,9 +469,9 @@ TEST(merge_separate, merge_separate_interop)
 
         {
             auto result = parse("a byabcdefz", parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 detail::hl::make_tuple(
                     std::string("a"), 'b', 'y', std::string("abcdef"), 'z'));
         }
@@ -642,4 +645,7 @@ TEST(merge_separate, merge_separate_interop)
                           char,
                           std::string>>>);
     }
+}
+
+return boost::report_errors();
 }

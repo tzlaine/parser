@@ -8,7 +8,7 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -19,7 +19,7 @@ auto const seq1_def = bp::int_ >> bp::char_('a');
 auto const seq2_def = bp::int_ >> bp::char_('b');
 BOOST_PARSER_DEFINE_RULES(seq1, seq2);
 
-TEST(attributes, internal_errors_munging_attributes)
+int main()
 {
     // These are just some assorted cases that have, or seemed likely to,
     // cause problems when an internal failure in an alternative wipes out an
@@ -32,9 +32,9 @@ TEST(attributes, internal_errors_munging_attributes)
             bp::string("FOO") >> -(bp::string("bar") | bp::string("foo"));
 
         auto result = bp::parse("FOOfoo", parser);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(bp::get(*result, bp::llong<0>{}), std::string("FOO"));
-        EXPECT_EQ(bp::get(*result, bp::llong<1>{}), std::string("foo"));
+        BOOST_TEST(result);
+        BOOST_TEST(bp::get(*result, bp::llong<0>{}) == std::string("FOO"));
+        BOOST_TEST(bp::get(*result, bp::llong<1>{}) == std::string("foo"));
     }
 
     {
@@ -42,8 +42,8 @@ TEST(attributes, internal_errors_munging_attributes)
             [bp::string("FOO") >> (bp::string("bar") | bp::string("foo"))];
 
         auto result = bp::parse("FOOfoo", parser);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::string("FOOfoo"));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::string("FOOfoo"));
     }
 
     {
@@ -52,16 +52,18 @@ TEST(attributes, internal_errors_munging_attributes)
              (bp::repeat(1)[bp::string("foo")] | bp::eps)];
 
         auto result = bp::parse("", parser);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result);
-        EXPECT_EQ(*result, std::vector<std::string>({"FOO"}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result);
+        BOOST_TEST(*result == std::vector<std::string>({"FOO"}));
     }
 
     {
         auto const parser = bp::merge[seq1 >> (seq2 | seq1)];
 
         auto result = bp::parse("7a9a", parser);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, (bp::tuple<int, char>(9, 'a')));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == (bp::tuple<int, char>(9, 'a')));
     }
+
+    return boost::report_errors();
 }

@@ -9,7 +9,11 @@
 
 #include <boost/parser/config.hpp>
 
-#if !BOOST_PARSER_USE_STD_TUPLE
+#include <boost/core/lightweight_test.hpp>
+
+#if BOOST_PARSER_USE_STD_TUPLE
+int main() { return boost::report_errors(); }
+#else
 
 #include <boost/parser/parser.hpp>
 
@@ -17,8 +21,6 @@
 #include <iostream>
 #include <optional>
 #include <string>
-
-#include <gtest/gtest.h>
 
 
 namespace bp = boost::parser;
@@ -37,7 +39,6 @@ namespace g2d {
         return os;
     }
 };
-
 
 bp::rule<struct uint_0_60,               unsigned int> uint_0_60               = "uint_0_60";
 bp::rule<struct double_0_60,             double>       double_0_60             = "double_0_60";
@@ -143,7 +144,7 @@ int main(int argc, const char* argv[])
 }
 #endif
 
-TEST(parse_coords, all_examples)
+int main()
 {
     std::vector<std::string> test_coords = {
         "12.34 N, 56.78 E",
@@ -155,45 +156,47 @@ TEST(parse_coords, all_examples)
 
     {
         auto result = bp::parse(test_coords[0], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - 56.78), 0.001);
-        EXPECT_LT(std::abs(result->y - 12.34), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - 56.78) < 0.001);
+        BOOST_TEST(std::abs(result->y - 12.34) < 0.001);
     }
 
     {
         auto result = bp::parse(test_coords[1], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - 56.78), 0.001);
-        EXPECT_LT(std::abs(result->y - -12.34), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - 56.78) < 0.001);
+        BOOST_TEST(std::abs(result->y - -12.34) < 0.001);
     }
 
     {
         auto result = bp::parse(test_coords[2], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - -45.2519), 0.001);
-        EXPECT_LT(std::abs(result->y - 12.5), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - -45.2519) < 0.001);
+        BOOST_TEST(std::abs(result->y - 12.5) < 0.001);
     }
 
     {
         auto result = bp::parse(test_coords[3], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - -45.2519), 0.001);
-        EXPECT_LT(std::abs(result->y - 12.5125), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - -45.2519) < 0.001);
+        BOOST_TEST(std::abs(result->y - 12.5125) < 0.001);
     }
 
     {
         auto result = bp::parse(test_coords[4], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - -50.9997), 0.001);
-        EXPECT_LT(std::abs(result->y - -12.5042), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - -50.9997) < 0.001);
+        BOOST_TEST(std::abs(result->y - -12.5042) < 0.001);
     }
 
     {
         auto result = bp::parse(test_coords[5], latlon, bp::ws | bp::lit(','));
-        EXPECT_TRUE(result);
-        EXPECT_LT(std::abs(result->x - -50.9997), 0.001);
-        EXPECT_LT(std::abs(result->y - 50.0083), 0.001);
+        BOOST_TEST(result);
+        BOOST_TEST(std::abs(result->x - -50.9997) < 0.001);
+        BOOST_TEST(std::abs(result->y - 50.0083) < 0.001);
     }
+
+    return boost::report_errors();
 }
 
 #endif

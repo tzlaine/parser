@@ -7,6 +7,7 @@ void compile_attribute();
 void compile_seq_attribute();
 void compile_or_attribute();
 void compile_combining_groups();
+void compile_all_t();
 
 int main()
 {
@@ -14,4 +15,5 @@ int main()
     compile_seq_attribute();
     compile_or_attribute();
     compile_combining_groups();
+    compile_all_t();
 }
