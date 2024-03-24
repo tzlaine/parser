@@ -1890,6 +1890,14 @@ TEST(parser, combined_seq_and_or)
             EXPECT_FALSE(parse(str, parser, chars));
         }
 
+        // stream_error_handler
+        {
+            char const * str = "ab";
+            std::string chars;
+            stream_error_handler eh;
+            EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+        }
+
         {
             char const * str = "abz";
             std::string chars;
@@ -1902,6 +1910,83 @@ TEST(parser, combined_seq_and_or)
             std::string chars;
             stream_error_handler eh("simple_parser.cpp");
             EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+        }
+
+        {
+            char const * str = "abz";
+            std::string chars;
+            std::ostringstream oss;
+            stream_error_handler eh("simple_parser.cpp", oss);
+            EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+            EXPECT_EQ(
+                oss.str(),
+                "simple_parser.cpp:1:2: error: Expected char_('c') "
+                "here:\nabz\n  ^\n");
+        }
+
+        {
+            char const * str = "abz";
+            std::string chars;
+            std::ostringstream err, warn;
+            stream_error_handler eh("simple_parser.cpp", err, warn);
+            EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+            EXPECT_EQ(
+                err.str(),
+                "simple_parser.cpp:1:2: error: Expected char_('c') "
+                "here:\nabz\n  ^\n");
+            EXPECT_EQ(warn.str(), "");
+        }
+
+        // callback_error_handler
+        {
+            {
+                char const * str = "ab";
+                std::string chars;
+                callback_error_handler eh;
+                EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+            }
+
+            std::string err_str;
+            auto err = [&](std::string const & msg) { err_str = msg; };
+            std::string warn_str;
+            auto warn = [&](std::string const & msg) { warn_str = msg; };
+
+            {
+                char const * str = "abz";
+                std::string chars;
+                callback_error_handler eh(err);
+                err_str = "";
+                EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+                EXPECT_EQ(
+                    err_str,
+                    "1:2: error: Expected char_('c') here:\nabz\n  ^\n");
+            }
+
+            {
+                char const * str = "abz";
+                std::string chars;
+                callback_error_handler eh("simple_parser.cpp", err);
+                err_str = "";
+                EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+                EXPECT_EQ(
+                    err_str,
+                    "simple_parser.cpp:1:2: error: Expected char_('c') "
+                    "here:\nabz\n  ^\n");
+            }
+
+            {
+                char const * str = "abz";
+                std::string chars;
+                callback_error_handler eh("simple_parser.cpp", err, warn);
+                err_str = "";
+                warn_str = "";
+                EXPECT_FALSE(parse(str, with_error_handler(parser, eh), chars));
+                EXPECT_EQ(
+                    err_str,
+                    "simple_parser.cpp:1:2: error: Expected char_('c') "
+                    "here:\nabz\n  ^\n");
+                EXPECT_EQ(warn_str, "");
+            }
         }
     }
 

@@ -390,6 +390,20 @@ TEST(parser, int_uint)
         EXPECT_TRUE(parse(str, uint_, i));
         EXPECT_EQ(i, 42);
     }
+    {
+        std::string str = "-0042";
+        int i = 0;
+        parser_interface<int_parser<int, 10, 4, 4>> int4;
+        EXPECT_TRUE(parse(str, int4, i));
+        EXPECT_EQ(i, -42);
+    }
+    {
+        std::string str = "0042";
+        unsigned int i = 0;
+        parser_interface<uint_parser<unsigned int, 10, 4, 4>> uint4;
+        EXPECT_TRUE(parse(str, uint4, i));
+        EXPECT_EQ(i, 42u);
+    }
 }
 
 TEST(parser, bool_)
@@ -1785,12 +1799,14 @@ TEST(parser, delimited)
         constexpr auto aww = string("aww") % ',';
         constexpr auto parser = raw[yay] >> ',' >> raw[aww];
 
+        using namespace boost::parser::literals;
+
         {
             std::string str = "yay, yay, yay, aww, aww";
             auto result = parse(str, parser, ws);
             EXPECT_TRUE(result);
-            auto subrange_0 = boost::parser::get(*result, llong<0>{});
-            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            auto subrange_0 = boost::parser::get(*result, 0_c);
+            auto subrange_1 = boost::parser::get(*result, 1_c);
             EXPECT_EQ(subrange_0.begin(), str.begin());
             EXPECT_EQ(subrange_0.end(), str.begin() + 13);
             EXPECT_EQ(subrange_1.begin(), str.begin() + 15);
@@ -1800,8 +1816,8 @@ TEST(parser, delimited)
             std::string str = "yay, yay, yay , aww, aww";
             auto result = parse(str, parser, ws);
             EXPECT_TRUE(result);
-            auto subrange_0 = boost::parser::get(*result, llong<0>{});
-            auto subrange_1 = boost::parser::get(*result, llong<1>{});
+            auto subrange_0 = boost::parser::get(*result, 0_c);
+            auto subrange_1 = boost::parser::get(*result, 1_c);
             EXPECT_EQ(subrange_0.begin(), str.begin());
             EXPECT_EQ(subrange_0.end(), str.begin() + 13);
             EXPECT_EQ(subrange_1.begin(), str.begin() + 16);
@@ -3013,5 +3029,54 @@ TEST(parser, github_issue_125)
         auto result = bp::parse("{", replacement_field[print_repl_field]);
         EXPECT_TRUE(result);
         EXPECT_EQ(integer_found, 77);
+    }
+}
+
+TEST(parser, detail_printing)
+{
+    // print_printable(char > 127)
+    {
+        std::ostringstream oss;
+        detail::print_printable(oss, char(130));
+        EXPECT_EQ(oss.str(), "'\\x82'");
+    }
+
+    // print_printable(char32_t)
+    {
+        std::ostringstream oss;
+        detail::print_printable(oss, U'a');
+        EXPECT_EQ(oss.str(), "U'a'");
+    }
+    {
+        std::ostringstream oss;
+        detail::print_printable(oss, U'ß');
+        EXPECT_EQ(oss.str(), "U'\\xdf'");
+    }
+
+    // print(tuple)
+    {
+        std::ostringstream oss;
+        tuple<int, float> tup(42, 13.8);
+        detail::print(oss, tup);
+        EXPECT_EQ(oss.str(), "(42, 13.8)");
+    }
+
+    // print(optional)
+    {
+        std::ostringstream oss;
+        detail::print(oss, std::optional<int>());
+        EXPECT_EQ(oss.str(), "<<empty>>");
+    }
+    {
+        std::ostringstream oss;
+        detail::print(oss, std::optional(42));
+        EXPECT_EQ(oss.str(), "42");
+    }
+
+    // print(variant)
+    {
+        std::ostringstream oss;
+        detail::print(oss, std::variant<int, double>());
+        EXPECT_EQ(oss.str(), "<<variant>>");
     }
 }

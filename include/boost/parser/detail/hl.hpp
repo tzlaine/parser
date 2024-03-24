@@ -240,7 +240,7 @@ namespace boost { namespace parser { namespace detail::hl {
     }
 
     template<typename T, typename... Args>
-    constexpr bool contains(tuple<Args...> & t, T const & x)
+    constexpr bool contains(tuple<Args...> const & t, T const & x)
     {
         return contains_impl(
             t, x, std::make_integer_sequence<std::size_t, sizeof...(Args)>());
@@ -250,19 +250,9 @@ namespace boost { namespace parser { namespace detail::hl {
     // front, back
 
     template<typename Arg, typename... Args>
-    constexpr decltype(auto) front(tuple<Arg, Args...> & t)
-    {
-        return parser::get(t, llong<0>{});
-    }
-    template<typename Arg, typename... Args>
     constexpr decltype(auto) front(tuple<Arg, Args...> const & t)
     {
         return parser::get(t, llong<0>{});
-    }
-    template<typename Arg, typename... Args>
-    constexpr decltype(auto) back(tuple<Arg, Args...> & t)
-    {
-        return parser::get(t, llong<sizeof...(Args)>{});
     }
     template<typename Arg, typename... Args>
     constexpr decltype(auto) back(tuple<Arg, Args...> const & t)
@@ -314,19 +304,9 @@ namespace boost { namespace parser { namespace detail::hl {
     // first, second
 
     template<typename T, typename U>
-    constexpr decltype(auto) first(tuple<T, U> & t)
-    {
-        return parser::get(t, llong<0>{});
-    }
-    template<typename T, typename U>
     constexpr decltype(auto) first(tuple<T, U> const & t)
     {
         return parser::get(t, llong<0>{});
-    }
-    template<typename T, typename U>
-    constexpr decltype(auto) second(tuple<T, U> & t)
-    {
-        return parser::get(t, llong<1>{});
     }
     template<typename T, typename U>
     constexpr decltype(auto) second(tuple<T, U> const & t)

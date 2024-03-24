@@ -496,8 +496,9 @@ namespace boost { namespace parser { namespace detail {
         if (std::isprint(c)) {
             os << "'" << c << "'";
         } else {
-            os << "'\\x" << std::hex << std::setw(2) << std::setfill('0')
-               << (uint32_t)c << "'";
+            unsigned char c_ = c;
+            os << "'\\x" << std::hex << std::setfill('0') << (uint32_t)c_
+               << "'";
         }
     }
 
@@ -507,8 +508,7 @@ namespace boost { namespace parser { namespace detail {
             os << "U";
             detail::print_printable(os, (char)c);
         } else {
-            os << "U'\\U" << std::hex << std::setw(8) << std::setfill('0')
-               << (uint32_t)c << "'";
+            os << "U'\\U" << std::hex << std::setfill('0') << (int32_t)c << "'";
         }
     }
 
@@ -532,14 +532,14 @@ namespace boost { namespace parser { namespace detail {
             std::remove_cv_t<std::remove_reference_t<Attribute>>;
         if constexpr (is_tuple<just_attribute>{}) {
             os << "(";
-            bool first = false;
+            bool first = true;
             hl::for_each(attr, [&](auto const & a) {
-                if (first)
+                if (!first)
                     os << ", ";
                 detail::print(os, a);
                 first = false;
             });
-            os << ")\n";
+            os << ")";
         } else if constexpr (is_optional_v<just_attribute>) {
             if (!attr)
                 os << "<<empty>>";
