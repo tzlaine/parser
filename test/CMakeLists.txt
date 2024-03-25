@@ -11,7 +11,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -j4 -
 ##################################################
 add_executable(parser_ parser.cpp)
 set_property(TARGET parser_ PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(parser_ parser ${link_flags})
+target_link_libraries(parser_ parser boost ${link_flags})
 if (MSVC)
     target_compile_options(parser_ PRIVATE /source-charset:utf-8 /bigobj)
 endif ()
@@ -19,7 +19,7 @@ add_test(NAME parser_ COMMAND parser_)
 
 add_executable(parser_api parser_api.cpp)
 set_property(TARGET parser_api PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(parser_api parser ${link_flags})
+target_link_libraries(parser_api parser boost ${link_flags})
 if (MSVC)
     target_compile_options(parser_api PRIVATE /source-charset:utf-8 /bigobj)
 endif ()
@@ -35,12 +35,12 @@ add_executable(
     compile_all_t.cpp
 )
 set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(compile_tests parser)
+target_link_libraries(compile_tests parser boost)
 
 macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
-    target_link_libraries(${name} parser ${link_flags})
+    target_link_libraries(${name} parser boost ${link_flags})
     if (MSVC)
         target_compile_options(${name} PRIVATE /source-charset:utf-8 /bigobj)
     endif ()
