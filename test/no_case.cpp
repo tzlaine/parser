@@ -9,11 +9,13 @@
 #include <boost/parser/parser.hpp>
 #include <boost/parser/transcode_view.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
+int main()
+{
 
-TEST(no_case, doc_example)
+// doc_example)
 {
     namespace bp = boost::parser;
     auto const street_parser = bp::string(u8"Tobias Straße");
@@ -31,144 +33,148 @@ TEST(no_case, doc_example)
 
 using namespace boost::parser;
 
-TEST(no_case, basic)
+constexpr auto capital_sharp_s = u8"ẞ"; // U+1E9E
+constexpr auto small_sharp_s = u8"ß";   // U+00DF
+constexpr auto double_s = u8"sS";       // U+0073 U+0073
+
+// basic)
 {
     constexpr auto char_p = no_case[char_('a') | char_('B')];
 
     {
         auto const result = parse("a", char_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         auto const result = parse("A", char_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'A');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'A');
     }
 
     {
         auto const result = parse("b", char_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'b');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'b');
     }
     {
         auto const result = parse("B", char_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'B');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'B');
     }
 
     constexpr auto str_p = string("sOmE TeXT");
 
     {
         auto const result = parse("some text", str_p);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         auto const result = parse("some text", no_case[str_p]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "some text");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "some text");
     }
     {
         auto const result = parse("SomE tEXt", str_p);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         auto const result = parse("SomE tEXt", no_case[str_p]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "SomE tEXt");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "SomE tEXt");
     }
 }
 
-TEST(no_case, char_range)
+// char_range)
 {
     constexpr auto lower_alpha_p = char_('a', 'b');
     {
-        EXPECT_FALSE(parse("A", lower_alpha_p));
+        BOOST_TEST(!parse("A", lower_alpha_p));
         auto const result = parse("a", lower_alpha_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         auto const result = parse("A", no_case[lower_alpha_p]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'A');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'A');
     }
 
     constexpr auto upper_alpha_p = char_('A', 'B');
     {
-        EXPECT_FALSE(parse("a", upper_alpha_p));
+        BOOST_TEST(!parse("a", upper_alpha_p));
         auto const result = parse("A", upper_alpha_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'A');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'A');
     }
     {
         auto const result = parse("a", no_case[upper_alpha_p]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
 
     constexpr auto weird_ss_p = char_(U'ß', U'ß');
     {
-        EXPECT_FALSE(parse(U"s", weird_ss_p));
-        EXPECT_FALSE(!parse(U"ß", weird_ss_p));
+        BOOST_TEST(!parse(U"s", weird_ss_p));
+        BOOST_TEST(!!parse(U"ß", weird_ss_p));
     }
 }
 
-TEST(no_case, match_any_within_string)
+// match_any_within_string)
 {
     constexpr auto _trasse_p = no_case[char_(u8"_traße")];
     {
         auto const result = parse(U"ß", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result == U'ß');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == U'ß');
     }
     {
         auto const result = parse(U"s", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result == U's');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == U's');
     }
     {
         // Non-Unicode parsing fails to match, since 'ß' is not treated as a
         // single character.
         auto const result = parse("s", _trasse_p);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         auto const result = parse(U"S", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result == U'S');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == U'S');
     }
     {
         auto const result = parse("S", _trasse_p);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         auto const result = parse(U"t", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result == U't');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == U't');
     }
     {
         auto const result = parse("t", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 't');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 't');
     }
     {
         auto const result = parse(U"T", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_TRUE(*result == U'T');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == U'T');
     }
     {
         auto const result = parse("T", _trasse_p);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'T');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'T');
     }
     {
         auto const result = parse("X", _trasse_p);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
 }
 
-TEST(no_case, symbol_table)
+// symbol_table)
 {
     // without mutation
     {
@@ -179,44 +185,44 @@ TEST(no_case, symbol_table)
 
         {
             auto const result = parse("I", no_case[roman_numerals]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 1);
         }
         {
             auto const result = parse("i", no_case[roman_numerals]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 1);
         }
         {
             auto const result = parse("I", no_case[named_strings]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "1");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "1");
         }
         {
             auto const result = parse("i", no_case[named_strings]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "1");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "1");
         }
 
         {
             auto const result = parse("L", no_case[roman_numerals]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 50);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 50);
         }
         {
             auto const result = parse("l", no_case[roman_numerals]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 50);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 50);
         }
         {
             auto const result = parse("L", no_case[named_strings]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "50");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "50");
         }
         {
             auto const result = parse("l", no_case[named_strings]);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "50");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "50");
         }
     }
     // with mutation
@@ -234,36 +240,32 @@ TEST(no_case, symbol_table)
 
         {
             auto const result = parse("VL50L", numerals_parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 50);
-            EXPECT_FALSE(parse("L", roman_numerals));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 50);
+            BOOST_TEST(!parse("L", roman_numerals));
         }
         {
             auto const result = parse("VL50l", numerals_parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 50);
-            EXPECT_FALSE(parse("L", roman_numerals));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 50);
+            BOOST_TEST(!parse("L", roman_numerals));
         }
         {
             auto const result = parse("VC100C", numerals_parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 100);
-            EXPECT_FALSE(parse("C", roman_numerals));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 100);
+            BOOST_TEST(!parse("C", roman_numerals));
         }
         {
             auto const result = parse("Vc100C", numerals_parser);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, 100);
-            EXPECT_FALSE(parse("C", roman_numerals));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == 100);
+            BOOST_TEST(!parse("C", roman_numerals));
         }
     }
 }
 
-constexpr auto capital_sharp_s = u8"ẞ"; // U+1E9E
-constexpr auto small_sharp_s = u8"ß";   // U+00DF
-constexpr auto double_s = u8"sS";       // U+0073 U+0073
-
-TEST(no_case, multi_code_point_mapping)
+// multi_code_point_mapping)
 {
     {
         constexpr auto capital_sharp_s_p = no_case[string(capital_sharp_s)];
@@ -271,28 +273,28 @@ TEST(no_case, multi_code_point_mapping)
         {
             auto const result =
                 parse(capital_sharp_s | as_utf32, capital_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)capital_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)capital_sharp_s);
         }
         {
             auto const result =
                 parse(small_sharp_s | as_utf32, capital_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)small_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)small_sharp_s);
         }
         {
             auto const result = parse(double_s | as_utf32, capital_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)double_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)double_s);
         }
         {
-            EXPECT_FALSE(parse("s" | as_utf32, capital_sharp_s_p));
+            BOOST_TEST(!parse("s" | as_utf32, capital_sharp_s_p));
         }
         {
-            EXPECT_FALSE(parse("sx" | as_utf32, capital_sharp_s_p));
+            BOOST_TEST(!parse("sx" | as_utf32, capital_sharp_s_p));
         }
         {
-            EXPECT_FALSE(parse("xs" | as_utf32, capital_sharp_s_p));
+            BOOST_TEST(!parse("xs" | as_utf32, capital_sharp_s_p));
         }
     }
     {
@@ -301,28 +303,28 @@ TEST(no_case, multi_code_point_mapping)
         {
             auto const result =
                 parse(capital_sharp_s | as_utf32, small_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)capital_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)capital_sharp_s);
         }
         {
             auto const result =
                 parse(small_sharp_s | as_utf32, small_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)small_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)small_sharp_s);
         }
         {
             auto const result = parse(double_s | as_utf32, small_sharp_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)double_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)double_s);
         }
         {
-            EXPECT_FALSE(parse("s" | as_utf32, small_sharp_s_p));
+            BOOST_TEST(!parse("s" | as_utf32, small_sharp_s_p));
         }
         {
-            EXPECT_FALSE(parse("sx" | as_utf32, small_sharp_s_p));
+            BOOST_TEST(!parse("sx" | as_utf32, small_sharp_s_p));
         }
         {
-            EXPECT_FALSE(parse("xs" | as_utf32, small_sharp_s_p));
+            BOOST_TEST(!parse("xs" | as_utf32, small_sharp_s_p));
         }
     }
     {
@@ -330,27 +332,27 @@ TEST(no_case, multi_code_point_mapping)
 
         {
             auto const result = parse(capital_sharp_s | as_utf32, double_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)capital_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)capital_sharp_s);
         }
         {
             auto const result = parse(small_sharp_s | as_utf32, double_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)small_sharp_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)small_sharp_s);
         }
         {
             auto const result = parse(double_s | as_utf32, double_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)double_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)double_s);
         }
         {
-            EXPECT_FALSE(parse("s" | as_utf32, double_s_p));
+            BOOST_TEST(!parse("s" | as_utf32, double_s_p));
         }
         {
-            EXPECT_FALSE(parse("sx" | as_utf32, double_s_p));
+            BOOST_TEST(!parse("sx" | as_utf32, double_s_p));
         }
         {
-            EXPECT_FALSE(parse("xs" | as_utf32, double_s_p));
+            BOOST_TEST(!parse("xs" | as_utf32, double_s_p));
         }
     }
     {
@@ -358,25 +360,25 @@ TEST(no_case, multi_code_point_mapping)
 
         {
             auto const result = parse("s" | as_utf32, s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "s");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "s");
         }
         {
-            EXPECT_FALSE(parse(capital_sharp_s | as_utf32, s_p));
+            BOOST_TEST(!parse(capital_sharp_s | as_utf32, s_p));
         }
         {
-            EXPECT_FALSE(parse(small_sharp_s | as_utf32, s_p));
+            BOOST_TEST(!parse(small_sharp_s | as_utf32, s_p));
         }
         {
-            EXPECT_FALSE(parse(double_s | as_utf32, s_p));
+            BOOST_TEST(!parse(double_s | as_utf32, s_p));
         }
         {
-            EXPECT_FALSE(parse("x" | as_utf32, s_p));
+            BOOST_TEST(!parse("x" | as_utf32, s_p));
         }
     }
 }
 
-TEST(no_case, detail_no_case_iter)
+// detail_no_case_iter)
 {
     {
         constexpr auto mixed_sharp_s1 = U"ẞs";
@@ -387,8 +389,8 @@ TEST(no_case, detail_no_case_iter)
             folded.push_back((char)*first);
             ++first;
         }
-        EXPECT_EQ(folded, "sss");
-        EXPECT_TRUE(first.base() == detail::text::null_sentinel);
+        BOOST_TEST(folded == "sss");
+        BOOST_TEST(first.base() == detail::text::null_sentinel);
     }
     {
         constexpr auto mixed_sharp_s2 = U"sẞ";
@@ -399,8 +401,8 @@ TEST(no_case, detail_no_case_iter)
             folded.push_back((char)*first);
             ++first;
         }
-        EXPECT_EQ(folded, "sss");
-        EXPECT_TRUE(first.base() == detail::text::null_sentinel);
+        BOOST_TEST(folded == "sss");
+        BOOST_TEST(first.base() == detail::text::null_sentinel);
     }
     {
         auto const street = U"Straße";
@@ -412,30 +414,30 @@ TEST(no_case, detail_no_case_iter)
             folded.push_back((char)*first);
             ++first;
         }
-        EXPECT_EQ(folded, "strasse");
-        EXPECT_TRUE(first.base() == detail::text::null_sentinel);
+        BOOST_TEST(folded == "strasse");
+        BOOST_TEST(first.base() == detail::text::null_sentinel);
 
         first = first_const;
         std::u32string_view const sv = U"strasse";
         auto mismatches = detail::text::mismatch(
             first, detail::text::null_sentinel, sv.begin(), sv.end());
-        EXPECT_TRUE(mismatches.first == detail::text::null_sentinel);
-        EXPECT_TRUE(mismatches.second == sv.end());
+        BOOST_TEST(mismatches.first == detail::text::null_sentinel);
+        BOOST_TEST(mismatches.second == sv.end());
 
         {
             first = first_const;
             auto search_result = detail::text::search(
                 first, detail::text::null_sentinel, sv.begin(), sv.end());
-            EXPECT_TRUE(search_result.begin() == first);
-            EXPECT_TRUE(search_result.end() == detail::text::null_sentinel);
+            BOOST_TEST(search_result.begin() == first);
+            BOOST_TEST(search_result.end() == detail::text::null_sentinel);
         }
 
         {
             first = first_const;
             auto search_result = detail::text::search(
                 sv.begin(), sv.end(), first, detail::text::null_sentinel);
-            EXPECT_TRUE(search_result.begin() == sv.begin());
-            EXPECT_TRUE(search_result.end() == sv.end());
+            BOOST_TEST(search_result.begin() == sv.begin());
+            BOOST_TEST(search_result.end() == sv.end());
         }
 
         {
@@ -443,13 +445,13 @@ TEST(no_case, detail_no_case_iter)
             auto folded_last = detail::case_fold('X', folded_char.begin());
             auto search_result = detail::text::search(
                 sv.begin(), sv.end(), folded_char.begin(), folded_last);
-            EXPECT_TRUE(search_result.begin() == sv.end());
-            EXPECT_TRUE(search_result.end() == sv.end());
+            BOOST_TEST(search_result.begin() == sv.end());
+            BOOST_TEST(search_result.end() == sv.end());
         }
     }
 }
 
-TEST(no_case, detail_no_case_mismatch)
+// detail_no_case_mismatch)
 {
     constexpr auto mixed_sharp_s1 = U"ẞs";
     constexpr auto mixed_sharp_s2 = U"sẞ";
@@ -459,11 +461,11 @@ TEST(no_case, detail_no_case_mismatch)
         mixed_sharp_s2,
         detail::text::null_sentinel,
         true);
-    EXPECT_TRUE(result.first == detail::text::null_sentinel);
-    EXPECT_TRUE(result.second == detail::text::null_sentinel);
+    BOOST_TEST(result.first == detail::text::null_sentinel);
+    BOOST_TEST(result.second == detail::text::null_sentinel);
 }
 
-TEST(no_case, longer_multi_code_point_mapping)
+// longer_multi_code_point_mapping)
 {
     constexpr auto mixed_sharp_s1 = u8"ẞs";
     constexpr auto mixed_sharp_s2 = u8"sẞ";
@@ -481,58 +483,58 @@ TEST(no_case, longer_multi_code_point_mapping)
         constexpr auto mixed_sharp_s1_p = no_case[string(mixed_sharp_s1)];
         {
             auto const result = parse(triple_s | as_utf32, mixed_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)triple_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)triple_s);
         }
         {
             auto const result =
                 parse(mixed_sharp_s1 | as_utf32, mixed_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s1);
         }
         {
             auto const result =
                 parse(mixed_sharp_s2 | as_utf32, mixed_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s2);
         }
     }
     {
         constexpr auto mixed_sharp_s2_p = no_case[string(mixed_sharp_s2)];
         {
             auto const result = parse(triple_s | as_utf32, mixed_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)triple_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)triple_s);
         }
         {
             auto const result =
                 parse(mixed_sharp_s1 | as_utf32, mixed_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s1);
         }
         {
             auto const result =
                 parse(mixed_sharp_s2 | as_utf32, mixed_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s2);
         }
     }
     {
         constexpr auto triple_s_p = no_case[string(triple_s)];
         {
             auto const result = parse(triple_s | as_utf32, triple_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)triple_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)triple_s);
         }
         {
             auto const result = parse(mixed_sharp_s1 | as_utf32, triple_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s1);
         }
         {
             auto const result = parse(mixed_sharp_s2 | as_utf32, triple_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s2);
         }
     }
     {
@@ -540,95 +542,98 @@ TEST(no_case, longer_multi_code_point_mapping)
         {
             auto const result =
                 parse(mixed_sharp_s3 | as_utf32, mixed_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s3);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s3);
         }
         {
             auto const result = parse(quadruple_s | as_utf32, mixed_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)quadruple_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)quadruple_s);
         }
     }
     {
         constexpr auto quadruple_s_p = no_case[string(quadruple_s)];
         {
             auto const result = parse(mixed_sharp_s3 | as_utf32, quadruple_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)mixed_sharp_s3);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)mixed_sharp_s3);
         }
         {
             auto const result = parse(quadruple_s | as_utf32, quadruple_s_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)quadruple_s);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)quadruple_s);
         }
     }
     {
         constexpr auto all_sharp_s1_p = no_case[string(all_sharp_s1)];
         {
             auto const result = parse(all_sharp_s1 | as_utf32, all_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s1);
         }
         {
             auto const result = parse(all_sharp_s2 | as_utf32, all_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s2);
         }
         {
             auto const result = parse(all_sharp_s3 | as_utf32, all_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s3);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s3);
         }
         {
             auto const result = parse("ssssss" | as_utf32, all_sharp_s1_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "ssssss");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "ssssss");
         }
     }
     {
         constexpr auto all_sharp_s2_p = no_case[string(all_sharp_s1)];
         {
             auto const result = parse(all_sharp_s1 | as_utf32, all_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s1);
         }
         {
             auto const result = parse(all_sharp_s2 | as_utf32, all_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s2);
         }
         {
             auto const result = parse(all_sharp_s3 | as_utf32, all_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s3);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s3);
         }
         {
             auto const result = parse("ssssss" | as_utf32, all_sharp_s2_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "ssssss");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "ssssss");
         }
     }
     {
         constexpr auto all_sharp_s3_p = no_case[string(all_sharp_s1)];
         {
             auto const result = parse(all_sharp_s1 | as_utf32, all_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s1);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s1);
         }
         {
             auto const result = parse(all_sharp_s2 | as_utf32, all_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s2);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s2);
         }
         {
             auto const result = parse(all_sharp_s3 | as_utf32, all_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (char const *)all_sharp_s3);
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (char const *)all_sharp_s3);
         }
         {
             auto const result = parse("ssSsss" | as_utf32, all_sharp_s3_p);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "ssSsss");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "ssSsss");
         }
     }
+}
+
+return boost::report_errors();
 }

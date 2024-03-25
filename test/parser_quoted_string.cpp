@@ -9,7 +9,7 @@
 #include <boost/parser/parser.hpp>
 #include <boost/parser/transcode_view.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -18,81 +18,84 @@ bp::symbols<char> const cu_escapes = {{"t", '\t'}, {"r", '\r'}, {"n", '\n'}};
 bp::symbols<char32_t> const cp_escapes = {
     {"t", '\t'}, {"r", '\r'}, {"n", '\n'}};
 
-TEST(quoted_string, basic)
+int main()
+{
+
+// basic
 {
     constexpr auto parser = bp::quoted_string;
 
     {
         auto result = bp::parse("", parser, bp::ws);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
 
     {
         auto result = bp::parse(R"("foo")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo");
     }
 
     {
         auto result = bp::parse(R"("foo\\")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo\\");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo\\");
     }
 
     {
         auto result = bp::parse(R"("\"foo\"")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "\"foo\"");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "\"foo\"");
     }
 }
 
-TEST(quoted_string, different_char)
+// different_char
 {
     constexpr auto parser = bp::quoted_string('\'');
 
     {
         auto result = bp::parse("", parser, bp::ws);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
 
     {
         auto result = bp::parse(R"('foo')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo");
     }
 
     {
         auto result = bp::parse(R"('foo\\')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo\\");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo\\");
     }
 
     {
         auto result = bp::parse(R"('\'foo\'')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "'foo'");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "'foo'");
     }
 }
 
-TEST(quoted_string, different_char_with_escapes)
+// different_char_with_escapes
 {
     {
         auto parser = bp::quoted_string('\'', cu_escapes);
 
         {
             auto result = bp::parse("", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
 
         {
             auto result = bp::parse(R"('foo\t')", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "foo\t");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "foo\t");
         }
 
         {
             auto result = bp::parse(R"('foo\x')", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
     }
     {
@@ -100,105 +103,105 @@ TEST(quoted_string, different_char_with_escapes)
 
         {
             auto result = bp::parse("", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
 
         {
             auto result = bp::parse(R"('\tfoo')", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "\tfoo");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "\tfoo");
         }
 
         {
             auto result = bp::parse(R"('f\xoo')", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
     }
 }
 
-TEST(quoted_string, char_set)
+// char_set
 {
     constexpr auto parser = bp::quoted_string("'\"");
 
     {
         auto result = bp::parse("", parser, bp::ws);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
 
     {
-        EXPECT_FALSE(bp::parse(R"('foo")", parser, bp::ws));
-        EXPECT_FALSE(bp::parse(R"("foo')", parser, bp::ws));
+        BOOST_TEST(!bp::parse(R"('foo")", parser, bp::ws));
+        BOOST_TEST(!bp::parse(R"("foo')", parser, bp::ws));
     }
 
     {
         auto result = bp::parse(R"('foo')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo");
     }
     {
         auto result = bp::parse(R"("foo")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo");
     }
 
     {
         auto result = bp::parse(R"('foo\\')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo\\");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo\\");
     }
     {
         auto result = bp::parse(R"("foo\\")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo\\");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo\\");
     }
 
     {
         auto result = bp::parse(R"('\'foo\'')", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "'foo'");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "'foo'");
     }
     {
         auto result = bp::parse(R"("\"foo\"")", parser, bp::ws);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "\"foo\"");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "\"foo\"");
     }
 
     {
         // Can't escape arbitrary characters, only backslash and the quote
         // character.
-        EXPECT_FALSE(bp::parse(R"("\'foo")", parser, bp::ws));
+        BOOST_TEST(!bp::parse(R"("\'foo")", parser, bp::ws));
     }
 }
 
-TEST(quoted_string, char_set_with_escapes)
+// char_set_with_escapes
 {
     {
         auto parser = bp::quoted_string("'\"", cu_escapes);
 
         {
             auto result = bp::parse("", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
 
         {
-            EXPECT_FALSE(bp::parse(R"('foo")", parser, bp::ws));
-            EXPECT_FALSE(bp::parse(R"("foo')", parser, bp::ws));
+            BOOST_TEST(!bp::parse(R"('foo")", parser, bp::ws));
+            BOOST_TEST(!bp::parse(R"("foo')", parser, bp::ws));
         }
 
         {
             auto result = bp::parse(R"('foo\t')", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "foo\t");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "foo\t");
         }
         {
             auto result = bp::parse(R"("\tfoo")", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "\tfoo");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "\tfoo");
         }
 
         {
             auto result = bp::parse(R"('foo\x')", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
     }
     {
@@ -206,33 +209,33 @@ TEST(quoted_string, char_set_with_escapes)
 
         {
             auto result = bp::parse("", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
 
         {
-            EXPECT_FALSE(bp::parse(R"('foo")", parser, bp::ws));
-            EXPECT_FALSE(bp::parse(R"("foo')", parser, bp::ws));
+            BOOST_TEST(!bp::parse(R"('foo")", parser, bp::ws));
+            BOOST_TEST(!bp::parse(R"("foo')", parser, bp::ws));
         }
 
         {
             auto result = bp::parse(R"('foo\t')", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "foo\t");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "foo\t");
         }
         {
             auto result = bp::parse(R"("\tfoo")", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, "\tfoo");
+            BOOST_TEST(result);
+            BOOST_TEST(*result == "\tfoo");
         }
 
         {
             auto result = bp::parse(R"('foo\x')", parser, bp::ws);
-            EXPECT_FALSE(result);
+            BOOST_TEST(!result);
         }
     }
 }
 
-TEST(quoted_string, doc_examples)
+// doc_examples
 {
     //[ quoted_string_example_1_2
     namespace bp = boost::parser;
@@ -276,4 +279,7 @@ TEST(quoted_string, doc_examples)
     assert(result5);
     std::cout << *result5 << "\n"; // Prints (with a CRLF newline): some text
     //]
+}
+
+return boost::report_errors();
 }

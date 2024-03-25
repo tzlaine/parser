@@ -8,7 +8,7 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
@@ -20,118 +20,124 @@ auto false_ = [](auto & context) { return false; };
 auto three = [](auto & context) { return 3; };
 
 
-TEST(parser, if_)
+int main()
+{
+
+// if_
 {
     {
         std::string str = "a";
         auto result = parse(str, if_(true_)[char_]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
-        EXPECT_FALSE(parse(str, if_(false_)[char_]));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
+        BOOST_TEST(!parse(str, if_(false_)[char_]));
     }
     {
         std::string str = "a";
         auto result = parse(str, if_(true_)[char_]);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
-        EXPECT_FALSE(parse(str, if_(false_)[char_]));
-        EXPECT_FALSE(parse(str, if_(true_)[char_('b')]));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
+        BOOST_TEST(!parse(str, if_(false_)[char_]));
+        BOOST_TEST(!parse(str, if_(true_)[char_('b')]));
     }
 }
 
-TEST(parser, switch_)
+// switch_
 {
     {
         std::string str = "a";
         auto result = parse(str, switch_(true_)(true, char_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true)(true_, char_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true)(true, char_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true_)(true_, char_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
 
     {
         std::string str = "a";
         auto result = parse(str, switch_(true_)(false, char_));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true)(false_, char_));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true)(false, char_));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(true_)(false_, char_));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
 
     {
         std::string str = "a";
         auto result =
             parse(str, switch_(three)(1, char_('b'))(three, char_('a')));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(3)(1, char_('b'))(three, char_('a')));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(3)(1, char_('b'))(3, char_('a')));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(three)(1, char_('b'))(3, char_('a')));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'a');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'a');
     }
 
     {
         std::string str = "a";
         auto result =
             parse(str, switch_(three)(1, char_('a'))(three, char_('b')));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(3)(1, char_('a'))(three, char_('b')));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(3)(1, char_('a'))(3, char_('b')));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
     {
         std::string str = "a";
         auto result = parse(str, switch_(three)(1, char_('a'))(3, char_('b')));
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
+}
+
+return boost::report_errors();
 }

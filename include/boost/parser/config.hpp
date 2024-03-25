@@ -26,7 +26,9 @@
 /** Asserts that the given condition is true.  If
     `BOOST_PARSER_NO_RUNTIME_ASSERTIONS` macro is defined by the user,
     `BOOST_PARSER_ASSERT` expends to a compile-time `static_assert()`.
-    Otherwise, it expands to a run-time `BOOST_ASSERT()`. */
+    Otherwise, it expands to a run-time `BOOST_ASSERT()`.  Note that defining
+    `BOOST_DISABLE_ASSERTS` disables the use of C `assert`, even when
+    `BOOST_ASSERT` is unavailble. */
 #    define BOOST_PARSER_ASSERT(condition)
 
 /** Boost.Parser will automatically use concepts to constrain templates when
@@ -34,9 +36,9 @@
     disable the use of concepts, define this macro. */
 #    define BOOST_PARSER_DISABLE_CONCEPTS
 
-/** Define this macro to use `std::tuple` instead of `boost::hana::tuple`
+/** Define this macro to use `boost::hana::tuple` instead of `std::tuple`
     throughout Boost.Parser. */
-#    define BOOST_PARSER_DISABLE_HANA_TUPLE
+#    define BOOST_PARSER_USE_HANA_TUPLE
 
 /** Boost.Parser automatically treats aggregate structs as if they were
     tuples.  It uses some metaprogramming to do this.  The technique used has
@@ -56,6 +58,8 @@
 #        define BOOST_PARSER_ASSERT(condition) static_assert(condition)
 #    elif defined(BOOST_PARSER_HAVE_BOOST_ASSERT)
 #        define BOOST_PARSER_ASSERT(condition) BOOST_ASSERT(condition)
+#    elif BOOST_DISABLE_ASSERTS
+#        define BOOST_PARSER_ASSERT(condition) ((void)0)
 #    else
 #        define BOOST_PARSER_ASSERT(condition) assert(condition)
 #    endif
@@ -81,10 +85,10 @@
 #    define BOOST_PARSER_SUBRANGE boost::parser::subrange
 #endif
 
-#if defined(BOOST_PARSER_DISABLE_HANA_TUPLE)
-#    define BOOST_PARSER_USE_STD_TUPLE 1
-#else
+#if defined(BOOST_PARSER_USE_HANA_TUPLE)
 #    define BOOST_PARSER_USE_STD_TUPLE 0
+#else
+#    define BOOST_PARSER_USE_STD_TUPLE 1
 #endif
 
 #if !defined(BOOST_PARSER_MAX_AGGREGATE_SIZE)

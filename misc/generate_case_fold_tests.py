@@ -50,7 +50,7 @@ def print_cps():
     if idx % max_per_line:
         print('    ' + str_)
     print('};\n')
-    print(f'char32_t const max_test_cp = 0x{lines[-1][0]} + 100;\n')
+    print(f'[[maybe_unused]] char32_t const max_test_cp = 0x{lines[-1][0]} + 100;\n')
 
 
 array_t = f'std::array<uint32_t, {max_mapping_len} + 1>'
@@ -64,19 +64,20 @@ def print_test(line):
         {array_t} const expected = {{ {mapping}{trailing} }};
         {array_t} result = {{ 0{zeros} }};
         boost::parser::detail::case_fold(0x{line[0]}, result.begin());
-        EXPECT_EQ(result, expected);
+        BOOST_TEST(result == expected);
     }}''')
 
 def print_tests():
     idx = 0
     max_per_TEST = 50
-    print(f'TEST(case_folding, hits_{int(idx / max_per_TEST)}) {{')
+    print(f'// hits_{int(idx / max_per_TEST)})\n{{')
     for line in lines:
         idx += 1
         if (idx % max_per_TEST) == 0:
             print(f'''}}
 
-TEST(case_folding, test_{int(idx / max_per_TEST)}) {{''')
+// test_{int(idx / max_per_TEST)})
+{{''')
         print_test(line)
     print('}\n')
 
@@ -89,15 +90,18 @@ print('''// Copyright (c) 2024 T. Zachary Laine
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
+int main()
+{
 ''')
 
 print_cps()
 print_tests()
 
-print(f'''TEST(case_folding, misses) {{
+print(f'''// misses
+{{
     char32_t next_cp = 0;
     for (char32_t const * it = cps; it != std::end(cps); ++it) {{
         for (char32_t cp = next_cp; cp < *it; ++cp) {{
@@ -105,9 +109,12 @@ print(f'''TEST(case_folding, misses) {{
             {array_t} result = {{ 0 }};
             auto const first = result.data();
             auto const last = boost::parser::detail::case_fold(cp, first);
-            EXPECT_TRUE(std::equal(first, last, expected.begin()));
-            EXPECT_EQ(result, expected);
+            BOOST_TEST(std::equal(first, last, expected.begin()));
+            BOOST_TEST(result == expected);
         }}
         next_cp = *it + 1;
     }}
+}}
+
+return boost::report_errors();
 }}''')

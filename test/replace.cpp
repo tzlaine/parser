@@ -8,13 +8,15 @@
 
 #include <boost/parser/replace.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 #include "ill_formed.hpp"
 
 #include <list>
 
-#if !defined(_MSC_VER) || BOOST_PARSER_USE_CONCEPTS
+#if defined(_MSC_VER) && !BOOST_PARSER_USE_CONCEPTS
+int main() {}
+#else
 
 namespace bp = boost::parser;
 
@@ -31,192 +33,6 @@ namespace deduction {
     auto deduced_4 = bp::replace_view(str, parser, "foo");
 }
 #endif
-
-static_assert(
-    bp::detail::range_utf_format<char const *&>() == bp::detail::no_format);
-
-TEST(replace, either_iterator)
-{
-    {
-        std::list<int> l({1, 2, 3});
-        std::vector<int> v({4, 5, 6});
-        bp::detail::either_iterator<std::list<int>, std::vector<int>>
-            either_l_begin(l.begin());
-        bp::detail::either_iterator<std::list<int>, std::vector<int>>
-            either_l_end(l.end());
-        bp::detail::either_iterator<std::list<int>, std::vector<int>>
-            either_v_begin(v.begin());
-        bp::detail::either_iterator<std::list<int>, std::vector<int>>
-            either_v_end(v.end());
-
-        int const l_array[] = {1, 2, 3};
-        auto l_array_curr = l_array;
-        for (auto it = either_l_begin; it != either_l_end;
-             ++it, ++l_array_curr) {
-            EXPECT_EQ(*it, *l_array_curr);
-        }
-
-        int const v_array[] = {4, 5, 6};
-        auto v_array_curr = v_array;
-        for (auto it = either_v_begin; it != either_v_end;
-             ++it, ++v_array_curr) {
-            EXPECT_EQ(*it, *v_array_curr);
-        }
-    }
-    {
-        auto r1 = bp::detail::to_range<decltype("")>::call("");
-        auto r2 = bp::detail::to_range<decltype("foo")>::call("foo");
-
-        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r1_begin(
-            r1.begin());
-        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r1_end(
-            r1.end());
-        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r2_begin(
-            r2.begin());
-        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r2_end(
-            r2.end());
-
-        EXPECT_EQ(either_r1_begin, either_r1_end);
-        std::string copy;
-        for (auto it = either_r2_begin; it != either_r2_end; ++it) {
-            copy.push_back(*it);
-        }
-        EXPECT_EQ(copy, "foo");
-    }
-}
-
-TEST(replace, replace)
-{
-    {
-        auto r = bp::replace("", bp::lit("XYZ"), bp::ws, "foo");
-        int count = 0;
-        for (auto subrange : r) {
-            (void)subrange;
-            ++count;
-        }
-        EXPECT_EQ(count, 0);
-    }
-    {
-        char const str[] = "aaXYZb";
-        auto r = bp::replace(str, bp::lit("XYZ"), bp::ws, "foo");
-        int count = 0;
-        std::string_view const strs[] = {"aa", "foo", "b"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 3);
-    }
-    {
-        char const str[] = "a a XYZ baa ba XYZ";
-        auto r =
-            str | bp::replace(bp::lit("XYZ"), bp::ws, "foo", bp::trace::off);
-        int count = 0;
-        std::string_view const strs[] = {"a a ", "foo", " baa ba ", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 4);
-    }
-#if !defined(__GNUC__) || 12 <= __GNUC__
-    // Older GCCs don't like the use of temporaries like the
-    // std::string("foo") below.
-    {
-        char const str[] = "aaXYZbaabaXYZ";
-        auto r = str | bp::replace(
-                           bp::lit("XYZ"), std::string("foo"), bp::trace::off);
-        int count = 0;
-        std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 4);
-    }
-#endif
-    {
-        char const str[] = "aaXYZbaabaXYZ";
-        const auto r = str | bp::replace(bp::lit("XYZ"), "foo");
-        int count = 0;
-        std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 4);
-    }
-    {
-        char const str[] = "aaXYZbaabaXYZXYZ";
-        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
-        int count = 0;
-        std::string_view const strs[] = {"aa", "foo", "baaba", "foo", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 5);
-    }
-    {
-        char const str[] = "XYZaaXYZbaabaXYZXYZ";
-        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
-        int count = 0;
-        std::string_view const strs[] = {
-            "foo", "aa", "foo", "baaba", "foo", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 6);
-    }
-    {
-        char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
-        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
-        int count = 0;
-        std::string_view const strs[] = {
-            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 7);
-    }
-    {
-        char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
-        char const * replacement = "foo";
-        auto r = str | bp::replace(bp::lit("XYZ"), replacement);
-        int count = 0;
-        std::string_view const strs[] = {
-            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 7);
-    }
-    {
-        char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
-        char const * replacement = "foo";
-        auto const r = str | bp::replace(bp::lit("XYZ"), replacement);
-        int count = 0;
-        std::string_view const strs[] = {
-            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
-        for (auto subrange : r) {
-            std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
-            ++count;
-        }
-        EXPECT_EQ(count, 7);
-    }
-}
 
 // MSVC produces hard errors here, so ill_formed does not work.
 #if defined(__cpp_char8_t) && !defined(_MSC_VER)
@@ -238,7 +54,196 @@ using utf8_str_char_replacement =
 static_assert(ill_formed<utf8_str_char_replacement, decltype(empty_str)>{});
 #endif
 
-TEST(replace, replace_unicode)
+static_assert(
+    bp::detail::range_utf_format<char const *&>() == bp::detail::no_format);
+
+int main()
+{
+
+// either_iterator
+{
+    {
+        std::list<int> l({1, 2, 3});
+        std::vector<int> v({4, 5, 6});
+        bp::detail::either_iterator<std::list<int>, std::vector<int>>
+            either_l_begin(l.begin());
+        bp::detail::either_iterator<std::list<int>, std::vector<int>>
+            either_l_end(l.end());
+        bp::detail::either_iterator<std::list<int>, std::vector<int>>
+            either_v_begin(v.begin());
+        bp::detail::either_iterator<std::list<int>, std::vector<int>>
+            either_v_end(v.end());
+
+        int const l_array[] = {1, 2, 3};
+        auto l_array_curr = l_array;
+        for (auto it = either_l_begin; it != either_l_end;
+             ++it, ++l_array_curr) {
+            BOOST_TEST(*it == *l_array_curr);
+        }
+
+        int const v_array[] = {4, 5, 6};
+        auto v_array_curr = v_array;
+        for (auto it = either_v_begin; it != either_v_end;
+             ++it, ++v_array_curr) {
+            BOOST_TEST(*it == *v_array_curr);
+        }
+    }
+    {
+        auto r1 = bp::detail::to_range<decltype("")>::call("");
+        auto r2 = bp::detail::to_range<decltype("foo")>::call("foo");
+
+        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r1_begin(
+            r1.begin());
+        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r1_end(
+            r1.end());
+        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r2_begin(
+            r2.begin());
+        bp::detail::either_iterator<decltype(r1), decltype(r2)> either_r2_end(
+            r2.end());
+
+        BOOST_TEST(either_r1_begin == either_r1_end);
+        std::string copy;
+        for (auto it = either_r2_begin; it != either_r2_end; ++it) {
+            copy.push_back(*it);
+        }
+        BOOST_TEST(copy == "foo");
+    }
+}
+
+// replace
+{
+    {
+        auto r = bp::replace("", bp::lit("XYZ"), bp::ws, "foo");
+        int count = 0;
+        for (auto subrange : r) {
+            (void)subrange;
+            ++count;
+        }
+        BOOST_TEST(count == 0);
+    }
+    {
+        char const str[] = "aaXYZb";
+        auto r = bp::replace(str, bp::lit("XYZ"), bp::ws, "foo");
+        int count = 0;
+        std::string_view const strs[] = {"aa", "foo", "b"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 3);
+    }
+    {
+        char const str[] = "a a XYZ baa ba XYZ";
+        auto r =
+            str | bp::replace(bp::lit("XYZ"), bp::ws, "foo", bp::trace::off);
+        int count = 0;
+        std::string_view const strs[] = {"a a ", "foo", " baa ba ", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 4);
+    }
+#if !defined(__GNUC__) || 12 <= __GNUC__
+    // Older GCCs don't like the use of temporaries like the
+    // std::string("foo") below.
+    {
+        char const str[] = "aaXYZbaabaXYZ";
+        auto r = str | bp::replace(
+                           bp::lit("XYZ"), std::string("foo"), bp::trace::off);
+        int count = 0;
+        std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 4);
+    }
+#endif
+    {
+        char const str[] = "aaXYZbaabaXYZ";
+        const auto r = str | bp::replace(bp::lit("XYZ"), "foo");
+        int count = 0;
+        std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 4);
+    }
+    {
+        char const str[] = "aaXYZbaabaXYZXYZ";
+        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
+        int count = 0;
+        std::string_view const strs[] = {"aa", "foo", "baaba", "foo", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 5);
+    }
+    {
+        char const str[] = "XYZaaXYZbaabaXYZXYZ";
+        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
+        int count = 0;
+        std::string_view const strs[] = {
+            "foo", "aa", "foo", "baaba", "foo", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 6);
+    }
+    {
+        char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
+        auto r = str | bp::replace(bp::lit("XYZ"), "foo");
+        int count = 0;
+        std::string_view const strs[] = {
+            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 7);
+    }
+    {
+        char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
+        char const * replacement = "foo";
+        auto r = str | bp::replace(bp::lit("XYZ"), replacement);
+        int count = 0;
+        std::string_view const strs[] = {
+            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 7);
+    }
+    {
+        char const * str = "XYZXYZaaXYZbaabaXYZXYZ";
+        char const * replacement = "foo";
+        auto const r = str | bp::replace(bp::lit("XYZ"), replacement);
+        int count = 0;
+        std::string_view const strs[] = {
+            "foo", "foo", "aa", "foo", "baaba", "foo", "foo"};
+        for (auto subrange : r) {
+            std::string str(subrange.begin(), subrange.end());
+            BOOST_TEST(str == strs[count]);
+            ++count;
+        }
+        BOOST_TEST(count == 7);
+    }
+}
+
+// replace_unicode
 {
     {
         char const str_[] = "";
@@ -249,7 +254,7 @@ TEST(replace, replace_unicode)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const * str_ = "aaXYZb";
@@ -260,10 +265,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -277,10 +282,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -291,10 +296,10 @@ TEST(replace, replace_unicode)
         std::string_view const strs[] = {"aa", "foo", "baaba", "foo"};
         for (auto subrange : r) {
             std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aaXYZbaabaXYZ";
@@ -305,10 +310,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aaXYZbaabaXYZXYZ";
@@ -319,10 +324,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 5);
+        BOOST_TEST(count == 5);
     }
     {
         char const str_[] = "XYZaaXYZbaabaXYZXYZ";
@@ -333,10 +338,10 @@ TEST(replace, replace_unicode)
             "foo", "aa", "foo", "baaba", "foo", "foo"};
         for (auto subrange : r) {
             std::string str(subrange.begin(), subrange.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(count == 6);
     }
     {
         char const str_[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -348,10 +353,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 7);
+        BOOST_TEST(count == 7);
     }
     {
         char const str_[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -363,10 +368,10 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 7);
+        BOOST_TEST(count == 7);
     }
     {
         char const str_[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -378,17 +383,17 @@ TEST(replace, replace_unicode)
         for (auto subrange : r) {
             auto u8sub = subrange | bp::as_utf8;
             std::string str(u8sub.begin(), u8sub.end());
-            EXPECT_EQ(str, strs[count]);
+            BOOST_TEST(str == strs[count]);
             ++count;
         }
-        EXPECT_EQ(count, 7);
+        BOOST_TEST(count == 7);
     }
 }
 
 #if BOOST_PARSER_USE_CONCEPTS && (!defined(__GNUC__) || 12 <= __GNUC__)
 // Older GCCs don't like the use of temporaries like the std::string("foo")
 // below.  This causes | join to break.
-TEST(replace, join_compat)
+// join_compat)
 {
     {
         char const str[] = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -400,7 +405,7 @@ TEST(replace, join_compat)
             static_assert(std::is_same_v<decltype(ch), char32_t>);
             replace_result.push_back((char)ch);
         }
-        EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
+        BOOST_TEST(replace_result == "foofooaafoobaabafoofoo");
     }
 
     {
@@ -410,7 +415,7 @@ TEST(replace, join_compat)
         for (auto ch : rng) {
             replace_result.push_back(ch);
         }
-        EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
+        BOOST_TEST(replace_result == "foofooaafoobaabafoofoo");
     }
     {
         std::string str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -419,7 +424,7 @@ TEST(replace, join_compat)
         for (auto ch : rng) {
             replace_result.push_back(ch);
         }
-        EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
+        BOOST_TEST(replace_result == "foofooaafoobaabafoofoo");
     }
     {
         std::string const str = "XYZXYZaaXYZbaabaXYZXYZ";
@@ -428,7 +433,7 @@ TEST(replace, join_compat)
         for (auto ch : rng) {
             replace_result.push_back(ch);
         }
-        EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
+        BOOST_TEST(replace_result == "foofooaafoobaabafoofoo");
     }
     {
         auto rng = std::string("XYZXYZaaXYZbaabaXYZXYZ") |
@@ -437,12 +442,12 @@ TEST(replace, join_compat)
         for (auto ch : rng) {
             replace_result.push_back(ch);
         }
-        EXPECT_EQ(replace_result, "foofooaafoobaabafoofoo");
+        BOOST_TEST(replace_result == "foofooaafoobaabafoofoo");
     }
 }
 #endif
 
-TEST(replace, doc_examples)
+// doc_examples
 {
     // clang-format off
     {
@@ -473,6 +478,9 @@ TEST(replace, doc_examples)
     }
 #endif
     // clang-format on
+}
+
+    return boost::report_errors();
 }
 
 #endif

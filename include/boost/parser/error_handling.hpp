@@ -185,17 +185,21 @@ namespace boost { namespace parser {
 
         callback_error_handler() {}
         callback_error_handler(
+            callback_type error, callback_type warning = callback_type()) :
+            error_(error), warning_(warning)
+        {}
+        callback_error_handler(
+            std::string_view filename,
             callback_type error,
-            callback_type warning = callback_type(),
-            std::string_view filename = "") :
+            callback_type warning = callback_type()) :
             error_(error), warning_(warning), filename_(filename)
         {}
 #if defined(_MSC_VER) || defined(BOOST_PARSER_DOXYGEN)
         /** This overload is Windows-only. */
         callback_error_handler(
+            std::wstring_view filename,
             callback_type error,
-            callback_type warning,
-            std::wstring_view filename) :
+            callback_type warning = callback_type()) :
             error_(error), warning_(warning)
         {
             auto const r = filename | parser::detail::text::as_utf8;

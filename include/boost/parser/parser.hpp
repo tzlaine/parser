@@ -7010,9 +7010,7 @@ namespace boost { namespace parser {
 #endif
         constexpr quoted_string_parser(R && r) : chs_((R &&) r), ch_(0)
         {
-            // TODO: This becomes ill-formed when
-            // BOOST_PARSER_NO_RUNTIME_ASSERTIONS is turned on.
-            BOOST_PARSER_ASSERT(r.begin() != r.end());
+            BOOST_PARSER_DEBUG_ASSERT(r.begin() != r.end());
         }
 
 #if BOOST_PARSER_USE_CONCEPTS
@@ -7026,7 +7024,7 @@ namespace boost { namespace parser {
         constexpr quoted_string_parser(R && r, Escapes escapes) :
             chs_((R &&) r), escapes_(escapes), ch_(0)
         {
-            BOOST_PARSER_ASSERT(r.begin() != r.end());
+            BOOST_PARSER_DEBUG_ASSERT(r.begin() != r.end());
         }
 
         constexpr quoted_string_parser(char32_t cp) : chs_(), ch_(cp) {}

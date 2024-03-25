@@ -8,7 +8,7 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
@@ -30,24 +30,24 @@ auto always_3 = [](auto & context) { return 3; };
 auto always_3u = [](auto & context) { return 3u; };
 
 
-TEST(parser, lazy)
+int main()
 {
     {
         std::string str = "a";
-        EXPECT_TRUE(parse(str, char_));
-        EXPECT_FALSE(parse(str, char_('b')));
+        BOOST_TEST(parse(str, char_));
+        BOOST_TEST(!parse(str, char_('b')));
         char_globals globals;
         auto parser = with_globals(char_(global_char), globals);
-        EXPECT_FALSE(parse(str, parser));
+        BOOST_TEST(!parse(str, parser));
     }
     {
         std::string str = "d";
-        EXPECT_TRUE(parse(str, char_));
-        EXPECT_TRUE(parse(str, char_('d')));
+        BOOST_TEST(parse(str, char_));
+        BOOST_TEST(parse(str, char_('d')));
         char_globals globals;
         auto result = parse(str, with_globals(char_(global_char), globals));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 'd');
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 'd');
     }
 
     {
@@ -55,9 +55,9 @@ TEST(parser, lazy)
         char c = '\0';
         char_globals globals;
         auto parser = with_globals(char_('a', global_char), globals);
-        EXPECT_TRUE(parse(str, parser, c));
-        EXPECT_EQ(c, 'b');
-        EXPECT_FALSE(
+        BOOST_TEST(parse(str, parser, c));
+        BOOST_TEST(c == 'b');
+        BOOST_TEST(!
             parse(str, with_globals(char_(global_char, global_char), globals)));
     }
 
@@ -66,18 +66,20 @@ TEST(parser, lazy)
         int_globals globals;
         auto parser = with_globals(repeat(2, global_int)[char_], globals);
         std::string out_str;
-        EXPECT_TRUE(parse(str, parser, out_str));
-        EXPECT_EQ(out_str, "abc");
-        EXPECT_FALSE(parse("a", parser, out_str));
+        BOOST_TEST(parse(str, parser, out_str));
+        BOOST_TEST(out_str == "abc");
+        BOOST_TEST(!parse("a", parser, out_str));
     }
 
     {
         std::string str = "3";
-        EXPECT_TRUE(parse(str, int_(always_3)));
+        BOOST_TEST(parse(str, int_(always_3)));
     }
 
     {
         std::string str = "3";
-        EXPECT_TRUE(parse(str, uint_(always_3u)));
+        BOOST_TEST(parse(str, uint_(always_3u)));
     }
+
+    return boost::report_errors();
 }

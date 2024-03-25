@@ -11,19 +11,19 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -j4 -
 ##################################################
 add_executable(parser_ parser.cpp)
 set_property(TARGET parser_ PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(parser_ parser gtest gtest_main ${link_flags})
+target_link_libraries(parser_ parser boost ${link_flags})
 if (MSVC)
     target_compile_options(parser_ PRIVATE /source-charset:utf-8 /bigobj)
 endif ()
-add_test(NAME parser_ COMMAND parser_ ---gtest_catch_exceptions=1)
+add_test(NAME parser_ COMMAND parser_)
 
 add_executable(parser_api parser_api.cpp)
 set_property(TARGET parser_api PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(parser_api parser gtest gtest_main ${link_flags})
+target_link_libraries(parser_api parser boost ${link_flags})
 if (MSVC)
     target_compile_options(parser_api PRIVATE /source-charset:utf-8 /bigobj)
 endif ()
-add_test(NAME parser_api COMMAND parser_api ---gtest_catch_exceptions=1)
+add_test(NAME parser_api COMMAND parser_api)
 
 add_executable(
     compile_tests
@@ -32,21 +32,22 @@ add_executable(
     compile_seq_attribute.cpp
     compile_or_attribute.cpp
     compile_combining_groups.cpp
+    compile_all_t.cpp
 )
 set_property(TARGET compile_tests PROPERTY CXX_STANDARD ${CXX_STD})
-target_link_libraries(compile_tests parser)
+target_link_libraries(compile_tests parser boost)
 
 macro(add_test_executable name)
     add_executable(${name} ${name}.cpp)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD ${CXX_STD})
-    target_link_libraries(${name} parser gtest gtest_main ${link_flags})
+    target_link_libraries(${name} parser boost ${link_flags})
     if (MSVC)
         target_compile_options(${name} PRIVATE /source-charset:utf-8 /bigobj)
     endif ()
-    add_test(NAME ${name} COMMAND ${name} --gtest_catch_exceptions=1)
+    add_test(NAME ${name} COMMAND ${name})
 endmacro()
 
-add_test_executable(all_t)
+add_test_executable(github_issues)
 add_test_executable(search)
 add_test_executable(split)
 add_test_executable(replace)
@@ -75,3 +76,25 @@ add_test_executable(parser_seq_permutations_1)
 add_test_executable(parser_seq_permutations_2)
 add_test_executable(parser_or_permutations_1)
 add_test_executable(parser_or_permutations_2)
+
+set(COVERAGE_TRACE_COMMAND
+    lcov --capture
+    -output-file ${PROJECT_BINARY_DIR}/coverage.info
+    --directory ${PROJECT_BINARY_DIR}
+    --include ${PROJECT_SOURCE_DIR}/include/*
+)
+
+set(COVERAGE_HTML_COMMAND
+    genhtml --legend -f -q
+    ${PROJECT_BINARY_DIR}/coverage.info
+    --prefix ${PROJECT_SOURCE_DIR}
+    --output-directory ${PROJECT_BINARY_DIR}/coverage_html
+)
+
+add_custom_target(
+    coverage
+        COMMAND ${COVERAGE_TRACE_COMMAND}
+        COMMAND ${COVERAGE_HTML_COMMAND}
+        COMMENT "Generating coverage report"
+        VERBATIM
+)

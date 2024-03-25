@@ -8,7 +8,7 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
@@ -34,251 +34,250 @@ P3 = bp::char_('c');
 
 using namespace std::literals;
 
-TEST(attributes, or_parser_permutations_1)
+int main()
 {
     [[maybe_unused]] int dummy = 0; // for clang-format(!)
 
     // P0
     {
         auto result = bp::parse("foo", bp::string("foo") | bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo"s);
     }
     {
         auto result = bp::parse("bar", bp::string("foo") | bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "bar"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "bar"s);
     }
     {
         auto result = bp::parse("42", bp::string("foo") | bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1u);
-        EXPECT_EQ(std::get<int>(*result), 42);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1u);
+        BOOST_TEST(std::get<int>(*result) == 42);
     }
     {
         auto result = bp::parse("c", bp::string("foo") | bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1u);
-        EXPECT_EQ(std::get<char>(*result), 'c');
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1u);
+        BOOST_TEST(std::get<char>(*result) == 'c');
     }
     {
         auto result = bp::parse("foo", bp::string("foo") | bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::optional("foo"s));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::optional("foo"s));
     }
     {
         auto result = bp::parse("foo", bp::string("foo") | *bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::string>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::string>(*result) == "foo"s);
     }
     {
         auto result = bp::parse("", bp::string("foo") | -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1u);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1u);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse(
             "foo", bp::string("foo") | (bp::string("foo") | bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::string>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::string>(*result) == "foo"s);
     }
     {
         auto result = bp::parse(
             "bar",
             bp::string("foo") | -(bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), "bar"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == "bar"s);
     }
     {
         auto result = bp::parse(
             "", bp::string("foo") | (-bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse(
             "foo", bp::string("foo") | (bp::string("foo") >> bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::string>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::string>(*result) == "foo"s);
     }
     {
         auto result = bp::parse(
             "", bp::string("foo") | -(bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1u);
-        EXPECT_EQ(
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1u);
+        BOOST_TEST(
             (std::get<std::optional<bp::tuple<std::string, std::string>>>(
-                *result)),
-            std::nullopt);
+                *result)) == std::nullopt);
     }
     {
         auto result = bp::parse(
             "bar",
             bp::string("foo") | (-bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 1u);
-        EXPECT_EQ(
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 1u);
+        BOOST_TEST(
             (std::get<bp::tuple<std::optional<std::string>, std::string>>(
-                *result)),
+                *result)) ==
             (make::tuple(std::optional<std::string>{}, "bar"s)));
     }
 
     // -P0
     {
         auto result = bp::parse("foo", -bp::string("foo") | bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::optional<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::optional<std::string>>(*result) ==
             std::optional("foo"s));
     }
     {
         auto result = bp::parse("", -bp::string("foo") | bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse("", -bp::string("foo") | bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse("", -bp::string("foo") | bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse("foo", -bp::string("foo") | bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo"s);
     }
     {
         auto result = bp::parse("foo", -bp::string("foo") | *bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == "foo"s);
     }
     {
         auto result = bp::parse("foo", -bp::string("foo") | -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo"s);
     }
     {
         auto result =
             bp::parse("", -bp::string("foo") | (bp::string("foo") | bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse(
             "foo",
             -bp::string("foo") | -(bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "foo"s);
     }
     {
         auto result = bp::parse(
             "", -bp::string("foo") | (-bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), std::nullopt);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == std::nullopt);
     }
     {
         auto result = bp::parse(
             "foo", -bp::string("foo") | (bp::string("foo") >> bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == "foo"s);
     }
     {
         auto result = bp::parse(
             "foo",
             -bp::string("foo") | -(bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == "foo"s);
     }
     {
         auto result = bp::parse(
             "foo",
             -bp::string("foo") | (-bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(std::get<std::optional<std::string>>(*result), "foo"s);
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(std::get<std::optional<std::string>>(*result) == "foo"s);
     }
 
     // *P0
     {
         auto result = bp::parse(
             "foo", bp::lexeme[*bp::string("foo")] | bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result), std::vector({"foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) == std::vector({"foo"s}));
     }
     {
         auto result =
             bp::parse("foofoo", *bp::string("foo") | bp::string("bar"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
         auto result = bp::parse("", *bp::string("foo") | bp::int_);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector<std::string>{});
     }
     {
         auto result = bp::parse("", *bp::string("foo") | bp::char_('c'));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector<std::string>{});
     }
     {
         auto result = bp::parse("foofoo", *bp::string("foo") | bp::eps);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::optional(std::vector({"foo"s, "foo"s})));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::optional(std::vector({"foo"s, "foo"s})));
     }
     {
         auto result = bp::parse(
             "foofoo", bp::lexeme[*bp::string("foo")] | *bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, std::vector({"foo"s, "foo"s}));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::vector({"foo"s, "foo"s}));
     }
     {
         auto result =
             bp::parse("foofoo", *bp::string("foo") | -bp::string("foo"));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
         auto result = bp::parse(
             "foofoo",
             bp::lexeme[*bp::string("foo")] | (bp::string("foo") | bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
@@ -286,10 +285,10 @@ TEST(attributes, or_parser_permutations_1)
             "foofoo",
             bp::lexeme[*bp::string("foo")] |
                 -(bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
@@ -297,20 +296,20 @@ TEST(attributes, or_parser_permutations_1)
             "foofoo",
             bp::lexeme[*bp::string("foo")] |
                 (-bp::string("foo") | bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
         auto result = bp::parse(
             "foofoo",
             bp::lexeme[*bp::string("foo")] | (bp::string("foo") >> bp::int_));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
@@ -318,10 +317,10 @@ TEST(attributes, or_parser_permutations_1)
             "foofoo",
             bp::lexeme[*bp::string("foo")] |
                 -(bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
     {
@@ -329,10 +328,12 @@ TEST(attributes, or_parser_permutations_1)
             "foofoo",
             bp::lexeme[*bp::string("foo")] |
                 (-bp::string("foo") >> bp::string("bar")));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(result->index(), 0);
-        EXPECT_EQ(
-            std::get<std::vector<std::string>>(*result),
+        BOOST_TEST(result);
+        BOOST_TEST(result->index() == 0);
+        BOOST_TEST(
+            std::get<std::vector<std::string>>(*result) ==
             std::vector({"foo"s, "foo"s}));
     }
+
+return boost::report_errors();
 }

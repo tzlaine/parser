@@ -5,22 +5,25 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
 
-TEST(parser, symbols_empty)
+int main()
+{
+
+// symbols_empty
 {
     symbols<int> roman_numerals;
     symbols<std::string> named_strings;
 
     std::string const str = "I";
-    EXPECT_FALSE(parse(str, roman_numerals));
-    EXPECT_FALSE(parse(str, named_strings));
+    BOOST_TEST(!parse(str, roman_numerals));
+    BOOST_TEST(!parse(str, named_strings));
 }
 
-TEST(parser, symbols_simple)
+// symbols_simple
 {
     symbols<int> const roman_numerals = {
         {"I", 1}, {"V", 5}, {"X", 10}, {"L", 50}, {"C", 100}};
@@ -29,28 +32,28 @@ TEST(parser, symbols_simple)
 
     {
         auto const result = parse("I", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 1);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 1);
     }
     {
         auto const result = parse("I", named_strings);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "1");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "1");
     }
 
     {
         auto const result = parse("L", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 50);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 50);
     }
     {
         auto const result = parse("L", named_strings);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, "50");
+        BOOST_TEST(result);
+        BOOST_TEST(*result == "50");
     }
 }
 
-TEST(parser, symbols_max_munch)
+// symbols_max_munch
 {
     symbols<int> const roman_numerals = {
         {"I", 1},
@@ -87,52 +90,52 @@ TEST(parser, symbols_max_munch)
 
     {
         auto const result = parse("I", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 1);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 1);
     }
     {
         auto const result = parse("II", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 2);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 2);
     }
     {
         auto const result = parse("III", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 3);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 3);
     }
     {
         auto const result = parse("IV", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 4);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 4);
     }
     {
         auto const result = parse("V", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 5);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 5);
     }
     {
         auto const result = parse("VI", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 6);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 6);
     }
     {
         auto const result = parse("VII", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 7);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 7);
     }
     {
         auto const result = parse("VIII", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 8);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 8);
     }
     {
         auto const result = parse("IX", roman_numerals);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 9);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 9);
     }
 }
 
-TEST(parser, symbols_mutating)
+// symbols_mutating
 {
     symbols<int> roman_numerals;
     roman_numerals.insert_for_next_parse("I", 1)("V", 5)("X", 10);
@@ -145,18 +148,21 @@ TEST(parser, symbols_mutating)
 
     {
         auto const result = parse("L50L", numerals_parser);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 50);
-        EXPECT_FALSE(parse("L", roman_numerals));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 50);
+        BOOST_TEST(!parse("L", roman_numerals));
     }
     {
         auto const result = parse("C100C", numerals_parser);
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 100);
-        EXPECT_FALSE(parse("C", roman_numerals));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 100);
+        BOOST_TEST(!parse("C", roman_numerals));
     }
     {
         auto const result = parse("L50C", numerals_parser);
-        EXPECT_FALSE(result);
+        BOOST_TEST(!result);
     }
+}
+
+return boost::report_errors();
 }

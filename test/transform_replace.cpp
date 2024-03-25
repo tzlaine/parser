@@ -8,7 +8,7 @@
 
 #include <boost/parser/transform_replace.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 #include "ill_formed.hpp"
 
@@ -448,7 +448,10 @@ namespace detail_utf_rvalue_shim {
                   decltype(ints_p.parser_)>);
 }
 
-TEST(transform_replace, detail_attr_search_repack_shim)
+int main()
+{
+
+// detail_attr_search_repack_shim
 {
     using namespace bp::literals;
 
@@ -492,84 +495,84 @@ TEST(transform_replace, detail_attr_search_repack_shim)
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), std::begin(str));
-        EXPECT_EQ(subrng.end(), std::begin(str));
+        BOOST_TEST(subrng.begin() == std::begin(str));
+        BOOST_TEST(subrng.end() == std::begin(str));
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "");
+        BOOST_TEST(result_str == "");
     }
     {
         char const str[] = "not here";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), std::end(str));
-        EXPECT_EQ(subrng.end(), std::end(str));
+        BOOST_TEST(subrng.begin() == std::end(str));
+        BOOST_TEST(subrng.end() == std::end(str));
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "");
+        BOOST_TEST(result_str == "");
     }
     {
         char const str[] = "aaXYZb";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 2);
-        EXPECT_EQ(subrng.end(), str + 5);
+        BOOST_TEST(subrng.begin() == str + 2);
+        BOOST_TEST(subrng.end() == str + 5);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
     {
         char const str[] = "XYZab";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 0);
-        EXPECT_EQ(subrng.end(), str + 3);
+        BOOST_TEST(subrng.begin() == str + 0);
+        BOOST_TEST(subrng.end() == str + 3);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
     {
         char const str[] = "gbXYZ";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 2);
-        EXPECT_EQ(subrng.end(), str + 5);
+        BOOST_TEST(subrng.begin() == str + 2);
+        BOOST_TEST(subrng.end() == str + 5);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
     {
         char const str[] = "XYZ";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 0);
-        EXPECT_EQ(subrng.end(), str + 3);
+        BOOST_TEST(subrng.begin() == str + 0);
+        BOOST_TEST(subrng.end() == str + 3);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
     {
         char const str[] = "XXYZZ";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 1);
-        EXPECT_EQ(subrng.end(), str + 4);
+        BOOST_TEST(subrng.begin() == str + 1);
+        BOOST_TEST(subrng.end() == str + 4);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
     {
         char const str[] = "XXYZZ";
         auto result = bp::detail::attr_search_repack_shim(
             str, bp::string("XYZ"), bp::ws, bp::trace::off);
         auto subrng = bp::get(result, 0_c);
-        EXPECT_EQ(subrng.begin(), str + 1);
-        EXPECT_EQ(subrng.end(), str + 4);
+        BOOST_TEST(subrng.begin() == str + 1);
+        BOOST_TEST(subrng.end() == str + 4);
         auto result_str = bp::get(result, 1_c);
-        EXPECT_EQ(result_str, "XYZ");
+        BOOST_TEST(result_str == "XYZ");
     }
 }
 
-TEST(transform_replace, transform_replace)
+// transform_replace
 {
     {
         auto r = bp::transform_replace("", bp::int_ % ',', bp::ws, f_str);
@@ -578,7 +581,7 @@ TEST(transform_replace, transform_replace)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const str[] = "ab c 1,   2, 3  d e f";
@@ -590,8 +593,8 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(count, 3);
-        EXPECT_EQ(replace_result, "ab c 1_2_3_  d e f");
+        BOOST_TEST(count == 3);
+        BOOST_TEST(replace_result == "ab c 1_2_3_  d e f");
     }
     {
         char const str[] = "ab c 1,   2, 3  d e f";
@@ -603,8 +606,8 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(count, 3);
-        EXPECT_EQ(replace_result, "ab c 1_2_3_  d e f");
+        BOOST_TEST(count == 3);
+        BOOST_TEST(replace_result == "ab c 1_2_3_  d e f");
     }
     {
         char const str[] = "a a 1,2,3baa ba1 ,2 , 3";
@@ -617,8 +620,8 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "a a 1_2_3_baa ba1_2_3_");
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(replace_result == "a a 1_2_3_baa ba1_2_3_");
+        BOOST_TEST(count == 4);
     }
     {
         char const str[] = "aa1,2,3baaba1,2,3 4,5,6";
@@ -630,8 +633,8 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "aa1_2_3_baaba1_2_3_ 4_5_6_");
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(replace_result == "aa1_2_3_baaba1_2_3_ 4_5_6_");
+        BOOST_TEST(count == 6);
     }
     {
         char const str[] = "0,0aa1,2,3baaba1,2,3 4,5,6";
@@ -643,8 +646,8 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "0_0_aa1_2_3_baaba1_2_3_ 4_5_6_");
-        EXPECT_EQ(count, 7);
+        BOOST_TEST(replace_result == "0_0_aa1_2_3_baaba1_2_3_ 4_5_6_");
+        BOOST_TEST(count == 7);
     }
     {
         char const str[] = "88,88 0,0aa1,2,3baaba1,2,3 4,5,6";
@@ -656,12 +659,12 @@ TEST(transform_replace, transform_replace)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "88_88_ 0_0_aa1_2_3_baaba1_2_3_ 4_5_6_");
-        EXPECT_EQ(count, 9);
+        BOOST_TEST(replace_result == "88_88_ 0_0_aa1_2_3_baaba1_2_3_ 4_5_6_");
+        BOOST_TEST(count == 9);
     }
 }
 
-TEST(transform_replace, transform_replace_unicode)
+// transform_replace_unicode
 {
     {
         char const str_[] = "";
@@ -672,7 +675,7 @@ TEST(transform_replace, transform_replace_unicode)
             (void)subrange;
             ++count;
         }
-        EXPECT_EQ(count, 0);
+        BOOST_TEST(count == 0);
     }
     {
         char const * str_ = "aa2,3,4b";
@@ -686,8 +689,8 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "aa2_3_4_b");
-        EXPECT_EQ(count, 3);
+        BOOST_TEST(replace_result == "aa2_3_4_b");
+        BOOST_TEST(count == 3);
     }
     {
         char const str_[] = "a a 3,4,5 baaba7, 8 ,9";
@@ -702,8 +705,8 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "a a 3_4_5_ baaba7_8_9_");
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(replace_result == "a a 3_4_5_ baaba7_8_9_");
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aa88,99baaba111,2222";
@@ -717,8 +720,8 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "aa88_99_baaba111_2222_");
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(replace_result == "aa88_99_baaba111_2222_");
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aa88,99baaba111,2222";
@@ -732,8 +735,8 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "aa88_99_baaba111_2222_");
-        EXPECT_EQ(count, 4);
+        BOOST_TEST(replace_result == "aa88_99_baaba111_2222_");
+        BOOST_TEST(count == 4);
     }
     {
         char const str_[] = "aa88,99baaba111,2222 3,4";
@@ -747,8 +750,8 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "aa88_99_baaba111_2222_ 3_4_");
-        EXPECT_EQ(count, 6);
+        BOOST_TEST(replace_result == "aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(count == 6);
     }
     {
         char const str_[] = "1aa88,99baaba111,2222 3,4";
@@ -761,15 +764,15 @@ TEST(transform_replace, transform_replace_unicode)
             replace_result += str;
             ++count;
         }
-        EXPECT_EQ(replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
-        EXPECT_EQ(count, 7);
+        BOOST_TEST(replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(count == 7);
     }
 }
 
 #if BOOST_PARSER_USE_CONCEPTS && (!defined(__GNUC__) || 12 <= __GNUC__)
 // Older GCCs don't like the use of temporaries like the std::string("foo")
 // below.  This causes | join to break.
-TEST(transform_replace, join_compat)
+// join_compat)
 {
     {
         char const str_[] = "1aa88,99baaba111,2222 3,4";
@@ -781,7 +784,7 @@ TEST(transform_replace, join_compat)
             static_assert(std::is_same_v<decltype(ch), char16_t>);
             transform_replace_result.push_back((char)ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
     {
         char const str[] = "1aa88,99baaba111,2222 3,4";
@@ -793,7 +796,7 @@ TEST(transform_replace, join_compat)
             static_assert(std::is_same_v<decltype(ch), char32_t>);
             transform_replace_result.push_back((char)ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
 
     {
@@ -804,7 +807,7 @@ TEST(transform_replace, join_compat)
         for (auto ch : rng) {
             transform_replace_result.push_back(ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
     {
         std::string str = "1aa88,99baaba111,2222 3,4";
@@ -814,7 +817,7 @@ TEST(transform_replace, join_compat)
         for (auto ch : rng) {
             transform_replace_result.push_back(ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
     {
         std::string const str = "1aa88,99baaba111,2222 3,4";
@@ -824,7 +827,7 @@ TEST(transform_replace, join_compat)
         for (auto ch : rng) {
             transform_replace_result.push_back(ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
     {
         auto rng = std::string("1aa88,99baaba111,2222 3,4") |
@@ -834,12 +837,12 @@ TEST(transform_replace, join_compat)
         for (auto ch : rng) {
             transform_replace_result.push_back(ch);
         }
-        EXPECT_EQ(transform_replace_result, "1_aa88_99_baaba111_2222_ 3_4_");
+        BOOST_TEST(transform_replace_result == "1_aa88_99_baaba111_2222_ 3_4_");
     }
 }
 #endif
 
-TEST(transform_replace, doc_examples)
+// doc_examples
 {
     {
         auto string_sum = [](std::vector<int> const & ints) {
@@ -861,4 +864,10 @@ TEST(transform_replace, doc_examples)
         assert(count == 3);
     }
 }
+
+return boost::report_errors();
+}
+
+#else
+int main() { return boost::report_errors(); }
 #endif

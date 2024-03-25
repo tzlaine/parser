@@ -8,7 +8,7 @@
 
 #include <boost/parser/tuple.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 #include "ill_formed.hpp"
 
@@ -74,7 +74,10 @@ struct employee
     double salary;
 };
 
-TEST(aggr_tuple_assignment, struct_arity)
+int main()
+{
+
+// struct_arity
 {
     using bp::detail::struct_arity_v;
 
@@ -90,7 +93,7 @@ TEST(aggr_tuple_assignment, struct_arity)
     static_assert(struct_arity_v<string_int_double_no_copy_move> <= 0);
 }
 
-TEST(aggr_tuple_assignment, is_struct_assignable)
+// is_struct_assignable
 {
     using bp::detail::is_struct_assignable_v;
 
@@ -132,7 +135,7 @@ TEST(aggr_tuple_assignment, is_struct_assignable)
                   bp::tuple<char const *, short, float>>);
 }
 
-TEST(aggr_tuple_assignment, is_tuple_assignable)
+// is_tuple_assignable
 {
     using bp::detail::is_tuple_assignable_v;
 
@@ -178,7 +181,7 @@ TEST(aggr_tuple_assignment, is_tuple_assignable)
                   string_int_double>);
 }
 
-TEST(aggr_tuple_assignment, tuple_to_aggregate)
+// tuple_to_aggregate
 {
     {
         employee const expected_employee = {32, "Last", "First", 50000.0};
@@ -191,14 +194,14 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
                 int,
                 bp::detail::tuple_size_<decltype(tup)>>());
 
-        EXPECT_EQ(assignee.age, expected_employee.age);
-        EXPECT_EQ(assignee.surname, expected_employee.surname);
-        EXPECT_EQ(assignee.forename, expected_employee.forename);
-        EXPECT_EQ(assignee.salary, expected_employee.salary);
+        BOOST_TEST(assignee.age == expected_employee.age);
+        BOOST_TEST(assignee.surname == expected_employee.surname);
+        BOOST_TEST(assignee.forename == expected_employee.forename);
+        BOOST_TEST(assignee.salary == expected_employee.salary);
 
         // Verify move.
-        EXPECT_TRUE(bp::get(tup, bp::llong<1>{}).empty());
-        EXPECT_TRUE(bp::get(tup, bp::llong<2>{}).empty());
+        BOOST_TEST(bp::get(tup, bp::llong<1>{}).empty());
+        BOOST_TEST(bp::get(tup, bp::llong<2>{}).empty());
     }
     {
         employee const expected_employee = {32, "Last", "First", 50000.0};
@@ -211,21 +214,24 @@ TEST(aggr_tuple_assignment, tuple_to_aggregate)
                 int,
                 bp::detail::tuple_size_<decltype(tup)>>());
 
-        EXPECT_EQ(assignee.age, expected_employee.age);
-        EXPECT_EQ(assignee.surname, expected_employee.surname);
-        EXPECT_EQ(assignee.forename, expected_employee.forename);
-        EXPECT_EQ(assignee.salary, expected_employee.salary);
+        BOOST_TEST(assignee.age == expected_employee.age);
+        BOOST_TEST(assignee.surname == expected_employee.surname);
+        BOOST_TEST(assignee.forename == expected_employee.forename);
+        BOOST_TEST(assignee.salary == expected_employee.salary);
     }
 }
 
-TEST(aggr_tuple_assignment, tie_aggregate)
+// tie_aggregate
 {
     employee assigner = {32, "Last", "First", 50000.0};
 
     auto tup = bp::detail::tie_aggregate(assigner);
 
-    EXPECT_EQ(bp::get(tup, bp::llong<0>{}), 32);
-    EXPECT_EQ(bp::get(tup, bp::llong<1>{}), "Last");
-    EXPECT_EQ(bp::get(tup, bp::llong<2>{}), "First");
-    EXPECT_EQ(bp::get(tup, bp::llong<3>{}), 50000.0);
+    BOOST_TEST(bp::get(tup, bp::llong<0>{}) == 32);
+    BOOST_TEST(bp::get(tup, bp::llong<1>{}) == "Last");
+    BOOST_TEST(bp::get(tup, bp::llong<2>{}) == "First");
+    BOOST_TEST(bp::get(tup, bp::llong<3>{}) == 50000.0);
+}
+
+return boost::report_errors();
 }

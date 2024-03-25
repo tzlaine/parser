@@ -8,36 +8,36 @@
 
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 namespace bp = boost::parser;
 using namespace std::literals;
 
-TEST(permutation_parser, basic)
+int main()
 {
     {
         constexpr auto parser = bp::int_ || bp::string("foo");
 
         {
             auto result = bp::parse("42 foo", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (bp::tuple<int, std::string>(42, "foo"s)));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (bp::tuple<int, std::string>(42, "foo"s)));
         }
         {
             auto result = bp::parse("42foo", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (bp::tuple<int, std::string>(42, "foo"s)));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (bp::tuple<int, std::string>(42, "foo"s)));
         }
         {
             auto result = bp::parse("foo 42", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (bp::tuple<int, std::string>(42, "foo"s)));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (bp::tuple<int, std::string>(42, "foo"s)));
         }
         {
             auto result = bp::parse("foo42", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(*result, (bp::tuple<int, std::string>(42, "foo"s)));
+            BOOST_TEST(result);
+            BOOST_TEST(*result == (bp::tuple<int, std::string>(42, "foo"s)));
         }
     }
 
@@ -46,45 +46,47 @@ TEST(permutation_parser, basic)
 
         {
             auto result = bp::parse("42 foo g", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
         {
             auto result = bp::parse("42 g foo", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
         {
             auto result = bp::parse("foo 42 g", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
         {
             auto result = bp::parse("foo g 42", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
         {
             auto result = bp::parse("g foo 42", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
         {
             auto result = bp::parse("g 42 foo", parser, bp::ws);
-            EXPECT_TRUE(result);
-            EXPECT_EQ(
-                *result,
+            BOOST_TEST(result);
+            BOOST_TEST(
+                *result ==
                 (bp::tuple<int, std::string, double>(42, "foo"s, 'g')));
         }
     }
+
+return boost::report_errors();
 }

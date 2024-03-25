@@ -30,7 +30,7 @@
 #define TEST_BOOST_VARIANT2 0
 #endif
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
@@ -162,922 +162,6 @@ struct s0_like
     std::vector<int> vec_;
 };
 
-TEST(struct_tuple, seq_parser_struct_rule)
-{
-    ////////////////////////////////////////////////////////////////////////////
-    // Parse-generated attribute.
-
-    {
-        std::optional<s0> result = parse("s0 42 text 1 2 3", s0_rule, ws);
-        EXPECT_TRUE(result);
-        s0 & struct_ = *result;
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<s1> const result =
-            parse("s1 42 text 1 2 3", s1_rule_a, ws);
-        EXPECT_TRUE(result);
-        s1 const & struct_ = *result;
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<s1> const result =
-            parse("s1 42 13.0 1 2 3", s1_rule_b, ws);
-        EXPECT_TRUE(result);
-        s1 const & struct_ = *result;
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<s2> const result =
-            parse("s2 42 text 1 2 3", s2_rule_a, ws);
-        EXPECT_TRUE(result);
-        s2 const & struct_ = *result;
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<s2> const result =
-            parse("s2 42 text 1 2 3", s2_rule_b, ws);
-        EXPECT_TRUE(result);
-        s2 const & struct_ = *result;
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-
-    // Use the rule as part of a larger parse.
-    {
-        std::optional<tuple<int, s0>> const result =
-            parse("99 s0 42 text 1 2 3", int_ >> s0_rule, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<tuple<int, s1>> const result =
-            parse("99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<tuple<int, s1>> const result =
-            parse("99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<tuple<int, s2>> const result =
-            parse("99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        std::optional<tuple<int, s2>> const result =
-            parse("99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Pass attribute to parse.
-
-    {
-        s0 struct_;
-
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_rule, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1 struct_;
-
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_rule_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1 struct_;
-
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_rule_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#if TEST_BOOST_VARIANT
-    {
-        s1_boost_variant struct_;
-
-        EXPECT_TRUE(
-            parse("s1 42 text 1 2 3", s1_boost_variant_rule_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 0u);
-        EXPECT_EQ(boost::get<std::string>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1_boost_variant struct_;
-
-        EXPECT_TRUE(
-            parse("s1 42 13.0 1 2 3", s1_boost_variant_rule_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-#if TEST_BOOST_VARIANT2
-    {
-        s1_boost_variant2 struct_;
-
-        EXPECT_TRUE(
-            parse("s1 42 text 1 2 3", s1_boost_variant2_rule_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(boost::variant2::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1_boost_variant2 struct_;
-
-        EXPECT_TRUE(
-            parse("s1 42 13.0 1 2 3", s1_boost_variant2_rule_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-    {
-        s2 struct_;
-
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_rule_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s2 struct_;
-
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_rule_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#if TEST_BOOST_OPTIONAL
-    {
-        s2_boost_optional struct_;
-
-        EXPECT_TRUE(
-            parse("s2 42 text 1 2 3", s2_boost_optional_rule_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s2_boost_optional struct_;
-
-        EXPECT_TRUE(
-            parse("s2 42 text 1 2 3", s2_boost_optional_rule_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-
-    // Use the rule as part of a larger parse.
-    {
-        tuple<int, s0> result;
-
-        EXPECT_TRUE(parse("99 s0 42 text 1 2 3", int_ >> s0_rule, ws, result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s1> result;
-
-        EXPECT_TRUE(parse("99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws, result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s1> result;
-
-        EXPECT_TRUE(parse("99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws, result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#if TEST_BOOST_VARIANT
-    {
-        tuple<int, s1_boost_variant> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 text 1 2 3",
-            int_ >> s1_boost_variant_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 0u);
-        EXPECT_EQ(boost::get<std::string>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s1_boost_variant> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 13.0 1 2 3",
-            int_ >> s1_boost_variant_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-#if TEST_BOOST_VARIANT2
-    {
-        tuple<int, s1_boost_variant2> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 text 1 2 3",
-            int_ >> s1_boost_variant2_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(boost::variant2::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s1_boost_variant2> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 13.0 1 2 3",
-            int_ >> s1_boost_variant2_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-    {
-        tuple<int, s2> result;
-
-        EXPECT_TRUE(parse("99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws, result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s2> result;
-
-        EXPECT_TRUE(parse("99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws, result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#if TEST_BOOST_OPTIONAL
-    {
-        tuple<int, s2_boost_optional> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3",
-            int_ >> s2_boost_optional_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        tuple<int, s2_boost_optional> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3",
-            int_ >> s2_boost_optional_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto struct_ = get(result, llong<1>{});
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-#endif
-}
-
-TEST(struct_tuple, repeated_seq_parser_struct_rule)
-{
-    ////////////////////////////////////////////////////////////////////////////
-    // Parse-generated attribute.
-
-    {
-        std::optional<std::vector<s0>> result =
-            parse("s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws);
-        EXPECT_TRUE(result);
-        std::vector<s0> & structs_ = *result;
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<std::vector<s1>> const result =
-            parse("s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws);
-        EXPECT_TRUE(result);
-        std::vector<s1> const & structs_ = *result;
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<std::vector<s1>> const result =
-            parse("s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws);
-        EXPECT_TRUE(result);
-        std::vector<s1> const & structs_ = *result;
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<std::vector<s2>> const result =
-            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws);
-        EXPECT_TRUE(result);
-        std::vector<s2> const & structs_ = *result;
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<std::vector<s2>> const result =
-            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws);
-        EXPECT_TRUE(result);
-        std::vector<s2> const & structs_ = *result;
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-
-    // Use the rule as part of a larger parse.
-    {
-        std::optional<tuple<int, std::vector<s0>>> const result =
-            parse("99 s0 42 text 1 2 3 s0 41 texty 1 3 2", int_ >> *s0_rule, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<tuple<int, std::vector<s1>>> const result =
-            parse("99 s1 42 text 1 2 3 s1 41 texty 1 3 2", int_ >> *s1_rule_a, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<tuple<int, std::vector<s1>>> const result =
-            parse("99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", int_ >> *s1_rule_b, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<tuple<int, std::vector<s2>>> const result =
-            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_a, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::optional<tuple<int, std::vector<s2>>> const result =
-            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_b, ws);
-        auto i_ = get(*result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(*result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Pass attribute to parse.
-
-    {
-        std::vector<s0> structs_;
-
-        EXPECT_TRUE(parse(
-            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s1> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s1> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#if TEST_BOOST_VARIANT
-    {
-        std::vector<s1_boost_variant> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 text 1 2 3 s1 41 texty 1 3 2",
-            *s1_boost_variant_rule_a,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).which(), 0u);
-        EXPECT_EQ(
-            boost::get<std::string>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).which(), 0u);
-        EXPECT_EQ(
-            boost::get<std::string>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s1_boost_variant> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
-            *s1_boost_variant_rule_b,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-#if TEST_BOOST_VARIANT2
-    {
-        std::vector<s1_boost_variant2> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 text 1 2 3 s1 41 texty 1 3 2",
-            *s1_boost_variant2_rule_a,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(
-            boost::variant2::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(
-            boost::variant2::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s1_boost_variant2> structs_;
-
-        EXPECT_TRUE(parse(
-            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
-            *s1_boost_variant2_rule_b,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-    {
-        std::vector<s2> structs_;
-
-        EXPECT_TRUE(parse(
-            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s2> structs_;
-
-        EXPECT_TRUE(parse(
-            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#if TEST_BOOST_OPTIONAL
-    {
-        std::vector<s2_boost_optional> structs_;
-
-        EXPECT_TRUE(parse(
-            "s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            *s2_boost_optional_rule_a,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        std::vector<s2_boost_optional> structs_;
-
-        EXPECT_TRUE(parse(
-            "s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            *s2_boost_optional_rule_b,
-            ws,
-            structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-
-    // Use the rule as part of a larger parse.
-    {
-        tuple<int, std::vector<s0>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s0 42 text 1 2 3 s0 41 texty 1 3 2",
-            int_ >> *s0_rule,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s1>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
-            int_ >> *s1_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s1>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
-            int_ >> *s1_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#if TEST_BOOST_VARIANT
-    {
-        tuple<int, std::vector<s1_boost_variant>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
-            int_ >> *s1_boost_variant_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).which(), 0u);
-        EXPECT_EQ(
-            boost::get<std::string>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).which(), 0u);
-        EXPECT_EQ(
-            boost::get<std::string>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s1_boost_variant>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
-            int_ >> *s1_boost_variant_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-#if TEST_BOOST_VARIANT2
-    {
-        tuple<int, std::vector<s1_boost_variant2>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
-            int_ >> *s1_boost_variant2_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(
-            boost::variant2::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(
-            boost::variant2::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s1_boost_variant2>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
-            int_ >> *s1_boost_variant2_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-    {
-        tuple<int, std::vector<s2>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            int_ >> *s2_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s2>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            int_ >> *s2_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#if TEST_BOOST_OPTIONAL
-    {
-        tuple<int, std::vector<s2_boost_optional>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            int_ >> *s2_boost_optional_rule_a,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-    {
-        tuple<int, std::vector<s2_boost_optional>> result;
-
-        EXPECT_TRUE(parse(
-            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
-            int_ >> *s2_boost_optional_rule_b,
-            ws,
-            result));
-        auto i_ = get(result, llong<0>{});
-        EXPECT_EQ(i_, 99);
-        auto structs_ = get(result, llong<1>{});
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
-    }
-#endif
-}
-
 struct callbacks_t
 {
     void operator()(s0_rule_tag, s0 s) const { s0s.push_back(std::move(s)); }
@@ -1091,525 +175,1447 @@ struct callbacks_t
     mutable std::vector<s2> s2s;
 };
 
-TEST(struct_tuple, seq_parser_struct_cb_rule)
+int main()
 {
+
+// seq_parser_struct_rule
+{
+    ////////////////////////////////////////////////////////////////////////////
+    // Parse-generated attribute.
+
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse("s0 42 text 1 2 3", s0_rule, ws, callbacks));
-        EXPECT_EQ(callbacks.s0s.size(), 1u);
-        s0 const & struct_ = callbacks.s0s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<s0> result = parse("s0 42 text 1 2 3", s0_rule, ws);
+        BOOST_TEST(result);
+        s0 & struct_ = *result;
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-            EXPECT_TRUE(callback_parse("s1 42 text 1 2 3", s1_rule_a, ws, callbacks));
-        EXPECT_EQ(callbacks.s1s.size(), 1u);
-        s1 const & struct_ = callbacks.s1s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<s1> const result =
+            parse("s1 42 text 1 2 3", s1_rule_a, ws);
+        BOOST_TEST(result);
+        s1 const & struct_ = *result;
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-            EXPECT_TRUE(callback_parse("s1 42 13.0 1 2 3", s1_rule_b, ws, callbacks));
-        EXPECT_EQ(callbacks.s1s.size(), 1u);
-        s1 const & struct_ = callbacks.s1s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<s1> const result =
+            parse("s1 42 13.0 1 2 3", s1_rule_b, ws);
+        BOOST_TEST(result);
+        s1 const & struct_ = *result;
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-            EXPECT_TRUE(callback_parse("s2 42 text 1 2 3", s2_rule_a, ws, callbacks));
-        EXPECT_EQ(callbacks.s2s.size(), 1u);
-        s2 const & struct_ = callbacks.s2s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<s2> const result =
+            parse("s2 42 text 1 2 3", s2_rule_a, ws);
+        BOOST_TEST(result);
+        s2 const & struct_ = *result;
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-            EXPECT_TRUE(callback_parse("s2 42 text 1 2 3", s2_rule_b, ws, callbacks));
-        EXPECT_EQ(callbacks.s2s.size(), 1u);
-        s2 const & struct_ = callbacks.s2s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<s2> const result =
+            parse("s2 42 text 1 2 3", s2_rule_b, ws);
+        BOOST_TEST(result);
+        s2 const & struct_ = *result;
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 
     // Use the rule as part of a larger parse.
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse(
-            "99 s0 42 text 1 2 3", int_ >> s0_rule, ws, callbacks));
-        EXPECT_EQ(callbacks.s0s.size(), 1u);
-        s0 const & struct_ = callbacks.s0s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<tuple<int, s0>> const result =
+            parse("99 s0 42 text 1 2 3", int_ >> s0_rule, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(*result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse(
-            "99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws, callbacks));
-        EXPECT_EQ(callbacks.s1s.size(), 1u);
-        s1 const & struct_ = callbacks.s1s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<tuple<int, s1>> const result =
+            parse("99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(*result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse(
-            "99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws, callbacks));
-        EXPECT_EQ(callbacks.s1s.size(), 1u);
-        s1 const & struct_ = callbacks.s1s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<tuple<int, s1>> const result =
+            parse("99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(*result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse(
-            "99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws, callbacks));
-        EXPECT_EQ(callbacks.s2s.size(), 1u);
-        s2 const & struct_ = callbacks.s2s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<tuple<int, s2>> const result =
+            parse("99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(*result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
-        callbacks_t callbacks;
-        EXPECT_TRUE(callback_parse(
-            "99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws, callbacks));
-        EXPECT_EQ(callbacks.s2s.size(), 1u);
-        s2 const & struct_ = callbacks.s2s[0];
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-}
-
-TEST(struct_tuple, parse_into_struct)
-{
-    // tuples
-    {
-        s0_tuple tuple_;
-
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_parser, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1_tuple tuple_;
-
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_parser_a, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuple_, llong<1>{})), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s1_tuple tuple_;
-
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuple_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s2_tuple tuple_;
-
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_a, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s2_tuple tuple_;
-
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_b, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        std::optional<tuple<int, s2>> const result =
+            parse("99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(*result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 
-    // structs
+    ////////////////////////////////////////////////////////////////////////////
+    // Pass attribute to parse.
+
     {
         s0 struct_;
 
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_parser, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
-    }
-    {
-        s0_like struct_;
-
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_parser, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s0 42 text 1 2 3", s0_rule, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1 struct_;
 
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_rule_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1 struct_;
 
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_rule_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 #if TEST_BOOST_VARIANT
     {
         s1_boost_variant struct_;
 
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 0u);
-        EXPECT_EQ(boost::get<std::string>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s1 42 text 1 2 3", s1_boost_variant_rule_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 0u);
+        BOOST_TEST(boost::get<std::string>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1_boost_variant struct_;
 
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).which(), 1u);
-        EXPECT_EQ(boost::get<double>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s1 42 13.0 1 2 3", s1_boost_variant_rule_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 #endif
 #if TEST_BOOST_VARIANT2
     {
         s1_boost_variant2 struct_;
 
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(boost::variant2::get<0>(get(struct_, llong<1>{})), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s1 42 text 1 2 3", s1_boost_variant2_rule_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(boost::variant2::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1_boost_variant2 struct_;
 
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(boost::variant2::get<1>(get(struct_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s1 42 13.0 1 2 3", s1_boost_variant2_rule_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 #endif
     {
         s2 struct_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_rule_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s2 struct_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_rule_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 #if TEST_BOOST_OPTIONAL
     {
         s2_boost_optional struct_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_a, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(*get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s2 42 text 1 2 3", s2_boost_optional_rule_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s2_boost_optional struct_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_parser_b, ws, struct_));
-        EXPECT_EQ(get(struct_, llong<0>{}), 42);
-        EXPECT_EQ(get(struct_, llong<1>{}), "text");
-        EXPECT_EQ(*get(struct_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(
+            parse("s2 42 text 1 2 3", s2_boost_optional_rule_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+
+    // Use the rule as part of a larger parse.
+    {
+        tuple<int, s0> result;
+
+        BOOST_TEST(parse("99 s0 42 text 1 2 3", int_ >> s0_rule, ws, result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s1> result;
+
+        BOOST_TEST(parse("99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws, result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s1> result;
+
+        BOOST_TEST(parse("99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws, result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#if TEST_BOOST_VARIANT
+    {
+        tuple<int, s1_boost_variant> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 text 1 2 3",
+            int_ >> s1_boost_variant_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 0u);
+        BOOST_TEST(boost::get<std::string>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s1_boost_variant> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 13.0 1 2 3",
+            int_ >> s1_boost_variant_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+#if TEST_BOOST_VARIANT2
+    {
+        tuple<int, s1_boost_variant2> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 text 1 2 3",
+            int_ >> s1_boost_variant2_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(boost::variant2::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s1_boost_variant2> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 13.0 1 2 3",
+            int_ >> s1_boost_variant2_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+    {
+        tuple<int, s2> result;
+
+        BOOST_TEST(parse("99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws, result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s2> result;
+
+        BOOST_TEST(parse("99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws, result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#if TEST_BOOST_OPTIONAL
+    {
+        tuple<int, s2_boost_optional> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3",
+            int_ >> s2_boost_optional_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        tuple<int, s2_boost_optional> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3",
+            int_ >> s2_boost_optional_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto struct_ = get(result, llong<1>{});
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 #endif
 }
 
-TEST(struct_tuple, repeated_parse_into_struct)
+// repeated_seq_parser_struct_rule
+{
+    ////////////////////////////////////////////////////////////////////////////
+    // Parse-generated attribute.
+
+    {
+        std::optional<std::vector<s0>> result =
+            parse("s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws);
+        BOOST_TEST(result);
+        std::vector<s0> & structs_ = *result;
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s1>> const result =
+            parse("s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws);
+        BOOST_TEST(result);
+        std::vector<s1> const & structs_ = *result;
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s1>> const result =
+            parse("s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws);
+        BOOST_TEST(result);
+        std::vector<s1> const & structs_ = *result;
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s2>> const result =
+            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws);
+        BOOST_TEST(result);
+        std::vector<s2> const & structs_ = *result;
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<std::vector<s2>> const result =
+            parse("s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws);
+        BOOST_TEST(result);
+        std::vector<s2> const & structs_ = *result;
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+
+    // Use the rule as part of a larger parse.
+    {
+        std::optional<tuple<int, std::vector<s0>>> const result =
+            parse("99 s0 42 text 1 2 3 s0 41 texty 1 3 2", int_ >> *s0_rule, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(*result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s1>>> const result =
+            parse("99 s1 42 text 1 2 3 s1 41 texty 1 3 2", int_ >> *s1_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(*result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s1>>> const result =
+            parse("99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", int_ >> *s1_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(*result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s2>>> const result =
+            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_a, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(*result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::optional<tuple<int, std::vector<s2>>> const result =
+            parse("99 s2 42 text 1 2 3 s2 41 texty 1 3 2", int_ >> *s2_rule_b, ws);
+        auto i_ = get(*result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(*result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Pass attribute to parse.
+
+    {
+        std::vector<s0> structs_;
+
+        BOOST_TEST(parse(
+            "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws, structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws, structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws, structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#if TEST_BOOST_VARIANT
+    {
+        std::vector<s1_boost_variant> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            *s1_boost_variant_rule_a,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).which() == 0u);
+        BOOST_TEST(
+            boost::get<std::string>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).which() == 0u);
+        BOOST_TEST(
+            boost::get<std::string>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_boost_variant> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            *s1_boost_variant_rule_b,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+#if TEST_BOOST_VARIANT2
+    {
+        std::vector<s1_boost_variant2> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            *s1_boost_variant2_rule_a,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(
+            boost::variant2::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(
+            boost::variant2::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s1_boost_variant2> structs_;
+
+        BOOST_TEST(parse(
+            "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            *s1_boost_variant2_rule_b,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+    {
+        std::vector<s2> structs_;
+
+        BOOST_TEST(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws, structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2> structs_;
+
+        BOOST_TEST(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws, structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#if TEST_BOOST_OPTIONAL
+    {
+        std::vector<s2_boost_optional> structs_;
+
+        BOOST_TEST(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            *s2_boost_optional_rule_a,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        std::vector<s2_boost_optional> structs_;
+
+        BOOST_TEST(parse(
+            "s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            *s2_boost_optional_rule_b,
+            ws,
+            structs_));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+
+    // Use the rule as part of a larger parse.
+    {
+        tuple<int, std::vector<s0>> result;
+
+        BOOST_TEST(parse(
+            "99 s0 42 text 1 2 3 s0 41 texty 1 3 2",
+            int_ >> *s0_rule,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            int_ >> *s1_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            int_ >> *s1_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#if TEST_BOOST_VARIANT
+    {
+        tuple<int, std::vector<s1_boost_variant>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            int_ >> *s1_boost_variant_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).which() == 0u);
+        BOOST_TEST(
+            boost::get<std::string>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).which() == 0u);
+        BOOST_TEST(
+            boost::get<std::string>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1_boost_variant>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            int_ >> *s1_boost_variant_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+#if TEST_BOOST_VARIANT2
+    {
+        tuple<int, std::vector<s1_boost_variant2>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 text 1 2 3 s1 41 texty 1 3 2",
+            int_ >> *s1_boost_variant2_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(
+            boost::variant2::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(
+            boost::variant2::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s1_boost_variant2>> result;
+
+        BOOST_TEST(parse(
+            "99 s1 42 13.0 1 2 3 s1 41 12.0 1 3 2",
+            int_ >> *s1_boost_variant2_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+    {
+        tuple<int, std::vector<s2>> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s2>> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#if TEST_BOOST_OPTIONAL
+    {
+        tuple<int, std::vector<s2_boost_optional>> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_boost_optional_rule_a,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+    {
+        tuple<int, std::vector<s2_boost_optional>> result;
+
+        BOOST_TEST(parse(
+            "99 s2 42 text 1 2 3 s2 41 texty 1 3 2",
+            int_ >> *s2_boost_optional_rule_b,
+            ws,
+            result));
+        auto i_ = get(result, llong<0>{});
+        BOOST_TEST(i_ == 99);
+        auto structs_ = get(result, llong<1>{});
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
+    }
+#endif
+}
+
+// seq_parser_struct_cb_rule
+{
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse("s0 42 text 1 2 3", s0_rule, ws, callbacks));
+        BOOST_TEST(callbacks.s0s.size() == 1u);
+        s0 const & struct_ = callbacks.s0s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+            BOOST_TEST(callback_parse("s1 42 text 1 2 3", s1_rule_a, ws, callbacks));
+        BOOST_TEST(callbacks.s1s.size() == 1u);
+        s1 const & struct_ = callbacks.s1s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+            BOOST_TEST(callback_parse("s1 42 13.0 1 2 3", s1_rule_b, ws, callbacks));
+        BOOST_TEST(callbacks.s1s.size() == 1u);
+        s1 const & struct_ = callbacks.s1s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+            BOOST_TEST(callback_parse("s2 42 text 1 2 3", s2_rule_a, ws, callbacks));
+        BOOST_TEST(callbacks.s2s.size() == 1u);
+        s2 const & struct_ = callbacks.s2s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+            BOOST_TEST(callback_parse("s2 42 text 1 2 3", s2_rule_b, ws, callbacks));
+        BOOST_TEST(callbacks.s2s.size() == 1u);
+        s2 const & struct_ = callbacks.s2s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+
+    // Use the rule as part of a larger parse.
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse(
+            "99 s0 42 text 1 2 3", int_ >> s0_rule, ws, callbacks));
+        BOOST_TEST(callbacks.s0s.size() == 1u);
+        s0 const & struct_ = callbacks.s0s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse(
+            "99 s1 42 text 1 2 3", int_ >> s1_rule_a, ws, callbacks));
+        BOOST_TEST(callbacks.s1s.size() == 1u);
+        s1 const & struct_ = callbacks.s1s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse(
+            "99 s1 42 13.0 1 2 3", int_ >> s1_rule_b, ws, callbacks));
+        BOOST_TEST(callbacks.s1s.size() == 1u);
+        s1 const & struct_ = callbacks.s1s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse(
+            "99 s2 42 text 1 2 3", int_ >> s2_rule_a, ws, callbacks));
+        BOOST_TEST(callbacks.s2s.size() == 1u);
+        s2 const & struct_ = callbacks.s2s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        callbacks_t callbacks;
+        BOOST_TEST(callback_parse(
+            "99 s2 42 text 1 2 3", int_ >> s2_rule_b, ws, callbacks));
+        BOOST_TEST(callbacks.s2s.size() == 1u);
+        s2 const & struct_ = callbacks.s2s[0];
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+}
+
+// parse_into_struct
+{
+    // tuples
+    {
+        s0_tuple tuple_;
+
+        BOOST_TEST(parse("s0 42 text 1 2 3", s0_parser, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1_tuple tuple_;
+
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_parser_a, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuple_, llong<1>{})) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1_tuple tuple_;
+
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuple_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s2_tuple tuple_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_a, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s2_tuple tuple_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_b, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+
+    // structs
+    {
+        s0 struct_;
+
+        BOOST_TEST(parse("s0 42 text 1 2 3", s0_parser, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s0_like struct_;
+
+        BOOST_TEST(parse("s0 42 text 1 2 3", s0_parser, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1 struct_;
+
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1 struct_;
+
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#if TEST_BOOST_VARIANT
+    {
+        s1_boost_variant struct_;
+
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 0u);
+        BOOST_TEST(boost::get<std::string>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1_boost_variant struct_;
+
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).which() == 1u);
+        BOOST_TEST(boost::get<double>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+#if TEST_BOOST_VARIANT2
+    {
+        s1_boost_variant2 struct_;
+
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_parser_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 0u);
+        BOOST_TEST(boost::variant2::get<0>(get(struct_, llong<1>{})) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s1_boost_variant2 struct_;
+
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_parser_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}).index() == 1u);
+        BOOST_TEST(boost::variant2::get<1>(get(struct_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+    {
+        s2 struct_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s2 struct_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#if TEST_BOOST_OPTIONAL
+    {
+        s2_boost_optional struct_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_a, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(*get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+    {
+        s2_boost_optional struct_;
+
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_parser_b, ws, struct_));
+        BOOST_TEST(get(struct_, llong<0>{}) == 42);
+        BOOST_TEST(get(struct_, llong<1>{}) == "text");
+        BOOST_TEST(*get(struct_, llong<2>{}) == std::vector<int>({1, 2, 3}));
+    }
+#endif
+}
+
+// repeated_parse_into_struct
 {
     // tuples
     {
         std::vector<s0_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_parser_a, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuples_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuples_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuples_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuples_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_parser_b, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuples_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuples_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuples_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuples_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_a, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_b, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
 
     // structs
     {
         std::vector<s0> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s0_like> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_parser, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_parser_a, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(structs_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(structs_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_parser_b, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(structs_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(structs_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_a, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2> structs_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_parser_b, ws, structs_));
-        EXPECT_EQ(get(structs_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(structs_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(structs_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(structs_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(structs_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(structs_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(structs_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(structs_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(structs_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(structs_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(structs_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(structs_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
 }
 
-TEST(struct_tuple, parse_into_tuple)
+// parse_into_tuple
 {
     {
         s0_tuple tuple_;
 
-        EXPECT_TRUE(parse("s0 42 text 1 2 3", s0_rule, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s0 42 text 1 2 3", s0_rule, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1_tuple tuple_;
 
-        EXPECT_TRUE(parse("s1 42 text 1 2 3", s1_rule_a, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuple_, llong<1>{})), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s1 42 text 1 2 3", s1_rule_a, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuple_, llong<1>{})) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s1_tuple tuple_;
 
-        EXPECT_TRUE(parse("s1 42 13.0 1 2 3", s1_rule_b, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuple_, llong<1>{})), 13.0);
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s1 42 13.0 1 2 3", s1_rule_b, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuple_, llong<1>{})) == 13.0);
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s2_tuple tuple_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_rule_a, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_rule_a, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
     {
         s2_tuple tuple_;
 
-        EXPECT_TRUE(parse("s2 42 text 1 2 3", s2_rule_b, ws, tuple_));
-        EXPECT_EQ(get(tuple_, llong<0>{}), 42);
-        EXPECT_EQ(get(tuple_, llong<1>{}), "text");
-        EXPECT_EQ(get(tuple_, llong<2>{}), std::vector<int>({1, 2, 3}));
+        BOOST_TEST(parse("s2 42 text 1 2 3", s2_rule_b, ws, tuple_));
+        BOOST_TEST(get(tuple_, llong<0>{}) == 42);
+        BOOST_TEST(get(tuple_, llong<1>{}) == "text");
+        BOOST_TEST(get(tuple_, llong<2>{}) == std::vector<int>({1, 2, 3}));
     }
 }
 
-TEST(struct_tuple, repeated_parse_into_tuple)
+// repeated_parse_into_tuple
 {
     {
         std::vector<s0_tuple> tuples_;
 
-        EXPECT_TRUE(
+        BOOST_TEST(
             parse("s0 42 text 1 2 3 s0 41 texty 1 3 2", *s0_rule, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 text 1 2 3 s1 41 texty 1 3 2", *s1_rule_a, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuples_[0], llong<1>{})), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 0u);
-        EXPECT_EQ(std::get<0>(get(tuples_[1], llong<1>{})), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuples_[0], llong<1>{})) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}).index() == 0u);
+        BOOST_TEST(std::get<0>(get(tuples_[1], llong<1>{})) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s1_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s1 42 13.0 1 2 3 s1 41 12.0 1 3 2", *s1_rule_b, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuples_[0], llong<1>{})), 13.0);
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}).index(), 1u);
-        EXPECT_EQ(std::get<1>(get(tuples_[1], llong<1>{})), 12.0);
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuples_[0], llong<1>{})) == 13.0);
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}).index() == 1u);
+        BOOST_TEST(std::get<1>(get(tuples_[1], llong<1>{})) == 12.0);
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_a, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
     {
         std::vector<s2_tuple> tuples_;
 
-        EXPECT_TRUE(parse(
+        BOOST_TEST(parse(
             "s2 42 text 1 2 3 s2 41 texty 1 3 2", *s2_rule_b, ws, tuples_));
-        EXPECT_EQ(get(tuples_[0], llong<0>{}), 42);
-        EXPECT_EQ(get(tuples_[0], llong<1>{}), "text");
-        EXPECT_EQ(get(tuples_[0], llong<2>{}), std::vector<int>({1, 2, 3}));
-        EXPECT_EQ(get(tuples_[1], llong<0>{}), 41);
-        EXPECT_EQ(get(tuples_[1], llong<1>{}), "texty");
-        EXPECT_EQ(get(tuples_[1], llong<2>{}), std::vector<int>({1, 3, 2}));
+        BOOST_TEST(get(tuples_[0], llong<0>{}) == 42);
+        BOOST_TEST(get(tuples_[0], llong<1>{}) == "text");
+        BOOST_TEST(get(tuples_[0], llong<2>{}) == std::vector<int>({1, 2, 3}));
+        BOOST_TEST(get(tuples_[1], llong<0>{}) == 41);
+        BOOST_TEST(get(tuples_[1], llong<1>{}) == "texty");
+        BOOST_TEST(get(tuples_[1], llong<2>{}) == std::vector<int>({1, 3, 2}));
     }
+}
+
+return boost::report_errors();
 }

@@ -5,7 +5,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #include <boost/parser/parser.hpp>
 
-#include <gtest/gtest.h>
+#include <boost/core/lightweight_test.hpp>
 
 
 using namespace boost::parser;
@@ -26,18 +26,20 @@ constexpr auto action_param_def =
     string("abc")[first_param_to_val] | string("def")[second_param_to_val];
 BOOST_PARSER_DEFINE_RULES(action_param);
 
-TEST(parser, val_attr)
+int main()
 {
     {
         std::string const str = "abc";
         auto const result = parse(str, action_param.with(15.0, make_13));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 15);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 15);
     }
     {
         std::string const str = "def";
         auto const result = parse(str, action_param.with(15.0, make_13));
-        EXPECT_TRUE(result);
-        EXPECT_EQ(*result, 13);
+        BOOST_TEST(result);
+        BOOST_TEST(*result == 13);
     }
+
+    return boost::report_errors();
 }

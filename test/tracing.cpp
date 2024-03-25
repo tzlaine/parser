@@ -45,6 +45,10 @@ BOOST_PARSER_DEFINE_RULES(test_rule);
     std::cout << #p << ":\n";                                                  \
     parse(str, with_globals(p, globals), trace::on)
 
+#define PARSE_CHAR32(p)                                                        \
+    std::cout << #p << ":\n";                                                  \
+    parse(u32str, with_globals(p, globals), trace::on)
+
 int main()
 {
     std::string const str = "";
@@ -470,4 +474,14 @@ int main()
 
     PARSE(switch_(0)(0, char_)(1, int_));
     PARSE(switch_(zero)(zero, char_)(i, int_));
+
+    std::u32string const u32str = U"Straße";
+
+    std::cout << "\n\n"
+              << "----------------------------------------\n"
+              << "| float_ (char32_t)                     |\n"
+              << "----------------------------------------\n";
+
+    PARSE_CHAR32(float_);
+    PARSE_CHAR32(double_);
 }

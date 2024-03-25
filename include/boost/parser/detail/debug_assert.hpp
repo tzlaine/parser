@@ -10,6 +10,8 @@
 #include <boost/assert.hpp>
 #define BOOST_PARSER_DEBUG_ASSERT(condition) BOOST_ASSERT(condition)
 #define BOOST_PARSER_HAVE_BOOST_ASSERT
+#elif defined(BOOST_DISABLE_ASSERTS)
+#define BOOST_PARSER_DEBUG_ASSERT(condition) ((void)0)
 #else
 #include <cassert>
 #define BOOST_PARSER_DEBUG_ASSERT(condition) assert(condition)
