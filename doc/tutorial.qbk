@@ -821,9 +821,9 @@ quote-character.
 [quoted_string_example_3]
 
 You can also supply a range of characters.  One of the characters from the
-range must quote the whole string; mismatches are not allowed.  Think of how
-Python allows you to quote a string with either `'"'` or `'\''`, but the same
-character must be used on both sides.
+range must quote both ends of the string; mismatches are not allowed.  Think
+of how Python allows you to quote a string with either `'"'` or `'\''`, but
+the same character must be used on both sides.
 
 [quoted_string_example_4]
 
