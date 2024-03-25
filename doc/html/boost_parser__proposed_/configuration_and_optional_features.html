@@ -24,10 +24,15 @@
       functionality provided by Boost is also available.
     </p>
 <p>
-      To use Boost.Parser entirely on its own, simply define <code class="computeroutput"><span class="identifier">BOOST_PARSER_DISABLE_HANA_TUPLE</span></code>.
-      This will force <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code> to be the tuple-template used throughout
-      Boost.Parser. The Boost.Hana tuple is much nicer, because it has an <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>;
-      you will see this operator used throughout the tutorial and examples.
+      By default, Boost.Parser is usable entirely on its own. The only explicit opt-in
+      use of Boost is the use of Boost.Hana. If you turn on the use of Hana, the
+      tuple type used throughout Boost.Parser will be <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">hana</span><span class="special">::</span><span class="identifier">tuple</span></code> instead of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>.
+      To enable this, simply define <code class="computeroutput"><span class="identifier">BOOST_PARSER_USE_HANA_TUPLE</span></code>.
+      The Boost.Hana tuple is much nicer, because it has an <code class="computeroutput"><span class="keyword">operator</span><span class="special">[]</span></code>, and a whole lot of very useful algorithms;
+      you will see this operator used throughout the tutorial and examples. I encourage
+      you to use the Hana tuple, but I realize that it is an often-unfamiliar replacement
+      for <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">tuple</span></code>, which is a C++ vocabulary template,
+      and so that is the default.
     </p>
 <div class="important"><table border="0" summary="Important">
 <tr>
@@ -52,11 +57,37 @@
       versus <code class="computeroutput"><span class="identifier">assert</span></code>, and printing
       typenames with Boost.TypeIndex versus with <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">typeinfo</span></code>.
     </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        If you want to disable the use of the C macro <code class="computeroutput"><span class="identifier">assert</span></code>,
+        you define <code class="computeroutput"><span class="identifier">BOOST_DISABLE_ASSERTS</span></code>.
+        This is true whether <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span></code>
+        is available or not.
+      </p></td></tr>
+</table></div>
+<div class="important"><table border="0" summary="Important">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Important]" src="../images/important.png"></td>
+<th align="left">Important</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+        Boost.Parser uses inline namespaces around definitions of all functions and
+        types that use the optional Boost features; the name of the inline namespace
+        varies depending on whether the Boost implementation is used. So if Boost.TypeIndex
+        is available to one translation unit, but another TU must use <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">typeinfo</span></code>,
+        there are no ODR violations. The exception to this is the use of <code class="computeroutput"><span class="identifier">BOOST_ASSERT</span></code>/<code class="computeroutput"><span class="identifier">assert</span></code>;
+        assert macros are inherently ODR traps.
+      </p></td></tr>
+</table></div>
 <p>
       Boost.Parser automatically treats aggregate <code class="computeroutput"><span class="keyword">struct</span></code>s
       as if they were tuples in many cases. There is some metaprogramming logic that
       makes this work, and this logic has a hard limit on the size of a <code class="computeroutput"><span class="keyword">struct</span></code> that it can operate on. There is a configuration
-      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm29932.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
+      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm29963.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
       that you can adjust if the default value is too small. Note that turning this
       value up significantly can significantly increase compile times. Also, MSVC
       seems to have a hard time with large values; I successfully set this value

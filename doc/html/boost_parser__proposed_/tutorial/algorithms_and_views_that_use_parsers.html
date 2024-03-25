@@ -21,7 +21,7 @@
 </h3></div></div></div>
 <p>
         Unless otherwise noted, all the algorithms and views are constrained very
-        much like the way the <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32501.html" title="Function template parse">parse()</a></code>
+        much like the way the <code class="computeroutput"><a class="link" href="../../boost/parser/parse_idm32538.html" title="Function template parse">parse()</a></code>
         overloads are. The kinds of ranges, parsers, etc., that they accept are the
         same.
       </p>
@@ -56,7 +56,7 @@
         However, it often turns out you only need to find some subrange in the parsed
         range. In these cases, it would be nice to turn this into a proper algorithm
         in the pattern of the ones in <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span></code>,
-        since that's more idiomatic. <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code>
+        since that's more idiomatic. <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code>
         is that algorithm. It has very similar semantics to <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">search</span></code>,
         except that it searches not for a match to an exact subrange, but to a match
         with the given parser. Like <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span><span class="special">::</span><span class="identifier">search</span><span class="special">()</span></code>, it returns a subrange (<code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">parser</span><span class="special">::</span><span class="identifier">subrange</span></code>
@@ -68,19 +68,19 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">std</span><span class="special">::</span><span class="identifier">string_view</span><span class="special">(</span><span class="identifier">result</span><span class="special">.</span><span class="identifier">begin</span><span class="special">(),</span> <span class="identifier">result</span><span class="special">.</span><span class="identifier">end</span><span class="special">()</span> <span class="special">-</span> <span class="identifier">result</span><span class="special">.</span><span class="identifier">begin</span><span class="special">())</span> <span class="special">==</span> <span class="string">"XYZ"</span><span class="special">);</span>
 </pre>
 <p>
-        Since <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code> returns a subrange, whatever
+        Since <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code> returns a subrange, whatever
         parser you give it produces no attribute. I wrote <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">lit</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">)</span></code>
         above; if I had written <code class="computeroutput"><span class="identifier">bp</span><span class="special">::</span><span class="identifier">string</span><span class="special">(</span><span class="string">"XYZ"</span><span class="special">)</span></code> instead, the result (and lack of <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
         construction) would not change.
       </p>
 <p>
-        As you can see above, one aspect of <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code>
+        As you can see above, one aspect of <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code>
         differs intentionally from the conventions of the <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">ranges</span></code>
         algorithms — it accepts C-style strings, treating them as if they
         were proper ranges.
       </p>
 <p>
-        Also, <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code> knows how to accommodate
+        Also, <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code> knows how to accommodate
         your iterator type. You can pass the C-style string <code class="computeroutput"><span class="string">"aaXYZq"</span></code>
         as in the example above, or <code class="computeroutput"><span class="string">"aaXYZq"</span>
         <span class="special">|</span> <span class="identifier">bp</span><span class="special">::</span><span class="identifier">as_utf32</span></code>,
@@ -98,7 +98,7 @@
         adaptors, this accommodation will operate correctly.
       </p>
 <p>
-        <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code> has multiple overloads.
+        <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code> has multiple overloads.
         You can pass a range or an iterator/sentinel pair, and you can pass a skip
         parser or not. That's four overloads. Also, all four overloads take an optional
         <code class="computeroutput"><a class="link" href="../../boost/parser/trace.html" title="Type trace">boost::parser::trace</a></code>
@@ -129,7 +129,7 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">count</span> <span class="special">==</span> <span class="number">4</span><span class="special">);</span>
 </pre>
 <p>
-        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code>
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code>
         above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/search_all.html" title="Global search_all">boost::parser::search_all</a></code>: its parser produces
         no attributes; it accepts C-style strings as if they were ranges; and it
         knows how to get from the internally-used iterator type back to the given
@@ -171,7 +171,7 @@
 <span class="identifier">assert</span><span class="special">(</span><span class="identifier">count</span> <span class="special">==</span> <span class="number">5</span><span class="special">);</span>
 </pre>
 <p>
-        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code>
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code>
         above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/split.html" title="Global split">boost::parser::split</a></code>:
         its parser produces no attributes; it accepts C-style strings as if they
         were ranges; and it knows how to get from the internally-used iterator type
@@ -301,7 +301,7 @@
         and UTF-encoded ranges that does not work.
       </p>
 <p>
-        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33737.html" title="Function template search">boost::parser::search()</a></code>
+        All the details called out in the subsection on <code class="computeroutput"><a class="link" href="../../boost/parser/search_idm33774.html" title="Function template search">boost::parser::search()</a></code>
         above apply to <code class="computeroutput"><a class="link" href="../../boost/parser/replace.html" title="Global replace">boost::parser::replace</a></code>:
         its parser produces no attributes; it accepts C-style strings for the <code class="computeroutput"><span class="identifier">r</span></code> and <code class="computeroutput"><span class="identifier">replacement</span></code>
         parameters as if they were ranges; and it knows how to get from the internally-used
