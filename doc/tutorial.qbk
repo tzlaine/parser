@@ -3317,6 +3317,10 @@ The _Parser_ error handlers are:
 * _rethrow_eh_: Does nothing but re-throw any exception that it is asked to
   handle.  Its `diagnose()` member functions are no-ops.
 
+* _vs_output_eh_: Directs all errors and warnings to the debugging output
+  panel inside Visual Studio.  Available on Windows only.  Probably does
+  nothing useful desirable when executed outside of Visual Studio.
+
 You can set the error handler to any of these, or one of your own, using
 _w_eh_ (see _p_api_).  If you do not set one, _default_eh_ will be used.
 

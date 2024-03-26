@@ -287,7 +287,7 @@ namespace boost { namespace parser {
         {}
     };
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(BOOST_PARSER_DOXYGEN)
     /** An error handler that prints to the Visual Studio debugger via calls
         to `OutputDebugString()`. */
     struct vs_output_error_handler : stream_error_handler
