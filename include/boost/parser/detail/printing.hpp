@@ -6,7 +6,9 @@
 #include <boost/parser/detail/detection.hpp>
 #include <boost/parser/detail/hl.hpp>
 #include <boost/parser/detail/text/unpack.hpp>
-
+#if defined(_MSC_VER) && defined(BOOST_PARSER_TRACE_TO_VS_OUTPUT)
+#include <boost/parser/detail/vs_output_stream.hpp>
+#endif
 #include <boost/parser/detail/text/transcode_view.hpp>
 
 #include <iomanip>
@@ -355,10 +357,10 @@ namespace boost { namespace parser { namespace detail {
 
     enum { trace_indent_factor = 2 };
 
-    inline void trace_indent(int indent)
+    inline void trace_indent(std::ostream & os, int indent)
     {
         for (int i = 0, end = trace_indent_factor * indent; i != end; ++i) {
-            std::cout << ' ';
+            os << ' ';
         }
     }
 
@@ -430,38 +432,48 @@ namespace boost { namespace parser { namespace detail {
 
     template<typename Iter, typename Sentinel>
     inline void trace_begin_match(
-        Iter first, Sentinel last, int indent, std::string_view name)
+        std::ostream & os,
+        Iter first,
+        Sentinel last,
+        int indent,
+        std::string_view name)
     {
-        detail::trace_indent(indent);
-        std::cout << "[begin " << name << "; input=";
-        detail::trace_input(std::cout, first, last);
-        std::cout << "]" << std::endl;
+        detail::trace_indent(os, indent);
+        os << "[begin " << name << "; input=";
+        detail::trace_input(os, first, last);
+        os << "]" << std::endl;
     }
 
     template<typename Iter, typename Sentinel>
     inline void trace_end_match(
-        Iter first, Sentinel last, int indent, std::string_view name)
+        std::ostream & os,
+        Iter first,
+        Sentinel last,
+        int indent,
+        std::string_view name)
     {
-        detail::trace_indent(indent);
-        std::cout << "[end " << name << "; input=";
-        detail::trace_input(std::cout, first, last);
-        std::cout << "]" << std::endl;
+        detail::trace_indent(os, indent);
+        os << "[end " << name << "; input=";
+        detail::trace_input(os, first, last);
+        os << "]" << std::endl;
     }
 
     template<typename Iter, typename Sentinel, typename Context>
     void trace_prefix(
+        std::ostream & os,
         Iter first,
         Sentinel last,
         Context const & context,
         std::string_view name)
     {
         int & indent = detail::_indent(context);
-        detail::trace_begin_match(first, last, indent, name);
+        detail::trace_begin_match(os, first, last, indent, name);
         ++indent;
     }
 
     template<typename Iter, typename Sentinel, typename Context>
     void trace_suffix(
+        std::ostream & os,
         Iter first,
         Sentinel last,
         Context const & context,
@@ -469,7 +481,7 @@ namespace boost { namespace parser { namespace detail {
     {
         int & indent = detail::_indent(context);
         --indent;
-        detail::trace_end_match(first, last, indent, name);
+        detail::trace_end_match(os, first, last, indent, name);
     }
 
     template<typename T>
@@ -553,15 +565,16 @@ namespace boost { namespace parser { namespace detail {
     }
 
     template<typename Attribute>
-    inline void print_attribute(Attribute const & attr, int indent)
+    inline void
+    print_attribute(std::ostream & os, Attribute const & attr, int indent)
     {
-        detail::trace_indent(indent);
-        std::cout << "attribute: ";
-        detail::print(std::cout, attr);
-        std::cout << "\n";
+        detail::trace_indent(os, indent);
+        os << "attribute: ";
+        detail::print(os, attr);
+        os << "\n";
     }
 
-    inline void print_attribute(nope const &, int) {}
+    inline void print_attribute(std::ostream &, nope const &, int) {}
 
     constexpr inline bool do_trace(flags f)
     {
@@ -583,12 +596,14 @@ namespace boost { namespace parser { namespace detail {
     struct scoped_trace_t
     {
         scoped_trace_t(
+            std::ostream & os,
             Iter & first,
             Sentinel last,
             Context const & context,
             flags f,
             Attribute const & attr,
             std::string name) :
+            os_(os),
             initial_first_(first),
             first_(first),
             last_(last),
@@ -599,27 +614,29 @@ namespace boost { namespace parser { namespace detail {
         {
             if (!detail::do_trace(flags_))
                 return;
-            detail::trace_prefix(first_, last_, context_, name_);
+            detail::trace_prefix(os, first_, last_, context_, name_);
         }
 
         ~scoped_trace_t()
         {
             if (!detail::do_trace(flags_))
                 return;
-            detail::trace_indent(detail::_indent(context_));
+            detail::trace_indent(os_, detail::_indent(context_));
             if (*context_.pass_) {
-                std::cout << "matched ";
-                detail::trace_input(std::cout, initial_first_, first_);
-                std::cout << "\n";
+                os_ << "matched ";
+                detail::trace_input(os_, initial_first_, first_);
+                os_ << "\n";
                 detail::print_attribute(
+                    os_,
                     detail::resolve(context_, attr_),
                     detail::_indent(context_));
             } else {
-                std::cout << "no match\n";
+                os_ << "no match\n";
             }
-            detail::trace_suffix(first_, last_, context_, name_);
+            detail::trace_suffix(os_, first_, last_, context_, name_);
         }
 
+        std::ostream & os_;
         Iter initial_first_;
         Iter & first_;
         Sentinel last_;
@@ -656,8 +673,9 @@ namespace boost { namespace parser { namespace detail {
         if constexpr (Context::do_trace) {
             std::stringstream oss;
             detail::print_parser(context, parser, oss);
+            std::ostream & os = BOOST_PARSER_TRACE_OSTREAM;
             return scoped_trace_t<true, Iter, Sentinel, Context, Attribute>(
-                first, last, context, f, attr, oss.str());
+                os, first, last, context, f, attr, oss.str());
         } else {
             return scoped_trace_t<false, Iter, Sentinel, Context, Attribute>{};
         }
@@ -669,14 +687,15 @@ namespace boost { namespace parser { namespace detail {
         if (!detail::do_trace(f))
             return;
 
-        std::cout << "--------------------\n";
+        std::ostream & os = BOOST_PARSER_TRACE_OSTREAM;
+        os << "--------------------\n";
         if (*context.pass_) {
-            std::cout << "parse succeeded\n";
-            detail::print_attribute(detail::resolve(context, attr), 0);
+            os << "parse succeeded\n";
+            detail::print_attribute(os, detail::resolve(context, attr), 0);
         } else {
-            std::cout << "parse failed\n";
+            os << "parse failed\n";
         }
-        std::cout << "--------------------" << std::endl;
+        os << "--------------------" << std::endl;
     }
 
 }}}

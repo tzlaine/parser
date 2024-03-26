@@ -77,6 +77,15 @@ add_test_executable(parser_seq_permutations_2)
 add_test_executable(parser_or_permutations_1)
 add_test_executable(parser_or_permutations_2)
 
+if (MSVC)
+    add_executable(vs_output_tracing tracing.cpp)
+    set_property(TARGET vs_output_tracing PROPERTY CXX_STANDARD ${CXX_STD})
+    target_link_libraries(vs_output_tracing parser boost ${link_flags})
+    target_compile_options(vs_output_tracing PRIVATE /source-charset:utf-8 /bigobj)
+    target_compile_definitions(vs_output_tracing PRIVATE BOOST_PARSER_TRACE_TO_VS_OUTPUT)
+    add_test(NAME vs_output_tracing COMMAND vs_output_tracing)
+endif()
+
 set(COVERAGE_TRACE_COMMAND
     lcov --capture
     -output-file ${PROJECT_BINARY_DIR}/coverage.info

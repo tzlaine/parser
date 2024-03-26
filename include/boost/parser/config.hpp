@@ -52,6 +52,13 @@
     all other builds. */
 #    define BOOST_PARSER_SUBRANGE
 
+/** If you are using Visual Studio to run your program, and don't have a
+    terminal in which to observe the output when parsing with `trace::on`,
+    define this macro and you'll see the trace output in the Visual Studio
+    debugger's output panel.  This macro has no effect when `_MSC_VER` is not
+    also defined. */
+#    define BOOST_PARSER_TRACE_TO_VS_OUTPUT
+
 #else
 
 #    ifdef BOOST_PARSER_NO_RUNTIME_ASSERTIONS
@@ -92,14 +99,20 @@
 #endif
 
 #if !defined(BOOST_PARSER_MAX_AGGREGATE_SIZE)
-#define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
+#    define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
 #endif
 
 // VS2019 and VS2017 need conditional constexpr in some places, even in C++17 mode.
 #if !defined(_MSC_VER) || 1930 <= _MSC_VER
-#define BOOST_PARSER_CONSTEXPR constexpr
+#    define BOOST_PARSER_CONSTEXPR constexpr
 #else
-#define BOOST_PARSER_CONSTEXPR
+#    define BOOST_PARSER_CONSTEXPR
+#endif
+
+#if defined(_MSC_VER) && defined(BOOST_PARSER_TRACE_TO_VS_OUTPUT)
+#    define BOOST_PARSER_TRACE_OSTREAM boost::parser::detail::vs_cout
+#else
+#    define BOOST_PARSER_TRACE_OSTREAM std::cout
 #endif
 
 #endif
