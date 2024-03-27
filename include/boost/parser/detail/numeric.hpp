@@ -14,9 +14,11 @@
 
 #include <boost/parser/detail/text/unpack.hpp>
 
-#include <version>
-#if defined(__cpp_lib_to_chars)
+#if __has_include(<charconv>)
 #include <charconv>
+#endif
+
+#if defined(__cpp_lib_to_chars)
 #define BOOST_PARSER_HAVE_STD_CHARCONV
 #define BOOST_PARSER_NUMERIC_NS std_charconv
 #elif __has_include(<boost/charconv.hpp>)
