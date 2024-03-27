@@ -6,7 +6,9 @@
 import config : requires ;
 import testing ;
 
-# TODO project ;
+project
+  : requirements <library>/boost/charconv//boost_charconv
+  ;
 
 compile compile_all_t.cpp ;
 compile compile_attribute.cpp ;
