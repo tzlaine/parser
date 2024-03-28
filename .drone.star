@@ -25,10 +25,10 @@ def main(ctx):
   return [
     job(compiler='clang-10',  cxxstd='17',       os='ubuntu-18.04'),
     job(compiler='clang-11',  cxxstd='17',       os='ubuntu-22.04'),
-    job(compiler='clang-12',  cxxstd='17,20',    os='ubuntu-22.04'),
-    job(compiler='clang-13',  cxxstd='17,20,2b', os='ubuntu-22.04'),
-    job(compiler='clang-14',  cxxstd='17,20,2b', os='ubuntu-22.04'),
-    job(compiler='clang-15',  cxxstd='17,20,2b', os='ubuntu-22.04', add_llvm=True),
+    job(compiler='clang-12',  cxxstd='17',       os='ubuntu-22.04'),
+    job(compiler='clang-13',  cxxstd='17',       os='ubuntu-22.04'),
+    job(compiler='clang-14',  cxxstd='17',       os='ubuntu-22.04'),
+    job(compiler='clang-15',  cxxstd='17',       os='ubuntu-22.04', add_llvm=True),
 
     job(compiler='gcc-9',     cxxstd='17',       os='ubuntu-18.04'),
     job(compiler='gcc-10',    cxxstd='17,20',    os='ubuntu-22.04'),
