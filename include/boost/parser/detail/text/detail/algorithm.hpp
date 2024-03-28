@@ -10,6 +10,7 @@
 #include <boost/parser/detail/detection.hpp>
 #include <boost/parser/detail/text/detail/iterator.hpp>
 
+#include <iterator>
 #include <numeric>
 #include <type_traits>
 #include <utility>
