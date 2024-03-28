@@ -60,7 +60,6 @@ def main(ctx):
     job(compiler='clang-15',  cxxstd='17,20', os='freebsd-13.1'),
     job(compiler='gcc-11',    cxxstd='17,20', os='freebsd-13.1', linkflags='-Wl,-rpath=/usr/local/lib/gcc11'),
     # OSX
-    job(compiler='clang',     cxxstd='17',       os='osx-xcode-10.1'),
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-10.3'),
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-11.1'),
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-11.7'),
