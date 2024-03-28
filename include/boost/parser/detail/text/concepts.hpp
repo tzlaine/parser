@@ -202,7 +202,7 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
     //]
 
     // Clang 13 defines __cpp_lib_concepts but not std::indirectly copyable.
-#if defined(__clang_major__) && __clang_major__ == 13
+#if defined(__clang_major__) && __clang_major__ <= 13
     template<typename In, typename Out>
     // clang-format off
     concept indirectly_copyable =
