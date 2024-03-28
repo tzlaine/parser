@@ -77,11 +77,6 @@ def main(ctx):
     # S390x
     job(compiler='clang-12',  cxxstd='17,20', os='ubuntu-20.04', arch='s390x', add_llvm=True),
     job(compiler='gcc-11',    cxxstd='17,20', os='ubuntu-20.04', arch='s390x'),
-    # Windows
-    job(compiler='msvc-14.0', cxxstd='17,20',        os='windows', env={'B2_DONT_EMBED_MANIFEST': 1}),
-    job(compiler='msvc-14.1', cxxstd='17,20',        os='windows'),
-    job(compiler='msvc-14.2', cxxstd='17,20',        os='windows'),
-    job(compiler='msvc-14.3', cxxstd='17,20,latest', os='windows'),
   ]
 
 # from https://github.com/boostorg/boost-ci
