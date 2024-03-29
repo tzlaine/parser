@@ -23,7 +23,6 @@ def job(
 
 def main(ctx):
   return [
-    job(compiler='clang-10',  cxxstd='17',       os='ubuntu-18.04'),
     job(compiler='clang-11',  cxxstd='17',       os='ubuntu-22.04'),
     job(compiler='clang-12',  cxxstd='17',       os='ubuntu-22.04'),
     job(compiler='clang-13',  cxxstd='17',       os='ubuntu-22.04'),
