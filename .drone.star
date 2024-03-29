@@ -70,10 +70,8 @@ def main(ctx):
     job(compiler='clang',     cxxstd='17,20,2b', os='osx-xcode-14.3.1'),
     job(compiler='clang',     cxxstd='17,20,2b', os='osx-xcode-15.0.1'),
     # ARM64
-    job(compiler='clang-12',  cxxstd='17', os='ubuntu-20.04', arch='arm64', add_llvm=True),
     job(compiler='gcc-11',    cxxstd='17,20', os='ubuntu-20.04', arch='arm64'),
     # S390x
-    job(compiler='clang-12',  cxxstd='17', os='ubuntu-20.04', arch='s390x', add_llvm=True),
     job(compiler='gcc-11',    cxxstd='17,20', os='ubuntu-20.04', arch='s390x'),
   ]
 
