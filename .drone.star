@@ -25,9 +25,9 @@ def main(ctx):
   return [
     job(compiler='clang-11',  cxxstd='17',       os='ubuntu-22.04'),
     job(compiler='clang-12',  cxxstd='17',       os='ubuntu-22.04'),
-    job(compiler='clang-13',  cxxstd='17',       os='ubuntu-22.04'),
-    job(compiler='clang-14',  cxxstd='17',       os='ubuntu-22.04'),
-    job(compiler='clang-15',  cxxstd='17',       os='ubuntu-22.04', add_llvm=True),
+    job(compiler='clang-13',  cxxstd='17,20',    os='ubuntu-22.04'),
+    job(compiler='clang-14',  cxxstd='17,20',    os='ubuntu-22.04'),
+    job(compiler='clang-15',  cxxstd='17,20',    os='ubuntu-22.04', add_llvm=True),
 
     job(compiler='gcc-9',     cxxstd='17',       os='ubuntu-18.04'),
     job(compiler='gcc-10',    cxxstd='17,20',    os='ubuntu-22.04'),
@@ -47,12 +47,12 @@ def main(ctx):
         compiler='clang-11',  cxxstd='17', os='ubuntu-20.04', stdlib='libc++', install='libc++-11-dev libc++abi-11-dev'),
 
     # libc++
-    job(compiler='clang-10',  cxxstd='17', os='ubuntu-20.04', stdlib='libc++', install='libc++-10-dev libc++abi-10-dev'),
-    job(compiler='clang-11',  cxxstd='17', os='ubuntu-20.04', stdlib='libc++', install='libc++-11-dev libc++abi-11-dev'),
-    job(compiler='clang-12',  cxxstd='17', os='ubuntu-22.04', stdlib='libc++', install='libc++-12-dev libc++abi-12-dev libunwind-12-dev'),
-    job(compiler='clang-13',  cxxstd='17', os='ubuntu-22.04', stdlib='libc++', install='libc++-13-dev libc++abi-13-dev'),
-    job(compiler='clang-14',  cxxstd='17', os='ubuntu-22.04', stdlib='libc++', install='libc++-14-dev libc++abi-14-dev'),
-    job(compiler='clang-15',  cxxstd='17', os='ubuntu-22.04', stdlib='libc++', install='libc++-15-dev libc++abi-15-dev', add_llvm=True),
+    job(compiler='clang-10',  cxxstd='17',    os='ubuntu-20.04', stdlib='libc++', install='libc++-10-dev libc++abi-10-dev'),
+    job(compiler='clang-11',  cxxstd='17',    os='ubuntu-20.04', stdlib='libc++', install='libc++-11-dev libc++abi-11-dev'),
+    job(compiler='clang-12',  cxxstd='17',    os='ubuntu-22.04', stdlib='libc++', install='libc++-12-dev libc++abi-12-dev libunwind-12-dev'),
+    job(compiler='clang-13',  cxxstd='17,20', os='ubuntu-22.04', stdlib='libc++', install='libc++-13-dev libc++abi-13-dev'),
+    job(compiler='clang-14',  cxxstd='17,20', os='ubuntu-22.04', stdlib='libc++', install='libc++-14-dev libc++abi-14-dev'),
+    job(compiler='clang-15',  cxxstd='17,20', os='ubuntu-22.04', stdlib='libc++', install='libc++-15-dev libc++abi-15-dev', add_llvm=True),
 
     # FreeBSD
     job(compiler='clang-10',  cxxstd='17', os='freebsd-13.1'),
@@ -64,9 +64,9 @@ def main(ctx):
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-11.7'),
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-12'),
     job(compiler='clang',     cxxstd='17',       os='osx-xcode-12.5.1'),
-    job(compiler='clang',     cxxstd='17',       os='osx-xcode-13.0'),
-    job(compiler='clang',     cxxstd='17',       os='osx-xcode-13.4.1'),
-    job(compiler='clang',     cxxstd='17',       os='osx-xcode-14.0'),
+    job(compiler='clang',     cxxstd='17,20',    os='osx-xcode-13.0'),
+    job(compiler='clang',     cxxstd='17,20',    os='osx-xcode-13.4.1'),
+    job(compiler='clang',     cxxstd='17,20',    os='osx-xcode-14.0'),
     job(compiler='clang',     cxxstd='17,20,2b', os='osx-xcode-14.3.1'),
     job(compiler='clang',     cxxstd='17,20,2b', os='osx-xcode-15.0.1'),
     # ARM64
