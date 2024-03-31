@@ -4600,7 +4600,7 @@ namespace boost { namespace parser {
         Parser parser_;
     };
 
-#if defined(__cpp_lib_concepts)
+#if BOOST_PARSER_USE_CONCEPTS
     template<typename Parser>
     struct string_view_parser
     {
@@ -5989,7 +5989,7 @@ namespace boost { namespace parser {
         `parser_interface<P>`. */
     inline constexpr directive<raw_parser> raw;
 
-#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     /** The `string_view` directive, whose `operator[]` returns a
         `parser_interface<string_view_parser<P>>` from a given parser of type
         `parser_interface<P>`.  This is only available in C++20 and later. */

@@ -86,7 +86,7 @@
 #    define BOOST_PARSER_USE_CONCEPTS 0
 #endif
 
-#if defined(__cpp_lib_ranges)
+#if defined(__cpp_lib_ranges) && BOOST_PARSER_USE_CONCEPTS
 #    define BOOST_PARSER_SUBRANGE std::ranges::subrange
 #else
 #    include <boost/parser/subrange.hpp>

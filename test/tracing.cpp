@@ -171,7 +171,7 @@ int main()
 
     PARSE(raw[char_]);
 
-#if defined(__cpp_lib_concepts)
+#if BOOST_PARSER_USE_CONCEPTS
     std::cout << "\n\n"
               << "----------------------------------------\n"
               << "| string_view[]                         |\n"
