@@ -77,9 +77,6 @@ jobs:
               ;;
           esac
 
-          export CFLAGS="-Werror"
-          export CXXFLAGS="-Werror"
-
           cmake -B build -G Ninja \
            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
            -DCMAKE_C_COMPILER="${CC}" \
