@@ -42,7 +42,9 @@ add_dependencies(boost_clone_deps boost_clone_superproject)
 if (MSVC)
   set(bootstrap_cmd ./bootstrap.bat)
 else()
-  set(bootstrap_cmd ./bootstrap.sh)
+  # windres produces relocations that are rejected
+  # by stricter ld configurations used in some distros
+  set(bootstrap_cmd env B2_DONT_EMBED_MANIFEST=true ./bootstrap.sh)
 endif()
 
 add_custom_command(
