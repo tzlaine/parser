@@ -87,7 +87,7 @@
       Boost.Parser automatically treats aggregate <code class="computeroutput"><span class="keyword">struct</span></code>s
       as if they were tuples in many cases. There is some metaprogramming logic that
       makes this work, and this logic has a hard limit on the size of a <code class="computeroutput"><span class="keyword">struct</span></code> that it can operate on. There is a configuration
-      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm29963.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
+      macro <code class="computeroutput"><a class="link" href="../BOOST_PARSER_MAX__idm29979.html" title="Macro BOOST_PARSER_MAX_AGGREGATE_SIZE">BOOST_PARSER_MAX_AGGREGATE_SIZE</a></code>
       that you can adjust if the default value is too small. Note that turning this
       value up significantly can significantly increase compile times. Also, MSVC
       seems to have a hard time with large values; I successfully set this value
@@ -144,6 +144,13 @@
       the name of the template, so if you use it in your own code you would use it
       like <code class="computeroutput"><a class="link" href="../BOOST_PARSER_SUBRANGE.html" title="Macro BOOST_PARSER_SUBRANGE">BOOST_PARSER_SUBRANGE</a><span class="special">&lt;</span><span class="identifier">I</span><span class="special">&gt;</span></code>
       to instantiate it.
+    </p>
+<p>
+      Boost.Parser allows you to debug your parsers by passing <code class="computeroutput"><span class="identifier">trace</span><span class="special">::</span><span class="identifier">on</span></code> to
+      <code class="computeroutput"><a class="link" href="../boost/parser/parse_idm32573.html" title="Function template parse">parse()</a></code>. Sometimes, your run environment
+      does not include a terminal. If you're running Boost.Parser code in the Visual
+      Studio debugger, you can see this trace output in the Visual Studio debugger
+      output panel rather than in a terminal by defining <code class="computeroutput"><span class="identifier">BOOST_PARSER_TRACE_TO_VS_OUTPUT</span></code>.
     </p>
 </div>
 <div class="copyright-footer">Copyright © 2020 T. Zachary Laine<p>
