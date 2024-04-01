@@ -14,20 +14,26 @@ endif()
 
 add_custom_target(boost_clone_superproject
   DEPENDS
-    ${CMAKE_BINARY_DIR}/boost_root
+    ${CMAKE_BINARY_DIR}/boost_root/LICENSE_1_0.txt
   COMMENT
     "Cloning Boost superproject."
   VERBATIM)
 
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/boost_root
+  OUTPUT ${CMAKE_BINARY_DIR}/boost_root/LICENSE_1_0.txt
   COMMAND git clone --depth 100 -b ${BOOST_BRANCH}
     https://github.com/boostorg/boost.git boost_root
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+if (MSVC)
+  set(b2_exe b2.exe)
+else()
+  set(b2_exe b2)
+endif()
+
 add_custom_target(boost_clone_deps
   DEPENDS
-    ${CMAKE_BINARY_DIR}/boost_root/libs/headers/include
+    ${CMAKE_BINARY_DIR}/boost_root/${b2_exe}
   COMMENT
     "Cloning Boost dependencies."
   VERBATIM)
@@ -40,7 +46,7 @@ else()
 endif()
 
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/boost_root/libs/headers/include
+  OUTPUT ${CMAKE_BINARY_DIR}/boost_root/${b2_exe}
   COMMAND git submodule init libs/assert
   COMMAND git submodule init libs/config
   COMMAND git submodule init libs/core

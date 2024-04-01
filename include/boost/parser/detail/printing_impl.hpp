@@ -323,7 +323,7 @@ namespace boost { namespace parser { namespace detail {
         detail::print_directive(context, "raw", parser.parser_, os, components);
     }
 
-#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,

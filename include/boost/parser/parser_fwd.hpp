@@ -221,7 +221,7 @@ namespace boost { namespace parser {
     template<typename Parser>
     struct raw_parser;
 
-#if defined(BOOST_PARSER_DOXYGEN) || defined(__cpp_lib_concepts)
+#if defined(BOOST_PARSER_DOXYGEN) || BOOST_PARSER_USE_CONCEPTS
     /** Applies the given parser `p` of type `Parser`.  Regardless of the
         attribute produced by `Parser`, this parser's attribute is equivalent
         to `std::basic_string_view<char_type>` within a semantic action on

@@ -66,6 +66,9 @@ void compile_combining_groups()
 
 
 
+    // Apple Clang before 11 produces tuples containing const llong<N>s,
+    // causing these tests to spuriously fail.
+#if !(defined(__apple_build_version__) && __clang_major__ <= 11)
     // seq_parser >> seq_parser
     {
         constexpr auto parser = (char_ >> char_) >> (char_ >> char_);
@@ -195,4 +198,5 @@ void compile_combining_groups()
                           llong<2>,
                           llong<2>>>);
     }
+#endif
 }

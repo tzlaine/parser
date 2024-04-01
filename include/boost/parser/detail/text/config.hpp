@@ -27,7 +27,7 @@
 #define BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD 0
 #endif
 
-#if defined(__cpp_lib_ranges)
+#if BOOST_PARSER_USE_CONCEPTS
 namespace boost::parser::detail { namespace text { namespace detail {
     inline constexpr auto begin = std::ranges::begin;
     inline constexpr auto end = std::ranges::end;
@@ -36,7 +36,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 #include <boost/parser/detail/text/detail/begin_end.hpp>
 #endif
 
-#if defined(__cpp_lib_ranges)
+#if BOOST_PARSER_USE_CONCEPTS
 #    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE std::ranges::subrange
 #else
 #    include <boost/parser/subrange.hpp>

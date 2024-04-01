@@ -34,8 +34,10 @@ namespace deduction {
 }
 #endif
 
-// MSVC produces hard errors here, so ill_formed does not work.
-#if defined(__cpp_char8_t) && !defined(_MSC_VER)
+// MSVC and older Clangs produce hard errors here, so ill_formed does not
+// work.
+#if defined(__cpp_char8_t) && !defined(_MSC_VER) &&                            \
+    (!defined(__clang__) || 16 <= __clang__)
 char const empty_str[] = "";
 
 template<typename T>

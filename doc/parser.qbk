@@ -90,6 +90,7 @@
 [def _stream_eh_           [classref boost::parser::stream_error_handler `stream_error_handler`]]
 [def _cb_eh_               [classref boost::parser::callback_error_handler `callback_error_handler`]]
 [def _rethrow_eh_          [classref boost::parser::rethrow_error_handler `rethrow_error_handler`]]
+[def _vs_output_eh_        [classref boost::parser::vs_output_error_handler `vs_output_error_handler`]]
 
 [def _trace_               [enumref boost::parser::trace `boost::parser::trace`]]
 
@@ -268,7 +269,7 @@
 _Parser_ requires C++17 or later.  It is known to work with these compilers:
 
 * GCC 9 and later
-* Clang 10 and later (equivalent to XCode 10.3 and later)
+* Clang 11 and later (and XCode 10.3 and later)
 * Visual Studio 2019 and later
 
 [heading C++20 Support]

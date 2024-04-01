@@ -801,7 +801,7 @@ namespace boost::parser::detail { namespace text {
 
 }}
 
-#if defined(__cpp_lib_ranges)
+#if BOOST_PARSER_USE_CONCEPTS && defined(__cpp_lib_ranges)
 
 namespace std::ranges {
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS

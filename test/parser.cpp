@@ -1219,7 +1219,7 @@ int main()
             }
         }
 
-#if defined(__cpp_lib_concepts)
+#if BOOST_PARSER_USE_CONCEPTS
         // string_view
         {
             {
@@ -2805,7 +2805,7 @@ int main()
         }
 
 
-#if defined(__cpp_lib_concepts)
+#if BOOST_PARSER_USE_CONCEPTS
         // string_view_doc_example
         {
             namespace bp = boost::parser;

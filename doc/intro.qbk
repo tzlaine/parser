@@ -152,6 +152,12 @@ operational, _Parser_ defines _SUBRNG_.  This is the name of the template, so
 if you use it in your own code you would use it like `_SUBRNG_<I>` to
 instantiate it.
 
+_Parser_ allows you to debug your parsers by passing `trace::on` to _p_.
+Sometimes, your run environment does not include a terminal.  If you're
+running _Parser_ code in the Visual Studio debugger, you can see this trace
+output in the Visual Studio debugger output panel rather than in a terminal by
+defining `BOOST_PARSER_TRACE_TO_VS_OUTPUT`.
+
 [endsect]
 
 [section This Library's Relationship to Boost.Spirit]

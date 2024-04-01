@@ -3,6 +3,9 @@
 
 #include <boost/parser/error_handling_fwd.hpp>
 #include <boost/parser/detail/printing.hpp>
+#ifdef _MSC_VER
+#include <boost/parser/detail/vs_output_stream.hpp>
+#endif
 
 #include <boost/parser/detail/text/algorithm.hpp>
 #include <boost/parser/detail/text/transcode_iterator.hpp>
@@ -90,6 +93,7 @@ namespace boost { namespace parser {
         detail::trace_input(os, position.line_start, it, false, 1u << 31);
         if (it == last) {
             os << '\n' << underlining << "^\n";
+            os.rdbuf()->pubsync();
             return os;
         }
 
@@ -104,6 +108,7 @@ namespace boost { namespace parser {
         detail::trace_input(os, it, line_end, false, limit - i);
 
         os << '\n' << underlining << '\n';
+        os.rdbuf()->pubsync();
 
         return os;
     }
@@ -281,6 +286,25 @@ namespace boost { namespace parser {
             Context const & context) const
         {}
     };
+
+#if defined(_MSC_VER) || defined(BOOST_PARSER_DOXYGEN)
+    /** An error handler that prints to the Visual Studio debugger via calls
+        to `OutputDebugString()`. */
+    struct vs_output_error_handler : stream_error_handler
+    {
+        vs_output_error_handler() :
+            stream_error_handler{"", detail::vs_cout, detail::vs_cout}
+        {}
+
+        vs_output_error_handler(std::string_view filename) :
+            stream_error_handler{filename, detail::vs_cout, detail::vs_cout}
+        {}
+
+        vs_output_error_handler(std::wstring_view filename) :
+            stream_error_handler{filename, detail::vs_cout, detail::vs_cout}
+        {}
+    };
+#endif
 
 
     // implementations
