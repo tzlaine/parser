@@ -44,10 +44,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
     add_definitions(-Wall)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
     add_definitions(-Wall)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL MSVC)
+elseif (MSVC)
     add_definitions(/W3)
+    add_compile_options(/Zc:__cplusplus)
 endif ()
-
 
 ##################################################
 # Build config
