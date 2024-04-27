@@ -40,14 +40,40 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CXX_STD 17 CACHE STRING "Set to 14, 17, etc., to enable C++14, C++17, etc.")
 message("-- Using -std=c++${CXX_STD}")
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    add_definitions(-Wall)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    add_definitions(-Wall)
-elseif (MSVC)
+
+# the following code will fail for clang-cl as it returns Clang but requires MSVC style
+# if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#     add_definitions(-Wall)
+# if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+#     add_definitions(-Wall)
+# elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#     add_definitions(-Wall)
+# elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+#     add_definitions(/W3)
+#     add_compile_options(/Zc:__cplusplus)
+# endif ()
+#
+# 
+# to just check the different frontend flavours we could use the following code
+if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    get_filename_component(CNAME "${CMAKE_CXX_COMPILER}" NAME)
+    message(STATUS "Detected MSVC style compiler frontend '" ${CNAME} "'")
     add_definitions(/W3)
-    add_compile_options(/Zc:__cplusplus)
+    add_compile_options(/Zc:__cplusplus) # not sure, if it necessary for clang-cl
+elseif (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    get_filename_component(CNAME "${CMAKE_CXX_COMPILER}" NAME)
+    message(STATUS "Detected GNU style compiler frontend '" ${CNAME} "'")
+    add_definitions(-Wall)
 endif ()
+
+# alternatively the boolean variable 'MSVC' is equivalent to 'if (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")'
+# summary for a more detailed analysis (https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html#variables-that-provide-information):
+# CMAKE_CXX_COMPILER_ID: Clang, GNU, MSVC
+# CMAKE_CXX_COMPILER_FRONTEND_VARIANT: GNU, MSVC
+# CMAKE_CXX_SIMULATE_ID: MSVC (for Microsoft clang and clang-cl as they use the MSVC runtime)
+# CMAKE_CXX_PLATFORM_ID: Windows, Darwin, MinGW, MSYS, Linux, UNIX, ...
+# Variables that describe the system (https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html#variables-that-describe-the-system)
+
 
 ##################################################
 # Build config
