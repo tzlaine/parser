@@ -3183,8 +3183,8 @@ namespace boost::parser::detail { namespace text {
                 buf_index_ = 0;
                 buf_last_ = uint8_t(it - buf_.begin());
             } else {
-                auto buf = buf_;
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                auto buf = buf_;
                 try {
 #endif
                     char32_t cp = decode_code_point();
@@ -3220,8 +3220,8 @@ namespace boost::parser::detail { namespace text {
                 buf_index_ = buf_last_ - 1;
                 to_increment_ = (int)std::distance(curr(), initial);
             } else {
-                auto buf = buf_;
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+                auto buf = buf_;
                 try {
 #endif
                     char32_t cp = decode_code_point_reverse();
