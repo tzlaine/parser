@@ -3998,15 +3998,14 @@ namespace boost { namespace parser {
             auto operator()(
                 T result_merging_indices_and_prev_group, U x_and_group) const
             {
-                using namespace literals;
                 using detail::merge_wrap;
                 using detail::merge_kind;
 
-                auto x = parser::get(x_and_group, 0_c);
-                auto group = parser::get(x_and_group, 1_c);
+                auto x = parser::get(x_and_group, llong<0>{});
+                auto group = parser::get(x_and_group, llong<1>{});
 
                 auto result =
-                    parser::get(result_merging_indices_and_prev_group, 0_c);
+                    parser::get(result_merging_indices_and_prev_group, llong<0>{});
                 using result_back_type =
                     typename std::decay_t<decltype(detail::hl::back(
                         result))>::type;
@@ -4014,11 +4013,11 @@ namespace boost { namespace parser {
                     detail::unwrapped_optional_t<result_back_type>;
 
                 auto merging =
-                    parser::get(result_merging_indices_and_prev_group, 1_c);
+                    parser::get(result_merging_indices_and_prev_group, llong<1>{});
                 auto indices =
-                    parser::get(result_merging_indices_and_prev_group, 2_c);
+                    parser::get(result_merging_indices_and_prev_group, llong<2>{});
                 auto prev_group =
-                    parser::get(result_merging_indices_and_prev_group, 3_c);
+                    parser::get(result_merging_indices_and_prev_group, llong<3>{});
 
                 using x_type = typename decltype(x)::type;
                 using unwrapped_optional_x_type =
@@ -4167,16 +4166,15 @@ namespace boost { namespace parser {
             auto operator()(
                 T final_types_and_result, U x_index_and_prev_merged) const
             {
-                using namespace literals;
                 using detail::merge_wrap;
                 using detail::merge_kind;
 
-                auto final_types = parser::get(final_types_and_result, 0_c);
-                auto result = parser::get(final_types_and_result, 1_c);
+                auto final_types = parser::get(final_types_and_result, llong<0>{});
+                auto result = parser::get(final_types_and_result, llong<1>{});
 
-                auto x_type_wrapper = parser::get(x_index_and_prev_merged, 0_c);
-                auto index = parser::get(x_index_and_prev_merged, 1_c);
-                auto prev_merged = parser::get(x_index_and_prev_merged, 2_c);
+                auto x_type_wrapper = parser::get(x_index_and_prev_merged, llong<0>{});
+                auto index = parser::get(x_index_and_prev_merged, llong<1>{});
+                auto prev_merged = parser::get(x_index_and_prev_merged, llong<2>{});
 
                 auto type_at_index_wrapper = parser::get(final_types, index);
                 using x_type = typename decltype(x_type_wrapper)::type;
@@ -4235,8 +4233,6 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            using namespace literals;
-
             detail::
                 dummy_use_parser_t<Iter, Sentinel, Context, SkipParser> const
                     dummy_use_parser(
@@ -4271,13 +4267,13 @@ namespace boost { namespace parser {
 
             // Unwrap the result tuple's types.
             constexpr auto result_type_wrapped =
-                parser::get(combined_types{}, 0_c);
+                parser::get(combined_types{}, llong<0>{});
             using result_type = decltype(detail::hl::transform(
                 result_type_wrapped, detail::unwrap{}));
 
-            using indices = decltype(parser::get(combined_types{}, 2_c));
+            using indices = decltype(parser::get(combined_types{}, llong<2>{}));
             using first_pass_merged =
-                decltype(parser::get(combined_types{}, 1_c));
+                decltype(parser::get(combined_types{}, llong<1>{}));
 
             constexpr auto find_merged_start =
                 detail::hl::make_tuple(result_type_wrapped, tuple<>{});
@@ -4288,7 +4284,7 @@ namespace boost { namespace parser {
                 find_merged{}));
 
             return detail::hl::make_tuple(
-                result_type{}, indices{}, parser::get(merged{}, 1_c));
+                result_type{}, indices{}, parser::get(merged{}, llong<1>{}));
         }
 
         template<
