@@ -47,11 +47,14 @@ namespace boost::parser::detail {
         // One-byte fast path.
         if (cp < 0x100) {
             // ASCII letter fast path.
-            if (0x61 <= cp && cp <= 0x7a) {
-                *out++ = cp;
-                return out;
-            } else if (0x41 <= cp && cp <= 0x5a) {
+            if (0x41 <= cp && cp <= 0x5a) {
+                // upper case ASCII letters
                 *out++ = cp + 0x20;
+                return out;
+            } else if (cp < 0xb5) {
+                // nothing else is mapped before 0xb5
+                // https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt
+                *out++ = cp;
                 return out;
             } else if (cp == 0x00DF) {
                 // The lone multi-mapping below 0x100.
