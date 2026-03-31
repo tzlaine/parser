@@ -44,16 +44,25 @@ namespace boost::parser::detail {
     template<typename I>
     I case_fold(char32_t cp, I out)
     {
+        // punctuation, braces, spaces...
+        if (cp < 0x41) {
+            *out++ = cp;
+            return out;
+        }
+        // upper case ASCII letters
+        if (cp <= 0x5a) {
+            *out++ = cp + 0x20;
+            return out;
+        }
+        // nothing else is mapped before 0xb5
+        // https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt
+        if (cp < 0xb5) {
+            *out++ = cp;
+            return out;
+        }
         // One-byte fast path.
         if (cp < 0x100) {
-            // ASCII letter fast path.
-            if (0x61 <= cp && cp <= 0x7a) {
-                *out++ = cp;
-                return out;
-            } else if (0x41 <= cp && cp <= 0x5a) {
-                *out++ = cp + 0x20;
-                return out;
-            } else if (cp == 0x00DF) {
+            if (cp == 0x00DF) {
                 // The lone multi-mapping below 0x100.
                 *out++ = 0x0073;
                 *out++ = 0x0073;
