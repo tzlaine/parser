@@ -3396,7 +3396,6 @@ namespace boost { namespace parser {
             template<typename Parser>
             auto operator()(Parser const & parser) const
             {
-                detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
                 return parser.call(
                     first_,
@@ -3410,7 +3409,6 @@ namespace boost { namespace parser {
             template<typename Parser, typename Attribute>
             void operator()(Parser const & parser, Attribute & retval) const
             {
-                detail::skip(first_, last_, skip_, flags_);
                 success_ = true; // In case someone earlier already failed...
 
                 detail::apply_parser(
@@ -3539,6 +3537,8 @@ namespace boost { namespace parser {
                 else
                     use_parser.first_ = prev_first;
             };
+            detail::skip(first, last, skip, flags);
+
             std::apply([&try_parser](auto&&... args) {
                 ((try_parser(args)), ...);
             }, parsers_);
