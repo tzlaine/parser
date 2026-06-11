@@ -104,7 +104,7 @@ namespace std::ranges {
         true;
 }
 
-#elif defined(__cpp_lib_concepts)
+#elif defined(__cpp_lib_concepts) && defined(__cpp_lib_ranges)
 
 // In C++20 builds that do not use the library's concepts code path (Clang
 // 13-15, or BOOST_PARSER_DISABLE_CONCEPTS), detail::text::detail::all()
@@ -112,7 +112,12 @@ namespace std::ranges {
 // move-only owning_view.  subrange is a borrowed view (a non-owning
 // iterator/sentinel pair), so opt it in explicitly; otherwise ranges built
 // on top of it (e.g. null_term(p) | as_utf16) become move-only and break
-// copy-requiring code paths such as transform_replace.
+// copy-requiring code paths such as transform_replace.  The
+// __cpp_lib_ranges check matters: some libc++ versions (e.g. Apple's in
+// Xcode 13.4-15.0) define __cpp_lib_concepts without shipping std::ranges,
+// so neither enable_view nor std::ranges::view exists there.
+#include <ranges>
+
 namespace std::ranges {
     template<typename I, typename S>
     inline constexpr bool enable_borrowed_range<boost::parser::subrange<I, S>> =
