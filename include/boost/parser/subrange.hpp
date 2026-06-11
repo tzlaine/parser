@@ -104,6 +104,23 @@ namespace std::ranges {
         true;
 }
 
+#elif defined(__cpp_lib_concepts)
+
+// In C++20 builds that do not use the library's concepts code path (Clang
+// 13-15, or BOOST_PARSER_DISABLE_CONCEPTS), detail::text::detail::all()
+// still uses std::ranges::view to decide whether to wrap a range in a
+// move-only owning_view.  subrange is a borrowed view (a non-owning
+// iterator/sentinel pair), so opt it in explicitly; otherwise ranges built
+// on top of it (e.g. null_term(p) | as_utf16) become move-only and break
+// copy-requiring code paths such as transform_replace.
+namespace std::ranges {
+    template<typename I, typename S>
+    inline constexpr bool enable_borrowed_range<boost::parser::subrange<I, S>> =
+        true;
+    template<typename I, typename S>
+    inline constexpr bool enable_view<boost::parser::subrange<I, S>> = true;
+}
+
 #endif
 
 #endif
