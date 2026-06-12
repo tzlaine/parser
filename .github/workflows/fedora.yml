@@ -26,8 +26,26 @@ jobs:
             cxx_std: 23
           - cxx: clang-16
             cxx_std: 23
+        # Test the distro's current clang against the current libstdc++ on
+        # fedora:latest; the versioned-clang jobs are pinned to Fedora 43
+        # (see 'container:' below).
+        include:
+          - cxx: clang
+            cxx_std: 17
+            container: docker.io/library/fedora:latest
+          - cxx: clang
+            cxx_std: 20
+            container: docker.io/library/fedora:latest
+          - cxx: clang
+            cxx_std: 23
+            container: docker.io/library/fedora:latest
     runs-on: ubuntu-latest
-    container: docker.io/library/fedora:latest
+    # Fedora 44 ships libstdc++ from GCC 16, whose <bits/stl_iterator.h>
+    # (hidden-friend __normal_iterator operators) does not compile with
+    # clang < 19: "member access into incomplete type".  Pin the versioned
+    # clang jobs (15-18) to Fedora 43, which ships libstdc++ 15.  Revisit
+    # the pin when the oldest tested clang is >= 19.
+    container: ${{ matrix.container || 'docker.io/library/fedora:43' }}
 
     steps:
       - name: Install Dependencies
@@ -35,6 +53,10 @@ jobs:
           case "${{ matrix.cxx }}" in
             gcc)
               dnf install -y gcc-c++
+              ;;
+            clang)
+              # distro's current clang (used on fedora:latest)
+              dnf install -y clang gcc-c++
               ;;
             clang-16)
               # the llvm-compat-packages copr lacks clang-16 for some reason
@@ -70,6 +92,10 @@ jobs:
             gcc)
               export CC=gcc
               export CXX=g++
+              ;;
+            clang)
+              export CC=clang
+              export CXX=clang++
               ;;
             clang-*)
               export CC="${{ matrix.cxx }}"

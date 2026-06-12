@@ -11,7 +11,8 @@
 #include <boost/parser/detail/detection.hpp>
 
 #include <array>
-#if BOOST_PARSER_USE_CONCEPTS
+#if BOOST_PARSER_USE_CONCEPTS ||                                               \
+    (defined(__cpp_lib_concepts) && defined(__cpp_lib_ranges))
 #include <ranges>
 #endif
 
@@ -41,8 +42,12 @@ namespace boost::parser::detail::text::detail {
 
     template<typename R>
     constexpr bool view =
+// __cpp_lib_concepts alone does not imply that std::ranges exists: Apple's
+// libc++ (Xcode 13.4-15.0) and LLVM libc++ 14/15 define __cpp_lib_concepts
+// but not __cpp_lib_ranges, and ship no (or incomplete) std::ranges.  Fall
+// back to the heuristic below unless the ranges library is really there.
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS ||                                   \
-    (defined(__cpp_lib_concepts) &&                                            \
+    (defined(__cpp_lib_concepts) && defined(__cpp_lib_ranges) &&               \
      (!defined(BOOST_PARSER_GCC) || 12 <= __GNUC__))
         std::ranges::view<R>
 #else

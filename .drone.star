@@ -41,8 +41,11 @@ def main(ctx):
         compiler='gcc-12',    cxxstd='17,20', os='ubuntu-22.04'),
     job(name='TSAN',  tsan=True,
         compiler='gcc-12',    cxxstd='17,20', os='ubuntu-22.04'),
-    job(name='Clang 14 w/ sanitizers', asan=True, ubsan=True,
-        compiler='clang-14',  cxxstd='17', os='ubuntu-22.04'),
+    # clang >= 18 is required here: older ASan runtimes crash randomly under
+    # the high-entropy ASLR of the CI runners' kernels.
+    # See https://github.com/google/sanitizers/issues/1716
+    job(name='Clang 18 w/ sanitizers', asan=True, ubsan=True,
+        compiler='clang-18',  cxxstd='17', os='ubuntu-24.04'),
     job(name='Clang 11 libc++ w/ sanitizers', asan=True, ubsan=True, # libc++-11 is the latest working with ASAN: https://github.com/llvm/llvm-project/issues/59432
         compiler='clang-11',  cxxstd='17', os='ubuntu-20.04', stdlib='libc++', install='libc++-11-dev libc++abi-11-dev'),
 
