@@ -27,11 +27,13 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 #endif
 
     template<typename T, format F>
-    concept code_unit = (std::same_as<T, char8_t> && F == format::utf8) ||
+    concept code_unit = (std::same_as<T, char> && F == format::utf8) ||
+                        (std::same_as<T, wchar_t> && F == wchar_t_format) ||
+#if defined(__cpp_char8_t)
+                        (std::same_as<T, char8_t> && F == format::utf8) ||
+#endif
                         (std::same_as<T, char16_t> && F == format::utf16) ||
-                        (std::same_as<T, char32_t> && F == format::utf32) ||
-                        (std::same_as<T, char> && F == format::utf8) ||
-                        (std::same_as<T, wchar_t> && F == wchar_t_format);
+                        (std::same_as<T, char32_t> && F == format::utf32);
 
     template<typename T>
     concept utf8_code_unit = code_unit<T, format::utf8>;

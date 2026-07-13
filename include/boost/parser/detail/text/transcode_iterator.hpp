@@ -976,7 +976,7 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-32 to UTF-8. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<char8_t> Iter>
+    template<std::output_iterator<char8_type> Iter>
 #else
     template<typename Iter>
 #endif
@@ -1501,7 +1501,7 @@ namespace boost::parser::detail { namespace text {
 
     /** An out iterator that converts UTF-16 to UTF-8. */
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
-    template<std::output_iterator<char8_t> Iter>
+    template<std::output_iterator<char8_type> Iter>
 #else
     template<typename Iter>
 #endif
@@ -2295,11 +2295,13 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
 
 namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 {
 
+#if defined(__cpp_char8_t)
     template<std::output_iterator<char8_t> O>
     constexpr utf_32_to_8_out_iterator<O> utf_32_to_8_out(O it)
     {
         return utf_32_to_8_out_iterator<O>(it);
     }
+#endif
 
     template<std::output_iterator<char32_t> O>
     constexpr utf_8_to_32_out_iterator<O> utf_8_to_32_out(O it)
@@ -2319,11 +2321,13 @@ namespace boost::parser::detail { namespace text { BOOST_PARSER_DETAIL_TEXT_NAME
         return utf_16_to_32_out_iterator<O>(it);
     }
 
+#if defined(__cpp_char8_t)
     template<std::output_iterator<char8_t> O>
     constexpr utf_16_to_8_out_iterator<O> utf_16_to_8_out(O it)
     {
         return utf_16_to_8_out_iterator<O>(it);
     }
+#endif
 
     template<std::output_iterator<char16_t> O>
     constexpr utf_8_to_16_out_iterator<O> utf_8_to_16_out(O it)
