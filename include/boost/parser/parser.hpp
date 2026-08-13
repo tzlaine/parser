@@ -1193,9 +1193,14 @@ namespace boost { namespace parser {
         constexpr bool is_range =
             is_detected_v<has_begin, T> && is_detected_v<has_end, T>;
 
+#if BOOST_PARSER_USE_CONCEPTS
         template<typename T>
-        using has_push_back =
-            decltype(std::declval<T &>().push_back(*std::declval<T>().begin()));
+        concept has_push_back = requires(T & t) { t.push_back(*t.begin()); };
+#else
+        template<typename T>
+        using has_push_back = decltype(
+            std::declval<T &>().push_back(*std::declval<T &>().begin()));
+#endif
 
 #if BOOST_PARSER_USE_CONCEPTS
 
@@ -1457,7 +1462,11 @@ namespace boost { namespace parser {
         template<typename Container, typename T>
         void insert(Container & c, T && x)
         {
+#if BOOST_PARSER_USE_CONCEPTS
+            if constexpr (has_push_back<Container>) {
+#else
             if constexpr (is_detected_v<has_push_back, Container>) {
+#endif
                 c.push_back((T &&) x);
             } else {
                 c.insert((T &&) x);
