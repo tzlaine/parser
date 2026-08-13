@@ -8,6 +8,48 @@
 
 using namespace boost::parser;
 
+#if defined(__cpp_explicit_this_parameter)
+#    define BOOST_PARSER_TEST_EXPLICIT_THIS 1
+#elif defined(__clang__)
+#    if __has_extension(cxx_explicit_this_parameter)
+#        define BOOST_PARSER_TEST_EXPLICIT_THIS 1
+#    endif
+#endif
+
+#if defined(BOOST_PARSER_TEST_EXPLICIT_THIS)
+struct explicit_object_parameter_container
+{
+    using iterator = int *;
+
+    iterator begin(this explicit_object_parameter_container & self)
+    {
+        return self.values_;
+    }
+    iterator end(this explicit_object_parameter_container & self)
+    {
+        return self.values_ + self.size_;
+    }
+    iterator insert(iterator pos, int value)
+    {
+        *pos = value;
+        return pos;
+    }
+    void push_back(this explicit_object_parameter_container & self, int value)
+    {
+        self.values_[self.size_++] = value;
+    }
+
+    int values_[4] = {};
+    int size_ = 0;
+};
+
+void compile_explicit_object_parameter_container()
+{
+    explicit_object_parameter_container result;
+    parse("1 2", +int_, ws, result);
+}
+#endif
+
 void compile_attribute_non_unicode()
 {
     // range
@@ -985,6 +1027,9 @@ void compile_attribute_sentinel()
 
 void compile_attribute()
 {
+#if defined(BOOST_PARSER_TEST_EXPLICIT_THIS)
+    compile_explicit_object_parameter_container();
+#endif
     compile_attribute_non_unicode();
     compile_attribute_unicode_utf8();
     compile_attribute_unicode_utf32();
