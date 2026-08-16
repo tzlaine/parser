@@ -1,5 +1,8 @@
 name: Build+deploy to single_header.
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ "master" ]
