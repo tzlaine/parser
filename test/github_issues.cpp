@@ -811,6 +811,49 @@ void github_issue_317()
     BOOST_TEST(r.has_value());
 }
 
+void github_issue_327()
+{
+    namespace bp = boost::parser;
+    auto const chars = bp::char_ >> bp::char_;
+
+    {
+        std::u32string result;
+        bool const success = bp::parse(std::u32string{U"ab"}, chars, result);
+        BOOST_TEST(success);
+        BOOST_TEST(result == U"ab");
+    }
+    {
+        std::u32string result;
+        bool const success = bp::parse(std::string{"ab"}, chars, result);
+        BOOST_TEST(success);
+        BOOST_TEST(result == U"ab");
+    }
+    {
+        std::u32string const input{U"\u00e9\U0001F600"};
+        std::u32string result;
+        bool const success = bp::parse(input, chars, result);
+        BOOST_TEST(success);
+        BOOST_TEST(result == input);
+    }
+    {
+        std::u32string const input{U"\u00e9\U0001F600"};
+        std::string result;
+        bool const success = bp::parse(input, chars, result);
+        BOOST_TEST(success);
+        BOOST_TEST(result == "\xC3\xA9\xF0\x9F\x98\x80");
+    }
+#if defined(__cpp_char8_t)
+    {
+        std::u32string const input{U"\u00e9\U0001F600"};
+        std::u8string result;
+        bool const success = bp::parse(input, chars, result);
+        BOOST_TEST(success);
+        BOOST_TEST(result == u8"\u00e9\U0001F600");
+    }
+#endif
+}
+
+
 int main()
 {
     github_issue_36();
@@ -830,5 +873,6 @@ int main()
     github_pr_297();
     github_issue_312();
     github_issue_317();
+    github_issue_327();
     return boost::report_errors();
 }
