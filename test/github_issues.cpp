@@ -777,6 +777,39 @@ void github_issue_312()
     BOOST_TEST(result.value()->evaluate() == ((2*0.1) + 33.) * (2 + 3) + 3.1415 * 2);
 }
 
+namespace github_issue_317_ {
+    namespace bp = boost::parser;
+
+    struct Val;
+    using ValsStorage = std::vector<Val>;
+    struct Vals : ValsStorage { using ValsStorage::ValsStorage; };
+
+    struct Val : std::variant<int, Vals> {
+        using base = std::variant<int, Vals>;
+        using base::base;
+        using base::operator=;
+        bool negated = false;
+    };
+
+    bp::rule<struct NumTag,  int>   const num  {"number"};
+    bp::rule<struct ValsTag, Vals>  const vals {"vals"};
+    bp::rule<struct ValTag,  Val>   const val  {"val"};
+
+    auto const num_def  = bp::int_;
+    auto const vals_def = bp::lit("vals") > '(' > val % ',' > ')';
+    auto const val_def  = vals | num;
+    BOOST_PARSER_DEFINE_RULES(num, vals, val);
+}
+
+void github_issue_317()
+{
+    // Pattern: recursive variant-derived type with vector-inheriting alternatives.
+    namespace bp = boost::parser;
+    using namespace github_issue_317_;
+
+    auto r = bp::parse("42", val, bp::ws);
+    BOOST_TEST(r.has_value());
+}
 
 int main()
 {
@@ -796,5 +829,6 @@ int main()
     github_issue_294();
     github_pr_297();
     github_issue_312();
+    github_issue_317();
     return boost::report_errors();
 }
