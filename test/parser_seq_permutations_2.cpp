@@ -368,5 +368,15 @@ int main()
                 std::nullopt)));
     }
 
+    {
+        // From Github issue #292.
+        auto result = bp::parse(
+            "hallo",
+            bp::lit(U"hallo") >> -(bp::lit(u"there") >>
+                                   -(bp::lit(U"Markus") >> bp::attr(true))));
+        BOOST_TEST(result);
+        BOOST_TEST(*result == std::optional<bool>());
+    }
+
     return boost::report_errors();
 }
