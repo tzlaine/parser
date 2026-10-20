@@ -14,6 +14,7 @@
 #define BOOST_PARSER_DEBUG_ASSERT(condition) ((void)0)
 #else
 #include <cassert>
+#define BOOST_ASSERT(condition) assert(condition)
 #define BOOST_PARSER_DEBUG_ASSERT(condition) assert(condition)
 #endif
 

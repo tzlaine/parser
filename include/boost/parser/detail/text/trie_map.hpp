@@ -479,7 +479,7 @@ namespace boost::parser::detail { namespace text {
         template<typename KeyElementT>
         match_result extend_match(match_result prev, KeyElementT e) const
         {
-            BOOST_PARSER_ASSERT(prev.match);
+            BOOST_ASSERT(prev.match);
             auto e_ptr = &e;
             auto const retval = extend_subsequence_impl(prev, e_ptr, e_ptr + 1);
             return back_up_to_match(retval);
@@ -492,7 +492,7 @@ namespace boost::parser::detail { namespace text {
         match_result
         extend_match(match_result prev, KeyIter first, Sentinel last) const
         {
-            BOOST_PARSER_ASSERT(prev.match);
+            BOOST_ASSERT(prev.match);
             auto const retval = extend_subsequence_impl(prev, first, last);
             return back_up_to_match(retval);
         }
@@ -1012,8 +1012,8 @@ namespace boost::parser::detail { namespace text {
 
         const_trie_map_iterator(trie_match_result match_result)
         {
-            BOOST_PARSER_ASSERT(match_result.node);
-            BOOST_PARSER_ASSERT(match_result.match);
+            BOOST_ASSERT(match_result.node);
+            BOOST_ASSERT(match_result.match);
             auto node = static_cast<detail::trie_node_t<
                 detail::index_within_parent_t,
                 Key,
