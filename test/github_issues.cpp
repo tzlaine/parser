@@ -287,6 +287,16 @@ void github_issue_223()
     }
 }
 
+void github_issue_236()
+{
+    namespace bp = boost::parser;
+    auto const p{bp::double_ % ','};
+    std::string_view in;
+    std::vector<double> out;
+    auto inpos{in.begin()};
+    bp::prefix_parse(inpos, in.end(), p, bp::blank, out);
+}
+
 namespace github_issue_248_ {
     namespace bp = boost::parser;
 
@@ -864,6 +874,7 @@ int main()
     github_issue_125();
     github_issue_209();
     github_issue_223();
+    github_issue_236();
     github_issue_248();
     github_issue_268();
     github_issue_279();
