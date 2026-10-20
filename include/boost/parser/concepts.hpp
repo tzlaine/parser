@@ -22,7 +22,9 @@ namespace boost { namespace parser {
     concept code_unit =
         std::same_as<std::remove_cv_t<T>, char> ||
         std::same_as<std::remove_cv_t<T>, wchar_t> ||
+#if defined(__cpp_char8_t)
         std::same_as<std::remove_cv_t<T>, char8_t> ||
+#endif
         std::same_as<std::remove_cv_t<T>, char16_t>||
         std::same_as<std::remove_cv_t<T>, char32_t>;
 

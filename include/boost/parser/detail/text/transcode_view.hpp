@@ -375,8 +375,10 @@ namespace boost::parser::detail { namespace text {
     };
 
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if defined(__cpp_char8_t)
     template<class R>
     char8_view(R &&) -> char8_view<detail::all_t<R>>;
+#endif
     template<class R>
     char16_view(R &&) -> char16_view<detail::all_t<R>>;
     template<class R>
@@ -413,8 +415,10 @@ namespace boost::parser::detail { namespace text {
         template<class T>
         constexpr bool is_charn_view = false;
 #if BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS
+#if defined(__cpp_char8_t)
         template<class V>
         constexpr bool is_charn_view<char8_view<V>> = true;
+#endif
 #endif
         template<class V>
         constexpr bool is_charn_view<char16_view<V>> = true;
